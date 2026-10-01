@@ -1,4 +1,4 @@
-import { h } from 'vue'
+import { defineComponent, h, markRaw } from 'vue'
 import {
   Atom,
   Award,
@@ -195,14 +195,23 @@ export function iconByName(name) {
 const colored = new WeakMap()
 
 function coloredIcon(icon, color) {
-  if (!colored.has(icon)) colored.set(icon, new Map())
+  // A plain object keyed by colour, not a Map: this file imports Lucide's `Map`
+  // icon, which would shadow the global Map constructor.
+  if (!colored.has(icon)) colored.set(icon, Object.create(null))
   const byColor = colored.get(icon)
-  if (!byColor.has(color)) {
-    const component = (_, { attrs }) => h(icon, { ...attrs, style: { color } })
-    component.inheritAttrs = false
-    byColor.set(color, component)
+  if (!(color in byColor)) {
+    byColor[color] = markRaw(
+      defineComponent({
+        name: 'NodeIcon',
+        inheritAttrs: false,
+        setup:
+          (_, { attrs }) =>
+          () =>
+            h(icon, { ...attrs, style: { color } }),
+      }),
+    )
   }
-  return byColor.get(color)
+  return byColor[color]
 }
 
 // The component to hand to `:icon`, with the node's colour on it.
