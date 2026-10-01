@@ -37,7 +37,7 @@ GitHub. It's a view, not the source.
 A planner decides, per page, two things:
 
 - **Which model**: OUI-1 (cheap, fast, catalog-optimized) for a standard page; a stronger
-  general model for anything complex (new diagrams, interactive components).
+  general model (DeepSeek) for anything complex (new diagrams, interactive components).
 - **Catalog or escape**: compose the existing components, or reach for the sandboxed artifact.
 
 The router is what keeps normal pages cheap while still letting the hard ones exist.
