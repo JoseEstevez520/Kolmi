@@ -12,12 +12,12 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Page format** — each page stored as Markdown (canonical, chunks for the RAG) and as
-  declarative OpenUI Lang (rendered with `@openuidev/vue-lang` and an elastic-ui catalog);
-  generated through the Thesys C1 API (OUI-1).
-- [ ] **Evaluate page models** — generate the same briefs with OUI-1 and with a normal model
-  (both in OpenUI Lang), compare parser validity and output, and keep the winner as default
-  with the other as fallback. Model is config, not a branch.
+- [ ] **Page format** — source is OpenUI Lang (catalog plus a sandboxed escape-hatch artifact
+  for new visuals and interactive widgets), rendered with `@openuidev/vue-lang`; Markdown is
+  derived for the RAG. Generated through the Thesys C1 API.
+- [ ] **Router and model choice** — a planner picks the model (OUI-1 for catalog pages, a
+  stronger model for complex ones) and catalog vs escape. Evaluate OUI-1 against a strong
+  model on the same briefs; keep the winner as default and the other as fallback.
 - [ ] **Notes editor** — a clean, minimalist editor (headings, lists, code) so students take
   their notes right in the app, instead of a plain text box. Rich-text ready (`notes.format`).
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page.

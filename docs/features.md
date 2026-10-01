@@ -3,7 +3,7 @@
 An extension of what's already specified (login, notes and the nightly pass). Add a `role`
 column to `profiles` (`student` | `admin`).
 
-Pages are written by the AI and stored in two forms, Markdown and OpenUI Lang (see
+Pages are written by the AI as OpenUI Lang, with Markdown derived for the RAG (see
 [Page format](#page-format)).
 
 ## Content structure
@@ -16,25 +16,31 @@ For now all sections work the same.
 
 ## Page format
 
-Each page is stored in two forms:
+The source is **OpenUI Lang** (Thesys' open standard for generative UI): a compact, streaming,
+declarative format where every line is `id = Component(args)`. It can hold catalog components
+*and* a sandboxed escape-hatch component, so a page can carry a brand-new diagram or an
+interactive widget. It's data, not compiled code, so the chat can reuse it too.
 
-- **Markdown** (`content_md`) — the canonical, human-readable version (what you'd see on
-  GitHub). It chunks cleanly for the RAG.
-- **OpenUI Lang** (`content_web`) — the rendering version the frontend paints.
+The **Markdown is derived** from the page (text flattened, components dropped) for the RAG and
+GitHub. It's a view, not the source.
 
-The AI writes the Markdown first and derives the OpenUI Lang from it, so the two don't drift.
-
-OpenUI Lang (Thesys' open standard for generative UI) is a compact, streaming, declarative
-format where every line is `id = Component(args)`. It's data, not compiled code, so the chat
-can reuse it too.
-
-- The model only **composes our components**; it never runs code.
 - The catalog comes from elastic-ui (`Prose`, `CodeBlock`, `Callout`, `Diagram`…), and the
   system prompt is generated from it with `@openuidev/cli`.
+- The **escape hatch**: one catalog component (an artifact) whose prop is self-contained
+  HTML/SVG/JS, rendered in a sandboxed iframe, for what the catalog doesn't cover.
 - The frontend renders it with `@openuidev/vue-lang`.
-- The model is called through the **Thesys C1 API** (OpenAI-compatible, so the OpenAI SDK only
-  changes `base_url` and `model`): **OUI-1**, or any other model. OpenUI Gateway validates and
-  repairs the output.
+- Called through the **Thesys C1 API** (OpenAI-compatible, so the OpenAI SDK only changes
+  `base_url` and `model`). OpenUI Gateway validates and repairs the output.
+
+### Router
+
+A planner decides, per page, two things:
+
+- **Which model**: OUI-1 (cheap, fast, catalog-optimized) for a standard page; a stronger
+  general model for anything complex (new diagrams, interactive components).
+- **Catalog or escape**: compose the existing components, or reach for the sandboxed artifact.
+
+The router is what keeps normal pages cheap while still letting the hard ones exist.
 
 ## Features
 
