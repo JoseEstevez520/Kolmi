@@ -1,15 +1,15 @@
 # Backend
 
-API en Python + FastAPI. Todavía no hay código.
+Python + FastAPI API. No code yet.
 
-## Qué hará
+## What it will do
 
-- Validar el token de Supabase en cada petición.
-- Cuentas: `GET /perfil`, `POST /registro`, `POST /notas`, `GET /notas/mias`.
-- El job diario de agentes.
+- Validate the Supabase token on every request.
+- Accounts: `GET /profile`, `POST /register`, `POST /notes`, `GET /notes/mine`.
+- The daily agent job.
 
-El detalle de las cuentas está en [`../docs/autenticacion.md`](../docs/autenticacion.md).
+The account details are in [`../docs/authentication.md`](../docs/authentication.md).
 
-## Variables de entorno
+## Environment variables
 
-`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CODIGO_CLASE`. En `.env`, nunca en git.
+`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CLASS_CODE`. In `.env`, never in git.

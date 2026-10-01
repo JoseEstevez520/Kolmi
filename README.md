@@ -2,44 +2,57 @@
   <img src="assets/logo.svg" alt="Kolmi" width="120">
 </p>
 
-# Kolmi
+<h1 align="center">Kolmi</h1>
 
-**Aprende en colmena.**
+<p align="center"><strong>Learn as a hive.</strong></p>
 
-Apuntes colaborativos para una clase. Los alumnos dejan notas en crudo y un equipo de agentes
-las convierte en páginas de apuntes, sin que nadie tenga que tocar git ni Vue.
+Kolmi is a collaboration app for a class. Everyone contributes a little — a note, a doubt, an
+answer — and the AI turns it into shared notes. No one has to learn git or a framework to
+take part.
 
-El nombre viene de "colmena": cada uno aporta su parte y entre todos sale algo completo.
+## The thesis
 
-## Cómo funciona
+Learning is social. People learn by asking, explaining and building on each other's ideas,
+not alone. Vygotsky called it **social constructivism**: knowledge is co-constructed. Kolmi
+is a hive for that.
 
-1. Alguien deja una nota (texto libre) desde la web.
-2. La nota se guarda en privado, en el servidor.
-3. Una vez al día, un cron despierta al equipo de agentes.
-4. El portero junta las notas del mismo tema, quita nombres y datos, descarta lo que no
-   aporta y decide dónde va cada una.
-5. Los agentes de apuntes la redactan y el de la web la publica.
+> Everyone adds a drop; the class ends up with honeycomb.
 
-El detalle, en [docs/idea.md](docs/idea.md). La parte de cuentas y login, en
-[docs/autenticacion.md](docs/autenticacion.md). Cómo habla la app, en
-[docs/tono-de-marca.md](docs/tono-de-marca.md).
+## What it does today
 
-## Stack
+- Students log in and leave raw notes.
+- The hive works at night: once a day, a team of agents reads the new notes, groups them by
+  topic, strips names and private data, and turns them into shared notes and pages.
+- Raw notes stay private. Only the summary goes out.
 
-- **Backend**: Python + FastAPI, en un VPS.
-- **Base de datos y auth**: Supabase.
-- **Frontend**: Vue 3 + Vite.
-- **Agentes**: SDK de OpenAI; LangGraph si hacen falta bucles o aprobación.
+More ways to contribute are coming — a chat with the notes, forums, whatever the class needs.
+See [ROADMAP.md](ROADMAP.md).
 
-## Estado
+## Self-hosting
 
-Diseño. Todavía no hay código.
+Kolmi is self-hostable: each class runs its own instance (a small server and a Supabase
+project). Nothing is shared between classes. Setup will be documented in [`docs/`](docs/)
+once there is code.
 
-## Estructura
+## Status
+
+Design. No code yet.
+
+## Docs
+
+- [The idea](docs/idea.md)
+- [Authentication and users](docs/authentication.md)
+- [Brand tone](docs/brand-tone.md)
+
+## Structure
 
 ```
-backend/   - API en Python + FastAPI
-frontend/  - web en Vue 3 + Vite
-docs/      - la idea, las especificaciones y el tono de marca
-assets/    - logo y demás recursos
+backend/   - Python + FastAPI API
+frontend/  - Vue 3 + Vite web
+docs/      - the idea, specs and brand tone
+assets/    - logo and other resources
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).

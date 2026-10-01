@@ -1,87 +1,85 @@
-# La idea
+# The idea
 
-Los alumnos de una clase dejan notas en crudo y un equipo de agentes las convierte en
-apuntes y páginas. Sin código todavía: esto es el diseño.
+Students in a class leave raw notes and a team of agents turns them into shared notes and
+pages. No code yet: this is the design.
 
-## El problema
+## The problem
 
-Publicar un apunte a mano pide saber git y Vue, y la mayoría no lo hace aunque tenga algo
-que contar. La idea es que solo tengan que dejar la nota.
+Publishing a note by hand means knowing git and Vue, and most people don't, even when they
+have something to say. The idea is that they only have to leave the note.
 
-## Cómo funciona
+## How it works
 
-1. La nota se escribe donde sea cómodo (un bot de chat o una caja en la web), en texto libre
-   y sin formato.
-2. Se guarda **en privado**, en un servidor propio, fuera del repo. La nota en crudo no se
-   publica nunca.
-3. Un cron despierta al equipo de agentes una vez al día.
-4. El **portero** las revisa: junta las que hablan de lo mismo, quita nombres y datos de
-   compañeros, descarta lo que no aporta, y decide si entra y en qué módulo. Si eso ya está
-   en los apuntes, corrige; si no, añade.
-5. Los agentes de apuntes redactan lo que pasa el portero, y el de la web lo publica. La web
-   se reconstruye sola.
+1. The note is written wherever is comfortable (a chat bot or a box on the web), in free
+   text, with no format.
+2. It's stored **privately**, on our own server, outside the repo. The raw note is never
+   published.
+3. A cron wakes the agent team once a day.
+4. The **gatekeeper** reviews them: it joins the ones about the same topic, strips names and
+   classmate data, discards what doesn't add anything, and decides whether it goes in and
+   where. If it's already in the notes, it fixes it; if not, it adds it.
+5. The notes agents write what the gatekeeper passes, and the web one publishes it. The web
+   rebuilds itself.
 
-## El equipo
+## The team
 
-Son los mismos papeles de un equipo de agentes, repartidos así:
+They're the same roles as any agent team, split like this:
 
-| Agente | Qué hace |
+| Agent | What it does |
 |---|---|
-| Portero | conoce los cursos: anonimiza, junta duplicados, descarta y decide dónde va cada nota |
-| Apuntes | redacta la nota con el estilo de casa |
-| Web | la convierte en página o actualiza la que toca |
+| Gatekeeper | knows the courses: anonymizes, joins duplicates, discards and decides where each note goes |
+| Notes | writes the note in the house style |
+| Web | turns it into a page or updates the one it belongs to |
 
-El portero va primero: la nota en crudo no llega a los otros dos.
+The gatekeeper goes first: the raw note never reaches the other two.
 
-## Por qué en privado
+## Why private
 
-Un borrador puede llevar nombres o datos de compañeros, y lo que se publica una vez ya está
-copiado: clones, cachés, historial de git. Por eso la nota en crudo se queda en el servidor y
-lo único que sale es la síntesis, sin nombres. El portero es la puerta por la que pasa, no el
-que limpia después.
+A draft can carry names or classmate data, and what gets published once is already copied:
+clones, caches, git history. That's why the raw note stays on the server and only the summary
+goes out, without names. The gatekeeper is the door it goes through, not the one who cleans
+up after.
 
-## Cómo se montaría
+## How it would be built
 
-La infraestructura son dos piezas:
+The infrastructure is two pieces:
 
-- **El VPS**: la app web, el job diario y, más adelante, el chat. Opcionalmente, también
-  OpenCode en modo servidor.
-- **Supabase** (en la nube, gratis): login y base de datos con las notas, las páginas y sus
-  versiones. Si algún día quieres, se autoaloja en el VPS.
+- **The server**: the web app, the daily job and, later, the chat. Optionally, OpenCode in
+  server mode too.
+- **Supabase** (cloud, free): login and a database with the notes, the pages and their
+  versions. If you ever want, it self-hosts on the server.
 
-Los agentes se montan con el SDK de OpenAI. Se empieza con un script simple y se pasa a
-LangGraph (un framework para flujos de agentes con varios pasos) si hacen falta bucles o
-aprobación.
+The agents are built with the OpenAI SDK. Start with a simple script and move to LangGraph (a
+framework for multi-step agent flows) when loops or approval are needed.
 
-La parte de cuentas, login y registro tiene su propia especificación:
-[Autenticación y usuarios](autenticacion.md).
+The account side has its own spec: [Authentication](authentication.md).
 
-### Fase 1: notas y pasada diaria
+### Phase 1: notes and the daily pass
 
-Los alumnos inician sesión y dejan notas; no tocan las páginas. Un cron (el programador de
-tareas del servidor) lanza una vez al día el flujo de agentes: coge las notas pendientes, las
-agrupa por tema y las clasifica, redacta y revisa. De cada página se guarda la versión
-anterior, para poder volver atrás.
+Students log in and leave notes; they don't touch the pages. A cron (the server's task
+scheduler) runs the agent flow once a day: it takes the pending notes, groups them by topic
+and classifies, writes and reviews. Each page's previous version is saved, so you can go
+back.
 
-Cuesta céntimos al día.
+It costs cents a day.
 
-### Fase 2: chat con los apuntes (RAG)
+### Phase 2: chat with the notes (RAG)
 
-Un chatbot que responde preguntando a los apuntes, no a lo que recuerde el modelo. RAG es
-eso: buscar primero los trozos que hablan del tema y responder solo con ellos.
+A chatbot that answers by asking the notes, not by what the model remembers. RAG is that:
+find the chunks that talk about the topic first and answer only with them.
 
-- **Guardar**: con pgvector (una extensión de Postgres que guarda vectores) en Supabase, una
-  tabla de fragmentos con etiquetas, metadatos y embeddings (los números que representan el
-  significado de cada fragmento).
-- **Indexar**: al final de la pasada diaria, solo las páginas que han cambiado.
-- **Responder**: en cada pregunta se buscan los fragmentos parecidos y el LLM responde solo
-  con ellos, citando la página.
+- **Store**: with pgvector (a Postgres extension that stores vectors) on Supabase, a table of
+  chunks with tags, metadata and embeddings (the numbers that represent the meaning of each
+  chunk).
+- **Index**: at the end of the daily pass, only the pages that changed.
+- **Answer**: on each question, find the similar chunks and the LLM answers only with them,
+  citing the page.
 
-## Lo que hay que decidir
+## Open questions
 
-- Por dónde entran las notas: bot de chat o web.
-- Cuánto tiempo se guarda la nota en crudo una vez publicada su síntesis.
+- Where notes come in: chat bot or web.
+- How long the raw note is kept once its summary is published.
 
-## Estado
+## Status
 
-Sin código todavía. Es el diseño, por si alguien se anima a empezarlo.
+No code yet. It's the design, in case someone wants to start it.

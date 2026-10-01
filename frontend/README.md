@@ -1,22 +1,22 @@
 # Frontend
 
-Web en Vue 3 + Vite, partiendo de la web del repo de clase.
+Vue 3 + Vite web, starting from the class repo's web.
 
-## Estado
+## Status
 
-El código está traído como base, pero **no arranca tal cual**: importa el contenido de la
-clase (los `.md` de `modulos/` y `extra/` por rutas relativas), y ese contenido no está aquí.
-Antes de usarlo hay que adaptarlo:
+The code is here as a base, but it **doesn't run as is**: it imports the class content (the
+`.md` under `modulos/` and `extra/`, through relative paths), and that content isn't here.
+Before using it, adapt it:
 
-- Sustituir los imports de contenido por las páginas propias de Kolmi.
-- Ajustar `src/data/paginas.js` y el router a las pantallas de la app (login, dejar nota, mis
-  notas).
+- Replace the content imports with Kolmi's own pages.
+- Adjust `src/data/paginas.js` and the router to the app screens (login, leave a note, my
+  notes).
 
-## Arrancar
+## Run it
 
 ```bash
 npm install
 npm run dev
 ```
 
-Necesita Node 20 o superior. El diseño y las reglas, en [`design.md`](design.md).
+Needs Node 20 or higher. The design and rules are in [`design.md`](design.md).
