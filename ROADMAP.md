@@ -12,9 +12,9 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Page format: OpenUI Lang** — pages as declarative OpenUI Lang, rendered with
-  `@openuidev/vue-lang` and an elastic-ui catalog; generated through the Thesys C1 API
-  (OUI-1).
+- [ ] **Page format** — each page stored as Markdown (canonical, chunks for the RAG) and as
+  declarative OpenUI Lang (rendered with `@openuidev/vue-lang` and an elastic-ui catalog);
+  generated through the Thesys C1 API (OUI-1).
 - [ ] **Evaluate page models** — generate the same briefs with OUI-1 and with a normal model
   (both in OpenUI Lang), compare parser validity and output, and keep the winner as default
   with the other as fallback. Model is config, not a branch.

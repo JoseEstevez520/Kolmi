@@ -3,8 +3,8 @@
 An extension of what's already specified (login, notes and the nightly pass). Add a `role`
 column to `profiles` (`student` | `admin`).
 
-Pages are written by the AI as **OpenUI Lang** and rendered from our own component catalog
-(see [Page format](#page-format-openui-lang)).
+Pages are written by the AI and stored in two forms, Markdown and OpenUI Lang (see
+[Page format](#page-format)).
 
 ## Content structure
 
@@ -14,11 +14,19 @@ Example: "Programming" → "Class notes", "Extra" → pages.
 
 For now all sections work the same.
 
-## Page format: OpenUI Lang
+## Page format
 
-Pages are **OpenUI Lang** (Thesys' open standard for generative UI): a compact, streaming,
-declarative format where every line is `id = Component(args)`. It's data, not compiled code,
-so the RAG can index it and the chat can reuse it.
+Each page is stored in two forms:
+
+- **Markdown** (`content_md`) — the canonical, human-readable version (what you'd see on
+  GitHub). It chunks cleanly for the RAG.
+- **OpenUI Lang** (`content_web`) — the rendering version the frontend paints.
+
+The AI writes the Markdown first and derives the OpenUI Lang from it, so the two don't drift.
+
+OpenUI Lang (Thesys' open standard for generative UI) is a compact, streaming, declarative
+format where every line is `id = Component(args)`. It's data, not compiled code, so the chat
+can reuse it too.
 
 - The model only **composes our components**; it never runs code.
 - The catalog comes from elastic-ui (`Prose`, `CodeBlock`, `Callout`, `Diagram`…), and the
