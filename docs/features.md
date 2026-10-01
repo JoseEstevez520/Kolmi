@@ -3,8 +3,8 @@
 An extension of what's already specified (login, notes and the nightly pass). Add a `role`
 column to `profiles` (`student` | `admin`).
 
-Pages are web content built from components (the app's current format, don't change it). The
-AI writes them using the existing components.
+Pages are written by the AI as **OpenUI Lang** and rendered from our own component catalog
+(see [Page format](#page-format-openui-lang)).
 
 ## Content structure
 
@@ -13,6 +13,20 @@ Module → Sections (tabs) → Pages.
 Example: "Programming" → "Class notes", "Extra" → pages.
 
 For now all sections work the same.
+
+## Page format: OpenUI Lang
+
+Pages are **OpenUI Lang** (Thesys' open standard for generative UI): a compact, streaming,
+declarative format where every line is `id = Component(args)`. It's data, not compiled code,
+so the RAG can index it and the chat can reuse it.
+
+- The model only **composes our components**; it never runs code.
+- The catalog comes from elastic-ui (`Prose`, `CodeBlock`, `Callout`, `Diagram`…), and the
+  system prompt is generated from it with `@openuidev/cli`.
+- The frontend renders it with `@openuidev/vue-lang`.
+- The model is called through the **Thesys C1 API** (OpenAI-compatible, so the OpenAI SDK only
+  changes `base_url` and `model`): **OUI-1**, or any other model. OpenUI Gateway validates and
+  repairs the output.
 
 ## Features
 
@@ -81,5 +95,4 @@ For now all sections work the same.
 ## Out of scope
 
 - A visual page editor for the admin (the AI writes the content).
-- Changing the page format or the component system.
 - Forums.
