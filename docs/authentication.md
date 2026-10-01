@@ -82,7 +82,6 @@ never leaves the backend.
 - `@supabase/supabase-js` with the anon key (public), only for login.
 - After signing in, call `GET /profile`; if it returns 404, show the code and name screen.
 - Main screen: a form to leave a note and a list of "my notes".
-- Visible privacy line: "We use your email only so you can sign in to the class app."
 
 ## Manual setup
 

@@ -1,91 +1,55 @@
-# Sistema de diseño
+# Design system
 
-La web está hecha con [elastic-ui](#elastic-ui), la librería de componentes Vue de José.
-Las reglas de cómo usarla están en su `USAGE.md`: gris por defecto, un solo ancho, una
-sola cosa que se mueve a la vez, iconos solo donde ayudan, sin sombras propias. Este
-archivo solo recoge lo propio de esta web.
+The app is built with [elastic-ui](https://github.com/JoseEstevez520/elastic-ui), José's Vue
+component library. How it is used is in its `USAGE.md`: grey by default, one width, one thing
+moving at a time, icons only where they help, no shadows of our own. This file only covers
+what is Kolmi's.
 
-**Qué es de la librería y qué de la web**: cómo se ven y se comportan las cosas es de
-elastic-ui. Lo que se dice es de la web: los textos (en los `.md`), cada dibujo concreto,
-los guiones de las sesiones de agente y los datos (el horario, el árbol de páginas, los
-colores de las secciones). Si algo de la librería falla o falta, se le cuenta a la
-librería; no se arregla por encima desde aquí.
+**What is the library's and what is the app's**: how things look and behave is the library's.
+What is said is the app's: the texts, the screens and the small pieces the app adds (the
+sidebar, the page layout, the note cards). If something in the library breaks or is missing,
+it is reported there and not patched over from here.
 
 ## elastic-ui
 
-Está publicada en npm como `@joseestevez/vue-elastic-ui`. En este proyecto se usa bajo el
-alias `elastic-ui`, para que los `import` no cambien:
+Installed from the packed library, `vendor/elastic-ui-0.3.3.tgz`, under the alias
+`elastic-ui`:
 
 ```json
-"elastic-ui": "npm:@joseestevez/vue-elastic-ui@^0.3.1"
+"elastic-ui": "file:vendor/elastic-ui-0.3.3.tgz"
 ```
 
-El repo de la librería: [JoseEstevez520/elastic-ui](https://github.com/JoseEstevez520/elastic-ui).
+It ships no compiled CSS: `src/style.css` imports its tokens and points Tailwind at its
+components with `@source`. The library's own texts (screen-reader names, "On this page"…) are
+in English by default, so the app does not override them.
 
-No trae CSS compilado: `src/style.css` importa sus tokens y le dice a Tailwind que lea sus
-componentes (`@source`). Los textos que pone la librería por su cuenta (nombres para
-lectores de pantalla, "En esta página", "Paso 2 de 4"...) están en español en
-`src/main.js`, con `app.use(ElasticUi, { labels })`.
+## Colour
 
-## Estructura
+Grey by default. `--color-accent` in `src/style.css` is the same near-black as the text
+(near-white in the dark theme): the app has no accent colour. Colour only carries meaning:
+the outcomes (success, warning, danger) and the aurora, which is the library's and does not
+appear in phase 1.
 
-- **Barra lateral** (`Sidebar` conectada): solo las cuatro secciones (Inicio, Módulos,
-  Extra, Horario), con su icono.
-- **Cabecera** (`SidebarLayoutHeader`): las migas a la izquierda (`Breadcrumbs`, con las
-  demás páginas de cada nivel detrás del chevron), y el buscador y el tema a la derecha.
-  Las migas salen del árbol de páginas, que sigue las carpetas del repo
-  (`src/lib/arbolNav.js` y `src/lib/migas.js`).
-- **Entre páginas** (`PageTransition`): solo cambia el contenido, con un fundido corto. La
-  rayita de scroll (`ScrollIndicator`) se asoma en cada página nueva.
-- **Cada página** (`PlantillaPagina.vue`): un artículo a un solo ancho (`prose article`),
-  con su título, y en pantallas muy anchas el índice de sus títulos a la derecha.
+## Screens
 
-## Color
+- **Login**: "Sign in with Google", an email and password form, and links to Sign up and
+  Forgot my password.
+- **Register**: the class code and a display name, prefilled from the Google account when
+  there is one. Arriving from "Sign up" with no account yet, it asks for email and password
+  too.
+- **Notes**: a text box to leave a note and a grid of "my notes", each with its date and its
+  status (pending / processed / discarded) as a label in its outcome colour.
 
-Gris por defecto. `--color-accent` está en `src/style.css` con el mismo gris casi negro
-del texto (casi blanco en oscuro): la web no tiene color de acento.
+Login and Register sit in one `AuthLayout`: a card centred on the viewport, the Kolmi logo
+above the wordmark "Kolmi" and the slogan "Learn as a hive.", the theme toggle in a corner.
+Notes lives inside the app shell: the sidebar, the page's own header with the theme toggle,
+and only the content changing between pages.
 
-El color con significado de esta web:
+## Layout pieces
 
-- **Cada sección** tiene el suyo (Módulos azul, Extra verde azulado, IA violeta,
-  Herramientas ámbar, Diseño fucsia, Ideas de PFC verde lima, Horario rosa), en un
-  único sitio, [`src/lib/colorSeccion.js`](src/lib/colorSeccion.js). Solo se usa en los
-  iconos de las secciones (barra lateral y portada).
-- **Cada módulo** tiene el suyo en el horario (`src/visuales/horario.js`), el mismo en el
-  horario y en la tabla de módulos.
-- **Modelo violeta y harness cian** en todas las páginas de agentes.
-
-## Páginas
-
-Cada página es un componente en `src/views/` (la regla, en [AGENTS.md](AGENTS.md)), dentro
-de `PlantillaPagina`: un artículo con su título, una entradilla opcional y el índice, que
-saca solo de sus `h2` y `h3` con `id`. Dentro va HTML normal (`h2`, párrafos, listas,
-tablas), que la librería ya pinta con su tipografía, y sus piezas donde toca:
-
-| Para | Pieza |
+| Piece | For |
 |---|---|
-| páginas de una carpeta, enlaces a otras webs | tarjetas (`RejillaTarjetas` + `TarjetaPagina`) |
-| código | `CodeBlock` (con `title` si es un archivo, `wrap` si es texto) |
-| comandos que se ejecutan | `TerminalReplay` |
-| pasos para hacer algo | `Steps static` |
-| un aviso | `Callout` |
-| una comparación | tabla, o dos `CodeBlock` en `side-by-side` si son dos textos cortos |
-| detalles que no todos necesitan | `Accordion` |
-
-Las páginas de los módulos comparten `ModuloView` mientras no tengan apuntes.
-
-**Páginas en orden.** Las que se leen una detrás de otra (hoy, las de IA) forman una serie
-en [`src/data/series.js`](src/data/series.js). Cada página de la serie acaba con la anterior
-y la siguiente (`NavegacionSerie.vue`, dentro de `PlantillaPagina`), y la página de su
-carpeta las numera. En su `.md` de GitHub va lo mismo como una línea al final.
-
-## Piezas visuales (`src/visuales/`)
-
-Para lo que se entiende mejor viéndolo que leyéndolo. Cada página las importa donde las
-necesita. Cómo hacerlas: skill [apuntes-web](../../../.agents/skills/apuntes-web/SKILL.md).
-
-- **Dibujos** con `Diagram` y las clases de la librería (`diagram-area`, `diagram-chip`...):
-  `DiagramaHarness.vue` (qué es un agente) y `DiagramaAgentes.vue` (un equipo de agentes).
-- **Sesiones de agente** con `AgentReplay`: cada guion está en `src/visuales/sesiones.js` y
-  se pone con `<SesionAgente nombre="..." />`. Son inventados, y la página lo dice.
-- **Horario** con `Timetable`: `HorarioSemanal.vue` (y su PNG) y `HorarioModulos.vue`.
+| `AppSidebar` | the section list and sign out, in elastic-ui's connected sidebar |
+| `AuthLayout` | the centred card of Login and Register, with the mark and the theme toggle |
+| `PageLayout` | one article at a single width, with its title and lead line |
+| `CardGrid` + `PageCard` | a grid of cards, one per note or link: a text, and a footer with a date and a status label |

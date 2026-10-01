@@ -1,7 +1,7 @@
 {
-  "name": "web-del-repo",
+  "name": "kolmi-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,10 +10,9 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.47.0",
+    "@supabase/supabase-js": "^2.45.0",
     "elastic-ui": "file:vendor/elastic-ui-0.3.3.tgz",
-    "html-to-image": "^1.11.13",
     "motion-v": "^2.4.4",
-    "simple-icons": "^16.33.0",
     "vue": "^3.5.42",
     "vue-router": "^5.3.1"
   },
