@@ -1,16 +1,16 @@
 <script setup>
 import { ref } from 'vue'
-import { Button, ConfirmButton, Input } from 'elastic-ui'
-import { ArrowDown, ArrowUp, Check, Pencil, X } from '@lucide/vue'
+import { Badge, Button, ConfirmButton, Input } from 'elastic-ui'
+import { ArrowDown, ArrowUp, Check, X } from '@lucide/vue'
+import { nodeIcon } from '../lib/icons.js'
 
-// One module, section or page in the admin panel: its name, editable in place,
-// with move up, move down and a delete that asks first (ConfirmButton).
+// One node in the admin tree: its kind, its icon, its title editable in place,
+// the extra actions the tree gives it (edit, add inside), move up and move down,
+// and a delete that asks first (ConfirmButton).
 const props = defineProps({
-  value: { type: String, required: true },
+  node: { type: Object, required: true },
   canMoveUp: { type: Boolean, default: false },
   canMoveDown: { type: Boolean, default: false },
-  renameLabel: { type: String, default: 'Rename' },
-  deleteLabel: { type: String, default: 'Delete' },
   rename: { type: Function, required: true },
   moveUp: { type: Function, default: null },
   moveDown: { type: Function, default: null },
@@ -21,7 +21,7 @@ const editing = ref(false)
 const draft = ref('')
 
 function start() {
-  draft.value = props.value
+  draft.value = props.node.title
   editing.value = true
 }
 
@@ -30,11 +30,11 @@ function cancel() {
 }
 
 async function save() {
-  const name = draft.value.trim()
+  const title = draft.value.trim()
   editing.value = false
-  if (!name || name === props.value) return
+  if (!title || title === props.node.title) return
   try {
-    await props.rename(name)
+    await props.rename(title)
   } catch {
     // The panel says what went wrong.
   }
@@ -47,9 +47,19 @@ function call(fn) {
 </script>
 
 <template>
-  <div class="flex min-w-0 items-center gap-1">
+  <div class="flex min-w-0 items-center gap-1.5">
+    <component
+      :is="nodeIcon(node)"
+      v-if="nodeIcon(node)"
+      class="size-4 shrink-0"
+      :stroke-width="1.5"
+    />
+    <Badge size="sm" variant="soft" class="shrink-0">
+      {{ node.kind === 'section' ? 'Section' : 'Page' }}
+    </Badge>
+
     <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-2" @submit.prevent="save">
-      <Input v-model="draft" :aria-label="renameLabel" autofocus />
+      <Input v-model="draft" aria-label="Rename" autofocus />
       <Button type="submit" variant="ghost" size="icon" aria-label="Save">
         <Check class="size-4" />
       </Button>
@@ -59,10 +69,16 @@ function call(fn) {
     </form>
 
     <template v-else>
-      <span class="min-w-0 flex-1 truncate text-sm font-medium text-fg">{{ value }}</span>
-      <Button variant="ghost" size="icon" :aria-label="renameLabel" @click="start">
-        <Pencil class="size-4" />
-      </Button>
+      <button
+        type="button"
+        class="min-w-0 flex-1 truncate text-left text-sm font-medium text-fg hover:text-fg-secondary"
+        @click="start"
+      >
+        {{ node.title }}
+      </button>
+
+      <slot name="actions" />
+
       <Button
         variant="ghost"
         size="icon"
@@ -81,7 +97,7 @@ function call(fn) {
       >
         <ArrowDown class="size-4" />
       </Button>
-      <ConfirmButton tone="danger" :label="deleteLabel" :action="remove" />
+      <ConfirmButton tone="danger" :label="`Delete ${node.title}`" :action="remove" />
     </template>
   </div>
 </template>

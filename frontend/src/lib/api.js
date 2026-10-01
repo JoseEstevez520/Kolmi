@@ -56,45 +56,24 @@ export const api = {
 
   myNotes: () => request('/notes/mine'),
 
-  // Browsing: the module tree, one section with its pages, one page with its text.
-  modules: () => request('/modules'),
+  // Browsing: the whole tree, and one node with its children (and, for a page,
+  // its text).
+  nodes: () => request('/nodes'),
 
-  section: (sectionId) => request(`/section?section_id=${encodeURIComponent(sectionId)}`),
+  node: (nodeId) => request(`/node?node_id=${encodeURIComponent(nodeId)}`),
 
-  page: (pageId) => request(`/page?page_id=${encodeURIComponent(pageId)}`),
+  // Admin, the tree.
+  createNode: ({ parentId = null, kind, title }) =>
+    request('/node', { method: 'POST', body: { parent_id: parentId, kind, title } }),
 
-  // Admin, modules.
-  createModule: ({ name }) => request('/module', { method: 'POST', body: { name } }),
+  updateNode: ({ nodeId, ...patch }) =>
+    request('/node/update', { method: 'POST', body: { node_id: nodeId, ...patch } }),
 
-  renameModule: ({ moduleId, name }) =>
-    request('/module/rename', { method: 'POST', body: { module_id: moduleId, name } }),
+  moveNode: ({ nodeId, parentId = null }) =>
+    request('/node/move', { method: 'POST', body: { node_id: nodeId, parent_id: parentId } }),
 
-  reorderModules: ({ ids }) => request('/module/reorder', { method: 'POST', body: { ids } }),
+  reorderNodes: ({ ids }) => request('/node/reorder', { method: 'POST', body: { ids } }),
 
-  deleteModule: ({ moduleId }) =>
-    request('/module/delete', { method: 'POST', body: { module_id: moduleId } }),
-
-  // Admin, sections.
-  createSection: ({ moduleId, name }) =>
-    request('/section', { method: 'POST', body: { module_id: moduleId, name } }),
-
-  renameSection: ({ sectionId, name }) =>
-    request('/section/rename', { method: 'POST', body: { section_id: sectionId, name } }),
-
-  reorderSections: ({ ids }) => request('/section/reorder', { method: 'POST', body: { ids } }),
-
-  deleteSection: ({ sectionId }) =>
-    request('/section/delete', { method: 'POST', body: { section_id: sectionId } }),
-
-  // Admin, pages.
-  createPage: ({ sectionId, title }) =>
-    request('/page', { method: 'POST', body: { section_id: sectionId, title } }),
-
-  renamePage: ({ pageId, title }) =>
-    request('/page/rename', { method: 'POST', body: { page_id: pageId, title } }),
-
-  reorderPages: ({ ids }) => request('/page/reorder', { method: 'POST', body: { ids } }),
-
-  deletePage: ({ pageId }) =>
-    request('/page/delete', { method: 'POST', body: { page_id: pageId } }),
+  deleteNode: ({ nodeId }) =>
+    request('/node/delete', { method: 'POST', body: { node_id: nodeId } }),
 }

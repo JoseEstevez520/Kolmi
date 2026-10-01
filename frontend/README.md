@@ -31,10 +31,16 @@ npm run preview
 - `src/lib/auth.js` — session and profile state, and the Supabase auth calls.
 - `src/lib/api.js` — the backend client. Every request sends the session's access token as
   `Authorization: Bearer <token>`.
-- `src/lib/content.js` — the shared module tree the sidebar lists; the admin panel refreshes it.
+- `src/lib/content.js` — the shared node tree the sidebar and the home read; the admin panel
+  refreshes it after every change.
+- `src/lib/icons.js` — the Lucide icons a node may carry, and the palette its colour comes
+  from.
 - `src/router/index.js` — after signing in, `GET /profile` decides the next screen: 404 goes
-  to Register, otherwise Notes. `/admin` is kept for admins.
-- `src/views/` — Login, Register, Notes, Section, Page and Admin.
-- `src/components/` — the app shell (sidebar, page layout, cards) and the admin rows.
+  to Register, otherwise Home. `/admin` is kept for admins.
+- `src/views/` — Login, Register, Home, Notes, Node (a section or a page) and Admin.
+- `src/components/` — the app shell (sidebar, page layout, cards) and the admin tree.
+
+The content is one tree of nodes: a **section** groups, a **page** holds the content. The
+sidebar lists only the top-level nodes; the rest is reached from a section.
 
 The design rules are in [`design.md`](design.md).

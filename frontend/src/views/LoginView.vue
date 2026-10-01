@@ -20,7 +20,7 @@ async function submit() {
   loading.value = true
   try {
     await signIn(email.value.trim(), password.value)
-    router.push('/notes')
+    router.push('/')
   } catch (e) {
     error.value = e.message || 'Could not sign in.'
   } finally {

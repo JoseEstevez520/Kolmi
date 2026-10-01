@@ -37,12 +37,20 @@ appear in phase 1.
 - **Register**: the class code and a display name, prefilled from the Google account when
   there is one. Arriving from "Sign up" with no account yet, it asks for email and password
   too.
+- **Home** (`/`): the class name and a grid of cards for the nodes marked "on the home".
 - **Notes**: a text box to leave a note and a grid of "my notes", each with its date and its
-  status (pending / processed / discarded) as a label in its outcome colour.
-- **Section**: the pages of a section as a grid of cards, each opening its page.
-- **Page**: one page's title and its Markdown; an empty state when it has none.
-- **Admin** (admins only): the module → section → page tree, each row editable in place, moved
-  up or down and deleted with a confirmation.
+  status (pending / processed / discarded) as a label in its outcome colour. Long notes are
+  kept to a few lines with a fading end and a "Show more", so one never dominates the list.
+- **Section** (`/node/:id`, kind `section`): its children as a grid of cards, each opening
+  its own node.
+- **Page** (`/node/:id`, kind `page`): one page's title and its Markdown; an empty state
+  when it has none.
+- **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
+  move, reorder) and deleted with a confirmation, with a section or a page added at any
+  level.
+
+The content is one tree of nodes: a **section** groups, a **page** holds the content. The
+sidebar lists only the top-level nodes; the rest is reached from a section.
 
 Login and Register sit in one `AuthLayout`: a card centred on the viewport, the Kolmi logo
 above the wordmark "Kolmi" and the slogan "Learn as a hive.", the theme toggle in a corner.
@@ -53,8 +61,8 @@ toggle, and only the content changing between pages.
 
 | Piece | For |
 |---|---|
-| `AppSidebar` | the modules and their sections, the admin entry for admins and sign out, in elastic-ui's connected sidebar |
+| `AppSidebar` | Home, Notes, the top-level nodes with their icon and colour, the admin entry for admins and sign out, in elastic-ui's connected sidebar |
 | `AuthLayout` | the centred card of Login and Register, with the mark and the theme toggle |
 | `PageLayout` | one article at a single width, with its title and lead line |
-| `CardGrid` + `PageCard` | a grid of cards, one per note or page: a title and a text, and a footer with a date and a status label |
-| `AdminRow` + `AdminAdd` | one admin row (rename, move up/down, delete) and the small form that adds a module, section or page |
+| `CardGrid` + `PageCard` | a grid of cards, one per node or note: a title and a text, and a footer with a date and a status label; a note's text is clamped with a fading end |
+| `AdminNode` + `AdminRow` + the two dialogs | the recursive tree: one row (rename, move up/down, delete) and the dialogs that add a node or edit its description, icon, colour and `on_home` |

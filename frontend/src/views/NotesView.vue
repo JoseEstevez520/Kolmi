@@ -108,6 +108,7 @@ onMounted(load)
           :meta="formatDate(note.created_at)"
           :status="noteStatusLabel(note.status)"
           :tone="STATUS_TONES[note.status]"
+          clamp
         />
       </CardGrid>
     </PageLayout>

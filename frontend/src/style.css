@@ -21,3 +21,12 @@ body {
   background: var(--color-bg);
   color: var(--color-fg);
 }
+
+/*
+ * A note kept to a few lines: its bottom edge fades instead of ending in an
+ * ellipsis. The library's mask-fade-b spreads its fade too tall for a few
+ * lines, so this is the short one. Toggled with "Show more" (PageCard).
+ */
+@utility mask-fade-note {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
+}

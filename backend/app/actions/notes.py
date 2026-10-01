@@ -7,8 +7,7 @@ from .registry import action
 
 class CreateNoteParams(BaseModel):
     content: str
-    module_id: int | None = None
-    page_id: int | None = None
+    node_id: int | None = None
 
 
 class MyNotesParams(BaseModel):
@@ -28,8 +27,7 @@ def create_note(ctx: Context, params: CreateNoteParams):
     row = {
         "user_id": ctx.user_id,
         "content": params.content,
-        "module_id": params.module_id,
-        "page_id": params.page_id,
+        "node_id": params.node_id,
     }
     return ctx.client.table("notes").insert(row).execute().data[0]
 

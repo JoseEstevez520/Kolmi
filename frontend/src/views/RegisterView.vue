@@ -33,7 +33,7 @@ async function submit() {
       }
     }
     profile.value = await api.register({ code: code.value.trim(), name: name.value.trim() })
-    router.push('/notes')
+    router.push('/')
   } catch (e) {
     error.value = e.message || 'Could not create your profile.'
   } finally {

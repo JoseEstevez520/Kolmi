@@ -58,7 +58,7 @@ export async function signUp(email, password) {
 export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${window.location.origin}/notes` },
+    options: { redirectTo: `${window.location.origin}/` },
   })
   if (error) throw error
 }
