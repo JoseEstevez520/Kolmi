@@ -15,6 +15,9 @@ What we're building and what's next. Open to whatever the class needs.
 - [ ] **Page format: OpenUI Lang** — pages as declarative OpenUI Lang, rendered with
   `@openuidev/vue-lang` and an elastic-ui catalog; generated through the Thesys C1 API
   (OUI-1).
+- [ ] **Evaluate page models** — generate the same briefs with OUI-1 and with a normal model
+  (both in OpenUI Lang), compare parser validity and output, and keep the winner as default
+  with the other as fallback. Model is config, not a branch.
 - [ ] **Notes editor** — a clean, minimalist editor (headings, lists, code) so students take
   their notes right in the app, instead of a plain text box. Rich-text ready (`notes.format`).
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page.
