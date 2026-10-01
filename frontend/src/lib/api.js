@@ -62,9 +62,16 @@ export const api = {
 
   node: (nodeId) => request(`/node?node_id=${encodeURIComponent(nodeId)}`),
 
-  // Admin, the tree.
-  createNode: ({ parentId = null, kind, title }) =>
-    request('/node', { method: 'POST', body: { parent_id: parentId, kind, title } }),
+  // Admin, the tree. The backend stores whatever fields it is given, so a node
+  // is created with its icon, colour and home flag from the start.
+  createNode: ({ parentId = null, kind, title, description, icon, color, onHome }) => {
+    const body = { parent_id: parentId, kind, title }
+    if (description !== undefined) body.description = description
+    if (icon !== undefined) body.icon = icon
+    if (color !== undefined) body.color = color
+    if (onHome !== undefined) body.on_home = onHome
+    return request('/node', { method: 'POST', body })
+  },
 
   updateNode: ({ nodeId, ...patch }) =>
     request('/node/update', { method: 'POST', body: { node_id: nodeId, ...patch } }),

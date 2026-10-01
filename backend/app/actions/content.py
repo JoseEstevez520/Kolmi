@@ -15,6 +15,10 @@ class CreateNodeParams(BaseModel):
     parent_id: int | None = None
     kind: Literal["section", "page"]
     title: str
+    description: str | None = None
+    icon: str | None = None
+    color: str | None = None
+    on_home: bool | None = None
 
 
 class UpdateNodeParams(BaseModel):
@@ -137,12 +141,8 @@ def view_node(ctx: Context, params: ViewNodeParams):
     min_role="admin",
 )
 def create_node(ctx: Context, params: CreateNodeParams):
-    row = {
-        "parent_id": params.parent_id,
-        "kind": params.kind,
-        "title": params.title,
-        "position": _next_position(ctx.client, params.parent_id),
-    }
+    row = params.model_dump(exclude_unset=True)
+    row["position"] = _next_position(ctx.client, params.parent_id)
     return ctx.client.table("nodes").insert(row).execute().data[0]
 
 

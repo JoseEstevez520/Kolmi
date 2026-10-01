@@ -73,9 +73,10 @@ async function save(close) {
 <template>
   <DialogMorph>
     <template #trigger>
-      <Button variant="ghost" size="icon" :aria-label="`Edit ${node.title}`">
+      <span class="inline-flex items-center gap-2">
         <Settings2 class="size-4" />
-      </Button>
+        <span class="sr-only">Edit {{ node.title }}</span>
+      </span>
     </template>
 
     <template #default="{ close }">

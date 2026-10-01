@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, provide, ref } from 'vue'
-import { Button, Callout, Card, CardContent, Empty, StatusText } from 'elastic-ui'
+import { Callout, Empty, StatusText } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminNode from '../components/AdminNode.vue'
@@ -10,7 +10,8 @@ import { flatten, loadNodes } from '../lib/content.js'
 
 // The whole tree, managed: create a section or a page at any level, rename,
 // edit (description, icon, colour, on_home), move, reorder and delete with a
-// confirmation. The tree itself is AdminNode, recursive.
+// confirmation. The tree itself is AdminNode, recursive, read like folders and
+// files.
 const tree = ref([])
 const loading = ref(true)
 const ready = ref(false)
@@ -48,7 +49,7 @@ async function loadTree() {
 const allNodes = computed(() => flatten(tree.value))
 
 provide('adminTree', {
-  create: guarded((parentId, kind, title) => api.createNode({ parentId, kind, title })),
+  create: guarded((parentId, payload) => api.createNode({ parentId, ...payload })),
   update: guarded((nodeId, patch) => api.updateNode({ nodeId, ...patch })),
   move: guarded((nodeId, parentId) => api.moveNode({ nodeId, parentId })),
   reorder: guarded((ids) => api.reorderNodes({ ids })),
@@ -71,7 +72,10 @@ onMounted(loadTree)
           <div class="flex justify-end">
             <AdminCreateDialog :parent-id="null" parent-title="the top level">
               <template #trigger>
-                <Button :icon="Plus">Add at the top level</Button>
+                <span class="inline-flex items-center gap-2">
+                  <Plus class="size-4" />
+                  Add at the top level
+                </span>
               </template>
             </AdminCreateDialog>
           </div>
@@ -83,17 +87,15 @@ onMounted(loadTree)
             :icon="Layers"
           />
 
-          <Card v-else>
-            <CardContent class="flex flex-col gap-3">
-              <AdminNode
-                v-for="(node, i) in tree"
-                :key="node.id"
-                :node="node"
-                :siblings="tree"
-                :index="i"
-              />
-            </CardContent>
-          </Card>
+          <ul v-else class="flex flex-col gap-0.5 rounded-[var(--radius-lg)] border border-border p-1.5">
+            <AdminNode
+              v-for="(node, i) in tree"
+              :key="node.id"
+              :node="node"
+              :siblings="tree"
+              :index="i"
+            />
+          </ul>
         </div>
       </template>
     </PageLayout>

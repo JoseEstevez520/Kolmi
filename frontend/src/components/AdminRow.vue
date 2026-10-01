@@ -1,14 +1,16 @@
 <script setup>
-import { ref } from 'vue'
-import { Badge, Button, ConfirmButton, Input } from 'elastic-ui'
-import { ArrowDown, ArrowUp, Check, X } from '@lucide/vue'
+import { computed, ref } from 'vue'
+import { Button, ConfirmButton, Input } from 'elastic-ui'
+import { ArrowDown, ArrowUp, Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
 import { nodeIcon } from '../lib/icons.js'
 
-// One node in the admin tree: its kind, its icon, its title editable in place,
-// the extra actions the tree gives it (edit, add inside), move up and move down,
-// and a delete that asks first (ConfirmButton).
+// One row of the admin tree, read like a file explorer: a section is a folder
+// (open or closed), a page is a file. It shows the node's own icon when it has
+// one, otherwise the folder/file default, with the title editable in place and
+// the row's actions (add inside, edit, move up/down, delete) at the end.
 const props = defineProps({
   node: { type: Object, required: true },
+  open: { type: Boolean, default: true },
   canMoveUp: { type: Boolean, default: false },
   canMoveDown: { type: Boolean, default: false },
   rename: { type: Function, required: true },
@@ -16,6 +18,11 @@ const props = defineProps({
   moveDown: { type: Function, default: null },
   remove: { type: Function, required: true },
 })
+
+const chosen = computed(() => nodeIcon(props.node))
+const fallback = computed(() =>
+  props.node.kind === 'section' ? (props.open ? FolderOpen : Folder) : FileText,
+)
 
 const editing = ref(false)
 const draft = ref('')
@@ -47,16 +54,17 @@ function call(fn) {
 </script>
 
 <template>
-  <div class="flex min-w-0 items-center gap-1.5">
+  <div
+    class="group/row flex min-w-0 items-center gap-1.5 rounded-[var(--radius-md)] px-1.5 py-1 hover:bg-bg-muted"
+  >
+    <slot name="toggle" />
+
     <component
-      :is="nodeIcon(node)"
-      v-if="nodeIcon(node)"
+      :is="chosen || fallback"
       class="size-4 shrink-0"
+      :class="!chosen && 'text-fg-muted'"
       :stroke-width="1.5"
     />
-    <Badge size="sm" variant="soft" class="shrink-0">
-      {{ node.kind === 'section' ? 'Section' : 'Page' }}
-    </Badge>
 
     <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-2" @submit.prevent="save">
       <Input v-model="draft" aria-label="Rename" autofocus />
@@ -77,27 +85,29 @@ function call(fn) {
         {{ node.title }}
       </button>
 
-      <slot name="actions" />
+      <div class="flex shrink-0 items-center gap-0.5">
+        <slot name="actions" />
 
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Move up"
-        :disabled="!canMoveUp"
-        @click="call(moveUp)"
-      >
-        <ArrowUp class="size-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Move down"
-        :disabled="!canMoveDown"
-        @click="call(moveDown)"
-      >
-        <ArrowDown class="size-4" />
-      </Button>
-      <ConfirmButton tone="danger" :label="`Delete ${node.title}`" :action="remove" />
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Move up"
+          :disabled="!canMoveUp"
+          @click="call(moveUp)"
+        >
+          <ArrowUp class="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Move down"
+          :disabled="!canMoveDown"
+          @click="call(moveDown)"
+        >
+          <ArrowDown class="size-4" />
+        </Button>
+        <ConfirmButton tone="danger" :label="`Delete ${node.title}`" :action="remove" />
+      </div>
     </template>
   </div>
 </template>
