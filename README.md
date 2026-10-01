@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="Kolmia" width="120">
+  <img src="assets/logo.svg" alt="Kolmi" width="120">
 </p>
 
-# Kolmia
+# Kolmi
 
 **Aprende en colmena.**
 

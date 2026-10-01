@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Kolmia: apuntes colaborativos para una clase. Este repo es el producto; el material de la
+Kolmi: apuntes colaborativos para una clase. Este repo es el producto; el material de la
 clase vive en su propio repo.
 
 ## Qué hay

@@ -18,7 +18,7 @@ una duda o una respuesta.
 Primero útil, después colmena. Cada mensaje da la información clara, y la colmena aparece
 como un toque que da vida, nunca como algo que haya que descifrar.
 
-## Cómo habla Kolmia
+## Cómo habla Kolmi
 
 - **Claro primero**: el usuario entiende qué ha pasado sin pensar.
 - **Cercano**: tutea, frases cortas.

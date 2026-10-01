@@ -8,7 +8,7 @@ El código está traído como base, pero **no arranca tal cual**: importa el con
 clase (los `.md` de `modulos/` y `extra/` por rutas relativas), y ese contenido no está aquí.
 Antes de usarlo hay que adaptarlo:
 
-- Sustituir los imports de contenido por las páginas propias de Kolmia.
+- Sustituir los imports de contenido por las páginas propias de Kolmi.
 - Ajustar `src/data/paginas.js` y el router a las pantallas de la app (login, dejar nota, mis
   notas).
 
