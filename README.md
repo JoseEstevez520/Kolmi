@@ -1,9 +1,15 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Kolmia" width="120">
+</p>
+
 # Kolmia
+
+**Aprende en colmena.**
 
 Apuntes colaborativos para una clase. Los alumnos dejan notas en crudo y un equipo de agentes
 las convierte en páginas de apuntes, sin que nadie tenga que tocar git ni Vue.
 
-El nombre viene de "colmena": cada uno aporta su parte y el conjunto crece.
+El nombre viene de "colmena": cada uno aporta su parte y entre todos sale algo completo.
 
 ## Cómo funciona
 
@@ -15,7 +21,8 @@ El nombre viene de "colmena": cada uno aporta su parte y el conjunto crece.
 5. Los agentes de apuntes la redactan y el de la web la publica.
 
 El detalle, en [docs/idea.md](docs/idea.md). La parte de cuentas y login, en
-[docs/autenticacion.md](docs/autenticacion.md).
+[docs/autenticacion.md](docs/autenticacion.md). Cómo habla la app, en
+[docs/tono-de-marca.md](docs/tono-de-marca.md).
 
 ## Stack
 
@@ -33,5 +40,6 @@ Diseño. Todavía no hay código.
 ```
 backend/   - API en Python + FastAPI
 frontend/  - web en Vue 3 + Vite
-docs/      - la idea y las especificaciones
+docs/      - la idea, las especificaciones y el tono de marca
+assets/    - logo y demás recursos
 ```
