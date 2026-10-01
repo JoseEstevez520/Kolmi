@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@import "elastic-ui/tokens.css";
+
+/* La librería no trae CSS compilado: Tailwind tiene que leer sus componentes. */
+@source "../node_modules/elastic-ui/dist";
+
+/*
+ * La preferencia de "movimiento reducido" del sistema se puede forzar desde
+ * Ajustes. Con `<html data-motion="full">` las utilidades `motion-reduce:` de
+ * los componentes se saltan, igual que las reglas de tokens.css.
+ */
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion='full']) & {
+      @slot;
+    }
+  }
+}
+
+/*
+ * Sin color de acento (ver design.md): lo que en elastic-ui es el acento
+ * (foco, pestaña activa, "Importante") aquí es el mismo gris casi negro del
+ * texto, y casi blanco en el tema oscuro.
+ */
+:root {
+  --color-accent: light-dark(#18181b, #f4f4f5);
+  --color-accent-hover: light-dark(#3f3f46, #d4d4d8);
+  --color-accent-subtle: light-dark(#e9e9eb, #18181b);
+  --color-accent-fg: light-dark(#ffffff, #0a0a0a);
+
+  /* El interruptor de Ajustes, en grises: el acento de esta web es casi blanco
+     en oscuro, y la bolita clara se perdía dentro de la pista encendida. */
+  --switch-track: light-dark(#d4d4d8, #3f3f46);
+  --switch-track-on: light-dark(#18181b, #71717a);
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+/*
+ * Un logo descargado de un solo color (OpenAI), en negro sobre fondo claro.
+ * En el tema oscuro se invierte para que se lea, como los logos de simple-icons
+ * que toman el color del texto.
+ */
+:root[data-theme='dark'] .logo-mono {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .logo-mono {
+    filter: invert(1);
+  }
+}
+
