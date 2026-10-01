@@ -4,6 +4,7 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Now
 
+- [ ] **Frontend base** — adapt the class web base to Kolmi and translate it to English.
 - [ ] **Auth and users** — sign up, log in (Google and email), and a profile with the class
   code. Spec: [docs/authentication.md](docs/authentication.md).
 - [ ] **Notes** — students leave notes; they're stored privately.
