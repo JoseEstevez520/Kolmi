@@ -42,6 +42,7 @@ Design. No code yet.
 
 - [The idea](docs/idea.md)
 - [Authentication and users](docs/authentication.md)
+- [Features and actions](docs/features.md)
 - [Brand tone](docs/brand-tone.md)
 
 ## Structure

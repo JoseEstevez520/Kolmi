@@ -42,6 +42,7 @@ Two tables in Supabase:
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
+  role text default 'student',  -- student | admin
   approved boolean default true,
   created_at timestamptz default now()
 );
@@ -50,6 +51,7 @@ create table notes (
   id bigserial primary key,
   user_id uuid references profiles(id) on delete cascade,
   content text not null,
+  format text default 'text',  -- text | rich (future)
   status text default 'pending',  -- pending | processed | discarded
   created_at timestamptz default now()
 );
