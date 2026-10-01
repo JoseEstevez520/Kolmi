@@ -31,9 +31,10 @@ npm run preview
 - `src/lib/auth.js` — session and profile state, and the Supabase auth calls.
 - `src/lib/api.js` — the backend client. Every request sends the session's access token as
   `Authorization: Bearer <token>`.
+- `src/lib/content.js` — the shared module tree the sidebar lists; the admin panel refreshes it.
 - `src/router/index.js` — after signing in, `GET /profile` decides the next screen: 404 goes
-  to Register, otherwise Notes.
-- `src/views/` — Login, Register and Notes.
-- `src/components/` — the app shell (sidebar, page layout, cards).
+  to Register, otherwise Notes. `/admin` is kept for admins.
+- `src/views/` — Login, Register, Notes, Section, Page and Admin.
+- `src/components/` — the app shell (sidebar, page layout, cards) and the admin rows.
 
 The design rules are in [`design.md`](design.md).

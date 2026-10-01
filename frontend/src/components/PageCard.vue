@@ -1,11 +1,13 @@
 <script setup>
+import { RouterLink } from 'vue-router'
 import { Badge, Card, CardDescription, CardFooter, CardHeader, CardTitle } from 'elastic-ui'
 
 // A card for one item (a note, a link): an optional title and its text, and a
 // footer with a short line (a date) and, when it carries meaning, a status
-// label with its outcome colour. With an `href` it becomes a link; without one
-// it is a plain card.
+// label with its outcome colour. With a `to` it is a router link, with an
+// `href` a plain one; without either it is a plain card.
 defineProps({
+  to: { type: [String, Object], default: null },
   href: { type: String, default: '' },
   title: { type: String, default: '' },
   icon: { type: [Object, Function], default: null },
@@ -19,15 +21,19 @@ defineProps({
 
 <template>
   <component
-    :is="href ? 'a' : 'div'"
+    :is="to ? RouterLink : href ? 'a' : 'div'"
+    :to="to || undefined"
     :href="href || undefined"
     class="block h-full"
-    :class="href && 'group rounded-[var(--radius-xl)] focus-visible:outline-2 focus-visible:outline-accent'"
+    :class="
+      (to || href) &&
+      'group rounded-[var(--radius-xl)] focus-visible:outline-2 focus-visible:outline-accent'
+    "
   >
     <Card
       size="sm"
       class="h-full"
-      :class="href && 'transition-colors duration-150 group-hover:border-border-strong'"
+      :class="(to || href) && 'transition-colors duration-150 group-hover:border-border-strong'"
     >
       <CardHeader class="gap-3">
         <div v-if="icon" class="flex items-start justify-between">

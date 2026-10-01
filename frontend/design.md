@@ -39,17 +39,22 @@ appear in phase 1.
   too.
 - **Notes**: a text box to leave a note and a grid of "my notes", each with its date and its
   status (pending / processed / discarded) as a label in its outcome colour.
+- **Section**: the pages of a section as a grid of cards, each opening its page.
+- **Page**: one page's title and its Markdown; an empty state when it has none.
+- **Admin** (admins only): the module → section → page tree, each row editable in place, moved
+  up or down and deleted with a confirmation.
 
 Login and Register sit in one `AuthLayout`: a card centred on the viewport, the Kolmi logo
 above the wordmark "Kolmi" and the slogan "Learn as a hive.", the theme toggle in a corner.
-Notes lives inside the app shell: the sidebar, the page's own header with the theme toggle,
-and only the content changing between pages.
+Everything else lives inside the app shell: the sidebar, the page's own header with the theme
+toggle, and only the content changing between pages.
 
 ## Layout pieces
 
 | Piece | For |
 |---|---|
-| `AppSidebar` | the section list and sign out, in elastic-ui's connected sidebar |
+| `AppSidebar` | the modules and their sections, the admin entry for admins and sign out, in elastic-ui's connected sidebar |
 | `AuthLayout` | the centred card of Login and Register, with the mark and the theme toggle |
 | `PageLayout` | one article at a single width, with its title and lead line |
-| `CardGrid` + `PageCard` | a grid of cards, one per note or link: a text, and a footer with a date and a status label |
+| `CardGrid` + `PageCard` | a grid of cards, one per note or page: a title and a text, and a footer with a date and a status label |
+| `AdminRow` + `AdminAdd` | one admin row (rename, move up/down, delete) and the small form that adds a module, section or page |
