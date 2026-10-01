@@ -16,3 +16,5 @@ in its own repo.
 - **No secrets in git.** Supabase keys and `CLASS_CODE` go in `.env`, never in the repo.
 - **Agents use the OpenAI SDK.** Move to LangGraph only when loops or approval are needed.
 - **Everything in this repo is in English** (code, comments, docs, commits).
+- **Personal setup is local.** This developer's own server, Supabase and deploy details live
+  in `LOCAL.md` (gitignored). If it exists, read it for the instance-specific context.

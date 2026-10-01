@@ -12,6 +12,8 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
+- [ ] **Notes editor** — a clean, minimalist editor (headings, lists, code) so students take
+  their notes right in the app, instead of a plain text box. Rich-text ready (`notes.format`).
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page.
 - [ ] **Forums** — doubts and answers, not just notes.
 

@@ -17,3 +17,6 @@ dist/
 
 # Entornos
 .env
+
+# Local, personal (never in git)
+LOCAL.md
