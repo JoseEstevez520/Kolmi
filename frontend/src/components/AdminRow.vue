@@ -85,7 +85,7 @@ function call(fn) {
         {{ node.title }}
       </button>
 
-      <div class="flex shrink-0 items-center gap-0.5">
+      <div class="flex shrink-0 items-center gap-1.5">
         <slot name="actions" />
 
         <Button
