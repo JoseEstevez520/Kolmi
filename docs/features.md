@@ -29,15 +29,17 @@ GitHub. It's a view, not the source.
 - The **escape hatch**: one catalog component (an artifact) whose prop is self-contained
   HTML/SVG/JS, rendered in a sandboxed iframe, for what the catalog doesn't cover.
 - The frontend renders it with `@openuidev/vue-lang`.
-- Called through the **Thesys C1 API** (OpenAI-compatible, so the OpenAI SDK only changes
-  `base_url` and `model`). OpenUI Gateway validates and repairs the output.
+- Called through **OpenUI Gateway**, formerly the Thesys C1 API (OpenAI-compatible, so the
+  OpenAI SDK only changes `base_url` and `model`). It validates and repairs the output. Details
+  in [page-format.md](page-format.md).
 
 ### Router
 
 A planner decides, per page, two things:
 
-- **Which model**: OUI-1 (cheap, fast, catalog-optimized) for a standard page; a stronger
-  general model (DeepSeek) for anything complex (new diagrams, interactive components).
+- **Which model**: a cheap, fast one for a standard page (OUI-1 was the plan, but it isn't on
+  the Gateway; `google/gemini-3.7-flash` is the default today); a stronger general model
+  (DeepSeek) for anything complex (new diagrams, interactive components).
 - **Catalog or escape**: compose the existing components, or reach for the sandboxed artifact.
 
 The router is what keeps normal pages cheap while still letting the hard ones exist.
@@ -46,7 +48,7 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 
 ### Admin (the only one with a management UI)
 
-- A panel to create, rename, reorder (drag and drop) and delete modules, sections and pages.
+- A panel to create, rename, edit, move, reorder (up and down) and delete sections and pages.
 - A log of what the AI did: on each pass, which notes it processed, which pages it created or
   changed, which notes it discarded (and why), and which pages the reviewer flagged as
   doubtful.

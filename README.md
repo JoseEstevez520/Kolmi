@@ -31,18 +31,21 @@ See [ROADMAP.md](ROADMAP.md).
 ## Self-hosting
 
 Kolmi is self-hostable: each class runs its own instance (a small server and a Supabase
-project). Nothing is shared between classes. Setup will be documented in [`docs/`](docs/)
-once there is code.
+project). Nothing is shared between classes. The backend ships as a Docker image; build, run
+and the nightly cron are in [backend/README.md](backend/README.md).
 
 ## Status
 
-Design. No code yet.
+In development. Login, notes, the content tree, the admin panel with the AI log, and the
+nightly pass all work. Pages are written in OpenUI Lang; until the Gateway is unblocked they
+come out as Markdown.
 
 ## Docs
 
 - [The idea](docs/idea.md)
 - [Authentication and users](docs/authentication.md)
 - [Features and actions](docs/features.md)
+- [Page format](docs/page-format.md)
 - [Brand tone](docs/brand-tone.md)
 
 ## Structure

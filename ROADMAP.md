@@ -13,19 +13,30 @@ What we're building and what's next. Open to whatever the class needs.
   content), with a home screen and an admin panel (create, rename, edit icon and colour, move,
   reorder, delete).
 - [x] **Daily pass** — a cron wakes the agent team (gatekeeper → notes → web) once a day, with
-  a log (`ai_log`, `ai_passes`) and page versions. It writes the pages as Markdown; the OpenUI
-  Lang half arrives with the page format.
+  a log (`ai_log`, `ai_passes`) and page versions.
+- [x] **AI log in the admin panel** — the recent passes, what the AI did with each note or
+  page, and the notes students left (`/admin/log`).
+- [x] **Docker** — one image for the API and the pass; the pass runs from a host cron with
+  `docker compose run --rm pass`. See [backend/README.md](backend/README.md).
+- [x] **Page format (code)** — pages are OpenUI Lang (catalog plus a sandboxed artifact),
+  rendered over elastic-ui with `@openuidev/vue-lang`; Markdown is derived for the RAG. The web
+  agent calls OpenUI Gateway and falls back to DeepSeek writing Markdown. See
+  [docs/page-format.md](docs/page-format.md).
 
 ## Now
 
-- [ ] **Page format** — source is OpenUI Lang (catalog plus a sandboxed escape-hatch artifact
-  for new visuals and interactive widgets), rendered with `@openuidev/vue-lang`; Markdown is
-  derived for the RAG. Generated through the Thesys C1 API.
-- [ ] **Router and model choice** — a planner picks the model (OUI-1 for catalog pages,
-  DeepSeek for complex ones) and catalog vs escape. Evaluate OUI-1 against DeepSeek on the
-  same briefs; keep the winner as default and the other as fallback.
+- [ ] **Page format live** — the Gateway answers `429` (the Thesys organisation's billing is
+  suspended), so every page is Markdown for now. Unblock it and run a real pass end to end.
+  Load the page renderer lazily so it leaves the main bundle.
+- [ ] **Router and model choice** — a planner picks the model and catalog vs escape. OUI-1 is
+  not on the Gateway, so compare the Gateway's models (`google/gemini-3.7-flash` by default)
+  against DeepSeek on the same briefs; keep the winner as default and the other as fallback.
 
 ## Next
+
+- [ ] **Spanish UI** — the interface in Spanish as well as English, picked by the browser's
+  language with a switch in the app. All strings go through one i18n layer (Vue I18n or
+  similar), and the AI writes the pages in the class's language.
 
 - [ ] **Notes editor** — a clean, minimalist editor (headings, lists, code) so students take
   their notes right in the app, instead of a plain text box. Rich-text ready (`notes.format`).
@@ -37,7 +48,7 @@ What we're building and what's next. Open to whatever the class needs.
 - [ ] Moderation and reporting tools.
 - [ ] More contribution types (links, files, images).
 - [ ] Notifications (weekly digest, "the hive worked").
-- [ ] Multi-language UI.
+- [ ] More languages beyond English and Spanish.
 
 ## Ideas, not committed
 
