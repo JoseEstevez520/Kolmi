@@ -91,6 +91,7 @@ changes nothing.
 | `get_profile` | `GET /profile` | any signed-in user |
 | `register_profile` | `POST /register` | any signed-in user |
 | `create_note` | `POST /notes` | approved profile |
+| `update_note` | `POST /notes/update` | the note's author, until the daily pass |
 | `my_notes` | `GET /notes/mine` | any signed-in user |
 | `list_nodes` | `GET /nodes` | any signed-in user |
 | `view_node` | `GET /node` | any signed-in user |

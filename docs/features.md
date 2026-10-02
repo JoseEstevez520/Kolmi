@@ -81,7 +81,8 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 - `list_modules()`
 - `view_section(section_id)`: with its list of pages
 - `view_page(page_id)`
-- `create_note(content, module_id, page_id?)`
+- `create_note(content, format?, node_id?)`
+- `update_note(note_id, content, format?)` — only your own note, while it is pending.
 - `my_notes(status?)`
 
 ### Admin only
@@ -98,11 +99,8 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 
 ## Future (don't build now, but don't close the door)
 
-- **Taking notes inside Kolmi**: replace the simple form with a comfortable, good-looking
-  editor (Notion style: headings, lists, code, images) so students take their notes directly
-  in the app during class. Those notes are sent as notes to the nightly pass.
-  → Store the note content now so it can later take rich text (for example, a `content`
-  column plus a `format` = `text`).
+- **Images in notes**: the editor takes headings, lists, checklists, code and tables; images
+  need a place to store the files first.
 - A chat with AI that uses the actions as tools.
 - RAG / search in the notes.
 - Restore versions from the UI.

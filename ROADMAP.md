@@ -22,6 +22,12 @@ What we're building and what's next. Open to whatever the class needs.
   rendered over elastic-ui with `@openuidev/vue-lang`; Markdown is derived for the RAG. The web
   agent calls OpenUI Gateway and falls back to DeepSeek writing Markdown. See
   [docs/page-format.md](docs/page-format.md).
+- [x] **Notes editor** — a note gets a page of its own (`/notes/new`): a title and a Tiptap
+  editor that saves Markdown. Blocks come from a `/` menu or the `+` beside an empty line
+  (headings, lists, checklist, quote, code, table). The draft stays in the browser, a pending
+  note can be edited until the daily pass, and zen mode hides the sidebar and header.
+- [x] **Spanish UI** — every screen in English and Spanish, picked by the browser's language,
+  with a switch in the app. All strings go through Vue I18n.
 
 ## Now
 
@@ -34,12 +40,8 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Spanish UI** — the interface in Spanish as well as English, picked by the browser's
-  language with a switch in the app. All strings go through one i18n layer (Vue I18n or
-  similar), and the AI writes the pages in the class's language.
-
-- [ ] **Notes editor** — a clean, minimalist editor (headings, lists, code) so students take
-  their notes right in the app, instead of a plain text box. Rich-text ready (`notes.format`).
+- [ ] **Pages in the class's language** — the AI writes the pages in the language the class
+  works in, not always in English.
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page.
 - [ ] **Forums** — doubts and answers, not just notes.
 
