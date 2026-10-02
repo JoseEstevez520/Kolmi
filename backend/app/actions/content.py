@@ -99,9 +99,10 @@ def list_nodes(ctx: Context, params: None):
     path="/node",
 )
 def view_node(ctx: Context, params: ViewNodeParams):
+    # The content comes in the same read; a section has none to show, so it is dropped.
     rows = (
         ctx.client.table("nodes")
-        .select(LIST_COLUMNS)
+        .select(f"{LIST_COLUMNS}, content_md, content_web")
         .eq("id", params.node_id)
         .limit(1)
         .execute()
@@ -111,16 +112,9 @@ def view_node(ctx: Context, params: ViewNodeParams):
         raise HTTPException(404, "Node not found")
     node = rows[0]
 
-    if node["kind"] == "page":
-        content = (
-            ctx.client.table("nodes")
-            .select("content_md, content_web")
-            .eq("id", params.node_id)
-            .limit(1)
-            .execute()
-            .data
-        )
-        node.update(content[0])
+    if node["kind"] != "page":
+        node.pop("content_md", None)
+        node.pop("content_web", None)
 
     node["children"] = (
         ctx.client.table("nodes")
