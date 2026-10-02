@@ -34,6 +34,12 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **Faster pages** — the API checks the session against the project's signing keys
   instead of asking Supabase on every request, the tree is kept in the browser, and pages
   are read ahead when a link is pointed at.
+- [x] **Pages in the class's language** — an admin picks the class language in the admin
+  panel and the daily pass writes the shared notes and pages in it, whatever language each
+  note came in. It's one row in a `settings` table; until that exists, `CLASS_LANGUAGE`
+  decides (`en` by default). Apply
+  [supabase/migrations/20261002120000_settings.sql](supabase/migrations/20261002120000_settings.sql)
+  in the Supabase SQL editor to turn the control on.
 
 ## Now
 
@@ -46,8 +52,6 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Pages in the class's language** — the AI writes the pages in the language the class
-  works in, not always in English.
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page.
 - [ ] **Forums** — doubts and answers, not just notes.
 

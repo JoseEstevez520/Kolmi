@@ -53,6 +53,9 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
   changed, which notes it discarded (and why), and which pages the reviewer flagged as
   doubtful.
 - A list of received notes.
+- The class language: the one the AI writes the shared notes and pages in. Notes in other
+  languages still count, and their content ends up written in this one. It's separate from
+  each person's UI language.
 
 ### Students
 
