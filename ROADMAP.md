@@ -28,6 +28,12 @@ What we're building and what's next. Open to whatever the class needs.
   note can be edited until the daily pass, and zen mode hides the sidebar and header.
 - [x] **Spanish UI** — every screen in English and Spanish, picked by the browser's language,
   with a switch in the app. All strings go through Vue I18n.
+- [x] **Settings** — language and animations, kept in each browser. Animations stay on by
+  default even when the system asks for reduced motion; the switch hands the choice back to
+  the system.
+- [x] **Faster pages** — the API checks the session against the project's signing keys
+  instead of asking Supabase on every request, the tree is kept in the browser, and pages
+  are read ahead when a link is pointed at.
 
 ## Now
 
