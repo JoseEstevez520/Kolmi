@@ -40,7 +40,7 @@ create table if not exists notes (
   id bigserial primary key,
   user_id uuid not null references profiles(id) on delete cascade,
   content text not null,
-  format text not null default 'text',   -- text | rich (future editor)
+  format text not null default 'text',   -- text | markdown (the notes editor)
   node_id bigint references nodes(id) on delete set null,
   status text not null default 'pending'
     check (status in ('pending', 'processed', 'discarded')),
