@@ -2,9 +2,23 @@
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ActionButton, Button, Callout, Input, Markdown, StatusText } from 'elastic-ui'
+import {
+  ActionButton,
+  Button,
+  Callout,
+  Field,
+  Input,
+  Markdown,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  StatusText,
+} from 'elastic-ui'
 import { ArrowLeft, Maximize2, Minimize2 } from '@lucide/vue'
 import { api } from '../lib/api.js'
+import { loadNodes, nodes } from '../lib/content.js'
 import { clearDraft, joinNote, loadDraft, saveDraft, splitNote } from '../lib/notes.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
@@ -30,17 +44,39 @@ const closed = ref(null)
 const draftSaved = ref(false)
 const editor = ref(null)
 
+// Where the student thinks the note goes, as a hint for the daily pass; "Not sure" leaves it
+// empty. A Select item needs a non-empty value, so that one travels under a sentinel.
+const NOT_SURE = '__none__'
+const hint = ref(NOT_SURE)
+const hintId = computed(() => (hint.value === NOT_SURE ? null : Number(hint.value)))
+
+// Every section and page, parents first, each with its depth to indent it.
+const places = computed(() => {
+  const out = []
+  const walk = (items, depth) => {
+    for (const item of items) {
+      out.push({ id: item.id, title: item.title, depth })
+      if (item.children?.length) walk(item.children, depth + 1)
+    }
+  }
+  walk(nodes.value, 0)
+  return out
+})
+
 const content = computed(() => joinNote(title.value, body.value))
 const empty = computed(() => !content.value)
 
 // What was there when the screen opened: only a change from it is a draft worth keeping.
 let baseline = ''
+let baselineHint = NOT_SURE
 
-function fill(text) {
+function fill(text, nodeId = null) {
   const parts = splitNote(text)
   title.value = parts.title
   body.value = parts.body
+  hint.value = nodeId == null ? NOT_SURE : String(nodeId)
   baseline = joinNote(parts.title, parts.body)
+  baselineHint = hint.value
 }
 
 async function load() {
@@ -50,7 +86,7 @@ async function load() {
   const draft = loadDraft(id.value)
 
   if (isNew.value) {
-    fill(draft ? joinNote(draft.title, draft.body) : '')
+    fill(draft ? joinNote(draft.title, draft.body) : '', draft?.nodeId ?? null)
     return
   }
 
@@ -62,7 +98,10 @@ async function load() {
     } else if (note.status !== 'pending') {
       closed.value = note
     } else {
-      fill(draft ? joinNote(draft.title, draft.body) : note.content)
+      fill(
+        draft ? joinNote(draft.title, draft.body) : note.content,
+        draft && 'nodeId' in draft ? draft.nodeId : note.node_id,
+      )
     }
   } catch (e) {
     error.value = e.message || t('notes.errorLong')
@@ -73,12 +112,17 @@ async function load() {
 
 // Kept a moment after the last key, not on every one.
 let timer = null
-watch([title, body], () => {
-  if (loading.value || closed.value || content.value === baseline) return
+watch([title, body, hint], () => {
+  if (loading.value || closed.value) return
+  if (content.value === baseline && hint.value === baselineHint) return
   draftSaved.value = false
   clearTimeout(timer)
   timer = setTimeout(() => {
-    draftSaved.value = saveDraft(id.value, { title: title.value, body: body.value })
+    draftSaved.value = saveDraft(id.value, {
+      title: title.value,
+      body: body.value,
+      nodeId: hintId.value,
+    })
   }, 600)
 })
 onBeforeUnmount(() => clearTimeout(timer))
@@ -97,9 +141,9 @@ onBeforeUnmount(() => {
 async function send() {
   clearTimeout(timer)
   if (isNew.value) {
-    await api.createNote({ content: content.value, format: 'markdown' })
+    await api.createNote({ content: content.value, format: 'markdown', nodeId: hintId.value })
   } else {
-    await api.updateNote({ noteId: id.value, content: content.value })
+    await api.updateNote({ noteId: id.value, content: content.value, nodeId: hintId.value })
   }
   clearDraft(id.value)
   router.push('/notes')
@@ -111,6 +155,8 @@ function toText() {
 }
 
 onMounted(load)
+// The tree is usually loaded already, for the sidebar; if it fails, the hint just has no options.
+onMounted(() => loadNodes().catch(() => {}))
 watch(id, load)
 </script>
 
@@ -161,6 +207,19 @@ watch(id, load)
         autofocus
         @keydown.enter.prevent="toText"
       />
+      <Field :label="t('notes.write.hintLabel')" :description="t('notes.write.hintHelp')" class="mb-6">
+        <Select v-model="hint">
+          <SelectTrigger>
+            <SelectValue :placeholder="t('notes.write.hintNotSure')" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem :value="NOT_SURE">{{ t('notes.write.hintNotSure') }}</SelectItem>
+            <SelectItem v-for="place in places" :key="place.id" :value="String(place.id)">
+              <span :style="{ paddingInlineStart: `${place.depth}rem` }">{{ place.title }}</span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
       <NoteEditor
         ref="editor"
         v-model="body"

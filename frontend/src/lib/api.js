@@ -55,8 +55,11 @@ export const api = {
   createNote: ({ content, format = 'text', nodeId = null }) =>
     request('/notes', { method: 'POST', body: { content, format, node_id: nodeId } }),
 
-  updateNote: ({ noteId, content, format = 'markdown' }) =>
-    request('/notes/update', { method: 'POST', body: { note_id: noteId, content, format } }),
+  updateNote: ({ noteId, content, format = 'markdown', nodeId = null }) =>
+    request('/notes/update', {
+      method: 'POST',
+      body: { note_id: noteId, content, format, node_id: nodeId },
+    }),
 
   myNotes: () => request('/notes/mine'),
 

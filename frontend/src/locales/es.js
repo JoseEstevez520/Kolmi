@@ -104,6 +104,9 @@ export default {
       notFound: 'Esta nota no está entre las tuyas.',
       closedTitle: 'Ya está en los apuntes',
       closed: 'El repaso de la noche ya se llevó esta nota, así que no se puede cambiar.',
+      hintLabel: '¿Dónde crees que va?',
+      hintHelp: 'Opcional. Una pista para el repaso de la noche, que decide al final.',
+      hintNotSure: 'No lo sé',
     },
     blocks: {
       title: 'Bloques',
