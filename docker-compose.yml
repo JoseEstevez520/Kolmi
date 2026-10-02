@@ -1,0 +1,35 @@
+name: kolmi
+
+x-backend: &backend
+  build:
+    context: ./backend
+  image: kolmi-backend:latest
+  env_file:
+    - ./backend/.env
+
+services:
+  api:
+    <<: *backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # One-shot batch job. Never starts with `up` (profiles); run it by hand:
+  #   docker compose run --rm pass
+  #   docker compose run --rm pass python -m app.passes.daily --dry-run
+  pass:
+    <<: *backend
+    command: python -m app.passes.daily
+    restart: "no"
+    profiles:
+      - pass

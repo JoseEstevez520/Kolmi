@@ -69,7 +69,7 @@ python -m app.passes.daily --dry-run  # only ask the gatekeeper, write nothing
 
 Or from the admin API with `run_pass()` (runs synchronously).
 
-Cron, on the server:
+Cron, on the server (see [Deploy](#deploy-docker) for the container version):
 
 ```cron
 0 4 * * * cd /srv/kolmi/backend && .venv/bin/python -m app.passes.daily >> /var/log/kolmi-pass.log 2>&1
@@ -98,3 +98,29 @@ two hours).
 | `run_pass` | `POST /pass/run` | admin |
 
 Every route takes `Authorization: Bearer <Supabase access token>`.
+
+## Deploy (Docker)
+
+The image is built from this folder. The compose file lives at the repo root and
+reads secrets from `backend/.env`, so keep that file on the server.
+
+```bash
+# Build the image
+docker compose build
+
+# Start the API (restarts on crash)
+docker compose up -d api
+
+# Run the daily pass by hand
+docker compose run --rm pass
+docker compose run --rm pass python -m app.passes.daily --dry-run
+```
+
+The pass runs as a one-shot container, never as a cron inside the API. A host
+cron wakes it once a day:
+
+```cron
+0 4 * * * cd /srv/kolmi && docker compose run --rm pass python -m app.passes.daily >> /var/log/kolmi-pass.log 2>&1
+```
+
+The API healthcheck hits `GET /health` every 30s.

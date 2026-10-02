@@ -1,0 +1,30 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Tests
+tests/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Logs and editor noise
+*.log
+.vscode/
+.idea/
+.DS_Store
+
+# VCS
+.git/
+.gitignore
