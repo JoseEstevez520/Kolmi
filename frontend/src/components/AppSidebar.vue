@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
-import { Home, LogOut, NotebookPen, Settings } from '@lucide/vue'
+import { Home, LogOut, NotebookPen, ScrollText, Settings } from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, rootOf } from '../lib/content.js'
 import { nodeIcon } from '../lib/icons.js'
@@ -57,6 +57,15 @@ async function handleSignOut() {
 
       <NavTreeItem v-if="profile?.role === 'admin'" value="/admin" to="/admin" :icon="Settings">
         Admin
+      </NavTreeItem>
+
+      <NavTreeItem
+        v-if="profile?.role === 'admin'"
+        value="/admin/log"
+        to="/admin/log"
+        :icon="ScrollText"
+      >
+        AI log
       </NavTreeItem>
     </NavTree>
 

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authReady, loadProfile, session } from '../lib/auth.js'
+import AdminLogView from '../views/AdminLogView.vue'
 import AdminView from '../views/AdminView.vue'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
@@ -17,6 +18,12 @@ const routes = [
   // One screen for a section and one for a page: the node says which.
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
   { path: '/admin', name: 'admin', component: AdminView, meta: { layout: 'app', admin: true } },
+  {
+    path: '/admin/log',
+    name: 'admin-log',
+    component: AdminLogView,
+    meta: { layout: 'app', admin: true },
+  },
   { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },
 ]
 

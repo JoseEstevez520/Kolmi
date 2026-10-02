@@ -62,6 +62,26 @@ export const api = {
 
   node: (nodeId) => request(`/node?node_id=${encodeURIComponent(nodeId)}`),
 
+  // Admin, the AI log: the passes, what the AI did with each note or page, and
+  // the notes students have left.
+  adminPasses: ({ limit = 20 } = {}) => request(`/passes?limit=${encodeURIComponent(limit)}`),
+
+  adminAiLog: ({ passId = null, since = null, limit = 100 } = {}) => {
+    const query = new URLSearchParams()
+    if (passId != null) query.set('pass_id', passId)
+    if (since) query.set('since', since)
+    query.set('limit', limit)
+    return request(`/ai-log?${query}`)
+  },
+
+  adminNotes: ({ status = null, nodeId = null } = {}) => {
+    const query = new URLSearchParams()
+    if (status) query.set('status', status)
+    if (nodeId != null) query.set('node_id', nodeId)
+    const suffix = query.toString()
+    return request(`/notes${suffix ? `?${suffix}` : ''}`)
+  },
+
   // Admin, the tree. The backend stores whatever fields it is given, so a node
   // is created with its icon, colour and home flag from the start.
   createNode: ({ parentId = null, kind, title, description, icon, color, onHome }) => {

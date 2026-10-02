@@ -16,6 +16,10 @@ class ListNotesParams(BaseModel):
     node_id: int | None = None
 
 
+class ListPassesParams(BaseModel):
+    limit: int = 20
+
+
 @action(
     name="run_pass",
     description="Run the AI pass now instead of waiting for the night.",
@@ -25,6 +29,26 @@ class ListNotesParams(BaseModel):
 )
 def run_pass(ctx: Context, params: None):
     return run_daily_pass()
+
+
+@action(
+    name="list_passes",
+    description="The recent AI passes, with their status and stats, newest first.",
+    params=ListPassesParams,
+    method="GET",
+    path="/passes",
+    min_role="admin",
+)
+def list_passes(ctx: Context, params: ListPassesParams | None):
+    limit = params.limit if params else 20
+    return (
+        ctx.client.table("ai_passes")
+        .select("*")
+        .order("started_at", desc=True)
+        .limit(limit)
+        .execute()
+        .data
+    )
 
 
 @action(
