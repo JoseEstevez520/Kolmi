@@ -1,6 +1,6 @@
 -- Kolmi schema. Paste this into the Supabase SQL editor.
 -- Run it once per instance (one instance per class).
--- Kept in sync with the migrations applied through the Supabase MCP.
+-- Kept in sync with supabase/migrations/, which hold each change for an existing instance.
 
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -40,7 +40,8 @@ create table if not exists notes (
   id bigserial primary key,
   user_id uuid not null references profiles(id) on delete cascade,
   content text not null,
-  format text not null default 'text',   -- text | markdown (the notes editor)
+  format text not null default 'text'
+    check (format in ('text', 'markdown')),  -- markdown comes from the notes editor
   node_id bigint references nodes(id) on delete set null,
   status text not null default 'pending'
     check (status in ('pending', 'processed', 'discarded')),
@@ -69,6 +70,18 @@ create table if not exists ai_log (
   reason text not null default '',
   created_at timestamptz not null default now()
 );
+
+-- What the backend filters and joins on. Also in
+-- migrations/20261002130000_indexes_and_note_format.sql.
+create index if not exists notes_status_idx on notes (status);
+create index if not exists notes_user_id_idx on notes (user_id);
+create index if not exists notes_node_id_idx on notes (node_id);
+create index if not exists nodes_parent_position_idx on nodes (parent_id, position);
+create index if not exists node_versions_node_id_idx on node_versions (node_id);
+create index if not exists ai_log_pass_id_idx on ai_log (pass_id);
+create index if not exists ai_log_note_id_idx on ai_log (note_id);
+create index if not exists ai_log_created_at_idx on ai_log (created_at desc);
+create index if not exists ai_passes_started_at_idx on ai_passes (started_at desc);
 
 -- The class settings: one row per instance. class_language is the language the AI writes
 -- the shared notes and pages in. Also in migrations/20261002120000_settings.sql.

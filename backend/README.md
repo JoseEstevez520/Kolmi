@@ -23,6 +23,8 @@ Create the tables by pasting [`../supabase/schema.sql`](../supabase/schema.sql)
 into the Supabase SQL editor. An instance created before a change to the schema
 gets it from the matching file in [`../supabase/migrations/`](../supabase/migrations/),
 pasted the same way (each one is safe to run twice).
+Or run them with `psql "$SUPABASE_DB_URL" -f <file>`, where `SUPABASE_DB_URL` is the
+session pooler URI from the project's Connect dialog (the direct host is IPv6-only).
 
 ## Run
 
