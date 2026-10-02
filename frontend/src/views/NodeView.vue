@@ -1,16 +1,15 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Callout, Empty, Markdown, StatusText } from 'elastic-ui'
-import { Renderer } from '@openuidev/vue-lang'
 import { FileText, Layers } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode } from '../lib/content.js'
 import { iconByName } from '../lib/icons.js'
-import { canRender, pageLibrary } from '../lib/openui/library.js'
+import { loadPageRenderer } from '../lib/openui/load.js'
 
 // One node at /node/:id. The whole tree is already loaded, so a section paints
 // its children at once; only a page's content needs a fetch, often done already
@@ -29,9 +28,13 @@ const isPage = computed(() => node.value?.kind === 'page')
 const children = computed(() => node.value?.children ?? [])
 const content = computed(() => node.value?.content_md?.trim() ?? '')
 // The page's source is OpenUI Lang (see docs/page-format.md). When there is none, or it does
-// not parse into a page, the Markdown is shown instead.
+// not parse into a page, the Markdown is shown instead. The renderer is its own chunk, fetched
+// the first time a page has a source; if it cannot be loaded, the page shows its Markdown.
 const web = computed(() => node.value?.content_web?.trim() ?? '')
-const showWeb = computed(() => canRender(web.value))
+const openui = shallowRef(null)
+const openuiFailed = ref(false)
+const showWeb = computed(() => Boolean(openui.value?.canRender(web.value)))
+const waitingRenderer = computed(() => Boolean(web.value) && !openui.value && !openuiFailed.value)
 const title = computed(() => node.value?.title || (isPage.value ? t('node.page') : t('node.section')))
 const loadingContent = computed(() => isPage.value && !(id.value in pages.value))
 
@@ -45,6 +48,21 @@ const lead = computed(() => {
 function onRenderErrors(errors) {
   if (errors.length) console.warn('Page source has errors:', errors)
 }
+
+watch(
+  web,
+  (source) => {
+    if (!source || openui.value) return
+    openuiFailed.value = false
+    loadPageRenderer()
+      .then((loaded) => (openui.value = loaded))
+      .catch((e) => {
+        console.warn('Could not load the page renderer:', e)
+        openuiFailed.value = true
+      })
+  },
+  { immediate: true },
+)
 
 async function load() {
   error.value = ''
@@ -74,12 +92,18 @@ watch(id, load)
       </Callout>
 
       <template v-else-if="isPage">
-        <StatusText v-if="loadingContent" :delay="300" :text="t('common.loading')" working />
-        <Renderer
+        <StatusText
+          v-if="loadingContent || waitingRenderer"
+          :delay="300"
+          :text="t('common.loading')"
+          working
+        />
+        <component
+          :is="openui.Renderer"
           v-else-if="showWeb"
           :key="id"
           :response="web"
-          :library="pageLibrary"
+          :library="openui.pageLibrary"
           :on-error="onRenderErrors"
         />
         <Markdown v-else-if="content" :source="content" />
