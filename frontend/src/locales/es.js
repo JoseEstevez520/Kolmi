@@ -35,8 +35,20 @@ export default {
     admin: 'Administración',
     aiLog: 'Registro de la IA',
     account: 'Cuenta',
+    settings: 'Ajustes',
     signOut: 'Cerrar sesión',
     signOutAs: 'Cerrar sesión ({name})',
+  },
+
+  settings: {
+    title: 'Ajustes',
+    lead: 'Cómo se comporta la app en este navegador.',
+    language: 'Idioma',
+    motion: 'Animaciones',
+    motionHint:
+      'Las animaciones se mantienen aunque el sistema pida reducir el movimiento. Desactívalo para seguir el ajuste del sistema.',
+    forceMotion: 'Mantener las animaciones',
+    savedHere: 'Se guarda solo en este navegador.',
   },
 
   login: {

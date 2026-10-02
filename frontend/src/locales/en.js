@@ -9,7 +9,8 @@ export default {
   },
 
   locale: {
-    // The toggle shows the other language by its own name; this is its accessible name.
+    // The login screen's toggle shows the other language by its own name; this is its
+    // accessible name. Inside the app the language is picked in Settings.
     switch: 'Switch to Spanish',
   },
 
@@ -37,8 +38,20 @@ export default {
     admin: 'Admin',
     aiLog: 'AI log',
     account: 'Account',
+    settings: 'Settings',
     signOut: 'Sign out',
     signOutAs: 'Sign out ({name})',
+  },
+
+  settings: {
+    title: 'Settings',
+    lead: 'How the app behaves in this browser.',
+    language: 'Language',
+    motion: 'Animations',
+    motionHint:
+      'Animations stay on even when the system asks for reduced motion. Turn this off to follow the system setting.',
+    forceMotion: 'Keep animations on',
+    savedHere: 'Saved in this browser only.',
   },
 
   login: {

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { Button } from 'elastic-ui'
 import { LOCALES, setLocale } from '../lib/i18n.js'
 
-// Switches between English and Spanish, next to the theme toggle. It shows the other
+// Switches between English and Spanish on the sign-in screens. It shows the other
 // language by its own name, so whoever needs it can read it in either.
 const { t, locale } = useI18n()
 const next = computed(() => (locale.value === 'es' ? 'en' : 'es'))

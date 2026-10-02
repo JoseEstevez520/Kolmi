@@ -16,6 +16,19 @@
   --color-accent-fg: light-dark(#ffffff, #0a0a0a);
 }
 
+/*
+ * Settings can force the animations on a computer that asks for reduced motion. With
+ * `<html data-motion="full">` the components' `motion-reduce:` utilities step aside, as the
+ * rules in tokens.css do.
+ */
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion='full']) & {
+      @slot;
+    }
+  }
+}
+
 body {
   margin: 0;
   background: var(--color-bg);

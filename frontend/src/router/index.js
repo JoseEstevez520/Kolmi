@@ -8,6 +8,7 @@ import NodeView from '../views/NodeView.vue'
 import NotesView from '../views/NotesView.vue'
 import NoteWriteView from '../views/NoteWriteView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 // After signing in, ask the backend for the profile: a 404 sends the user to
 // Register, anything else to the home.
@@ -21,6 +22,7 @@ const routes = [
   { path: '/notes/:id(\\d+)', name: 'note', component: NoteWriteView, meta: { layout: 'app' } },
   // One screen for a section and one for a page: the node says which.
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
+  { path: '/settings', name: 'settings', component: SettingsView, meta: { layout: 'app' } },
   { path: '/admin', name: 'admin', component: AdminView, meta: { layout: 'app', admin: true } },
   {
     path: '/admin/log',

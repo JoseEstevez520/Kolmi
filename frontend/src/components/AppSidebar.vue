@@ -3,14 +3,15 @@ import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
-import { Home, LogOut, NotebookPen, ScrollText, Settings } from '@lucide/vue'
+import { Home, LogOut, NotebookPen, ScrollText, Settings, SlidersHorizontal } from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, rootOf } from '../lib/content.js'
 import { nodeIcon } from '../lib/icons.js'
 
 // The app's sidebar (elastic-ui "connected" variant): Home, Notes, the
 // top-level nodes with their icon and colour (never the whole tree; the pages
-// inside are reached from a section), the admin panel for admins, and sign out.
+// inside are reached from a section), the admin panel for admins, and, at the
+// bottom, Settings and sign out.
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -73,7 +74,10 @@ async function handleSignOut() {
     </NavTree>
 
     <template #footer>
-      <NavTree :label="t('sidebar.account')">
+      <NavTree :model-value="active" :label="t('sidebar.account')">
+        <NavTreeItem value="/settings" to="/settings" :icon="SlidersHorizontal">
+          {{ t('sidebar.settings') }}
+        </NavTreeItem>
         <NavTreeItem value="/signout" :icon="LogOut" @click="handleSignOut">
           {{ profile ? t('sidebar.signOutAs', { name: profile.name }) : t('sidebar.signOut') }}
         </NavTreeItem>
