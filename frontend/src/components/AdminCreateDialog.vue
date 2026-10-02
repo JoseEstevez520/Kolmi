@@ -145,7 +145,9 @@ async function create(close) {
         </template>
 
         <div class="flex justify-end gap-2">
-          <DialogMorphClose>Cancel</DialogMorphClose>
+          <DialogMorphClose as-child>
+            <Button variant="ghost">Cancel</Button>
+          </DialogMorphClose>
           <Button :disabled="!title.trim()" @click="create(close)">Add</Button>
         </div>
       </div>

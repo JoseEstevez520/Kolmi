@@ -55,7 +55,7 @@ function call(fn) {
 
 <template>
   <div
-    class="group/row flex min-w-0 items-center gap-1.5 rounded-[var(--radius-md)] px-1.5 py-1 hover:bg-bg-muted"
+    class="flex min-w-0 items-center gap-1.5 px-1.5 py-1"
   >
     <slot name="toggle" />
 
@@ -66,46 +66,40 @@ function call(fn) {
       :stroke-width="1.5"
     />
 
-    <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-2" @submit.prevent="save">
+    <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-1" @submit.prevent="save">
       <Input v-model="draft" aria-label="Rename" autofocus />
-      <Button type="submit" variant="ghost" size="icon" aria-label="Save">
-        <Check class="size-4" />
-      </Button>
-      <Button type="button" variant="ghost" size="icon" aria-label="Cancel" @click="cancel">
-        <X class="size-4" />
-      </Button>
+      <Button type="submit" variant="ghost" size="icon" :icon="Check" aria-label="Save" />
+      <Button variant="ghost" size="icon" :icon="X" aria-label="Cancel" @click="cancel" />
     </form>
 
     <template v-else>
       <button
         type="button"
-        class="min-w-0 flex-1 truncate text-left text-sm font-medium text-fg hover:text-fg-secondary"
+        class="focus-ring min-w-0 flex-1 truncate rounded-[var(--radius-sm)] text-left text-label font-medium text-fg hover:text-fg-secondary"
         @click="start"
       >
         {{ node.title }}
       </button>
 
-      <div class="flex shrink-0 items-center gap-1.5">
+      <div class="flex shrink-0 items-center gap-1">
         <slot name="actions" />
 
         <Button
           variant="ghost"
           size="icon"
+          :icon="ArrowUp"
           aria-label="Move up"
           :disabled="!canMoveUp"
           @click="call(moveUp)"
-        >
-          <ArrowUp class="size-4" />
-        </Button>
+        />
         <Button
           variant="ghost"
           size="icon"
+          :icon="ArrowDown"
           aria-label="Move down"
           :disabled="!canMoveDown"
           @click="call(moveDown)"
-        >
-          <ArrowDown class="size-4" />
-        </Button>
+        />
         <ConfirmButton tone="danger" :label="`Delete ${node.title}`" :action="remove" />
       </div>
     </template>

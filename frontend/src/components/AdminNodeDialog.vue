@@ -73,10 +73,8 @@ async function save(close) {
 <template>
   <DialogMorph>
     <template #trigger>
-      <span class="inline-flex items-center gap-2">
-        <Settings2 class="size-4" />
-        <span class="sr-only">Edit {{ node.title }}</span>
-      </span>
+      <Settings2 class="size-4" aria-hidden="true" />
+      <span class="sr-only">Edit {{ node.title }}</span>
     </template>
 
     <template #default="{ close }">
@@ -149,7 +147,9 @@ async function save(close) {
         <Switch v-model="onHome">Show on the home</Switch>
 
         <div class="flex justify-end gap-2">
-          <DialogMorphClose>Cancel</DialogMorphClose>
+          <DialogMorphClose as-child>
+            <Button variant="ghost">Cancel</Button>
+          </DialogMorphClose>
           <Button @click="save(close)">Save</Button>
         </div>
       </div>

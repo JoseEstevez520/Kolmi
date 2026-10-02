@@ -1,5 +1,6 @@
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { Button } from 'elastic-ui'
 import { ChevronRight, Plus } from '@lucide/vue'
 import AdminCreateDialog from './AdminCreateDialog.vue'
 import AdminNodeDialog from './AdminNodeDialog.vue'
@@ -47,10 +48,11 @@ async function reorderTo(delta) {
       :remove="() => admin.remove(node.id)"
     >
       <template #toggle>
-        <button
+        <Button
           v-if="hasChildren"
-          type="button"
-          class="focus-ring flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-fg-muted hover:bg-bg-muted hover:text-fg"
+          variant="ghost"
+          size="icon"
+          class="size-6"
           :aria-label="open ? `Collapse ${node.title}` : `Expand ${node.title}`"
           :aria-expanded="open"
           @click="open = !open"
@@ -60,17 +62,15 @@ async function reorderTo(delta) {
             :class="open && 'rotate-90'"
             :stroke-width="1.5"
           />
-        </button>
+        </Button>
         <span v-else class="size-6 shrink-0" aria-hidden="true" />
       </template>
 
       <template #actions>
         <AdminCreateDialog v-if="isSection" :parent-id="node.id" :parent-title="node.title">
           <template #trigger>
-            <span class="inline-flex items-center gap-2">
-              <Plus class="size-4" />
-              <span class="sr-only">Add inside {{ node.title }}</span>
-            </span>
+            <Plus class="size-4" aria-hidden="true" />
+            <span class="sr-only">Add inside {{ node.title }}</span>
           </template>
         </AdminCreateDialog>
         <AdminNodeDialog :node="node" />
