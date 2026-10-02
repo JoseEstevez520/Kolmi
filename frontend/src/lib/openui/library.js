@@ -1,4 +1,4 @@
-import { computed, h, inject, provide } from 'vue'
+import { h } from 'vue'
 import {
   Accordion,
   AccordionContent,
@@ -17,20 +17,34 @@ import {
   DescriptionItem,
   DescriptionList,
   Diagram,
+  DiagramArea,
+  DiagramArrow,
+  DiagramChip,
+  DiagramGroup,
+  DiagramImage,
+  DiagramItem,
+  LogoList,
+  LogoListItem,
   Markdown,
   Prose,
+  SandboxFrame,
   Steps,
   StepsItem,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   TerminalReplay,
   slugify,
 } from 'elastic-ui'
-import { ArrowUpRight } from '@lucide/vue'
 import { createParser } from '@openuidev/vue-lang'
 import { buildLibrary, ROOT } from './catalog.js'
 import { COLOR_VALUES } from './colors.js'
 import { iconFor } from './icons.js'
 import { logoFor } from './logos.js'
-import { themedDocument, themedSvg, useThemeCss } from './theme.js'
 
 // The page catalogue drawn with elastic-ui. Every renderer gets the parsed `props` and a
 // `renderNode` for its children; both are declared so Vue does not pass them on as attributes.
@@ -42,11 +56,6 @@ function renderer(render) {
   return { props: declared, setup: (p) => () => render(p.props ?? {}, p.renderNode) }
 }
 
-// A renderer with a setup of its own (provide/inject, the theme), returning the render function.
-function stateful(setup) {
-  return { props: declared, setup: (p) => setup(p) }
-}
-
 // A Markdown block that flows in the page's own Prose instead of opening a second article.
 const markdown = (source) => h(Markdown, { source: source ?? '', class: 'contents' })
 
@@ -54,69 +63,27 @@ const markdown = (source) => h(Markdown, { source: source ?? '', class: 'content
 const propsOf = (node) => node?.props ?? {}
 const list = (value) => (Array.isArray(value) ? value : [])
 
-const DEFAULT_ARTIFACT_HEIGHT = 360
-
 // -- figures ---------------------------------------------------------------------------------
 
-const LAYOUT = Symbol('figure layout')
-const colorStyle = (color) => (COLOR_VALUES[color] ? { '--diagram-color': COLOR_VALUES[color] } : undefined)
-const iconNode = (name, size = 'size-4') => {
-  const icon = iconFor(name)
-  return icon ? h(icon, { class: `${size} shrink-0`, 'stroke-width': 1.5, 'aria-hidden': 'true' }) : null
-}
+// The figure pieces' props, mapped onto elastic-ui's diagram parts: a colour by its name in the
+// palette, an icon by its name in the icon set, a layout only if it is one of the three.
+const colorOf = (name) => COLOR_VALUES[name]
+const layoutOf = (value) => (value === 'row' || value === 'column' || value === 'grid' ? value : undefined)
 
-// How a figure's or a group's parts sit: a row turns into a column on a phone.
-const OUTER = {
-  row: 'flex flex-col items-stretch gap-3 sm:flex-row sm:items-center',
-  column: 'flex flex-col items-stretch gap-2',
-  grid: 'grid gap-3 sm:grid-cols-2',
-}
-// Inside an Area, its chips and labels.
-const INNER = {
-  column: 'flex flex-col items-stretch gap-2',
-  row: 'flex flex-wrap gap-1.5',
-  grid: 'grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3',
-}
-const layoutOf = (value, fallback) => (value === 'row' || value === 'column' || value === 'grid' ? value : fallback)
-
-// -- cards and logos -------------------------------------------------------------------------
+// -- cards -----------------------------------------------------------------------------------
 
 function card({ title = '', text, href, image }) {
-  const body = h(Card, { size: 'sm', class: href ? 'h-full transition-colors duration-150 group-hover:border-border-strong' : 'h-full' }, () => [
+  return h(Card, { size: 'sm', href: href || undefined, class: 'h-full' }, () => [
     image ? h(CardImage, { src: image, alt: title, fade: true, class: 'aspect-video' }) : null,
     h(CardHeader, { class: 'gap-1' }, () => [
-      h(CardTitle, { as: 'h3', class: 'flex items-center justify-between gap-2' }, () => [
-        title,
-        href ? h(ArrowUpRight, { class: 'size-4 shrink-0 text-fg-faint transition-colors duration-150 group-hover:text-fg', 'aria-hidden': 'true' }) : null,
-      ]),
+      h(CardTitle, { as: 'h3' }, () => title),
       text ? h(CardDescription, null, () => text) : null,
     ]),
   ])
-  if (!href) return body
-  return h(
-    'a',
-    {
-      href,
-      target: '_blank',
-      rel: 'noopener noreferrer',
-      class: 'group block h-full rounded-[var(--radius-xl)] focus-visible:outline-2 focus-visible:outline-accent',
-    },
-    [body],
-  )
 }
 
-function logo(icon) {
-  return h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true' }, [
-    h('path', { d: icon.path }),
-  ])
-}
-
-// A table as Markdown, so it is the library's own: as wide as the text, scrolling sideways.
-function tableMarkdown(columns, rows) {
-  const cell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ')
-  const line = (cells) => `| ${cells.map(cell).join(' | ')} |`
-  return [line(columns), line(columns.map(() => '---')), ...rows.map((row) => line(columns.map((_, i) => list(row)[i])))].join('\n')
-}
+// A cell's Markdown (`code`, **bold**), in the table's own type rather than an article's.
+const cell = (value) => h(Markdown, { source: String(value ?? ''), class: 'text-ui [color:inherit] [&_p]:m-0' })
 
 // -- the renderers ---------------------------------------------------------------------------
 
@@ -148,8 +115,15 @@ const renderers = {
   Table: renderer(({ columns, rows, caption }) => {
     const cols = list(columns)
     if (!cols.length) return null
-    const table = markdown(tableMarkdown(cols, list(rows)))
-    return caption ? h('figure', null, [table, h('figcaption', null, caption)]) : table
+    return h(Table, null, () => [
+      h(TableHeader, null, () => h(TableRow, null, () => cols.map((name, i) => h(TableHead, { key: i }, () => cell(name))))),
+      h(TableBody, null, () =>
+        list(rows).map((row, r) =>
+          h(TableRow, { key: r }, () => cols.map((_, i) => h(TableCell, { key: i }, () => cell(list(row)[i])))),
+        ),
+      ),
+      caption ? h(TableCaption, null, () => caption) : null,
+    ])
   }),
 
   DescriptionList: renderer(({ items }, renderNode) =>
@@ -178,17 +152,10 @@ const renderers = {
   ),
   Card: renderer((props) => card(props)),
 
+  // In the text's colour: the app is grey, and colour only carries meaning (design.md).
   Logos: renderer(({ names }) =>
-    h(
-      'ul',
-      { class: 'not-prose flex flex-wrap gap-2' },
-      list(names).map((name) => {
-        const icon = logoFor(name)
-        return h('li', { class: 'flex items-center gap-2 rounded-[var(--radius-lg)] bg-bg-subtle px-3 py-1.5' }, [
-          icon ? logo(icon) : null,
-          h('span', { class: 'text-sm text-fg-secondary' }, String(name)),
-        ])
-      }),
+    h(LogoList, null, () =>
+      list(names).map((name) => h(LogoListItem, { key: String(name), icon: logoFor(name), mono: true }, () => String(name))),
     ),
   ),
 
@@ -239,110 +206,52 @@ const renderers = {
     ),
   ),
 
-  // The figure pieces, on elastic-ui's diagram classes. A part knows the layout it sits in,
-  // so an arrow points along it and a top-level chip keeps to its own width.
-  Figure: stateful((p) => {
-    provide(LAYOUT, computed(() => ({ layout: layoutOf(p.props?.layout, 'row'), top: true })))
-    return () => {
-      const { label = '', parts, layout, caption } = p.props ?? {}
-      return h(Diagram, { label, caption, class: 'rounded-[var(--radius-xl)] bg-bg-subtle p-5 sm:p-6' }, () =>
-        h('div', { class: OUTER[layoutOf(layout, 'row')] }, p.renderNode(parts ?? [])),
-      )
-    }
-  }),
-
-  Group: stateful((p) => {
-    provide(LAYOUT, computed(() => ({ layout: layoutOf(p.props?.layout, 'column'), top: true })))
-    return () => h('div', { class: `${OUTER[layoutOf(p.props?.layout, 'column')]} min-w-0 sm:flex-1` }, p.renderNode(p.props?.parts ?? []))
-  }),
-
-  Area: stateful((p) => {
-    const outer = inject(LAYOUT, null)
-    provide(LAYOUT, computed(() => ({ layout: layoutOf(p.props?.layout, 'column'), top: false })))
-    return () => {
-      const { title = '', parts, color, icon, note, layout } = p.props ?? {}
-      const inRow = outer?.value.layout === 'row'
-      return h('div', { class: ['diagram-area diagram-in gap-2', inRow && 'min-w-0 sm:flex-1'], style: colorStyle(color) }, [
-        h('span', { class: 'flex items-center gap-1.5 text-sm font-semibold' }, [iconNode(icon), title]),
-        list(parts).length ? h('div', { class: INNER[layoutOf(layout, 'column')] }, p.renderNode(parts)) : null,
-        note ? h('span', { class: 'text-sm text-fg-secondary' }, note) : null,
-      ])
-    }
-  }),
-
-  Chip: stateful((p) => {
-    const outer = inject(LAYOUT, null)
-    return () => {
-      const { text = '', color, icon, note } = p.props ?? {}
-      return h('span', { class: ['diagram-chip diagram-in max-w-full [overflow-wrap:anywhere]', outer?.value.top && 'self-center'], style: colorStyle(color) }, [
-        iconNode(icon),
-        text,
-        note ? h('span', { class: 'font-normal text-fg-secondary' }, `· ${note}`) : null,
-      ])
-    }
-  }),
-
-  Label: renderer(({ text = '', icon, color }) =>
-    h('span', { class: 'flex items-center gap-2 text-sm font-medium', style: COLOR_VALUES[color] ? { color: COLOR_VALUES[color] } : undefined }, [
-      iconNode(icon),
-      text,
-    ]),
+  // The figure pieces, on elastic-ui's diagram parts. A row runs down when it no longer fits and
+  // its arrows turn with it; that is the library's, measured from the parts.
+  Figure: renderer(({ label = '', parts, layout, caption }, renderNode) =>
+    h(Diagram, { label, caption, class: 'rounded-[var(--radius-xl)] bg-bg-subtle p-5 sm:p-6' }, () =>
+      h(DiagramGroup, { layout: layoutOf(layout) ?? 'row' }, () => renderNode(parts ?? [])),
+    ),
   ),
 
-  Arrow: stateful((p) => {
-    const outer = inject(LAYOUT, null)
-    return () => {
-      const { label, both } = p.props ?? {}
-      const words = label ? ` ${label}` : ''
-      const down = both ? '⇅' : '↓'
-      const side = both ? '⇄' : '→'
-      const cls = ['diagram-in self-center text-center text-fg-faint', label && 'text-xs']
-      if (outer?.value.layout !== 'row') return h('span', { class: cls, 'aria-hidden': 'true' }, down + words)
-      return h('span', { class: cls, 'aria-hidden': 'true' }, [
-        h('span', { class: 'sm:hidden' }, down + words),
-        h('span', { class: 'hidden sm:inline' }, side + words),
-      ])
-    }
+  Group: renderer(({ parts, layout }, renderNode) =>
+    h(DiagramGroup, { layout: layoutOf(layout) ?? 'column' }, () => renderNode(parts ?? [])),
+  ),
+
+  Area: renderer(({ title = '', parts, color, icon, note, layout }, renderNode) =>
+    h(
+      DiagramArea,
+      { title, icon: iconFor(icon), color: colorOf(color), note, layout: layoutOf(layout) },
+      list(parts).length ? () => renderNode(parts) : undefined,
+    ),
+  ),
+
+  Chip: renderer(({ text = '', color, icon, note }) =>
+    h(DiagramChip, { icon: iconFor(icon), color: colorOf(color), note }, () => text),
+  ),
+
+  Label: renderer(({ text = '', icon, color }) =>
+    h(DiagramItem, { icon: iconFor(icon), color: colorOf(color) }, () => text),
+  ),
+
+  Arrow: renderer(({ label, both }) => h(DiagramArrow, { label, both: !!both })),
+
+  // Drawn as an image by the library, so the SVG cannot run scripts or reach the page. A page
+  // written before briefs carried the SVG as its second argument.
+  Diagram: renderer(({ label = '', brief = '', caption, svg }) => {
+    const source = svg || (brief.trim().startsWith('<svg') ? brief : '')
+    if (!source) return null
+    return h(Diagram, { label, caption, class: 'rounded-[var(--radius-xl)] bg-bg-subtle p-4 sm:p-5' }, () =>
+      h(DiagramImage, { svg: source }),
+    )
   }),
 
-  // Drawn as an image, so the SVG cannot run scripts or reach the page; it gets the theme's
-  // tokens and the diagram classes as its own stylesheet. A page written before briefs carried
-  // the SVG as its second argument.
-  Diagram: stateful((p) => {
-    const css = useThemeCss()
-    return () => {
-      const { label = '', brief = '', caption, svg } = p.props ?? {}
-      const source = svg || (brief.trim().startsWith('<svg') ? brief : '')
-      if (!source || !css.value) return null
-      return h(Diagram, { label, caption, class: 'rounded-[var(--radius-xl)] bg-bg-subtle p-4 sm:p-5' }, () =>
-        h('img', {
-          src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(themedSvg(source, css.value.svg))}`,
-          alt: '',
-          class: 'block h-auto w-full',
-        }),
-      )
-    }
-  }),
-
-  // An interactive piece: its HTML in a sandboxed iframe. Scripts run, but without
-  // `allow-same-origin` the frame has no access to the app, its cookies or its storage, and its
-  // content policy allows no network. It gets the theme's tokens, so it looks like the app.
-  Artifact: stateful((p) => {
-    const css = useThemeCss()
-    return () => {
-      const { title = '', brief = '', height, html } = p.props ?? {}
-      const source = html || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '')
-      if (!source || !css.value) return null
-      return h('iframe', {
-        title,
-        srcdoc: themedDocument(source, css.value.html),
-        sandbox: 'allow-scripts',
-        referrerpolicy: 'no-referrer',
-        loading: 'lazy',
-        class: 'block w-full rounded-[var(--radius-xl)] border-0 bg-bg-subtle',
-        style: { height: `${Number(height) > 0 ? Number(height) : DEFAULT_ARTIFACT_HEIGHT}px` },
-      })
-    }
+  // An interactive piece in the library's sandboxed frame: no way to the app or the network, the
+  // theme's tokens, and as tall as what it holds. `height` is only where it starts.
+  Artifact: renderer(({ title = '', brief = '', height, html }) => {
+    const source = html || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '')
+    if (!source) return null
+    return h(SandboxFrame, { html: source, label: title, height: Number(height) > 0 ? Number(height) : undefined })
   }),
 }
 

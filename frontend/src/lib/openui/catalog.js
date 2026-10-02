@@ -279,7 +279,7 @@ export function buildLibrary(renderers) {
       brief: z
         .string()
         .describe('For the coding model: what the piece shows, what the reader can do with it, its parts and colours, and what it should make obvious'),
-      height: z.number().optional().describe('Height in pixels; 360 by default'),
+      height: z.number().optional().describe('Its height in pixels while it loads; it then takes the height of what it holds'),
       html: z.string().optional().describe('Leave out: filled in by the coding model'),
     }),
   )

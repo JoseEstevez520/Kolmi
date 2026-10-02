@@ -345,7 +345,8 @@ coloured with style="--diagram-color: #7c3aed". {_COLOURS}
 before anyone touches it. Full, not sparse: it shows all the brief and the notes give for it, \
 with no large empty areas, at the level of the example below.
 - No borders for decoration, no shadows, no tint inside a tint.
-- It fits any width from 340 to 720px and the given height, with no scrolling.
+- It fits any width from 340 to 720px. The frame takes the height of what it holds, so never \
+fix the page's height (no height: 100vh) and nothing scrolls inside it.
 - Short labels: the page around it explains.
 
 This is the level expected, a piece from the class notes site that compares two Spring scopes \

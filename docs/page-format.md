@@ -38,33 +38,34 @@ props and descriptions, with no renderers. Argument order is the order of the ke
 | `CodeDiff(before, after, file?)` | `CodeDiff`, a change to a file |
 | `Callout(type, text, title?)` | `Callout` |
 | `Steps(items)`, `StepItem(title, text)` | `Steps static` + `StepsItem` |
-| `Table(columns, rows, caption?)` | a Markdown table, which `Markdown` draws as the library's |
+| `Table(columns, rows, caption?)` | `Table`, each cell's inline Markdown drawn by `Markdown` |
 | `DescriptionList(items)`, `DescriptionItem(term, text)` | `DescriptionList divided` |
 | `Accordion(items)`, `AccordionItem(title, text)` | `Accordion type="multiple"`, for secondary detail only |
-| `Cards(items)`, `Card(title, text?, href?, image?)` | a two-column grid of `Card`s; with `href` the whole card is a link, as the class site's reference cards |
-| `Logos(names)` | technology names with their simple-icons logo (`logos.js`, a fixed set) |
+| `Cards(items)`, `Card(title, text?, href?, image?)` | a two-column grid of `Card`s; with `href` the whole `Card` is the link, opening another site in a new tab |
+| `Logos(names)` | `LogoList` of `LogoListItem`s in the text's colour; each name's simple-icons logo comes from `logos.js`, a fixed set |
 | `TerminalReplay(entries, title?)`, `TerminalEntry(command, output?, comment?)` | `TerminalReplay` |
 | `AgentReplay(events)`, `AgentPrompt`, `AgentStep`, `AgentAnswer` | `AgentReplay`; a step's icon is a name from the fixed set |
 | `Chat(messages)`, `ChatMessage(role, text)` | `ChatMessage`s on a soft background |
-| `Figure(label, parts, layout?, caption?)` | `Diagram` on `bg-bg-subtle`, its parts laid out in a row (a column on a phone), a column or a grid |
-| `Group(parts, layout?)` | an untinted row, column or grid inside a Figure |
-| `Area(title, parts, color?, icon?, note?, layout?)` | `diagram-area`: a tinted group with a title |
-| `Chip(text, color?, icon?, note?)` | `diagram-chip`: a tinted part |
-| `Label(text, icon?, color?)` | a plain line with an icon |
-| `Arrow(label?, both?)` | a connector that points along its layout |
-| `Diagram(label, brief, caption?, svg?)` | `Diagram`, with the SVG as an `<img>` so it cannot run scripts |
-| `Artifact(title, brief, height?, html?)` | an `iframe` with `sandbox="allow-scripts"`, no same-origin access and a content policy with no network |
+| `Figure(label, parts, layout?, caption?)` | `Diagram` on `bg-bg-subtle` round a `DiagramGroup`: a row (down once it no longer fits), a column or a grid |
+| `Group(parts, layout?)` | `DiagramGroup`: an untinted row, column or grid inside a Figure |
+| `Area(title, parts, color?, icon?, note?, layout?)` | `DiagramArea`: a tinted group with a title |
+| `Chip(text, color?, icon?, note?)` | `DiagramChip`: a tinted part |
+| `Label(text, icon?, color?)` | `DiagramItem`: a plain line with an icon |
+| `Arrow(label?, both?)` | `DiagramArrow`: points along its layout, and turns when a row runs down |
+| `Diagram(label, brief, caption?, svg?)` | `Diagram` round a `DiagramImage`: the SVG as an `<img>`, so it cannot run scripts |
+| `Artifact(title, brief, height?, html?)` | `SandboxFrame`: `sandbox="allow-scripts"`, no same-origin access, a content policy with no network, and as tall as its content (`height` is only where it starts) |
 
-The figure pieces are elastic-ui's diagram classes (`diagram-area`, `diagram-chip`, tinted by
-`--diagram-color`), so a model can compose the boxes-with-tints drawings the class notes site
+The figure pieces are elastic-ui's diagram parts (on its `diagram-area` and `diagram-chip`
+classes, tinted by `--diagram-color`), so a model can compose the boxes-with-tints drawings the class notes site
 draws by hand. Colours are names from a small palette (`colors.js`: blue, violet, cyan, pink,
 yellow, grey, and green/amber/red for outcomes), and icons names from a fixed Lucide set
 (`icon-names.js`). Both read in light and dark because the library mixes the tint with the
 theme's own colours.
 
 A Diagram's SVG and an Artifact's document get the elastic-ui tokens, resolved in the current
-theme, and the diagram classes as plain CSS (`theme.js`), so they look like the app in both
-themes; they are rebuilt when the theme changes.
+theme, and the diagram classes as plain CSS, from the library (`DiagramImage`, `SandboxFrame`),
+so they look like the app in both themes. On a theme change the SVG is drawn again, and the
+Artifact gets the new tokens by message, keeping its state.
 
 ### Diagrams and Artifacts
 
