@@ -6,17 +6,29 @@ moving at a time, icons only where they help, no shadows of our own. This file o
 what is Kolmi's.
 
 **What is the library's and what is the app's**: how things look and behave is the library's.
-What is said is the app's: the texts, the screens and the small pieces the app adds (the
-sidebar, the page layout, the note cards). If something in the library breaks or is missing,
-it is reported there and not patched over from here.
+What is said is the app's: the texts, the screens, and how they put the library's parts
+together (the sidebar, the page layout, the note cards).
+
+**When something is missing, it is built in the library.** A piece no screen can compose from
+existing parts, a missing variant (a ghost trigger, say) or a bug is made in elastic-ui, not
+here: no hand-styled stand-ins, no overriding its classes. The steps:
+
+1. Plan it in the elastic-ui repo, following its `AGENTS.md` and `DECISIONS.md`.
+2. Build it with its story and its `USAGE.md` entry.
+3. Release a version and pack it.
+4. Swap the tarball in `vendor/` and `package.json`.
+5. Restart the dev server: a reload keeps the old version.
+
+The page catalogue (`src/lib/openui/`) follows the same rule. Each component the AI may write
+maps to a library part, and its renderer only passes the props on.
 
 ## elastic-ui
 
-Installed from the packed library, `vendor/elastic-ui-0.3.3.tgz`, under the alias
+Installed from the packed library, `vendor/elastic-ui-<version>.tgz`, under the alias
 `elastic-ui`:
 
 ```json
-"elastic-ui": "file:vendor/elastic-ui-0.3.3.tgz"
+"elastic-ui": "file:vendor/elastic-ui-0.3.8.tgz"
 ```
 
 It ships no compiled CSS: `src/style.css` imports its tokens and points Tailwind at its

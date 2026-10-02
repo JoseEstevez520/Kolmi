@@ -14,6 +14,12 @@ in its own repo.
 - **One instance per class.** No multitenancy: each class deploys its own, with its own
   Supabase and server.
 - **No secrets in git.** Supabase keys and `CLASS_CODE` go in `.env`, never in the repo.
+- **UI pieces belong to elastic-ui.** [elastic-ui](https://github.com/JoseEstevez520/elastic-ui)
+  is this project's own component library. Kolmi composes its parts; it doesn't build its own.
+  If a screen or the page catalogue needs a piece the library lacks (a diagram part, a card, a
+  frame), it is built in elastic-ui, following that repo's rules. Then it is released, and the
+  packed version in `frontend/vendor/` is bumped. The same goes for a missing variant or a bug.
+  See [frontend/design.md](frontend/design.md).
 - **Agents use the OpenAI SDK.** Move to LangGraph only when loops or approval are needed.
 - **Everything in this repo is in English** (code, comments, docs, commits).
 - **Personal setup is local.** This developer's own server, Supabase and deploy details live
