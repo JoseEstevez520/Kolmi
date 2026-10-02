@@ -23,13 +23,14 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.deepseek.com"
     llm_model: str = "deepseek-flash"
 
-    # The web agent writes pages as OpenUI Lang. "deepseek" (the default) uses the model above
-    # with the whole catalogue prompt; "thesys" goes through the Thesys (OpenUI) Gateway, which
-    # validates and repairs the output, and needs THESYS_API_KEY.
-    web_provider: Literal["deepseek", "thesys"] = "deepseek"
-    thesys_api_key: str = ""
-    thesys_base_url: str = "https://api.thesys.dev/v1/embed"
-    thesys_model: str = "google/gemini-3.7-flash"
+    # The web model, optional: it writes the pages as OpenUI Lang, and when it fails, or isn't
+    # set, the model above writes them instead. Any OpenAI-compatible endpoint. web_prompt is
+    # "full" (the whole catalogue) or "gateway" for an endpoint that builds the prompt from a
+    # short config block, as the OpenUI Gateway does.
+    web_api_key: str = ""
+    web_base_url: str = ""
+    web_model: str = ""
+    web_prompt: Literal["full", "gateway"] = "full"
 
     @property
     def cors_origins_list(self) -> list[str]:

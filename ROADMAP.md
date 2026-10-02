@@ -20,9 +20,9 @@ What we're building and what's next. Open to whatever the class needs.
   `docker compose run --rm pass`. See [backend/README.md](backend/README.md).
 - [x] **Page format (code)** — pages are OpenUI Lang (catalog plus a sandboxed artifact),
   rendered over elastic-ui with `@openuidev/vue-lang`; Markdown is derived for the RAG.
-  DeepSeek writes the page with the whole catalogue prompt (`WEB_PROVIDER=deepseek`, the
-  default); the Thesys Gateway is an option (`WEB_PROVIDER=thesys`). If the answer isn't a
-  page, DeepSeek writes Markdown instead. The renderer loads on demand. See
+  An optional web model writes it first (any OpenAI-compatible endpoint, such as the OpenUI
+  Gateway); when it fails or isn't set, DeepSeek writes the same OpenUI Lang, and Markdown is
+  the last resort. The renderer loads on demand. See
   [docs/page-format.md](docs/page-format.md).
 - [x] **Notes editor** — a note gets a page of its own (`/notes/new`): a title and a Tiptap
   editor that saves Markdown. Blocks come from a `/` menu or the `+` beside an empty line

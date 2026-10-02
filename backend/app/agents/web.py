@@ -18,10 +18,14 @@ class Page:
 
     content_md: str
     content_web: str
-    # "web" when the web agent wrote OpenUI Lang, "markdown" when the notes agent wrote it.
+    # "web" when it was written as OpenUI Lang, "markdown" when the notes agent wrote it.
     source: str
-    # Why the web agent was skipped or failed, when it was.
+    # The model that wrote it.
+    model: str = ""
+    # Why the web model was not the one that wrote it, when it wasn't.
     fallback_reason: str = ""
+    # Whether the web model was tried and failed, so the pass can stop asking it.
+    web_failed: bool = False
 
 
 def _brief(
@@ -76,7 +80,11 @@ def write_web(
     markdown = openui.to_markdown(root)
     if not markdown:
         raise openui.ParseError("the page has no content")
-    return Page(content_md=markdown, content_web=source, source="web")
+    return Page(content_md=markdown, content_web=source, source="web", model=_name(web_llm))
+
+
+def _name(llm: LLM) -> str:
+    return getattr(llm, "model", None) or "unknown"
 
 
 def build_page(
@@ -89,27 +97,35 @@ def build_page(
     existing_web: str = "",
     language: str = FALLBACK_LANGUAGE,
 ) -> Page:
-    """Write the page, in the class `language`: OpenUI Lang through the web agent, or Markdown when that fails.
+    """Write the page, in the class `language`, with the first model that manages it.
 
-    The web agent (DeepSeek by default, or the Thesys Gateway) writes `content_web`, and
-    `content_md` is derived from it for the RAG. Without a web agent, or when its answer is not
-    a page, the notes agent writes the Markdown alone and `content_web` is left empty, so the
-    page shows its Markdown.
+    The web model, when there is one, writes it as OpenUI Lang; if it fails, the main model
+    `llm` writes the same OpenUI Lang; if that isn't a page either, the notes agent writes
+    Markdown alone and `content_web` is left empty. `content_md` is always set, for the RAG.
     """
-    reason = "no web agent configured"
-    if web_llm is not None:
+    reasons: list[str] = []
+    web_failed = False
+    page_args = dict(
+        title=title,
+        summary=summary,
+        existing_md=existing_md,
+        existing_web=existing_web,
+        language=language,
+    )
+
+    for writer in (web_llm, llm):
+        if writer is None:
+            continue
         try:
-            return write_web(
-                web_llm,
-                title=title,
-                summary=summary,
-                existing_md=existing_md,
-                existing_web=existing_web,
-                language=language,
-            )
-        except Exception as exc:  # any failure falls back; the pass goes on
-            reason = f"web agent failed: {exc}"
-            log.warning("%s; writing Markdown instead", reason)
+            page = write_web(writer, **page_args)
+        except Exception as exc:  # any failure moves on to the next model; the pass goes on
+            reasons.append(f"{_name(writer)} failed: {exc}")
+            log.warning("%s; trying the next model", reasons[-1])
+            web_failed = web_failed or writer is web_llm
+            continue
+        page.fallback_reason = "; ".join(reasons)
+        page.web_failed = web_failed
+        return page
 
     markdown = write_markdown(
         llm, title=title, summary=summary, existing_md=existing_md, language=language
@@ -118,5 +134,7 @@ def build_page(
         content_md=markdown.strip(),
         content_web="",
         source="markdown",
-        fallback_reason=reason,
+        model=_name(llm),
+        fallback_reason="; ".join(reasons),
+        web_failed=web_failed,
     )

@@ -175,9 +175,8 @@ def test_falls_back_to_markdown_when_the_web_agent_fails():
     assert page["content_md"] == "# Git\n\nUse `--amend`."
     assert page["content_web"] == ""
     assert summary["pages"][0]["format"] == "markdown"
-    assert summary["web_fallbacks"] == [
-        {"node_id": page["id"], "reason": "web agent failed: billing suspended"}
-    ]
+    reason = summary["web_fallbacks"][0]["reason"]
+    assert reason.startswith("fake-web failed: billing suspended; fake failed:")
     assert store.pending_notes() == []
 
 
@@ -191,7 +190,7 @@ def test_falls_back_to_markdown_when_the_web_agent_writes_no_page():
     page = next(iter(store._pages.values()))
     assert page["content_web"] == ""
     assert page["content_md"] == "# Git\n\nAmend."
-    assert summary["web_fallbacks"][0]["reason"].startswith("web agent failed:")
+    assert summary["web_fallbacks"][0]["reason"].startswith("fake failed:")
 
 
 def test_dry_run_does_not_call_the_web_agent():
@@ -215,7 +214,41 @@ def test_the_gateway_gets_its_short_config_block():
     assert web.calls[0][1] == openui.gateway_prompt()
 
 
-def test_the_web_agent_is_deepseek_unless_thesys_is_chosen(monkeypatch):
+def test_the_main_model_writes_the_page_when_the_web_model_fails():
+    store = FakeStore(notes=[_note()], nodes=[])
+    llm = FakeLLM(json_response=_create_plan(), text_response=PAGE)
+    web = BrokenWebLLM()
+
+    summary = run_daily_pass(store=store, llm=llm, web_llm=web)
+
+    page = next(iter(store._pages.values()))
+    assert page["content_web"] == PAGE.strip()
+    assert summary["pages"][0] == {
+        "node_id": page["id"],
+        "title": "Git",
+        "format": "web",
+        "model": "fake",
+    }
+    assert summary["web_down"] is True
+    # The main model was sent the whole catalogue, as the web model would have been.
+    assert llm.calls[1][1] == openui.full_prompt()
+
+
+def test_a_failed_web_model_is_not_asked_again_in_the_same_pass():
+    plan = _create_plan()
+    second = dict(plan["batches"][0], note_ids=[2], new_page={"parent_id": 10, "title": "Rebase", "description": ""})
+    plan["batches"].append(second)
+    store = FakeStore(notes=[_note(), _note(2)], nodes=[])
+    llm = FakeLLM(json_response=plan, text_response=PAGE)
+    web = BrokenWebLLM()
+
+    summary = run_daily_pass(store=store, llm=llm, web_llm=web)
+
+    assert len(web.calls) == 1
+    assert [p["model"] for p in summary["pages"]] == ["fake", "fake"]
+
+
+def test_the_web_model_is_optional_and_generic(monkeypatch):
     from app.agents import client
     from app.config import Settings
 
@@ -226,11 +259,19 @@ def test_the_web_agent_is_deepseek_unless_thesys_is_chosen(monkeypatch):
         return client.get_web_llm()
 
     try:
-        assert web_for(llm_api_key="k").gateway is False
-        assert web_for(llm_api_key="k", thesys_api_key="t").gateway is False
-        assert web_for(llm_api_key="k", web_provider="thesys", thesys_api_key="t").gateway is True
-        # Thesys chosen without a key: DeepSeek writes the page.
-        assert web_for(llm_api_key="k", web_provider="thesys").gateway is False
+        # Not set: the main model writes the pages.
+        assert web_for(llm_api_key="k") is None
+        assert web_for(llm_api_key="k", web_api_key="w") is None
+        web = web_for(llm_api_key="k", web_api_key="w", web_model="some/model")
+        assert (web.model, web.gateway) == ("some/model", False)
+        gateway = web_for(
+            llm_api_key="k",
+            web_api_key="w",
+            web_base_url="https://gateway.example/v1",
+            web_model="some/model",
+            web_prompt="gateway",
+        )
+        assert gateway.gateway is True
     finally:
         client.get_llm.cache_clear()
         client.get_web_llm.cache_clear()

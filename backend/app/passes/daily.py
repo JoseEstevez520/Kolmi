@@ -88,9 +88,10 @@ def _write_batch(
     existing_md = page.get("content_md") or ""
     existing_web = page.get("content_web") or ""
 
+    # Once the web model has failed in this pass, the rest goes straight to the main model.
     written = build_page(
         llm,
-        web_llm,
+        None if stats["web_down"] else web_llm,
         title=page["title"],
         summary=batch.summary,
         existing_md=existing_md,
@@ -105,7 +106,9 @@ def _write_batch(
         page["id"], content_md=written.content_md, content_web=written.content_web
     )
 
-    if web_llm is not None and written.source != "web":
+    if written.web_failed:
+        stats["web_down"] = True
+    if written.fallback_reason:
         stats["web_fallbacks"].append(
             {"node_id": page["id"], "reason": written.fallback_reason}
         )
@@ -121,7 +124,12 @@ def _write_batch(
         stats["updated"] += 1
 
     stats["pages"].append(
-        {"node_id": page["id"], "title": page["title"], "format": written.source}
+        {
+            "node_id": page["id"],
+            "title": page["title"],
+            "format": written.source,
+            "model": written.model,
+        }
     )
 
 
@@ -192,9 +200,9 @@ def run_daily_pass(
     Returns a summary. With `dry_run` it only asks the gatekeeper what it would
     do, and writes nothing (and spends no tokens beyond that one call).
 
-    `llm` runs the gatekeeper and the Markdown fallback; `web_llm` writes the
-    pages as OpenUI Lang. With neither given, both come from the settings. When
-    `llm` is given and `web_llm` is not, pages are written as Markdown only.
+    `llm` runs the gatekeeper and writes the pages when `web_llm` fails or is not
+    there; `web_llm`, the optional web model, writes them first, as OpenUI Lang.
+    With neither given, both come from the settings.
 
     `language` is the class language the notes and pages are written in, whatever language
     each note came in. Without it, it is read from the store (the `settings` row, or
@@ -244,6 +252,7 @@ def run_daily_pass(
         "flagged": [],
         "web_model": _model_name(web_llm) if web_llm is not None else None,
         "web_fallbacks": [],
+        "web_down": False,
     }
 
     pass_id = store.open_pass(_model_name(llm))

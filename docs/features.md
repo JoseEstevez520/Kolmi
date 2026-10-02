@@ -29,9 +29,9 @@ GitHub. It's a view, not the source.
 - The **escape hatch**: one catalog component (an artifact) whose prop is self-contained
   HTML/SVG/JS, rendered in a sandboxed iframe, for what the catalog doesn't cover.
 - The frontend renders it with `@openuidev/vue-lang`.
-- Called through **OpenUI Gateway**, formerly the Thesys C1 API (OpenAI-compatible, so the
-  OpenAI SDK only changes `base_url` and `model`). It validates and repairs the output. Details
-  in [page-format.md](page-format.md).
+- Written by an optional web model (any OpenAI-compatible endpoint, such as the OpenUI
+  Gateway, which validates and repairs the output), with the main model (DeepSeek) taking over
+  when it fails. Details in [page-format.md](page-format.md).
 
 ### Router
 
