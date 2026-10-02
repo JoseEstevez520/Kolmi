@@ -108,6 +108,7 @@ def _write_batch(
 
     if written.web_failed:
         stats["web_down"] = True
+    stats["visuals"] += [{"node_id": page["id"], **visual} for visual in written.visuals]
     if written.fallback_reason:
         stats["web_fallbacks"].append(
             {"node_id": page["id"], "reason": written.fallback_reason}
@@ -253,6 +254,8 @@ def run_daily_pass(
         "web_model": _model_name(web_llm) if web_llm is not None else None,
         "web_fallbacks": [],
         "web_down": False,
+        # Each Diagram or Artifact a page asked for: drawn by the main model, or dropped and why.
+        "visuals": [],
     }
 
     pass_id = store.open_pass(_model_name(llm))

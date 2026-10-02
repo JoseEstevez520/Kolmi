@@ -2,24 +2,28 @@
   "root": "Page",
   "components": {
     "Page": {
-      "signature": "Page(blocks: (Heading | Text | CodeBlock | Callout | Steps | Diagram | Artifact)[])",
+      "signature": "Page(blocks: (Heading | Text | CodeBlock | CodeDiff | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Diagram | Artifact)[])",
       "description": "The whole page: its blocks, top to bottom, in one column. Always the root."
     },
     "Heading": {
       "signature": "Heading(text: string, level?: 2 | 3)",
-      "description": "A heading inside the page. The page title is already shown, so use level 2 for sections and 3 for subsections."
+      "description": "A section heading. The page title is shown already, so level 2 for sections and 3 for subsections. Prefer role headings that say what kind of section it is."
     },
     "Text": {
       "signature": "Text(markdown: string)",
-      "description": "Running text in Markdown: paragraphs, lists, **bold**, `inline code`, links and tables. No headings and no code fences here."
+      "description": "Running text in Markdown: paragraphs, short lists (up to 5 points), **bold**, `inline code` and links. No headings, no code fences and no tables here."
     },
     "CodeBlock": {
       "signature": "CodeBlock(code: string, language?: string, title?: string)",
-      "description": "A block of code with a copy button. Name it by its file (title) or its language."
+      "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose."
+    },
+    "CodeDiff": {
+      "signature": "CodeDiff(before: string, after: string, file?: string)",
+      "description": "A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed."
     },
     "Callout": {
       "signature": "Callout(type: \"note\" | \"tip\" | \"important\" | \"warning\" | \"caution\", text: string, title?: string)",
-      "description": "A note set apart from the text: note, tip, important, warning or caution. Its text is Markdown. Never two in a row."
+      "description": "An aside set apart from the text: note, tip, important, warning or caution, one kind per thing. Its text is Markdown. Never two in a row, and never for the main idea."
     },
     "Steps": {
       "signature": "Steps(items: StepItem[])",
@@ -29,13 +33,101 @@
       "signature": "StepItem(title: string, text: string)",
       "description": "One step: a short title and its explanation in Markdown."
     },
+    "Table": {
+      "signature": "Table(columns: string[], rows: string[][], caption?: string)",
+      "description": "A comparison or structured facts: column headers and rows of short cells (Markdown inline: `code`, **bold**). Use it whenever two or more things are compared on the same points."
+    },
+    "DescriptionList": {
+      "signature": "DescriptionList(items: DescriptionItem[])",
+      "description": "Terms and their one-sentence definitions, or a record of key and value (G: groupId, A: artifactId). Only for terms the page uses; never a loose glossary."
+    },
+    "DescriptionItem": {
+      "signature": "DescriptionItem(term: string, text: string)",
+      "description": "One term and what it is, in a sentence (Markdown)."
+    },
+    "Accordion": {
+      "signature": "Accordion(items: AccordionItem[])",
+      "description": "Secondary detail that not everyone needs, folded away (special cases, troubleshooting, long reference). Nothing essential goes here: the page must make sense with every section closed."
+    },
+    "AccordionItem": {
+      "signature": "AccordionItem(title: string, text: string)",
+      "description": "One folded section: its title and its content in Markdown."
+    },
+    "Cards": {
+      "signature": "Cards(items: Card[])",
+      "description": "A grid of cards for related things side by side: pages to go to, tools, or the references the page comes from (a book, a talk, a project), each a card with its link. Two columns, one on a phone."
+    },
+    "Card": {
+      "signature": "Card(title: string, text?: string, href?: string, image?: string)",
+      "description": "One card: a title, an optional line, an optional link (the whole card opens it) and an optional image URL."
+    },
+    "Logos": {
+      "signature": "Logos(names: string[])",
+      "description": "A row of technology or brand names with their logos, to name a stack without spending text (Java, Spring Boot, Vue, Docker...). Names only; the logos are looked up."
+    },
+    "TerminalReplay": {
+      "signature": "TerminalReplay(entries: TerminalEntry[], title?: string)",
+      "description": "Commands that are run, played back in a terminal with their output. For a short sequence the reader will type. A single command with no output is a CodeBlock instead."
+    },
+    "TerminalEntry": {
+      "signature": "TerminalEntry(command: string, output?: string, comment?: string)",
+      "description": "One command: what is typed, what it printed, and an optional comment saying what it is for."
+    },
+    "AgentReplay": {
+      "signature": "AgentReplay(events: (AgentPrompt | AgentStep | AgentAnswer)[])",
+      "description": "A session with an AI agent, played back step by step, with a short note for each moment. The way to show how an agent works, rather than drawing it. One idea per session; say in the text that it is an example."
+    },
+    "AgentPrompt": {
+      "signature": "AgentPrompt(text: string, note?: string)",
+      "description": "What the person asks the agent, with an optional note on what to notice."
+    },
+    "AgentStep": {
+      "signature": "AgentStep(running: string, done: string, icon?: string, output?: string, note?: string, permission?: \"ask-allow\" | \"ask-deny\" | \"deny\")",
+      "description": "Something the agent does on its way (search, read, run, edit): the line while it runs, the line once done, an optional icon, what it printed, a note, and whether it had to ask permission."
+    },
+    "AgentAnswer": {
+      "signature": "AgentAnswer(text: string, code?: string, note?: string)",
+      "description": "The agent's answer, with optional code it hands over and a note."
+    },
+    "Chat": {
+      "signature": "Chat(messages: ChatMessage[])",
+      "description": "A short chat exchange, shown as a chat: to show what asking an assistant looks like. For an agent that acts, use AgentReplay."
+    },
+    "ChatMessage": {
+      "signature": "ChatMessage(role: \"user\" | \"assistant\", text: string)",
+      "description": "One message: who sends it (user or assistant) and its text in Markdown."
+    },
+    "Figure": {
+      "signature": "Figure(label: string, parts: (Area | Chip | Label | Arrow | Group)[], layout?: \"row\" | \"column\" | \"grid\", caption?: string)",
+      "description": "A drawing composed from tinted parts, for pieces that fit together or a flow: Areas, Chips, Labels and Arrows laid out in a row, a column or a grid, on a soft background. The label says in words what it shows. The way to draw most ideas; one colour per concept, the same in the whole page."
+    },
+    "Group": {
+      "signature": "Group(parts: (Area | Chip | Label | Arrow)[], layout?: \"row\" | \"column\" | \"grid\")",
+      "description": "Lays out parts in a row, a column or a grid inside a Figure, with no tint of its own: two Areas stacked at the end of a row, or four Areas in a grid. A row turns into a column on a phone."
+    },
+    "Area": {
+      "signature": "Area(title: string, parts: (Chip | Label | Arrow)[], color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\", icon?: string, note?: string, layout?: \"row\" | \"column\" | \"grid\")",
+      "description": "A larger tinted group with a title: a concept that holds others (Chips and Labels), as the harness round a model. Never an Area inside an Area."
+    },
+    "Chip": {
+      "signature": "Chip(text: string, color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\", icon?: string, note?: string)",
+      "description": "A tinted part of a figure: a short name, an optional icon and an optional quieter note after it."
+    },
+    "Label": {
+      "signature": "Label(text: string, icon?: string, color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\")",
+      "description": "A plain line in a figure, no tint: an icon and a short text, as one item of a list inside an Area. Its colour, if any, is for the text and icon (green/amber/red for yes/ask/no)."
+    },
+    "Arrow": {
+      "signature": "Arrow(label?: string, both?: boolean)",
+      "description": "A connector between the parts before and after it: an arrow that points along the layout (down on a phone), with an optional word on it (\"calls\")."
+    },
     "Diagram": {
-      "signature": "Diagram(label: string, svg: string, caption?: string)",
-      "description": "A small static drawing as a self-contained SVG string (viewBox, no scripts, no external images), with a label that says in words what it shows. Use mid greys that read on light and dark backgrounds."
+      "signature": "Diagram(label: string, brief: string, caption?: string, svg?: string)",
+      "description": "A drawing the Figure pieces cannot make: a curve, a timeline, axes, a cycle, a shape that matters. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out."
     },
     "Artifact": {
-      "signature": "Artifact(title: string, html: string, height?: number)",
-      "description": "The escape hatch, for what the other components cannot show (an interactive widget, a simulation). A self-contained HTML document with inline CSS and JS, run in a sandboxed iframe with no network access. Use it rarely."
+      "signature": "Artifact(title: string, brief: string, height?: number, html?: string)",
+      "description": "A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model writes the HTML from it. Leave `html` out."
     }
   },
   "schema": {
@@ -54,6 +146,9 @@
       "CodeBlock": {
         "$ref": "#/$defs/CodeBlock"
       },
+      "CodeDiff": {
+        "$ref": "#/$defs/CodeDiff"
+      },
       "Callout": {
         "$ref": "#/$defs/Callout"
       },
@@ -62,6 +157,72 @@
       },
       "StepItem": {
         "$ref": "#/$defs/StepItem"
+      },
+      "Table": {
+        "$ref": "#/$defs/Table"
+      },
+      "DescriptionList": {
+        "$ref": "#/$defs/DescriptionList"
+      },
+      "DescriptionItem": {
+        "$ref": "#/$defs/DescriptionItem"
+      },
+      "Accordion": {
+        "$ref": "#/$defs/Accordion"
+      },
+      "AccordionItem": {
+        "$ref": "#/$defs/AccordionItem"
+      },
+      "Cards": {
+        "$ref": "#/$defs/Cards"
+      },
+      "Card": {
+        "$ref": "#/$defs/Card"
+      },
+      "Logos": {
+        "$ref": "#/$defs/Logos"
+      },
+      "TerminalReplay": {
+        "$ref": "#/$defs/TerminalReplay"
+      },
+      "TerminalEntry": {
+        "$ref": "#/$defs/TerminalEntry"
+      },
+      "AgentReplay": {
+        "$ref": "#/$defs/AgentReplay"
+      },
+      "AgentPrompt": {
+        "$ref": "#/$defs/AgentPrompt"
+      },
+      "AgentStep": {
+        "$ref": "#/$defs/AgentStep"
+      },
+      "AgentAnswer": {
+        "$ref": "#/$defs/AgentAnswer"
+      },
+      "Chat": {
+        "$ref": "#/$defs/Chat"
+      },
+      "ChatMessage": {
+        "$ref": "#/$defs/ChatMessage"
+      },
+      "Figure": {
+        "$ref": "#/$defs/Figure"
+      },
+      "Group": {
+        "$ref": "#/$defs/Group"
+      },
+      "Area": {
+        "$ref": "#/$defs/Area"
+      },
+      "Chip": {
+        "$ref": "#/$defs/Chip"
+      },
+      "Label": {
+        "$ref": "#/$defs/Label"
+      },
+      "Arrow": {
+        "$ref": "#/$defs/Arrow"
       },
       "Diagram": {
         "$ref": "#/$defs/Diagram"
@@ -75,9 +236,32 @@
       "Heading",
       "Text",
       "CodeBlock",
+      "CodeDiff",
       "Callout",
       "Steps",
       "StepItem",
+      "Table",
+      "DescriptionList",
+      "DescriptionItem",
+      "Accordion",
+      "AccordionItem",
+      "Cards",
+      "Card",
+      "Logos",
+      "TerminalReplay",
+      "TerminalEntry",
+      "AgentReplay",
+      "AgentPrompt",
+      "AgentStep",
+      "AgentAnswer",
+      "Chat",
+      "ChatMessage",
+      "Figure",
+      "Group",
+      "Area",
+      "Chip",
+      "Label",
+      "Arrow",
       "Diagram",
       "Artifact"
     ],
@@ -100,10 +284,40 @@
                   "$ref": "#/$defs/CodeBlock"
                 },
                 {
+                  "$ref": "#/$defs/CodeDiff"
+                },
+                {
                   "$ref": "#/$defs/Callout"
                 },
                 {
                   "$ref": "#/$defs/Steps"
+                },
+                {
+                  "$ref": "#/$defs/Table"
+                },
+                {
+                  "$ref": "#/$defs/DescriptionList"
+                },
+                {
+                  "$ref": "#/$defs/Accordion"
+                },
+                {
+                  "$ref": "#/$defs/Cards"
+                },
+                {
+                  "$ref": "#/$defs/Logos"
+                },
+                {
+                  "$ref": "#/$defs/TerminalReplay"
+                },
+                {
+                  "$ref": "#/$defs/AgentReplay"
+                },
+                {
+                  "$ref": "#/$defs/Chat"
+                },
+                {
+                  "$ref": "#/$defs/Figure"
                 },
                 {
                   "$ref": "#/$defs/Diagram"
@@ -144,7 +358,7 @@
           "text"
         ],
         "additionalProperties": false,
-        "description": "A heading inside the page. The page title is already shown, so use level 2 for sections and 3 for subsections."
+        "description": "A section heading. The page title is shown already, so level 2 for sections and 3 for subsections. Prefer role headings that say what kind of section it is."
       },
       "Text": {
         "type": "object",
@@ -157,7 +371,7 @@
           "markdown"
         ],
         "additionalProperties": false,
-        "description": "Running text in Markdown: paragraphs, lists, **bold**, `inline code`, links and tables. No headings and no code fences here."
+        "description": "Running text in Markdown: paragraphs, short lists (up to 5 points), **bold**, `inline code` and links. No headings, no code fences and no tables here."
       },
       "CodeBlock": {
         "type": "object",
@@ -176,7 +390,27 @@
           "code"
         ],
         "additionalProperties": false,
-        "description": "A block of code with a copy button. Name it by its file (title) or its language."
+        "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose."
+      },
+      "CodeDiff": {
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "string"
+          },
+          "after": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "before",
+          "after"
+        ],
+        "additionalProperties": false,
+        "description": "A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed."
       },
       "Callout": {
         "type": "object",
@@ -203,7 +437,7 @@
           "text"
         ],
         "additionalProperties": false,
-        "description": "A note set apart from the text: note, tip, important, warning or caution. Its text is Markdown. Never two in a row."
+        "description": "An aside set apart from the text: note, tip, important, warning or caution, one kind per thing. Its text is Markdown. Never two in a row, and never for the main idea."
       },
       "Steps": {
         "type": "object",
@@ -238,14 +472,360 @@
         "additionalProperties": false,
         "description": "One step: a short title and its explanation in Markdown."
       },
-      "Diagram": {
+      "Table": {
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "columns",
+          "rows"
+        ],
+        "additionalProperties": false,
+        "description": "A comparison or structured facts: column headers and rows of short cells (Markdown inline: `code`, **bold**). Use it whenever two or more things are compared on the same points."
+      },
+      "DescriptionList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/DescriptionItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "Terms and their one-sentence definitions, or a record of key and value (G: groupId, A: artifactId). Only for terms the page uses; never a loose glossary."
+      },
+      "DescriptionItem": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "term",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One term and what it is, in a sentence (Markdown)."
+      },
+      "Accordion": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/AccordionItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "Secondary detail that not everyone needs, folded away (special cases, troubleshooting, long reference). Nothing essential goes here: the page must make sense with every section closed."
+      },
+      "AccordionItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One folded section: its title and its content in Markdown."
+      },
+      "Cards": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Card"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "A grid of cards for related things side by side: pages to go to, tools, or the references the page comes from (a book, a talk, a project), each a card with its link. Two columns, one on a phone."
+      },
+      "Card": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false,
+        "description": "One card: a title, an optional line, an optional link (the whole card opens it) and an optional image URL."
+      },
+      "Logos": {
+        "type": "object",
+        "properties": {
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "names"
+        ],
+        "additionalProperties": false,
+        "description": "A row of technology or brand names with their logos, to name a stack without spending text (Java, Spring Boot, Vue, Docker...). Names only; the logos are looked up."
+      },
+      "TerminalReplay": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/TerminalEntry"
+            }
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "additionalProperties": false,
+        "description": "Commands that are run, played back in a terminal with their output. For a short sequence the reader will type. A single command with no output is a CodeBlock instead."
+      },
+      "TerminalEntry": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "additionalProperties": false,
+        "description": "One command: what is typed, what it printed, and an optional comment saying what it is for."
+      },
+      "AgentReplay": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/AgentPrompt"
+                },
+                {
+                  "$ref": "#/$defs/AgentStep"
+                },
+                {
+                  "$ref": "#/$defs/AgentAnswer"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "events"
+        ],
+        "additionalProperties": false,
+        "description": "A session with an AI agent, played back step by step, with a short note for each moment. The way to show how an agent works, rather than drawing it. One idea per session; say in the text that it is an example."
+      },
+      "AgentPrompt": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "What the person asks the agent, with an optional note on what to notice."
+      },
+      "AgentStep": {
+        "type": "object",
+        "properties": {
+          "running": {
+            "type": "string"
+          },
+          "done": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "permission": {
+            "type": "string",
+            "enum": [
+              "ask-allow",
+              "ask-deny",
+              "deny"
+            ]
+          }
+        },
+        "required": [
+          "running",
+          "done"
+        ],
+        "additionalProperties": false,
+        "description": "Something the agent does on its way (search, read, run, edit): the line while it runs, the line once done, an optional icon, what it printed, a note, and whether it had to ask permission."
+      },
+      "AgentAnswer": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "The agent's answer, with optional code it hands over and a note."
+      },
+      "Chat": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ChatMessage"
+            }
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "additionalProperties": false,
+        "description": "A short chat exchange, shown as a chat: to show what asking an assistant looks like. For an agent that acts, use AgentReplay."
+      },
+      "ChatMessage": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One message: who sends it (user or assistant) and its text in Markdown."
+      },
+      "Figure": {
         "type": "object",
         "properties": {
           "label": {
             "type": "string"
           },
-          "svg": {
-            "type": "string"
+          "parts": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Area"
+                },
+                {
+                  "$ref": "#/$defs/Chip"
+                },
+                {
+                  "$ref": "#/$defs/Label"
+                },
+                {
+                  "$ref": "#/$defs/Arrow"
+                },
+                {
+                  "$ref": "#/$defs/Group"
+                }
+              ]
+            }
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "row",
+              "column",
+              "grid"
+            ]
           },
           "caption": {
             "type": "string"
@@ -253,10 +833,204 @@
         },
         "required": [
           "label",
-          "svg"
+          "parts"
         ],
         "additionalProperties": false,
-        "description": "A small static drawing as a self-contained SVG string (viewBox, no scripts, no external images), with a label that says in words what it shows. Use mid greys that read on light and dark backgrounds."
+        "description": "A drawing composed from tinted parts, for pieces that fit together or a flow: Areas, Chips, Labels and Arrows laid out in a row, a column or a grid, on a soft background. The label says in words what it shows. The way to draw most ideas; one colour per concept, the same in the whole page."
+      },
+      "Area": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Chip"
+                },
+                {
+                  "$ref": "#/$defs/Label"
+                },
+                {
+                  "$ref": "#/$defs/Arrow"
+                }
+              ]
+            }
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "row",
+              "column",
+              "grid"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "parts"
+        ],
+        "additionalProperties": false,
+        "description": "A larger tinted group with a title: a concept that holds others (Chips and Labels), as the harness round a model. Never an Area inside an Area."
+      },
+      "Chip": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "A tinted part of a figure: a short name, an optional icon and an optional quieter note after it."
+      },
+      "Label": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "A plain line in a figure, no tint: an icon and a short text, as one item of a list inside an Area. Its colour, if any, is for the text and icon (green/amber/red for yes/ask/no)."
+      },
+      "Arrow": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "both": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A connector between the parts before and after it: an arrow that points along the layout (down on a phone), with an optional word on it (\"calls\")."
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "parts": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Area"
+                },
+                {
+                  "$ref": "#/$defs/Chip"
+                },
+                {
+                  "$ref": "#/$defs/Label"
+                },
+                {
+                  "$ref": "#/$defs/Arrow"
+                }
+              ]
+            }
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "row",
+              "column",
+              "grid"
+            ]
+          }
+        },
+        "required": [
+          "parts"
+        ],
+        "additionalProperties": false,
+        "description": "Lays out parts in a row, a column or a grid inside a Figure, with no tint of its own: two Areas stacked at the end of a row, or four Areas in a grid. A row turns into a column on a phone."
+      },
+      "Diagram": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "brief": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "svg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "brief"
+        ],
+        "additionalProperties": false,
+        "description": "A drawing the Figure pieces cannot make: a curve, a timeline, axes, a cycle, a shape that matters. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out."
       },
       "Artifact": {
         "type": "object",
@@ -264,19 +1038,22 @@
           "title": {
             "type": "string"
           },
-          "html": {
+          "brief": {
             "type": "string"
           },
           "height": {
             "type": "number"
+          },
+          "html": {
+            "type": "string"
           }
         },
         "required": [
           "title",
-          "html"
+          "brief"
         ],
         "additionalProperties": false,
-        "description": "The escape hatch, for what the other components cannot show (an interactive widget, a simulation). A self-contained HTML document with inline CSS and JS, run in a sandboxed iframe with no network access. Use it rarely."
+        "description": "A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model writes the HTML from it. Leave `html` out."
       }
     }
   }

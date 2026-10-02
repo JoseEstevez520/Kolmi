@@ -47,8 +47,19 @@ so the suite spends no tokens and touches no network.
 ## Environment variables
 
 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CLASS_CODE`, the model (`LLM_API_KEY`,
-`LLM_BASE_URL`, `LLM_MODEL`) and, optionally, `CORS_ORIGINS` and `CLASS_LANGUAGE`.
-In `.env`, never in git.
+`LLM_BASE_URL`, `LLM_MODEL`) and, optionally, the web model (`WEB_*`), `CORS_ORIGINS` and
+`CLASS_LANGUAGE`. In `.env`, never in git.
+
+Two models, and what each is for:
+
+- **The web model** (`WEB_*`, optional) composes the pages in OpenUI Lang, figures included.
+  Pick one suited to it: the OpenUI Gateway's model, or DeepSeek flash.
+- **The main model** (`LLM_*`) runs the daily pass, writes the pages when there is no web
+  model or it fails, and draws a page's SVG figures and interactive pieces, which are only
+  called when a page asks for one. It will also run the chat, so make it a capable one: on
+  DeepSeek, `deepseek-v4-pro`.
+
+How a page is written and drawn is in `../docs/page-format.md`.
 
 `CLASS_LANGUAGE` (`en` or `es`, default `en`) is the language the daily pass
 writes the shared notes and pages in. An admin can change it in the admin panel,
@@ -65,8 +76,9 @@ pages:
 1. **Gatekeeper** — anonymizes, joins notes about the same topic, discards what
    adds nothing and decides the target page (an existing one or a new one).
 2. **Notes** — writes the page's Markdown in the house style.
-3. **Web** — turns it into the page fields. For now the source is Markdown and
-   `content_web` (OpenUI Lang) stays empty; that lands with the page format.
+3. **Web** — writes the page as OpenUI Lang (`content_web`) with its Markdown view
+   (`content_md`), and the main model draws any SVG figure or interactive piece it asks for.
+   If no model manages a page, the notes agent's Markdown is kept instead.
 
 Every change saves the previous version in `node_versions` first, and every
 step leaves an entry in `ai_log`. One run is one row in `ai_passes`.

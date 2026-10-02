@@ -10,6 +10,7 @@ built-ins are off in the page prompt, so they parse to `None`.
 
 from __future__ import annotations
 
+import difflib
 import json
 import re
 from dataclasses import dataclass, field
@@ -254,6 +255,33 @@ def parse(source: str) -> Node:
     return root
 
 
+def statements(source: str) -> list[tuple[str, Any]]:
+    """The source's statements in order, as `(name, expression)`, references left unresolved."""
+    return _Parser(strip_fence(source)).statements()
+
+
+def _dump(value: Any) -> str:
+    if isinstance(value, Node):
+        args = list(value.args)
+        while args and args[-1] is None:  # optional arguments are left out from the end
+            args.pop()
+        return f"{value.name}({', '.join(_dump(arg) for arg in args)})"
+    if isinstance(value, Ref):
+        return value.name
+    if isinstance(value, list):
+        return f"[{', '.join(_dump(item) for item in value)}]"
+    if isinstance(value, dict):
+        return "{" + ", ".join(f"{json.dumps(k)}: {_dump(v)}" for k, v in value.items()) + "}"
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return json.dumps(value, ensure_ascii=False)
+    raise TypeError(f"cannot write {type(value).__name__} as OpenUI Lang")
+
+
+def dump(statements: list[tuple[str, Any]]) -> str:
+    """Write statements back as OpenUI Lang, one per line."""
+    return "\n".join(f"{name} = {_dump(expr)}" for name, expr in statements)
+
+
 def unknown_components(root: Node) -> set[str]:
     """Component names in the page that are not in the catalogue."""
     found: set[str] = set()
@@ -285,6 +313,10 @@ def _quote(text: str) -> str:
     return "\n".join(f"> {line}" if line else ">" for line in text.splitlines())
 
 
+def _children(node: Node) -> list[Node]:
+    return [child for child in _arg(node, 0, []) if isinstance(child, Node)]
+
+
 def _block(node: Any) -> str:
     if not isinstance(node, Node):
         return ""
@@ -310,8 +342,73 @@ def _block(node: Any) -> str:
             text = str(_arg(step, 1)).strip().replace("\n", "\n   ")
             lines.append(f"{number}. **{_arg(step, 0)}**" + (f"\n   {text}" if text else ""))
         return "\n".join(lines)
-    if name == "Diagram":
+    if name == "CodeDiff":
+        before, after, file = str(_arg(node, 0)), str(_arg(node, 1)), _arg(node, 2)
+        lines = difflib.unified_diff(before.splitlines(), after.splitlines(), lineterm="", n=3)
+        body = "\n".join(line for line in lines if not line.startswith(("---", "+++", "@@")))
+        info = "diff" + (f' title="{file}"' if file else "")
+        return f"```{info}\n{body}\n```"
+    if name == "Table":
+        columns = [str(c) for c in _arg(node, 0, [])]
+        if not columns:
+            return ""
+        rows = [list(row) if isinstance(row, list) else [] for row in _arg(node, 1, [])]
+
+        def line(cells: list[Any]) -> str:
+            return "| " + " | ".join(str(c or "").replace("|", "\\|").replace("\n", " ") for c in cells) + " |"
+
+        table = [line(columns), line(["---"] * len(columns))]
+        table += [line([row[i] if i < len(row) else "" for i in range(len(columns))]) for row in rows]
         caption = _arg(node, 2)
+        return "\n".join(table) + (f"\n\n*{caption}*" if caption else "")
+    if name == "DescriptionList":
+        return "\n".join(
+            f"- **{_arg(item, 0)}**: {str(_arg(item, 1)).strip()}"
+            for item in _children(node)
+        )
+    if name == "Accordion":
+        return "\n\n".join(
+            f"**{_arg(item, 0)}**\n\n{str(_arg(item, 1)).strip()}" for item in _children(node)
+        )
+    if name == "Cards":
+        lines = []
+        for card in _children(node):
+            title, text, href = _arg(card, 0), _arg(card, 1), _arg(card, 2)
+            label = f"[{title}]({href})" if href else f"**{title}**"
+            lines.append(f"- {label}" + (f": {text}" if text else ""))
+        return "\n".join(lines)
+    if name == "Logos":
+        names = [str(n) for n in _arg(node, 0, [])]
+        return ", ".join(names)
+    if name == "TerminalReplay":
+        lines = []
+        for entry in _children(node):
+            command, output, comment = _arg(entry, 0), _arg(entry, 1), _arg(entry, 2)
+            if comment:
+                lines.append(f"# {comment}")
+            lines.append(f"$ {command}")
+            if output:
+                lines.append(str(output).rstrip())
+        return "```terminal\n" + "\n".join(lines) + "\n```" if lines else ""
+    if name == "AgentReplay":
+        lines = ["*Agent session:*", ""]
+        for event in _children(node):
+            if event.name == "AgentPrompt":
+                lines.append(f"- **Asked:** {_arg(event, 0)}")
+            elif event.name == "AgentStep":
+                lines.append(f"- {_arg(event, 1) or _arg(event, 0)}")
+            elif event.name == "AgentAnswer":
+                lines.append(f"- **Answered:** {_arg(event, 0)}")
+                if _arg(event, 1):
+                    lines.append(f"\n```\n{str(_arg(event, 1)).rstrip()}\n```")
+        return "\n".join(lines)
+    if name == "Chat":
+        return "\n\n".join(
+            f"**{'Q' if _arg(message, 0) == 'user' else 'A'}:** {str(_arg(message, 1)).strip()}"
+            for message in _children(node)
+        )
+    if name in ("Figure", "Diagram"):
+        caption = _arg(node, 2) if name == "Diagram" else _arg(node, 3)
         return f"*Figure: {_arg(node, 0)}*" + (f" {caption}" if caption else "")
     if name == "Artifact":
         return f"*Interactive: {_arg(node, 0)}*"

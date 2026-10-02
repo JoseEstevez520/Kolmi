@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from app.agents import openui
-from app.agents.web import write_web
+from app.agents.web import draw_visuals, write_web
 from app.passes.daily import run_daily_pass
 from tests.fakes import FakeLLM, FakeStore
 
@@ -275,3 +277,154 @@ def test_the_web_model_is_optional_and_generic(monkeypatch):
     finally:
         client.get_llm.cache_clear()
         client.get_web_llm.cache_clear()
+
+
+# -- the rest of the catalogue in the Markdown view --------------------------------------
+
+RICH = r'''root = Page([diff, table, terms, more, cards, logos, term, session, chat, fig])
+diff = CodeDiff("a\nb\nc", "a\nB\nc", "App.java")
+table = Table(["Scope", "One per"], [["`singleton`", "app"], ["`request`", "request"]])
+terms = DescriptionList([DescriptionItem("Bean", "An object Spring creates.")])
+more = Accordion([AccordionItem("Edge cases", "Rarely needed.")])
+cards = Cards([Card("Spring docs", "The reference.", "https://docs.spring.io")])
+logos = Logos(["Java", "Spring Boot"])
+term = TerminalReplay([TerminalEntry("./mvnw test", "BUILD SUCCESS", "Run the tests")], "~/shop")
+session = AgentReplay([AgentPrompt("Add a check."), AgentStep("Reading A.java", "Read A.java", "file-text"), AgentAnswer("Done.")])
+chat = Chat([ChatMessage("user", "What is a bean?"), ChatMessage("assistant", "An object Spring manages.")])
+fig = Figure("A request goes to the controller.", [c, a, k], "row")
+c = Chip("Browser", "blue", "globe")
+a = Arrow("calls")
+k = Area("Controller", [Label("@GetMapping", "route")], "violet")
+'''
+
+
+def test_derives_markdown_from_every_component():
+    root = openui.parse(RICH)
+    assert openui.unknown_components(root) == set()
+    markdown = openui.to_markdown(root)
+
+    assert '```diff title="App.java"\n a\n-b\n+B\n c\n```' in markdown
+    assert "| Scope | One per |\n| --- | --- |\n| `singleton` | app |" in markdown
+    assert "- **Bean**: An object Spring creates." in markdown
+    assert "**Edge cases**\n\nRarely needed." in markdown
+    assert "- [Spring docs](https://docs.spring.io): The reference." in markdown
+    assert "Java, Spring Boot" in markdown
+    assert "```terminal\n# Run the tests\n$ ./mvnw test\nBUILD SUCCESS\n```" in markdown
+    assert "- **Asked:** Add a check.\n- Read A.java\n- **Answered:** Done." in markdown
+    assert "**Q:** What is a bean?\n\n**A:** An object Spring manages." in markdown
+    assert "*Figure: A request goes to the controller.*" in markdown
+
+
+def test_writes_statements_back_as_they_parse():
+    again = openui.dump(openui.statements(RICH))
+    assert openui.to_markdown(openui.parse(again)) == openui.to_markdown(openui.parse(RICH))
+
+
+# -- the visuals: Diagram and Artifact briefs, drawn by the main model ---------------------
+
+SVG = '<svg viewBox="0 0 640 200"><rect class="diagram-part" width="100" height="40"/></svg>'
+HTML = "<!doctype html><html><body><button>Ask</button><script>let n = 0</script></body></html>"
+
+VISUAL_PAGE = '''root = Page([intro, d, art])
+intro = Text("Scopes.")
+d = Diagram("Two curves", "Draw two curves.", "caption")
+art = Artifact("Compare scopes", "Two buttons, one per scope.", 300)
+'''
+
+
+class ScriptedLLM(FakeLLM):
+    """Answers each text call with the next item: a string, or an exception to raise."""
+
+    def __init__(self, answers):
+        super().__init__()
+        self.answers = list(answers)
+
+    def complete_text(self, system, user):
+        self.calls.append(("text", system, user))
+        answer = self.answers.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+
+def test_draws_each_brief_into_the_page():
+    llm = ScriptedLLM([f"```svg\n{SVG}\n```", HTML])
+
+    source, report = write_visuals(llm)
+
+    root = openui.parse(source)
+    diagram, artifact = root.args[0][1], root.args[0][2]
+    assert diagram.args == ["Two curves", "Draw two curves.", "caption", SVG]
+    assert artifact.args == ["Compare scopes", "Two buttons, one per scope.", 300, HTML]
+    assert [r["drawn"] for r in report] == [True, True]
+    # Each kind gets its own prompt, and the brief.
+    assert "<svg>" in llm.calls[0][1] and "Draw two curves." in llm.calls[0][2]
+    assert "<!doctype html>" in llm.calls[1][1]
+
+
+def test_a_bad_drawing_is_sent_back_once_with_its_problem():
+    llm = ScriptedLLM(['<svg width="10"><rect/></svg>', SVG, HTML])
+
+    source, report = write_visuals(llm)
+
+    retry = llm.calls[1][2]
+    assert "the <svg> has no viewBox" in retry
+    assert '<svg width="10"><rect/></svg>' in retry
+    assert openui.parse(source).args[0][1].args[3] == SVG
+    assert all(r["drawn"] for r in report)
+
+
+def test_a_failed_call_is_tried_once_more():
+    llm = ScriptedLLM([RuntimeError("timeout"), SVG, HTML])
+
+    source, report = write_visuals(llm)
+
+    assert len(llm.calls) == 3
+    assert openui.parse(source).args[0][1].args[3] == SVG
+
+
+def test_a_drawing_that_fails_twice_is_dropped_from_the_page():
+    llm = ScriptedLLM(['<svg viewBox="0 0 9 9"><script>x()</script></svg>', RuntimeError("down"), "no html here", "still none"])
+
+    source, report = write_visuals(llm)
+
+    root = openui.parse(source)
+    assert [block.name for block in root.args[0]] == ["Text"]
+    assert report == [
+        {"kind": "Diagram", "label": "Two curves", "drawn": False, "reason": "the call failed: down"},
+        {
+            "kind": "Artifact",
+            "label": "Compare scopes",
+            "drawn": False,
+            "reason": "the HTML document is incomplete: it must run from <!doctype html> to </html>",
+        },
+    ]
+    assert "it contains a <script>" in llm.calls[1][2]
+
+
+def test_a_page_without_briefs_is_left_as_it_is():
+    llm = ScriptedLLM([])
+    drawn = f'root = Page([d])\nd = Diagram("x", "a brief", null, {json.dumps(SVG)})'
+
+    assert draw_visuals(llm, PAGE, language="en") == (PAGE, [])
+    assert draw_visuals(llm, drawn, language="en") == (drawn, [])
+    assert llm.calls == []
+
+
+def test_the_pass_records_the_visuals_and_keeps_the_page():
+    store = FakeStore(notes=[_note()], nodes=[])
+    llm = FakeLLM(json_response=_create_plan(), text_response="junk")
+    web = FakeLLM(text_response=VISUAL_PAGE)
+
+    summary = run_daily_pass(store=store, llm=llm, web_llm=web)
+
+    page = next(iter(store._pages.values()))
+    assert summary["pages"][0]["format"] == "web"
+    assert [v["drawn"] for v in summary["visuals"]] == [False, False]
+    assert summary["visuals"][0]["node_id"] == page["id"]
+    assert "Diagram" not in page["content_web"] and "Scopes." in page["content_md"]
+    assert "Figure" not in page["content_md"]
+
+
+def write_visuals(llm):
+    return draw_visuals(llm, VISUAL_PAGE, language="en")
