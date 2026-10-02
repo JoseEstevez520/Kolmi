@@ -10,7 +10,7 @@ import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 // label with its outcome colour. With a `to` it is a router link, with an `href`
 // a plain one; without either it is a plain card. With `clamp`, long text (a
 // note) is kept to a few lines with a fading end and a "Show more", so one note
-// never dominates the list.
+// never dominates the list; a linked card opens instead of a "Show more".
 const props = defineProps({
   to: { type: [String, Object], default: null },
   href: { type: String, default: '' },
@@ -99,7 +99,7 @@ watch(expanded, (open) => {
               </CardDescription>
             </div>
             <button
-              v-if="clamp && overflowing"
+              v-if="clamp && overflowing && !linked"
               type="button"
               class="self-start text-xs font-medium text-fg-secondary hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
               @click="expanded = !expanded"

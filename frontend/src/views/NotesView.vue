@@ -1,30 +1,20 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  ActionButton,
-  Callout,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Empty,
-  Field,
-  StatusText,
-  Textarea,
-} from 'elastic-ui'
-import { NotebookPen } from '@lucide/vue'
+import { Button, Callout, Empty, StatusText } from 'elastic-ui'
+import { NotebookPen, Plus } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { formatDate, noteStatusLabel } from '../lib/format.js'
+import { plainText, splitNote } from '../lib/notes.js'
 
+// Your notes: a way into writing a new one, and the ones you left. Each opens on its own
+// screen (NoteWriteView), still editable while it waits for the daily pass.
 const { t } = useI18n()
 
-const content = ref('')
 const notes = ref([])
 const loading = ref(true)
 const error = ref('')
@@ -39,6 +29,13 @@ const STATUS_TONES = {
 
 const title = computed(() => (profile.value?.name ? t('notes.greeting', { name: profile.value.name }) : t('notes.title')))
 
+// A card shows a note's title and its words; a plain-text note is all words.
+function preview(note) {
+  if (note.format !== 'markdown') return { title: '', text: note.content }
+  const parts = splitNote(note.content)
+  return { title: parts.title, text: plainText(parts.body) }
+}
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -51,45 +48,15 @@ async function load() {
   }
 }
 
-async function submit() {
-  await api.createNote({ content: content.value.trim() })
-  content.value = ''
-  await load()
-}
-
 onMounted(load)
 </script>
 
 <template>
   <main class="py-16">
     <PageLayout :title="title" :lead="t('notes.lead')">
-      <Card>
-        <CardHeader>
-          <CardTitle>{{ t('notes.formTitle') }}</CardTitle>
-          <CardDescription>
-            {{ t('notes.formHint') }}
-          </CardDescription>
-        </CardHeader>
-        <CardContent class="flex flex-col gap-3">
-          <Field :label="t('notes.field')">
-            <Textarea
-              v-model="content"
-              rows="4"
-              :placeholder="t('notes.placeholder')"
-            />
-          </Field>
-          <div class="flex justify-end">
-            <ActionButton
-              :action="submit"
-              :disabled="!content.trim()"
-              :label="t('notes.send')"
-              :done-label="t('notes.sent')"
-              :error-label="t('notes.sendError')"
-              icon="plus"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div class="not-prose">
+        <Button :icon="Plus" to="/notes/new">{{ t('notes.new') }}</Button>
+      </div>
 
       <h2 id="my-notes" class="mt-10">{{ t('notes.mine') }}</h2>
 
@@ -107,7 +74,9 @@ onMounted(load)
         <PageCard
           v-for="note in notes"
           :key="note.id"
-          :description="note.content"
+          :to="`/notes/${note.id}`"
+          :title="preview(note).title"
+          :description="preview(note).text"
           :meta="formatDate(note.created_at)"
           :status="noteStatusLabel(note.status)"
           :tone="STATUS_TONES[note.status]"

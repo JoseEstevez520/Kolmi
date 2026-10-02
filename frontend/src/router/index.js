@@ -6,6 +6,7 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import NodeView from '../views/NodeView.vue'
 import NotesView from '../views/NotesView.vue'
+import NoteWriteView from '../views/NoteWriteView.vue'
 import RegisterView from '../views/RegisterView.vue'
 
 // After signing in, ask the backend for the profile: a 404 sends the user to
@@ -15,6 +16,9 @@ const routes = [
   { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/register', name: 'register', component: RegisterView, meta: { public: true } },
   { path: '/notes', name: 'notes', component: NotesView, meta: { layout: 'app' } },
+  // Writing one: a new note, or one of yours until the daily pass takes it.
+  { path: '/notes/new', name: 'note-new', component: NoteWriteView, meta: { layout: 'app' } },
+  { path: '/notes/:id(\\d+)', name: 'note', component: NoteWriteView, meta: { layout: 'app' } },
   // One screen for a section and one for a page: the node says which.
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
   { path: '/admin', name: 'admin', component: AdminView, meta: { layout: 'app', admin: true } },

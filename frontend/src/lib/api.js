@@ -52,8 +52,11 @@ export const api = {
 
   register: ({ code, name }) => request('/register', { method: 'POST', body: { code, name } }),
 
-  createNote: ({ content, moduleId = null, pageId = null }) =>
-    request('/notes', { method: 'POST', body: { content, module_id: moduleId, page_id: pageId } }),
+  createNote: ({ content, format = 'text', nodeId = null }) =>
+    request('/notes', { method: 'POST', body: { content, format, node_id: nodeId } }),
+
+  updateNote: ({ noteId, content, format = 'markdown' }) =>
+    request('/notes/update', { method: 'POST', body: { note_id: noteId, content, format } }),
 
   myNotes: () => request('/notes/mine'),
 
