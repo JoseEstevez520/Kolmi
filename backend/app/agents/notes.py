@@ -13,8 +13,11 @@ def write_markdown(
     existing_md: str = "",
     language: str = FALLBACK_LANGUAGE,
 ) -> str:
-    """Write (or update) the page's Markdown in the house style, in the class `language`."""
-    parts = [f"Page title: {title}", "", "Sanitized summary of the new notes:", summary]
+    """Write (or update) the page's Markdown, its source, in the class `language`.
+
+    `summary` is the gatekeeper's: what the notes add to the page, sanitized.
+    """
+    parts = [f"Page title: {title}", "", "New material for the page:", summary]
     if existing_md.strip():
-        parts += ["", "Current page Markdown (keep what still holds):", existing_md]
+        parts += ["", "Current page, in Markdown (fold the new material in):", existing_md]
     return llm.complete_text(notes_system(language), "\n".join(parts)).strip()

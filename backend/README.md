@@ -73,12 +73,14 @@ live in `app/class_settings.py`.
 Once a day, a cron wakes a team of agents that turns the pending notes into
 pages:
 
-1. **Gatekeeper** — anonymizes, joins notes about the same topic, discards what
-   adds nothing and decides the target page (an existing one or a new one).
-2. **Notes** — writes the page's Markdown in the house style.
-3. **Web** — writes the page as OpenUI Lang (`content_web`) with its Markdown view
-   (`content_md`), and the main model draws any SVG figure or interactive piece it asks for.
-   If no model manages a page, the notes agent's Markdown is kept instead.
+1. **Gatekeeper**: anonymizes, decides whether each note adds something new to what the
+   pages already say (it sees an excerpt of each page's Markdown), joins notes about the same
+   topic, discards what adds nothing and picks the target page (an existing one or a new one).
+2. **Notes**: writes or updates the page's Markdown (`content_md`), following the class notes
+   site's writing guide. This Markdown is the page's source.
+3. **Web**: turns that Markdown into the page in OpenUI Lang (`content_web`), and the main
+   model draws any SVG figure or interactive piece it asks for, with the Markdown at hand. If
+   no model manages it, the page keeps its previous web, or shows its Markdown when it had none.
 
 Every change saves the previous version in `node_versions` first, and every
 step leaves an entry in `ai_log`. One run is one row in `ai_passes`.

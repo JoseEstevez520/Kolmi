@@ -199,8 +199,8 @@ def test_the_pass_writes_in_the_language_it_is_given():
     summary = run_daily_pass(store=store, llm=llm, language="es")
 
     assert summary["language"] == "es"
-    # The gatekeeper, the page as OpenUI Lang (not a page here), then the Markdown.
-    (_, gatekeeper, _), (_, _, page_brief), (_, notes, _) = llm.calls
+    # The gatekeeper, the Markdown, then the page as OpenUI Lang (not a page here).
+    (_, gatekeeper, _), (_, notes, _), (_, _, page_brief) = llm.calls
     assert "in Spanish" in gatekeeper
     assert page_brief.startswith("Write the whole page in Spanish.")
     assert "in Spanish" in notes
@@ -219,7 +219,7 @@ def test_the_pass_reads_the_class_language_from_the_store():
 
 def test_the_web_agent_is_told_the_language_in_its_brief():
     store = FakeStore(notes=[_note()])
-    llm = FakeLLM(json_response=_plan())
+    llm = FakeLLM(json_response=_plan(), text_response="Usa `--amend`.")
     web = FakeLLM(text_response='root = Page([t])\nt = Text("Usa --amend.")')
 
     run_daily_pass(store=store, llm=llm, web_llm=web, language="es")

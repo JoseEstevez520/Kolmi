@@ -6,7 +6,7 @@ from typing import Any, Protocol
 from .class_settings import class_language
 from .supabase_client import get_client
 
-NODE_COLUMNS = "id, parent_id, kind, title, description, icon, color, position, on_home"
+NODE_COLUMNS = "id, parent_id, kind, title, description, icon, color, position, on_home, content_md"
 
 
 class Store(Protocol):
@@ -22,7 +22,9 @@ class Store(Protocol):
         """The language the notes and pages are written in (a code, like `en`)."""
         ...
 
-    def nodes(self) -> list[dict[str, Any]]: ...
+    def nodes(self) -> list[dict[str, Any]]:
+        """The tree, each row with its page's Markdown (`content_md`) for the gatekeeper."""
+        ...
 
     def page(self, node_id: int) -> dict[str, Any] | None: ...
 

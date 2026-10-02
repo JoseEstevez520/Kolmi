@@ -1,4 +1,4 @@
-"""OpenUI Lang for pages: the generated prompts, a small parser and the Markdown view.
+"""OpenUI Lang for pages: the generated prompts and a small parser.
 
 The prompts and the spec next to this file are generated from the frontend's page catalogue
 (`frontend/src/lib/openui/catalog.js`) with `npm run page-prompt`; do not edit them by hand.
@@ -10,7 +10,6 @@ built-ins are off in the page prompt, so they parse to `None`.
 
 from __future__ import annotations
 
-import difflib
 import json
 import re
 from dataclasses import dataclass, field
@@ -299,123 +298,3 @@ def unknown_components(root: Node) -> set[str]:
 
     walk(root)
     return found
-
-
-# -- the Markdown view -----------------------------------------------------------------
-
-
-def _arg(node: Node, index: int, default: Any = "") -> Any:
-    value = node.args[index] if index < len(node.args) else None
-    return default if value is None else value
-
-
-def _quote(text: str) -> str:
-    return "\n".join(f"> {line}" if line else ">" for line in text.splitlines())
-
-
-def _children(node: Node) -> list[Node]:
-    return [child for child in _arg(node, 0, []) if isinstance(child, Node)]
-
-
-def _block(node: Any) -> str:
-    if not isinstance(node, Node):
-        return ""
-    name = node.name
-    if name == "Heading":
-        level = 3 if _arg(node, 1, 2) == 3 else 2
-        return f"{'#' * level} {_arg(node, 0)}"
-    if name == "Text":
-        return str(_arg(node, 0)).strip()
-    if name == "CodeBlock":
-        language, title = _arg(node, 1), _arg(node, 2)
-        info = language + (f' title="{title}"' if title else "")
-        return f"```{info}\n{str(_arg(node, 0)).rstrip()}\n```"
-    if name == "Callout":
-        kind, text, title = _arg(node, 0, "note"), _arg(node, 1), _arg(node, 2)
-        body = (f"**{title}**\n\n" if title else "") + str(text).strip()
-        return f"> [!{str(kind).upper()}]\n{_quote(body)}"
-    if name == "Steps":
-        lines = []
-        for number, step in enumerate(_arg(node, 0, []), start=1):
-            if not isinstance(step, Node):
-                continue
-            text = str(_arg(step, 1)).strip().replace("\n", "\n   ")
-            lines.append(f"{number}. **{_arg(step, 0)}**" + (f"\n   {text}" if text else ""))
-        return "\n".join(lines)
-    if name == "CodeDiff":
-        before, after, file = str(_arg(node, 0)), str(_arg(node, 1)), _arg(node, 2)
-        lines = difflib.unified_diff(before.splitlines(), after.splitlines(), lineterm="", n=3)
-        body = "\n".join(line for line in lines if not line.startswith(("---", "+++", "@@")))
-        info = "diff" + (f' title="{file}"' if file else "")
-        return f"```{info}\n{body}\n```"
-    if name == "Table":
-        columns = [str(c) for c in _arg(node, 0, [])]
-        if not columns:
-            return ""
-        rows = [list(row) if isinstance(row, list) else [] for row in _arg(node, 1, [])]
-
-        def line(cells: list[Any]) -> str:
-            return "| " + " | ".join(str(c or "").replace("|", "\\|").replace("\n", " ") for c in cells) + " |"
-
-        table = [line(columns), line(["---"] * len(columns))]
-        table += [line([row[i] if i < len(row) else "" for i in range(len(columns))]) for row in rows]
-        caption = _arg(node, 2)
-        return "\n".join(table) + (f"\n\n*{caption}*" if caption else "")
-    if name == "DescriptionList":
-        return "\n".join(
-            f"- **{_arg(item, 0)}**: {str(_arg(item, 1)).strip()}"
-            for item in _children(node)
-        )
-    if name == "Accordion":
-        return "\n\n".join(
-            f"**{_arg(item, 0)}**\n\n{str(_arg(item, 1)).strip()}" for item in _children(node)
-        )
-    if name == "Cards":
-        lines = []
-        for card in _children(node):
-            title, text, href = _arg(card, 0), _arg(card, 1), _arg(card, 2)
-            label = f"[{title}]({href})" if href else f"**{title}**"
-            lines.append(f"- {label}" + (f": {text}" if text else ""))
-        return "\n".join(lines)
-    if name == "Logos":
-        names = [str(n) for n in _arg(node, 0, [])]
-        return ", ".join(names)
-    if name == "TerminalReplay":
-        lines = []
-        for entry in _children(node):
-            command, output, comment = _arg(entry, 0), _arg(entry, 1), _arg(entry, 2)
-            if comment:
-                lines.append(f"# {comment}")
-            lines.append(f"$ {command}")
-            if output:
-                lines.append(str(output).rstrip())
-        return "```terminal\n" + "\n".join(lines) + "\n```" if lines else ""
-    if name == "AgentReplay":
-        lines = ["*Agent session:*", ""]
-        for event in _children(node):
-            if event.name == "AgentPrompt":
-                lines.append(f"- **Asked:** {_arg(event, 0)}")
-            elif event.name == "AgentStep":
-                lines.append(f"- {_arg(event, 1) or _arg(event, 0)}")
-            elif event.name == "AgentAnswer":
-                lines.append(f"- **Answered:** {_arg(event, 0)}")
-                if _arg(event, 1):
-                    lines.append(f"\n```\n{str(_arg(event, 1)).rstrip()}\n```")
-        return "\n".join(lines)
-    if name == "Chat":
-        return "\n\n".join(
-            f"**{'Q' if _arg(message, 0) == 'user' else 'A'}:** {str(_arg(message, 1)).strip()}"
-            for message in _children(node)
-        )
-    if name in ("Figure", "Diagram"):
-        caption = _arg(node, 2) if name == "Diagram" else _arg(node, 3)
-        return f"*Figure: {_arg(node, 0)}*" + (f" {caption}" if caption else "")
-    if name == "Artifact":
-        return f"*Interactive: {_arg(node, 0)}*"
-    return ""
-
-
-def to_markdown(root: Node) -> str:
-    """Flatten a page into Markdown: the text kept, drawings and widgets named."""
-    blocks = _arg(root, 0, [])
-    return "\n\n".join(part for part in (_block(b) for b in blocks) if part).strip()

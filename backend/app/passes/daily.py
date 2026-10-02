@@ -4,7 +4,7 @@ import argparse
 import json
 from typing import Any
 
-from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper
+from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper, write_markdown
 from ..agents.schemas import Batch, GatekeeperResult, NewPage
 from ..store import Store, SupabaseStore
 
@@ -88,13 +88,22 @@ def _write_batch(
     existing_md = page.get("content_md") or ""
     existing_web = page.get("content_web") or ""
 
-    # Once the web model has failed in this pass, the rest goes straight to the main model.
+    # First the notes: the page's Markdown, its source of truth.
+    markdown = write_markdown(
+        llm,
+        title=page["title"],
+        summary=batch.summary,
+        existing_md=existing_md,
+        language=language,
+    ) or existing_md
+
+    # Then the web from those notes, and its visuals. Once the web model has failed in this
+    # pass, the rest goes straight to the main model.
     written = build_page(
         llm,
         None if stats["web_down"] else web_llm,
         title=page["title"],
-        summary=batch.summary,
-        existing_md=existing_md,
+        markdown=markdown,
         existing_web=existing_web,
         language=language,
     )
@@ -102,9 +111,7 @@ def _write_batch(
     if existing_md.strip() or existing_web.strip():
         store.save_version(page["id"], existing_md, existing_web)
 
-    store.write_page(
-        page["id"], content_md=written.content_md, content_web=written.content_web
-    )
+    store.write_page(page["id"], content_md=markdown, content_web=written.content_web)
 
     if written.web_failed:
         stats["web_down"] = True
@@ -129,7 +136,7 @@ def _write_batch(
             "node_id": page["id"],
             "title": page["title"],
             "format": written.source,
-            "model": written.model,
+            "model": written.model or None,
         }
     )
 

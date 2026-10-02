@@ -75,7 +75,8 @@ page parses, `draw_visuals` in `backend/app/agents/web.py` sends each brief to t
 outside resources; or a whole HTML document) and writes it into the source. A bad answer is
 sent back once with its problem; a failed call is tried once more. If the second answer fails
 too, the block is taken out of the page, and the pass stats record it (`visuals`). The page
-itself never fails because of a drawing. A block that already has its SVG or HTML (kept on an
+itself never fails because of a drawing. An SVG whose labels overlap (a rough measure of each
+`<text>`'s box) is sent back once too, but kept if the second answer still overlaps. A block that already has its SVG or HTML (kept on an
 update) is not drawn again.
 
 `library.js` maps each name onto elastic-ui. `prompt.js` builds the same catalogue with
@@ -102,30 +103,33 @@ them with the change.
 
 ## The backend
 
-`backend/app/agents/web.py` writes each page with the first model that manages it:
+The notes agent writes the page's Markdown first (`content_md`, the source). Then
+`backend/app/agents/web.py` turns it into the page with the first model that manages it:
 
 1. The web model (`WEB_*`), when one is set. It gets the whole catalogue prompt
    (`page.txt`), or the config block with `WEB_PROMPT=gateway`.
 2. The main model (`LLM_*`), with the whole catalogue prompt, when the web model fails or
    isn't set. Once the web model has failed in a pass (out of credit, say), the rest of that
    pass skips it; the next pass tries it again.
-3. Markdown from the notes agent, when neither answer is a page.
+3. Neither: `content_web` keeps what it had, so a failure never blanks a good page. A new page
+   stays without one and shows its Markdown.
 
-Then the main model draws the page's Diagram and Artifact briefs, if it has any.
+Then the main model draws the page's Diagram and Artifact briefs, if it has any, with the
+page's Markdown as their data.
+
+The web prompt's preamble is the class notes site's page guide (apuntes-web), in English; the
+notes agent's prompt is its writing guide (apuntes-claros). Both live in this repo, ported by
+hand.
 
 **The setup we recommend**: a web model suited to OpenUI Lang for composing the pages and the
 figures built from the library's pieces (the OpenUI Gateway's model, or DeepSeek flash), and
-a capable main model, since it also draws the SVGs and Artifacts (only called when a page
-needs one) and will run the chat. On DeepSeek, `LLM_MODEL=deepseek-v4-pro`.
+a capable main model, since it also writes the notes and draws the SVGs and Artifacts. On
+DeepSeek, `LLM_MODEL=deepseek-v4-pro`.
 
-The answer
-is parsed by a small Python parser (`agents/openui/__init__.py`). If the root is a `Page`,
-the source goes to `content_web` and a Markdown view of it to `content_md`: text kept,
-code as fences, callouts as `> [!TYPE]`, diagrams and artifacts named in one line.
-
-With Markdown only, `content_web` stays empty. Either way the pass goes on, and its stats
-record which model wrote each page (`pages[].model`) and why a model was passed over
-(`web_fallbacks`).
+The answer is parsed by a small Python parser (`agents/openui/__init__.py`). A `Page` root
+with at least one block is a page. The pass stats record which model wrote each page
+(`pages[].model`, `pages[].format`: `web`, `kept` or `markdown`) and why a model was passed
+over (`web_fallbacks`).
 
 ## The frontend
 

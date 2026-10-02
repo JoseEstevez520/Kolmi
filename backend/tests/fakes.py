@@ -4,17 +4,21 @@ from typing import Any
 
 
 class FakeLLM:
-    """A model that answers with whatever the test hands it."""
+    """A model that answers with whatever the test hands it.
+
+    `text_response` is one answer for every text call, or a list of answers in order (an
+    exception in it is raised).
+    """
 
     model = "fake"
 
     def __init__(
         self,
         json_response: dict[str, Any] | None = None,
-        text_response: str = "",
+        text_response: str | list[Any] = "",
     ) -> None:
         self.json_response = json_response or {"batches": [], "discarded": []}
-        self.text_response = text_response
+        self.text_response = list(text_response) if isinstance(text_response, list) else text_response
         self.calls: list[tuple[str, str, str]] = []
 
     def complete_json(self, system: str, user: str) -> dict[str, Any]:
@@ -23,7 +27,12 @@ class FakeLLM:
 
     def complete_text(self, system: str, user: str) -> str:
         self.calls.append(("text", system, user))
-        return self.text_response
+        if not isinstance(self.text_response, list):
+            return self.text_response
+        answer = self.text_response.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
 
 
 class FakeStore:
