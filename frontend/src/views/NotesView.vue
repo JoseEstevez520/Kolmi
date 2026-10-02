@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   ActionButton,
   Callout,
@@ -21,6 +22,8 @@ import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { formatDate, noteStatusLabel } from '../lib/format.js'
 
+const { t } = useI18n()
+
 const content = ref('')
 const notes = ref([])
 const loading = ref(true)
@@ -34,7 +37,7 @@ const STATUS_TONES = {
   discarded: 'var(--color-danger)',
 }
 
-const title = computed(() => (profile.value?.name ? `Hi, ${profile.value.name}` : 'Your notes'))
+const title = computed(() => (profile.value?.name ? t('notes.greeting', { name: profile.value.name }) : t('notes.title')))
 
 async function load() {
   loading.value = true
@@ -42,7 +45,7 @@ async function load() {
   try {
     notes.value = await api.myNotes()
   } catch (e) {
-    error.value = e.message || 'Could not load your notes.'
+    error.value = e.message || t('notes.errorLong')
   } finally {
     loading.value = false
   }
@@ -59,45 +62,45 @@ onMounted(load)
 
 <template>
   <main class="py-16">
-    <PageLayout :title="title" lead="Leave a note; tonight the hive turns it into shared notes.">
+    <PageLayout :title="title" :lead="t('notes.lead')">
       <Card>
         <CardHeader>
-          <CardTitle>Leave a note</CardTitle>
+          <CardTitle>{{ t('notes.formTitle') }}</CardTitle>
           <CardDescription>
-            Write it in your own words. It stays private until the daily pass.
+            {{ t('notes.formHint') }}
           </CardDescription>
         </CardHeader>
         <CardContent class="flex flex-col gap-3">
-          <Field label="Your note">
+          <Field :label="t('notes.field')">
             <Textarea
               v-model="content"
               rows="4"
-              placeholder="What did you learn today?"
+              :placeholder="t('notes.placeholder')"
             />
           </Field>
           <div class="flex justify-end">
             <ActionButton
               :action="submit"
               :disabled="!content.trim()"
-              label="Send"
-              done-label="Sent"
-              error-label="Couldn't send"
+              :label="t('notes.send')"
+              :done-label="t('notes.sent')"
+              :error-label="t('notes.sendError')"
               icon="plus"
             />
           </div>
         </CardContent>
       </Card>
 
-      <h2 id="my-notes" class="mt-10">My notes</h2>
+      <h2 id="my-notes" class="mt-10">{{ t('notes.mine') }}</h2>
 
-      <StatusText v-if="loading" text="Loading your notes…" working />
-      <Callout v-else-if="error" type="caution" title="Could not load your notes">
+      <StatusText v-if="loading" :text="t('notes.loading')" working />
+      <Callout v-else-if="error" type="caution" :title="t('notes.error')">
         {{ error }}
       </Callout>
       <Empty
         v-else-if="notes.length === 0"
-        title="The hive is quiet"
-        description="Leave the first note; the daily pass will turn it into shared notes."
+        :title="t('notes.emptyTitle')"
+        :description="t('notes.empty')"
         :icon="NotebookPen"
       />
       <CardGrid v-else>

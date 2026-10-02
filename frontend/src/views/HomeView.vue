@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Callout, Empty, StatusText } from 'elastic-ui'
 import { Home } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
@@ -8,6 +9,8 @@ import PageLayout from '../components/PageLayout.vue'
 import { homeNodes, loadNodes, nodesError, nodesLoading } from '../lib/content.js'
 import { iconByName } from '../lib/icons.js'
 
+const { t } = useI18n()
+
 onMounted(() => {
   loadNodes().catch(() => {})
 })
@@ -15,15 +18,15 @@ onMounted(() => {
 
 <template>
   <main class="py-16">
-    <PageLayout title="Kolmi" lead="Learn as a hive. Everything the class shares, in one place.">
-      <StatusText v-if="nodesLoading && homeNodes.length === 0" text="Loading the content…" working />
-      <Callout v-else-if="nodesError" type="caution" title="Could not load the content">
+    <PageLayout title="Kolmi" :lead="t('home.lead')">
+      <StatusText v-if="nodesLoading && homeNodes.length === 0" :text="t('common.loadingContent')" working />
+      <Callout v-else-if="nodesError" type="caution" :title="t('common.contentError')">
         {{ nodesError }}
       </Callout>
       <Empty
         v-else-if="homeNodes.length === 0"
-        title="Nothing here yet"
-        description="An admin can put a section or a page on the home."
+        :title="t('common.nothingHere')"
+        :description="t('home.empty')"
         :icon="Home"
       />
       <CardGrid v-else>

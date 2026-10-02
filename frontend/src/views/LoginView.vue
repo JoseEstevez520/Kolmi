@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Button, Callout, Field, Input } from 'elastic-ui'
 import AuthLayout from '../components/AuthLayout.vue'
 import GoogleIcon from '../components/GoogleIcon.vue'
 import { resetPassword, signIn, signInWithGoogle } from '../lib/auth.js'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
@@ -22,7 +24,7 @@ async function submit() {
     await signIn(email.value.trim(), password.value)
     router.push('/')
   } catch (e) {
-    error.value = e.message || 'Could not sign in.'
+    error.value = e.message || t('login.errorLong')
   } finally {
     loading.value = false
   }
@@ -34,7 +36,7 @@ async function withGoogle() {
   try {
     await signInWithGoogle()
   } catch (e) {
-    error.value = e.message || 'Could not start Google sign-in.'
+    error.value = e.message || t('login.googleError')
   }
 }
 
@@ -43,14 +45,14 @@ async function forgot() {
   info.value = ''
   const address = email.value.trim()
   if (!address) {
-    error.value = 'Write your email first, then tap "Forgot my password".'
+    error.value = t('login.emailFirst', { action: t('login.forgot') })
     return
   }
   try {
     await resetPassword(address)
-    info.value = `If ${address} has an account, we sent it a link to set a new password.`
+    info.value = t('login.resetSent', { email: address })
   } catch (e) {
-    error.value = e.message || 'Could not send the reset email.'
+    error.value = e.message || t('login.resetError')
   }
 }
 </script>
@@ -59,37 +61,37 @@ async function forgot() {
   <AuthLayout>
     <div class="flex flex-col gap-6">
       <Button variant="outline" :icon="GoogleIcon" @click="withGoogle">
-        Sign in with Google
+        {{ t('login.google') }}
       </Button>
 
       <div class="flex items-center gap-3 text-xs text-fg-muted">
         <span class="h-px flex-1 bg-border" />
-        or
+        {{ t('login.or') }}
         <span class="h-px flex-1 bg-border" />
       </div>
 
       <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <Field label="Email">
+        <Field :label="t('login.email')">
           <Input v-model="email" type="email" autocomplete="email" required />
         </Field>
-        <Field label="Password">
+        <Field :label="t('login.password')">
           <Input v-model="password" type="password" autocomplete="current-password" required />
         </Field>
 
-        <Callout v-if="error" type="caution" title="Could not sign in">{{ error }}</Callout>
-        <Callout v-else-if="info" type="note" title="Check your email">{{ info }}</Callout>
+        <Callout v-if="error" type="caution" :title="t('login.error')">{{ error }}</Callout>
+        <Callout v-else-if="info" type="note" :title="t('login.checkEmail')">{{ info }}</Callout>
 
-        <Button type="submit" :loading="loading">Sign in</Button>
+        <Button type="submit" :loading="loading">{{ t('login.submit') }}</Button>
       </form>
 
       <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-        <RouterLink class="text-fg-secondary hover:text-fg" to="/register">Sign up</RouterLink>
+        <RouterLink class="text-fg-secondary hover:text-fg" to="/register">{{ t('login.signUp') }}</RouterLink>
         <button
           class="cursor-pointer text-fg-secondary hover:text-fg"
           type="button"
           @click="forgot"
         >
-          Forgot my password
+          {{ t('login.forgot') }}
         </button>
       </div>
     </div>

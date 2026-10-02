@@ -1,12 +1,14 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Button, Callout, Field, Input } from 'elastic-ui'
 import AuthLayout from '../components/AuthLayout.vue'
 import { api } from '../lib/api.js'
 import { displayName, profile, session, signUp } from '../lib/auth.js'
 
 const router = useRouter()
+const { t } = useI18n()
 const hasSession = computed(() => Boolean(session.value))
 
 // Arriving from "Sign up", there is no session yet and the email and password
@@ -27,15 +29,14 @@ async function submit() {
     if (!hasSession.value) {
       const newSession = await signUp(email.value.trim(), password.value)
       if (!newSession) {
-        notice.value =
-          'We sent you an email. Confirm it, then sign in to finish setting up your account.'
+        notice.value = t('register.confirmEmail')
         return
       }
     }
     profile.value = await api.register({ code: code.value.trim(), name: name.value.trim() })
     router.push('/')
   } catch (e) {
-    error.value = e.message || 'Could not create your profile.'
+    error.value = e.message || t('register.errorLong')
   } finally {
     loading.value = false
   }
@@ -47,29 +48,29 @@ async function submit() {
     <div class="flex flex-col gap-6">
       <form class="flex flex-col gap-4" @submit.prevent="submit">
         <template v-if="!hasSession">
-          <Field label="Email">
+          <Field :label="t('login.email')">
             <Input v-model="email" type="email" autocomplete="email" required />
           </Field>
-          <Field label="Password">
+          <Field :label="t('login.password')">
             <Input v-model="password" type="password" autocomplete="new-password" required />
           </Field>
         </template>
 
-        <Field label="Class code" description="Ask your teacher for the code for this class.">
+        <Field :label="t('register.classCode')" :description="t('register.classCodeHint')">
           <Input v-model="code" autocomplete="off" required />
         </Field>
-        <Field label="Display name" description="This is the name your notes are shown under.">
+        <Field :label="t('register.name')" :description="t('register.nameHint')">
           <Input v-model="name" autocomplete="name" required />
         </Field>
 
-        <Callout v-if="error" type="caution" title="Could not join">{{ error }}</Callout>
-        <Callout v-else-if="notice" type="note" title="Check your email">{{ notice }}</Callout>
+        <Callout v-if="error" type="caution" :title="t('register.error')">{{ error }}</Callout>
+        <Callout v-else-if="notice" type="note" :title="t('login.checkEmail')">{{ notice }}</Callout>
 
-        <Button type="submit" :loading="loading">Join the hive</Button>
+        <Button type="submit" :loading="loading">{{ t('register.submit') }}</Button>
       </form>
 
       <p class="text-center text-sm">
-        <RouterLink class="text-fg-secondary hover:text-fg" to="/login">Back to sign in</RouterLink>
+        <RouterLink class="text-fg-secondary hover:text-fg" to="/login">{{ t('register.back') }}</RouterLink>
       </p>
     </div>
   </AuthLayout>

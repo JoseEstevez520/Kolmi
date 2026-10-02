@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Callout, Empty, Markdown, StatusText } from 'elastic-ui'
 import { Renderer } from '@openuidev/vue-lang'
 import { FileText, Layers } from '@lucide/vue'
@@ -16,6 +17,7 @@ import { canRender, pageLibrary } from '../lib/openui/library.js'
 // its children at once; only a page's content needs a fetch, and the title
 // shows meanwhile instead of blanking the page with a spinner.
 const route = useRoute()
+const { t } = useI18n()
 const id = computed(() => Number(route.params.id))
 
 // Fetched nodes, kept so going back to a page is instant too.
@@ -32,13 +34,13 @@ const content = computed(() => node.value?.content_md?.trim() ?? '')
 // not parse into a page, the Markdown is shown instead.
 const web = computed(() => node.value?.content_web?.trim() ?? '')
 const showWeb = computed(() => canRender(web.value))
-const title = computed(() => node.value?.title || (isPage.value ? 'Page' : 'Section'))
+const title = computed(() => node.value?.title || (isPage.value ? t('node.page') : t('node.section')))
 const loadingContent = computed(() => isPage.value && !(id.value in details.value))
 
 const lead = computed(() => {
   if (isPage.value) return ''
   const count = children.value.length
-  return count === 1 ? '1 item' : count ? `${count} items` : ''
+  return count ? t('node.items', { n: count }, count) : ''
 })
 
 // The renderer draws what it can and reports the rest; a page is still worth showing.
@@ -52,7 +54,7 @@ async function load() {
   try {
     details.value[id.value] = await api.node(id.value)
   } catch (e) {
-    error.value = e.message || 'Could not load this node.'
+    error.value = e.message || t('node.error')
   }
 }
 
@@ -69,13 +71,13 @@ watch(id, load)
       <Callout
         v-if="error"
         type="caution"
-        :title="isPage ? 'Could not load this page' : 'Could not load this section'"
+        :title="isPage ? t('node.pageError') : t('node.sectionError')"
       >
         {{ error }}
       </Callout>
 
       <template v-else-if="isPage">
-        <StatusText v-if="loadingContent" text="Loading…" working />
+        <StatusText v-if="loadingContent" :text="t('common.loading')" working />
         <Renderer
           v-else-if="showWeb"
           :key="id"
@@ -86,19 +88,19 @@ watch(id, load)
         <Markdown v-else-if="content" :source="content" />
         <Empty
           v-else
-          title="Nothing here yet"
-          description="This page has no content. The hive will fill it in."
+          :title="t('common.nothingHere')"
+          :description="t('node.pageEmpty')"
           :icon="FileText"
         />
       </template>
 
       <template v-else>
-        <StatusText v-if="!node" text="Loading…" working />
+        <StatusText v-if="!node" :text="t('common.loading')" working />
         <template v-else>
           <Empty
             v-if="children.length === 0"
-            title="Nothing here yet"
-            description="This section has no pages or sections. An admin can add them."
+            :title="t('common.nothingHere')"
+            :description="t('node.sectionEmpty')"
             :icon="Layers"
           />
           <CardGrid v-else>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, provide, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Callout, Empty, StatusText } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
@@ -12,6 +13,8 @@ import { flatten, loadNodes } from '../lib/content.js'
 // edit (description, icon, colour, on_home), move, reorder and delete with a
 // confirmation. The tree itself is AdminNode, recursive, read like folders and
 // files.
+const { t } = useI18n()
+
 const tree = ref([])
 const loading = ref(true)
 const ready = ref(false)
@@ -27,7 +30,7 @@ function guarded(fn) {
       await fn(...args)
       await loadTree()
     } catch (e) {
-      error.value = e.message || 'Something went wrong.'
+      error.value = e.message || t('common.somethingWrongLong')
       throw e
     }
   }
@@ -40,7 +43,7 @@ async function loadTree() {
     tree.value = await loadNodes(true)
     ready.value = true
   } catch (e) {
-    error.value = e.message || 'Could not load the content.'
+    error.value = e.message || t('common.contentErrorLong')
   } finally {
     loading.value = false
   }
@@ -62,19 +65,19 @@ onMounted(loadTree)
 
 <template>
   <main class="py-16">
-    <PageLayout title="Admin" lead="Create, rename, edit, move, reorder and delete the content tree.">
-      <StatusText v-if="loading" text="Loading the content…" working />
+    <PageLayout :title="t('admin.title')" :lead="t('admin.lead')">
+      <StatusText v-if="loading" :text="t('common.loadingContent')" working />
 
       <template v-else>
-        <Callout v-if="error" type="caution" title="Something went wrong">{{ error }}</Callout>
+        <Callout v-if="error" type="caution" :title="t('common.somethingWrong')">{{ error }}</Callout>
 
         <div class="not-prose flex flex-col gap-6">
           <div class="flex justify-end">
-            <AdminCreateDialog :parent-id="null" parent-title="the top level">
+            <AdminCreateDialog :parent-id="null">
               <template #trigger>
                 <span class="inline-flex items-center gap-2">
                   <Plus class="size-4" />
-                  Add at the top level
+                  {{ t('admin.addTop') }}
                 </span>
               </template>
             </AdminCreateDialog>
@@ -82,8 +85,8 @@ onMounted(loadTree)
 
           <Empty
             v-if="tree.length === 0"
-            title="Nothing here yet"
-            description="Create the first section or page to start building the content."
+            :title="t('common.nothingHere')"
+            :description="t('admin.empty')"
             :icon="Layers"
           />
 
