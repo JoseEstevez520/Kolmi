@@ -7,6 +7,7 @@ import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminNode from '../components/AdminNode.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
+import { useDelayed } from '../lib/delayed.js'
 import { flatten, loadNodes } from '../lib/content.js'
 
 // The whole tree, managed: create a section or a page at any level, rename,
@@ -17,6 +18,8 @@ const { t } = useI18n()
 
 const tree = ref([])
 const loading = ref(true)
+// Shown only when the wait is long enough to notice.
+const slow = useDelayed(loading)
 const ready = ref(false)
 const error = ref('')
 
@@ -66,7 +69,9 @@ onMounted(loadTree)
 <template>
   <main class="py-16">
     <PageLayout :title="t('admin.title')" :lead="t('admin.lead')">
-      <StatusText v-if="loading" :text="t('common.loadingContent')" working />
+      <template v-if="loading">
+        <StatusText v-if="slow" :text="t('common.loadingContent')" working />
+      </template>
 
       <template v-else>
         <Callout v-if="error" type="caution" :title="t('common.somethingWrong')">{{ error }}</Callout>

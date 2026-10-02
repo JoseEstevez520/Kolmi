@@ -8,24 +8,23 @@ import { FileText, Layers } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
-import { api } from '../lib/api.js'
-import { flatten, loadNodes, nodes } from '../lib/content.js'
+import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode } from '../lib/content.js'
+import { useDelayed } from '../lib/delayed.js'
 import { iconByName } from '../lib/icons.js'
 import { canRender, pageLibrary } from '../lib/openui/library.js'
 
 // One node at /node/:id. The whole tree is already loaded, so a section paints
-// its children at once; only a page's content needs a fetch, and the title
-// shows meanwhile instead of blanking the page with a spinner.
+// its children at once; only a page's content needs a fetch, often done already
+// when the link was pointed at (prefetchNode). The title shows meanwhile, and
+// "Loading…" only if the wait is long enough to notice.
 const route = useRoute()
 const { t } = useI18n()
 const id = computed(() => Number(route.params.id))
 
-// Fetched nodes, kept so going back to a page is instant too.
-const details = ref({})
 const error = ref('')
 
 const cached = computed(() => flatten(nodes.value).find((node) => node.id === id.value) || null)
-const node = computed(() => details.value[id.value] ?? cached.value)
+const node = computed(() => pages.value[id.value] ?? cached.value)
 
 const isPage = computed(() => node.value?.kind === 'page')
 const children = computed(() => node.value?.children ?? [])
@@ -35,7 +34,8 @@ const content = computed(() => node.value?.content_md?.trim() ?? '')
 const web = computed(() => node.value?.content_web?.trim() ?? '')
 const showWeb = computed(() => canRender(web.value))
 const title = computed(() => node.value?.title || (isPage.value ? t('node.page') : t('node.section')))
-const loadingContent = computed(() => isPage.value && !(id.value in details.value))
+const loadingContent = computed(() => isPage.value && !(id.value in pages.value))
+const slow = useDelayed(loadingContent)
 
 const lead = computed(() => {
   if (isPage.value) return ''
@@ -50,9 +50,8 @@ function onRenderErrors(errors) {
 
 async function load() {
   error.value = ''
-  if (id.value in details.value) return
   try {
-    details.value[id.value] = await api.node(id.value)
+    await loadNode(id.value)
   } catch (e) {
     error.value = e.message || t('node.error')
   }
@@ -77,7 +76,9 @@ watch(id, load)
       </Callout>
 
       <template v-else-if="isPage">
-        <StatusText v-if="loadingContent" :text="t('common.loading')" working />
+        <template v-if="loadingContent">
+          <StatusText v-if="slow" :text="t('common.loading')" working />
+        </template>
         <Renderer
           v-else-if="showWeb"
           :key="id"
@@ -112,6 +113,8 @@ watch(id, load)
               :icon="iconByName(child.icon)"
               :color="child.color || 'var(--color-fg)'"
               :to="`/node/${child.id}`"
+              @pointerenter="prefetchNode(child.id)"
+              @focusin="prefetchNode(child.id)"
             />
           </CardGrid>
         </template>

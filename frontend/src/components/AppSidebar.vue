@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import { Home, LogOut, NotebookPen, ScrollText, Settings } from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
-import { loadNodes, nodes, rootOf } from '../lib/content.js'
+import { loadNodes, nodes, prefetchNode, rootOf } from '../lib/content.js'
 import { nodeIcon } from '../lib/icons.js'
 
 // The app's sidebar (elastic-ui "connected" variant): Home, Notes, the
@@ -53,6 +53,7 @@ async function handleSignOut() {
         :value="`/node/${node.id}`"
         :to="`/node/${node.id}`"
         :icon="nodeIcon(node)"
+        @pointerenter="prefetchNode(node.id)"
       >
         {{ node.title }}
       </NavTreeItem>

@@ -1,15 +1,20 @@
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Callout, Empty, StatusText } from 'elastic-ui'
 import { Home } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
-import { homeNodes, loadNodes, nodesError, nodesLoading } from '../lib/content.js'
+import { homeNodes, loadNodes, nodesError, nodesLoading, prefetchNode } from '../lib/content.js'
+import { useDelayed } from '../lib/delayed.js'
 import { iconByName } from '../lib/icons.js'
 
 const { t } = useI18n()
+
+// Only a first visit has nothing to draw while the tree comes; the next ones paint the saved one.
+const waiting = computed(() => nodesLoading.value && homeNodes.value.length === 0)
+const slow = useDelayed(waiting)
 
 onMounted(() => {
   loadNodes().catch(() => {})
@@ -19,7 +24,9 @@ onMounted(() => {
 <template>
   <main class="py-16">
     <PageLayout title="Kolmi" :lead="t('home.lead')">
-      <StatusText v-if="nodesLoading && homeNodes.length === 0" :text="t('common.loadingContent')" working />
+      <template v-if="waiting">
+        <StatusText v-if="slow" :text="t('common.loadingContent')" working />
+      </template>
       <Callout v-else-if="nodesError" type="caution" :title="t('common.contentError')">
         {{ nodesError }}
       </Callout>
@@ -38,6 +45,8 @@ onMounted(() => {
           :icon="iconByName(node.icon)"
           :color="node.color || 'var(--color-fg)'"
           :to="`/node/${node.id}`"
+          @pointerenter="prefetchNode(node.id)"
+          @focusin="prefetchNode(node.id)"
         />
       </CardGrid>
     </PageLayout>

@@ -4,7 +4,28 @@ import { t } from './i18n.js'
 
 // The whole content tree, loaded once and shared. The sidebar lists only its
 // roots; the admin panel refreshes it after every change, so the sidebar follows.
-export const nodes = ref([])
+// The last tree seen is kept in this browser too, so opening the app paints it at
+// once while the fresh one arrives (the tree is the same for everyone in a class).
+const TREE_KEY = 'kolmi.tree'
+
+function savedTree() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TREE_KEY) || 'null')
+    return Array.isArray(saved) ? saved : []
+  } catch {
+    return []
+  }
+}
+
+function keepTree(tree) {
+  try {
+    localStorage.setItem(TREE_KEY, JSON.stringify(tree))
+  } catch {
+    // Storage full or blocked: the next visit just waits for the tree.
+  }
+}
+
+export const nodes = ref(savedTree())
 export const nodesLoading = ref(false)
 export const nodesError = ref('')
 
@@ -22,6 +43,9 @@ export function loadNodes(force = false) {
     .then((data) => {
       nodes.value = Array.isArray(data) ? data : []
       loaded = true
+      keepTree(nodes.value)
+      // A change made in the admin panel may change a page too; read them again.
+      if (force) pages.value = {}
       return nodes.value
     })
     .catch((error) => {
@@ -34,6 +58,31 @@ export function loadNodes(force = false) {
     })
 
   return inflight
+}
+
+// A node with its content, read once per session: going back to a page is instant, and
+// pointing at a link reads it ahead (prefetchNode) so the click finds it ready.
+export const pages = ref({})
+const pagesInflight = new Map()
+
+export function loadNode(id) {
+  if (id in pages.value) return Promise.resolve(pages.value[id])
+  if (pagesInflight.has(id)) return pagesInflight.get(id)
+  const request = api
+    .node(id)
+    .then((node) => {
+      pages.value[id] = node
+      return node
+    })
+    .finally(() => pagesInflight.delete(id))
+  pagesInflight.set(id, request)
+  return request
+}
+
+// Only a page has something to read ahead: a section is drawn from the tree.
+export function prefetchNode(id) {
+  const node = flatten().find((item) => item.id === id)
+  if (node?.kind === 'page') loadNode(id).catch(() => {})
 }
 
 // The nodes the home grid shows.
