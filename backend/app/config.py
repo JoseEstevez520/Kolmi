@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -22,8 +23,10 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.deepseek.com"
     llm_model: str = "deepseek-flash"
 
-    # The web agent writes pages as OpenUI Lang through the Thesys (OpenUI) Gateway, which
-    # validates and repairs the output. Without a key, pages are written as Markdown only.
+    # The web agent writes pages as OpenUI Lang. "deepseek" (the default) uses the model above
+    # with the whole catalogue prompt; "thesys" goes through the Thesys (OpenUI) Gateway, which
+    # validates and repairs the output, and needs THESYS_API_KEY.
+    web_provider: Literal["deepseek", "thesys"] = "deepseek"
     thesys_api_key: str = ""
     thesys_base_url: str = "https://api.thesys.dev/v1/embed"
     thesys_model: str = "google/gemini-3.7-flash"

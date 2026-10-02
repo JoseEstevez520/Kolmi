@@ -223,7 +223,7 @@ def test_the_web_agent_is_told_the_language_in_its_brief():
     run_daily_pass(store=store, llm=llm, web_llm=web, language="es")
 
     (_, system, brief), = web.calls
-    assert system == openui.gateway_prompt()
+    assert system == openui.full_prompt()
     assert brief.startswith("Write the whole page in Spanish.")
 
 

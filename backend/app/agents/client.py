@@ -16,12 +16,17 @@ class LLM(Protocol):
 
 
 class OpenAILLM:
-    """Any OpenAI-compatible chat endpoint; DeepSeek is the default."""
+    """Any OpenAI-compatible chat endpoint; DeepSeek is the default.
 
-    def __init__(self, *, api_key: str, base_url: str, model: str) -> None:
+    `gateway` marks the Thesys Gateway, which builds the page prompt from a short config block
+    instead of being sent the whole catalogue.
+    """
+
+    def __init__(self, *, api_key: str, base_url: str, model: str, gateway: bool = False) -> None:
         from openai import OpenAI
 
         self.model = model
+        self.gateway = gateway
         self._client = OpenAI(api_key=api_key, base_url=base_url)
 
     def complete_json(self, system: str, user: str) -> dict[str, Any]:
@@ -60,16 +65,17 @@ def get_llm() -> LLM:
 
 
 @lru_cache
-def get_web_llm() -> LLM | None:
-    """The web agent's model, through the Thesys Gateway; None when no key is set."""
+def get_web_llm() -> LLM:
+    """The web agent's model: DeepSeek by default, or the Thesys Gateway when chosen and keyed."""
     settings = get_settings()
-    if not settings.thesys_api_key:
-        return None
-    return OpenAILLM(
-        api_key=settings.thesys_api_key,
-        base_url=settings.thesys_base_url,
-        model=settings.thesys_model,
-    )
+    if settings.web_provider == "thesys" and settings.thesys_api_key:
+        return OpenAILLM(
+            api_key=settings.thesys_api_key,
+            base_url=settings.thesys_base_url,
+            model=settings.thesys_model,
+            gateway=True,
+        )
+    return get_llm()
 
 
 def model_name() -> str:

@@ -27,8 +27,7 @@ class Page:
 def _brief(
     *, title: str, summary: str, existing_md: str, existing_web: str, language: str
 ) -> str:
-    # The Gateway builds the system prompt from the page's config, so the language goes in
-    # the brief.
+    # The language goes in the brief: through the Gateway the system prompt is its own.
     parts = [
         language_line(language),
         "",
@@ -64,7 +63,9 @@ def write_web(
         existing_web=existing_web,
         language=language,
     )
-    raw = web_llm.complete_text(openui.gateway_prompt(), brief)
+    # The Gateway expands its short config block; any other model gets the whole catalogue.
+    system = openui.gateway_prompt() if getattr(web_llm, "gateway", False) else openui.full_prompt()
+    raw = web_llm.complete_text(system, brief)
     source = openui.strip_fence(raw)
     root = openui.parse(source)
 
@@ -90,9 +91,10 @@ def build_page(
 ) -> Page:
     """Write the page, in the class `language`: OpenUI Lang through the web agent, or Markdown when that fails.
 
-    The web agent (Thesys Gateway) writes `content_web`, and `content_md` is derived from it
-    for the RAG. Without a web agent, or when it fails, the notes agent (DeepSeek) writes the
-    Markdown alone and `content_web` is left empty, so the page shows its Markdown.
+    The web agent (DeepSeek by default, or the Thesys Gateway) writes `content_web`, and
+    `content_md` is derived from it for the RAG. Without a web agent, or when its answer is not
+    a page, the notes agent writes the Markdown alone and `content_web` is left empty, so the
+    page shows its Markdown.
     """
     reason = "no web agent configured"
     if web_llm is not None:

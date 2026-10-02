@@ -37,8 +37,7 @@ and the nightly cron are in [backend/README.md](backend/README.md).
 ## Status
 
 In development. Login, notes, the content tree, the admin panel with the AI log, and the
-nightly pass all work. Pages are written in OpenUI Lang; until the Gateway is unblocked they
-come out as Markdown.
+nightly pass all work. DeepSeek writes the pages in OpenUI Lang, in the class's language.
 
 ## Docs
 

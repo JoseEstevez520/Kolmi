@@ -19,8 +19,10 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **Docker** — one image for the API and the pass; the pass runs from a host cron with
   `docker compose run --rm pass`. See [backend/README.md](backend/README.md).
 - [x] **Page format (code)** — pages are OpenUI Lang (catalog plus a sandboxed artifact),
-  rendered over elastic-ui with `@openuidev/vue-lang`; Markdown is derived for the RAG. The web
-  agent calls OpenUI Gateway and falls back to DeepSeek writing Markdown. See
+  rendered over elastic-ui with `@openuidev/vue-lang`; Markdown is derived for the RAG.
+  DeepSeek writes the page with the whole catalogue prompt (`WEB_PROVIDER=deepseek`, the
+  default); the Thesys Gateway is an option (`WEB_PROVIDER=thesys`). If the answer isn't a
+  page, DeepSeek writes Markdown instead. The renderer loads on demand. See
   [docs/page-format.md](docs/page-format.md).
 - [x] **Notes editor** — a note gets a page of its own (`/notes/new`): a title and a Tiptap
   editor that saves Markdown. Blocks come from a `/` menu or the `+` beside an empty line
@@ -43,12 +45,11 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Now
 
-- [ ] **Page format live** — the Gateway answers `429` (the Thesys organisation's billing is
-  suspended), so every page is Markdown for now. Unblock it and run a real pass end to end.
-  The renderer already loads on demand, apart from the main bundle.
-- [ ] **Router and model choice** — a planner picks the model and catalog vs escape. OUI-1 is
-  not on the Gateway, so compare the Gateway's models (`google/gemini-3.7-flash` by default)
-  against DeepSeek on the same briefs; keep the winner as default and the other as fallback.
+- [ ] **First real pass** — run the daily pass on the class's own notes and check the pages
+  it writes, on screen. Sample pages from DeepSeek already parse with no errors.
+- [ ] **Router and model choice** — a planner picks the model and catalog vs escape. Compare
+  DeepSeek against other models on the same briefs (the Gateway's `google/gemini-3.7-flash`,
+  if its account is back); keep the winner as default and the other as fallback.
 
 ## Next
 

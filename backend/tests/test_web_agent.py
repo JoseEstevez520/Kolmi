@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.agents import openui
+from app.agents.web import write_web
 from app.passes.daily import run_daily_pass
 from tests.fakes import FakeLLM, FakeStore
 
@@ -137,7 +138,8 @@ def test_writes_the_page_as_openui_lang():
     # The gatekeeper ran on the main model; the page was written by the web agent only.
     assert [kind for kind, *_ in llm.calls] == ["json"]
     assert len(web.calls) == 1
-    assert web.calls[0][1] == openui.gateway_prompt()
+    # A plain model (DeepSeek) is sent the whole catalogue.
+    assert web.calls[0][1] == openui.full_prompt()
     assert [entry["action"] for entry in store.logs] == ["created"]
 
 
@@ -202,3 +204,33 @@ def test_dry_run_does_not_call_the_web_agent():
 
     assert summary["status"] == "dry-run"
     assert web.calls == []
+
+
+def test_the_gateway_gets_its_short_config_block():
+    web = FakeLLM(text_response=PAGE)
+    web.gateway = True
+
+    write_web(web, title="Git", summary="Use --amend.")
+
+    assert web.calls[0][1] == openui.gateway_prompt()
+
+
+def test_the_web_agent_is_deepseek_unless_thesys_is_chosen(monkeypatch):
+    from app.agents import client
+    from app.config import Settings
+
+    def web_for(**values):
+        monkeypatch.setattr(client, "get_settings", lambda: Settings(_env_file=None, supabase_url="u", supabase_service_key="s", class_code="c", **values))
+        client.get_llm.cache_clear()
+        client.get_web_llm.cache_clear()
+        return client.get_web_llm()
+
+    try:
+        assert web_for(llm_api_key="k").gateway is False
+        assert web_for(llm_api_key="k", thesys_api_key="t").gateway is False
+        assert web_for(llm_api_key="k", web_provider="thesys", thesys_api_key="t").gateway is True
+        # Thesys chosen without a key: DeepSeek writes the page.
+        assert web_for(llm_api_key="k", web_provider="thesys").gateway is False
+    finally:
+        client.get_llm.cache_clear()
+        client.get_web_llm.cache_clear()

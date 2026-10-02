@@ -11,7 +11,7 @@ Checked against the docs at openui.com and the npm registry in October 2026.
 | `@openuidev/vue-lang` (0.3) | The Vue 3 runtime: `defineComponent`, `createLibrary`, `<Renderer>`, `createParser`. Peer deps are `vue >=3.5` and `zod` 3.25+ or 4. |
 | `@openuidev/lang-core` (0.3) | The framework-agnostic core: parser, `generateSystemPrompt`, types. `vue-lang` depends on it. |
 | `@openuidev/cli` (0.4) | `openui generate <entry>` writes a prompt and a library spec (`.spec.json`) from a file that exports a library. |
-| OpenUI Gateway | What used to be the Thesys C1 API. OpenAI-compatible, at `https://api.thesys.dev/v1/embed`, with a `THESYS_API_KEY` from console.thesys.dev. It validates the OpenUI Lang against the library while it streams and repairs what it can. |
+| OpenUI Gateway | Optional (`WEB_PROVIDER=thesys`). What used to be the Thesys C1 API. OpenAI-compatible, at `https://api.thesys.dev/v1/embed`, with a `THESYS_API_KEY` from console.thesys.dev. It validates the OpenUI Lang against the library while it streams and repairs what it can. |
 
 Model ids on the Gateway are `{provider}/{model}`, as on OpenRouter (`openai/gpt-5`,
 `google/gemini-3.7-flash`). `GET /v1/embed/models` only lists the old C1 models
@@ -19,8 +19,11 @@ Model ids on the Gateway are `{provider}/{model}`, as on OpenRouter (`openai/gpt
 `features.md` mentions, only shows up in the OpenUI benchmark as self-hosted. The Gateway
 doesn't offer it.
 
-The default is `google/gemini-3.7-flash`: 98.9% structural validity at about $0.01 a page in
-the OpenUI benchmark (DeepSeek V4 Flash scores 85.8%). Change it with `THESYS_MODEL`.
+On the Gateway the default is `google/gemini-3.7-flash`: 98.9% structural validity at about
+$0.01 a page in the OpenUI benchmark (DeepSeek V4 Flash scores 85.8%). Change it with
+`THESYS_MODEL`. The instance uses DeepSeek by default instead: the Thesys account's billing is
+suspended (the Gateway answers `429`), and DeepSeek's pages parse with no errors when it gets
+the whole catalogue prompt.
 
 ## The catalogue
 
@@ -54,21 +57,22 @@ npm run page-prompt
 This runs `openui generate` and writes three files to `backend/app/agents/openui/`. Commit
 them with the change.
 
-- `page.txt` is the full prompt, for a model called directly.
+- `page.txt` is the full prompt, for a model called directly. DeepSeek gets this one.
 - `page.spec.json` is the library spec.
 - `page.gateway.txt` is `generateSystemPrompt({ cloud: true, library, promptOptions })`, the
   configuration block the Gateway builds the prompt from and validates against. The web agent
-  sends this one.
+  sends this one when it goes through the Gateway.
 
 ## The backend
 
-`backend/app/agents/web.py` asks the Gateway for the page (`THESYS_*` settings). The answer
+`backend/app/agents/web.py` asks the web agent for the page. With `WEB_PROVIDER=deepseek`
+(the default) that is the `LLM_*` model, sent the whole catalogue prompt (`page.txt`); with
+`WEB_PROVIDER=thesys` and a `THESYS_API_KEY` it is the Gateway, sent its config block. The answer
 is parsed by a small Python parser (`agents/openui/__init__.py`). If the root is a `Page`,
 the source goes to `content_web` and a Markdown view of it to `content_md`: text kept,
 code as fences, callouts as `> [!TYPE]`, diagrams and artifacts named in one line.
 
-If there is no key, the call fails, or the answer isn't a page, the notes agent (DeepSeek)
-writes the Markdown and `content_web` stays empty. The pass goes on and records the reason
+If the call fails or the answer isn't a page, the notes agent (DeepSeek) writes the Markdown and `content_web` stays empty. The pass goes on and records the reason
 in its stats under `web_fallbacks`.
 
 ## The frontend
