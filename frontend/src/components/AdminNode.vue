@@ -67,14 +67,15 @@ async function reorderTo(delta) {
       </template>
 
       <template #actions>
-        <AdminCreateDialog v-if="isSection" :parent-id="node.id" :parent-title="node.title">
+        <AdminCreateDialog
+          v-if="isSection"
+          :parent-id="node.id"
+          :parent-title="node.title"
+          size="icon"
+        >
           <template #trigger>
-            <Button
-              variant="ghost"
-              size="icon"
-              :icon="Plus"
-              :aria-label="`Add inside ${node.title}`"
-            />
+            <Plus class="size-4" aria-hidden="true" />
+            <span class="sr-only">Add inside {{ node.title }}</span>
           </template>
         </AdminCreateDialog>
         <AdminNodeDialog :node="node" />

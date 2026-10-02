@@ -2,11 +2,11 @@
 import { computed, inject, ref, watch } from 'vue'
 import {
   Button,
+  DialogMorph,
+  DialogMorphClose,
+  DialogMorphTitle,
   Field,
   Input,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Select,
   SelectContent,
   SelectItem,
@@ -23,6 +23,8 @@ import { ICONS, ICON_NAMES, NODE_COLORS } from '../lib/icons.js'
 const props = defineProps({
   parentId: { type: [Number, String], default: null },
   parentTitle: { type: String, default: '' },
+  // The trigger's size: `icon` in a row of the tree, where only the icon shows.
+  size: { type: String, default: 'md' },
 })
 
 const admin = inject('adminTree')
@@ -74,15 +76,18 @@ async function create(close) {
 </script>
 
 <template>
-  <Popover v-slot="{ close }" v-model:open="open">
-    <PopoverTrigger as-child>
+  <DialogMorph v-model:open="open" variant="ghost" :size="size">
+    <template #trigger>
       <slot name="trigger">
-        <Button variant="ghost" :icon="Plus">Add inside</Button>
+        <span class="inline-flex items-center gap-2">
+          <Plus class="size-4" />
+          Add inside
+        </span>
       </slot>
-    </PopoverTrigger>
+    </template>
 
-    <PopoverContent align="end" class="w-80">
-      <p class="mb-4 text-label font-medium text-fg">{{ heading }}</p>
+    <template #default="{ close }">
+      <DialogMorphTitle>{{ heading }}</DialogMorphTitle>
 
       <div class="flex flex-col gap-4">
         <Field label="Kind" description="A section groups; a page holds the content.">
@@ -142,10 +147,12 @@ async function create(close) {
         </template>
 
         <div class="flex justify-end gap-2">
-          <Button variant="ghost" @click="close">Cancel</Button>
+          <DialogMorphClose as-child>
+            <Button variant="ghost">Cancel</Button>
+          </DialogMorphClose>
           <Button :disabled="!title.trim()" @click="create(close)">Add</Button>
         </div>
       </div>
-    </PopoverContent>
-  </Popover>
+    </template>
+  </DialogMorph>
 </template>
