@@ -1,4 +1,5 @@
 import { accessToken } from './auth.js'
+import { t } from './i18n.js'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -24,7 +25,7 @@ async function request(path, { method = 'GET', body } = {}) {
       body: body !== undefined ? JSON.stringify(body) : undefined,
     })
   } catch {
-    throw new ApiError(0, 'Could not reach the server.')
+    throw new ApiError(0, t('api.unreachable'))
   }
 
   const text = await response.text()
@@ -39,7 +40,7 @@ async function request(path, { method = 'GET', body } = {}) {
 
   if (!response.ok) {
     const message =
-      (data && typeof data === 'object' && data.detail) || response.statusText || 'Request failed'
+      (data && typeof data === 'object' && data.detail) || response.statusText || t('api.failed')
     throw new ApiError(response.status, message)
   }
 

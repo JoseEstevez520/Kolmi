@@ -173,16 +173,17 @@ export const ICONS = {
 export const ICON_NAMES = Object.keys(ICONS).sort()
 
 // A node's colour is a plain string. Empty means the app's grey, so colour is
-// only there when it tells sections apart (design.md, "Colour").
+// only there when it tells sections apart (design.md, "Colour"). `key` names it
+// in the locale files (`colors.<key>`).
 export const NODE_COLORS = [
-  { name: 'Grey', value: '' },
-  { name: 'Blue', value: '#2563eb' },
-  { name: 'Teal', value: '#0d9488' },
-  { name: 'Violet', value: '#7c3aed' },
-  { name: 'Amber', value: '#d97706' },
-  { name: 'Fuchsia', value: '#c026d3' },
-  { name: 'Lime', value: '#65a30d' },
-  { name: 'Rose', value: '#e11d48' },
+  { key: 'grey', value: '' },
+  { key: 'blue', value: '#2563eb' },
+  { key: 'teal', value: '#0d9488' },
+  { key: 'violet', value: '#7c3aed' },
+  { key: 'amber', value: '#d97706' },
+  { key: 'fuchsia', value: '#c026d3' },
+  { key: 'lime', value: '#65a30d' },
+  { key: 'rose', value: '#e11d48' },
 ]
 
 export function iconByName(name) {

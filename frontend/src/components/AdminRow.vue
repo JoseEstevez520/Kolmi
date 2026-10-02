@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Button, ConfirmButton, Input } from 'elastic-ui'
 import { ArrowDown, ArrowUp, Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
 import { nodeIcon } from '../lib/icons.js'
@@ -18,6 +19,8 @@ const props = defineProps({
   moveDown: { type: Function, default: null },
   remove: { type: Function, required: true },
 })
+
+const { t } = useI18n()
 
 const chosen = computed(() => nodeIcon(props.node))
 const fallback = computed(() =>
@@ -67,9 +70,9 @@ function call(fn) {
     />
 
     <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-1" @submit.prevent="save">
-      <Input v-model="draft" aria-label="Rename" autofocus />
-      <Button type="submit" variant="ghost" size="icon" :icon="Check" aria-label="Save" />
-      <Button variant="ghost" size="icon" :icon="X" aria-label="Cancel" @click="cancel" />
+      <Input v-model="draft" :aria-label="t('admin.rename')" autofocus />
+      <Button type="submit" variant="ghost" size="icon" :icon="Check" :aria-label="t('common.save')" />
+      <Button variant="ghost" size="icon" :icon="X" :aria-label="t('common.cancel')" @click="cancel" />
     </form>
 
     <template v-else>
@@ -88,7 +91,7 @@ function call(fn) {
           variant="ghost"
           size="icon"
           :icon="ArrowUp"
-          aria-label="Move up"
+          :aria-label="t('admin.moveUp')"
           :disabled="!canMoveUp"
           @click="call(moveUp)"
         />
@@ -96,11 +99,11 @@ function call(fn) {
           variant="ghost"
           size="icon"
           :icon="ArrowDown"
-          aria-label="Move down"
+          :aria-label="t('admin.moveDown')"
           :disabled="!canMoveDown"
           @click="call(moveDown)"
         />
-        <ConfirmButton variant="ghost" tone="danger" :label="`Delete ${node.title}`" :action="remove" />
+        <ConfirmButton variant="ghost" tone="danger" :label="t('admin.delete', { title: node.title })" :action="remove" />
       </div>
     </template>
   </div>

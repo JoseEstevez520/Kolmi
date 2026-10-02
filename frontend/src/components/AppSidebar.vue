@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import { Home, LogOut, NotebookPen, ScrollText, Settings } from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
@@ -12,6 +13,7 @@ import { nodeIcon } from '../lib/icons.js'
 // inside are reached from a section), the admin panel for admins, and sign out.
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 // Reading a node keeps its top-level section lit.
 const active = computed(() => {
@@ -42,8 +44,8 @@ async function handleSignOut() {
     </template>
 
     <NavTree :model-value="active">
-      <NavTreeItem value="/" to="/" :icon="Home">Home</NavTreeItem>
-      <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen">Notes</NavTreeItem>
+      <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
+      <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen">{{ t('sidebar.notes') }}</NavTreeItem>
 
       <NavTreeItem
         v-for="node in nodes"
@@ -56,7 +58,7 @@ async function handleSignOut() {
       </NavTreeItem>
 
       <NavTreeItem v-if="profile?.role === 'admin'" value="/admin" to="/admin" :icon="Settings">
-        Admin
+        {{ t('sidebar.admin') }}
       </NavTreeItem>
 
       <NavTreeItem
@@ -65,14 +67,14 @@ async function handleSignOut() {
         to="/admin/log"
         :icon="ScrollText"
       >
-        AI log
+        {{ t('sidebar.aiLog') }}
       </NavTreeItem>
     </NavTree>
 
     <template #footer>
-      <NavTree label="Account">
+      <NavTree :label="t('sidebar.account')">
         <NavTreeItem value="/signout" :icon="LogOut" @click="handleSignOut">
-          {{ profile ? `Sign out (${profile.name})` : 'Sign out' }}
+          {{ profile ? t('sidebar.signOutAs', { name: profile.name }) : t('sidebar.signOut') }}
         </NavTreeItem>
       </NavTree>
     </template>

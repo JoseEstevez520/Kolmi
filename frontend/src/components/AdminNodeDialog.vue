@@ -1,5 +1,6 @@
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Button,
   DialogMorph,
@@ -26,6 +27,7 @@ const props = defineProps({
 })
 
 const admin = inject('adminTree')
+const { t } = useI18n()
 
 const NONE = '__none__'
 const ROOT = '__root__'
@@ -74,28 +76,28 @@ async function save(close) {
   <DialogMorph variant="ghost" size="icon">
     <template #trigger>
       <Settings2 class="size-4" aria-hidden="true" />
-      <span class="sr-only">Edit {{ node.title }}</span>
+      <span class="sr-only">{{ t('admin.edit', { title: node.title }) }}</span>
     </template>
 
     <template #default="{ close }">
-      <DialogMorphTitle>Edit “{{ node.title }}”</DialogMorphTitle>
+      <DialogMorphTitle>{{ t('admin.editTitle', { title: node.title }) }}</DialogMorphTitle>
 
       <div class="flex flex-col gap-4">
-        <Field label="Title">
+        <Field :label="t('admin.fieldTitle')">
           <Input v-model="title" />
         </Field>
 
-        <Field label="Description" description="A line shown under the title on its card.">
+        <Field :label="t('admin.description')" :description="t('admin.descriptionHint')">
           <Textarea v-model="description" rows="2" />
         </Field>
 
-        <Field label="Icon">
+        <Field :label="t('admin.icon')">
           <Select v-model="icon">
             <SelectTrigger>
-              <SelectValue placeholder="No icon" />
+              <SelectValue :placeholder="t('admin.noIcon')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem :value="NONE">No icon</SelectItem>
+              <SelectItem :value="NONE">{{ t('admin.noIcon') }}</SelectItem>
               <SelectItem v-for="name in iconOptions" :key="name" :value="name">
                 <span class="flex items-center gap-2">
                   <component
@@ -111,32 +113,32 @@ async function save(close) {
           </Select>
         </Field>
 
-        <Field label="Colour" description="Only to tell sections apart.">
+        <Field :label="t('admin.color')" :description="t('admin.colorHint')">
           <Select v-model="color">
             <SelectTrigger>
-              <SelectValue placeholder="Grey" />
+              <SelectValue :placeholder="t('colors.grey')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="option in colorOptions" :key="option.name" :value="option.value">
+              <SelectItem v-for="option in colorOptions" :key="option.key" :value="option.value">
                 <span class="flex items-center gap-2">
                   <span
                     class="size-3 shrink-0 rounded-full"
                     :style="{ background: option.value === GREY ? 'var(--color-fg)' : option.value }"
                   />
-                  {{ option.name }}
+                  {{ t(`colors.${option.key}`) }}
                 </span>
               </SelectItem>
             </SelectContent>
           </Select>
         </Field>
 
-        <Field label="Parent" description="Where it sits in the tree.">
+        <Field :label="t('admin.parent')" :description="t('admin.parentHint')">
           <Select v-model="parentId">
             <SelectTrigger>
-              <SelectValue placeholder="Top level" />
+              <SelectValue :placeholder="t('admin.topLevel')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem :value="ROOT">Top level</SelectItem>
+              <SelectItem :value="ROOT">{{ t('admin.topLevel') }}</SelectItem>
               <SelectItem v-for="node in destinations" :key="node.id" :value="String(node.id)">
                 {{ node.title }}
               </SelectItem>
@@ -144,13 +146,13 @@ async function save(close) {
           </Select>
         </Field>
 
-        <Switch v-model="onHome">Show on the home</Switch>
+        <Switch v-model="onHome">{{ t('admin.onHome') }}</Switch>
 
         <div class="flex justify-end gap-2">
           <DialogMorphClose as-child>
-            <Button variant="ghost">Cancel</Button>
+            <Button variant="ghost">{{ t('common.cancel') }}</Button>
           </DialogMorphClose>
-          <Button @click="save(close)">Save</Button>
+          <Button @click="save(close)">{{ t('common.save') }}</Button>
         </div>
       </div>
     </template>

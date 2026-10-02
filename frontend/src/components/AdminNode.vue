@@ -1,5 +1,6 @@
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Button } from 'elastic-ui'
 import { ChevronRight, Plus } from '@lucide/vue'
 import AdminCreateDialog from './AdminCreateDialog.vue'
@@ -17,6 +18,7 @@ const props = defineProps({
 })
 
 const admin = inject('adminTree')
+const { t } = useI18n()
 
 const children = computed(() => props.node.children ?? [])
 const isSection = computed(() => props.node.kind === 'section')
@@ -53,7 +55,7 @@ async function reorderTo(delta) {
           variant="ghost"
           size="icon"
           class="size-6"
-          :aria-label="open ? `Collapse ${node.title}` : `Expand ${node.title}`"
+          :aria-label="t(open ? 'admin.collapse' : 'admin.expand', { title: node.title })"
           :aria-expanded="open"
           @click="open = !open"
         >
@@ -75,7 +77,7 @@ async function reorderTo(delta) {
         >
           <template #trigger>
             <Plus class="size-4" aria-hidden="true" />
-            <span class="sr-only">Add inside {{ node.title }}</span>
+            <span class="sr-only">{{ t('admin.addInsideOf', { title: node.title }) }}</span>
           </template>
         </AdminCreateDialog>
         <AdminNodeDialog :node="node" />

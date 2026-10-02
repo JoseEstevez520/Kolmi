@@ -1,5 +1,6 @@
 <script setup>
 import { computed, inject, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Button,
   DialogMorph,
@@ -28,6 +29,7 @@ const props = defineProps({
 })
 
 const admin = inject('adminTree')
+const { t } = useI18n()
 
 const NONE = '__none__'
 const GREY = '__grey__'
@@ -40,7 +42,7 @@ const color = ref(GREY)
 const onHome = ref(false)
 
 const heading = computed(() =>
-  props.parentId == null ? 'Add at the top level' : `Add inside “${props.parentTitle}”`,
+  props.parentId == null ? t('admin.addTop') : t('admin.addInsideOf', { title: props.parentTitle }),
 )
 
 // The grey option carries no colour; a Select item needs a non-empty value, so
@@ -81,7 +83,7 @@ async function create(close) {
       <slot name="trigger">
         <span class="inline-flex items-center gap-2">
           <Plus class="size-4" />
-          Add inside
+          {{ t('admin.addInside') }}
         </span>
       </slot>
     </template>
@@ -90,30 +92,30 @@ async function create(close) {
       <DialogMorphTitle>{{ heading }}</DialogMorphTitle>
 
       <div class="flex flex-col gap-4">
-        <Field label="Kind" description="A section groups; a page holds the content.">
+        <Field :label="t('admin.kind')" :description="t('admin.kindHint')">
           <Select v-model="kind">
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="section">Section</SelectItem>
-              <SelectItem value="page">Page</SelectItem>
+              <SelectItem value="section">{{ t('admin.section') }}</SelectItem>
+              <SelectItem value="page">{{ t('admin.page') }}</SelectItem>
             </SelectContent>
           </Select>
         </Field>
 
-        <Field label="Title">
-          <Input v-model="title" placeholder="Its name" />
+        <Field :label="t('admin.fieldTitle')">
+          <Input v-model="title" :placeholder="t('admin.titlePlaceholder')" />
         </Field>
 
         <template v-if="kind === 'section'">
-          <Field label="Icon" description="Shown in the tree, the sidebar and its cards.">
+          <Field :label="t('admin.icon')" :description="t('admin.iconHint')">
             <Select v-model="icon">
               <SelectTrigger>
-                <SelectValue placeholder="No icon" />
+                <SelectValue :placeholder="t('admin.noIcon')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem :value="NONE">No icon</SelectItem>
+                <SelectItem :value="NONE">{{ t('admin.noIcon') }}</SelectItem>
                 <SelectItem v-for="name in ICON_NAMES" :key="name" :value="name">
                   <span class="flex items-center gap-2">
                     <component :is="ICONS[name]" class="size-4" :stroke-width="1.5" />
@@ -124,33 +126,33 @@ async function create(close) {
             </Select>
           </Field>
 
-          <Field label="Colour" description="Only to tell sections apart.">
+          <Field :label="t('admin.color')" :description="t('admin.colorHint')">
             <Select v-model="color">
               <SelectTrigger>
-                <SelectValue placeholder="Grey" />
+                <SelectValue :placeholder="t('colors.grey')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="option in colorOptions" :key="option.name" :value="option.value">
+                <SelectItem v-for="option in colorOptions" :key="option.key" :value="option.value">
                   <span class="flex items-center gap-2">
                     <span
                       class="size-3 shrink-0 rounded-full"
                       :style="{ background: option.value === GREY ? 'var(--color-fg)' : option.value }"
                     />
-                    {{ option.name }}
+                    {{ t(`colors.${option.key}`) }}
                   </span>
                 </SelectItem>
               </SelectContent>
             </Select>
           </Field>
 
-          <Switch v-model="onHome">Show on the home</Switch>
+          <Switch v-model="onHome">{{ t('admin.onHome') }}</Switch>
         </template>
 
         <div class="flex justify-end gap-2">
           <DialogMorphClose as-child>
-            <Button variant="ghost">Cancel</Button>
+            <Button variant="ghost">{{ t('common.cancel') }}</Button>
           </DialogMorphClose>
-          <Button :disabled="!title.trim()" @click="create(close)">Add</Button>
+          <Button :disabled="!title.trim()" @click="create(close)">{{ t('common.add') }}</Button>
         </div>
       </div>
     </template>

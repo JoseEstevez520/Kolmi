@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Badge, Card, CardDescription, CardFooter, CardHeader, CardTitle } from 'elastic-ui'
 import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 
@@ -22,6 +23,8 @@ const props = defineProps({
   tone: { type: String, default: '' },
   clamp: { type: Boolean, default: false },
 })
+
+const { t } = useI18n()
 
 const linked = computed(() => Boolean(props.to || props.href))
 const external = computed(() => /^https?:/.test(props.href))
@@ -101,7 +104,7 @@ watch(expanded, (open) => {
               class="self-start text-xs font-medium text-fg-secondary hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
               @click="expanded = !expanded"
             >
-              {{ expanded ? 'Show less' : 'Show more' }}
+              {{ expanded ? t('notes.showLess') : t('notes.showMore') }}
             </button>
           </template>
         </div>

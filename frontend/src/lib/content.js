@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { api } from './api.js'
+import { t } from './i18n.js'
 
 // The whole content tree, loaded once and shared. The sidebar lists only its
 // roots; the admin panel refreshes it after every change, so the sidebar follows.
@@ -24,7 +25,7 @@ export function loadNodes(force = false) {
       return nodes.value
     })
     .catch((error) => {
-      nodesError.value = error.message || 'Could not load the content.'
+      nodesError.value = error.message || t('common.contentErrorLong')
       throw error
     })
     .finally(() => {
