@@ -12,11 +12,12 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **Content tree and admin panel** — one tree of nodes (a section groups, a page holds
   content), with a home screen and an admin panel (create, rename, edit icon and colour, move,
   reorder, delete).
+- [x] **Daily pass** — a cron wakes the agent team (gatekeeper → notes → web) once a day, with
+  a log (`ai_log`, `ai_passes`) and page versions. It writes the pages as Markdown; the OpenUI
+  Lang half arrives with the page format.
 
 ## Now
 
-- [ ] **Daily pass** — a cron wakes the agent team (gatekeeper → notes → web) once a day, with
-  a log and page versions. This is what fills the pages from the notes.
 - [ ] **Page format** — source is OpenUI Lang (catalog plus a sandboxed escape-hatch artifact
   for new visuals and interactive widgets), rendered with `@openuidev/vue-lang`; Markdown is
   derived for the RAG. Generated through the Thesys C1 API.
