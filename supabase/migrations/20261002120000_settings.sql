@@ -8,7 +8,7 @@ create table if not exists settings (
   updated_at timestamptz not null default now()
 );
 
-insert into settings (id) values (1) on conflict (id) do nothing;
+-- No seed row: until the admin first saves, the backend uses CLASS_LANGUAGE.
 
 -- Whether the caller is an admin. Security definer so it can read profiles, which has RLS
 -- on and no policies of its own.
