@@ -39,7 +39,10 @@ def build_index(nodes: list[dict[str, Any]]) -> str:
 
     def walk(parent: int | None, depth: int) -> None:
         for node in sorted(children.get(parent, []), key=lambda n: n.get("position") or 0):
-            lines.append(f"{'  ' * depth}[{node['id']}] {node.get('kind')}: {node.get('title')}")
+            line = f"{'  ' * depth}[{node['id']}] {node.get('kind')}: {node.get('title')}"
+            # A short name ("DWCS") says little on its own; its description says what it holds.
+            description = (node.get("description") or "").strip()
+            lines.append(f"{line} — {description}" if description else line)
             walk(node["id"], depth + 1)
 
     walk(None, 0)
