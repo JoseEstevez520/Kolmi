@@ -53,6 +53,7 @@ export default {
   oneResult: '1 resultado',
   results: '{count} resultados',
   commandPlaceholder: 'Escribe un comando o busca…',
+  suggestions: 'Sugerencias',
   noResults: 'Sin resultados',
   replay: 'Repetir',
   unchangedLines: '{count} líneas sin cambios',

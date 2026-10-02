@@ -21,7 +21,7 @@
     "@tiptap/starter-kit": "^3.31.4",
     "@tiptap/suggestion": "^3.31.4",
     "@tiptap/vue-3": "^3.31.4",
-    "elastic-ui": "file:vendor/elastic-ui-0.3.6.tgz",
+    "elastic-ui": "file:vendor/elastic-ui-0.3.8.tgz",
     "motion-v": "^2.4.4",
     "vue": "^3.5.42",
     "vue-i18n": "^11.4.12",

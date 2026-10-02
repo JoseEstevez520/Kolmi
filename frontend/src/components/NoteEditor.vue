@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { FloatingMenu } from '@tiptap/vue-3/menus'
@@ -7,6 +7,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
 import { TableKit } from '@tiptap/extension-table'
+import { Button, SuggestionMenu, SuggestionMenuEmpty, SuggestionMenuItem } from 'elastic-ui'
 import { Plus } from '@lucide/vue'
 import { findBlocks } from '../lib/editor/blocks.js'
 import { BlockHint } from '../lib/editor/hint.js'
@@ -60,8 +61,21 @@ function showPlus({ view, state }) {
   )
 }
 
-// What the "/" menu shows; the SlashMenu extension keeps it up to date.
-const slash = reactive({ open: false, items: [], index: 0, rect: null, command: null })
+// What the "/" menu shows; the SlashMenu extension keeps it up to date, and passes the menu
+// keys on to the SuggestionMenu, which holds the highlighted block.
+const slash = reactive({ open: false, items: [], rect: null, command: null })
+const highlighted = ref()
+const menu = ref(null)
+const keys = {
+  next: () => menu.value?.next(),
+  previous: () => menu.value?.previous(),
+  pick: () => menu.value?.pick() ?? false,
+}
+
+function apply(id) {
+  const block = slash.items.find((item) => item.id === id)
+  if (block) slash.command?.(block)
+}
 
 const editor = useEditor({
   content: model.value,
@@ -73,7 +87,7 @@ const editor = useEditor({
     TableKit.configure({ table: { resizable: false } }),
     Markdown,
     BlockHint.configure({ text: hintOf }),
-    SlashMenu.configure({ state: slash, find: (query, inTable) => findBlocks(query, blockLabel, inTable) }),
+    SlashMenu.configure({ state: slash, keys, find: (query, inTable) => findBlocks(query, blockLabel, inTable) }),
   ],
   editorProps: {
     attributes: {
@@ -102,27 +116,6 @@ function openBlocks() {
   editor.value?.chain().focus().insertContent('/').run()
 }
 
-// Under the "/", or over it when the line is near the bottom of the screen.
-const MENU_HEIGHT = 320
-const menuStyle = computed(() => {
-  const rect = slash.rect
-  if (!rect) return { display: 'none' }
-  const below = rect.bottom + 6 + MENU_HEIGHT <= window.innerHeight
-  return {
-    left: `${Math.max(8, Math.min(rect.left, window.innerWidth - 272))}px`,
-    ...(below ? { top: `${rect.bottom + 6}px` } : { bottom: `${window.innerHeight - rect.top + 6}px` }),
-  }
-})
-
-const list = ref(null)
-watch(
-  () => slash.index,
-  async (index) => {
-    await nextTick()
-    list.value?.children[index]?.scrollIntoView({ block: 'nearest' })
-  },
-)
-
 defineExpose({
   focus: () => editor.value?.commands.focus('start'),
 })
@@ -131,49 +124,31 @@ defineExpose({
 <template>
   <div class="note-editor">
     <FloatingMenu v-if="editor" :editor="editor" :options="{ placement: 'left', offset: 12 }" :should-show="showPlus">
-      <button
-        type="button"
-        class="grid size-7 cursor-pointer place-items-center rounded-[var(--radius-sm)] text-fg-faint transition-colors duration-150 hover:bg-bg-muted hover:text-fg focus-ring"
+      <Button
+        variant="ghost"
+        size="icon"
+        :icon="Plus"
         :aria-label="t('notes.blocks.open')"
         @mousedown.prevent
         @click="openBlocks"
-      >
-        <Plus class="size-4" />
-      </button>
+      />
     </FloatingMenu>
 
     <EditorContent :editor="editor" />
 
-    <Teleport to="body">
-      <div
-        v-if="slash.open"
-        class="fixed z-50 w-64 overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface-raised shadow-overlay animate-[blur-in_0.2s_var(--ease-soft)_both] motion-reduce:animate-none"
-        :style="menuStyle"
-      >
-        <ul
-          v-if="slash.items.length"
-          ref="list"
-          role="listbox"
-          :aria-label="t('notes.blocks.title')"
-          class="max-h-80 overflow-y-auto overscroll-contain p-1.5 scrollbar-subtle"
-        >
-          <li
-            v-for="(block, i) in slash.items"
-            :key="block.id"
-            role="option"
-            :aria-selected="i === slash.index"
-            :data-highlighted="i === slash.index ? '' : undefined"
-            class="flex cursor-pointer items-center gap-2.5 rounded-[var(--radius-sm)] px-2.5 py-2 text-ui text-fg select-none data-[highlighted]:bg-bg-muted"
-            @mouseenter="slash.index = i"
-            @mousedown.prevent="slash.command?.(block)"
-          >
-            <component :is="block.icon" class="size-4 shrink-0 text-fg-muted" />
-            {{ blockLabel(block) }}
-          </li>
-        </ul>
-        <p v-else class="px-3 py-3 text-ui text-fg-muted">{{ t('notes.blocks.none') }}</p>
-      </div>
-    </Teleport>
+    <SuggestionMenu
+      ref="menu"
+      v-model:open="slash.open"
+      v-model="highlighted"
+      :reference="slash.rect"
+      :label="t('notes.blocks.title')"
+      @select="apply"
+    >
+      <SuggestionMenuItem v-for="block in slash.items" :key="block.id" :value="block.id" :icon="block.icon">
+        {{ blockLabel(block) }}
+      </SuggestionMenuItem>
+      <SuggestionMenuEmpty v-if="!slash.items.length">{{ t('notes.blocks.none') }}</SuggestionMenuEmpty>
+    </SuggestionMenu>
   </div>
 </template>
 
@@ -189,7 +164,8 @@ defineExpose({
   color: var(--color-fg-faint);
 }
 
-/* A table as the pages draw theirs, with the cell being written marked. */
+/* Tiptap's table: cells hold paragraphs, which take no margin there, and the cells picked
+   for a row or column action are marked. Prose draws the rest of the table. */
 .note-editor :deep(.ProseMirror table) {
   table-layout: fixed;
 }
@@ -198,27 +174,5 @@ defineExpose({
 }
 .note-editor :deep(.ProseMirror .selectedCell) {
   background: var(--color-bg-muted);
-}
-
-/* A checklist: the box beside its line, and a done item in a quieter tone. */
-.note-editor :deep(ul[data-type='taskList']) {
-  list-style: none;
-  padding-left: 0;
-}
-.note-editor :deep(ul[data-type='taskList'] li) {
-  display: flex;
-  align-items: baseline;
-  gap: 0.6em;
-}
-.note-editor :deep(ul[data-type='taskList'] li > label input) {
-  accent-color: var(--color-accent);
-  cursor: pointer;
-}
-.note-editor :deep(ul[data-type='taskList'] li > div) {
-  flex: 1;
-}
-.note-editor :deep(ul[data-type='taskList'] li[data-checked='true'] > div) {
-  color: var(--color-fg-muted);
-  text-decoration: line-through;
 }
 </style>

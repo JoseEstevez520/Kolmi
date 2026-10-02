@@ -5,23 +5,18 @@ import Suggestion from '@tiptap/suggestion'
 export const slashKey = new PluginKey('slash')
 
 // The "/" menu, Notion's way: typing "/" opens the blocks, what follows filters them, the
-// arrows move and Enter picks. The extension only reports; the editor draws the menu from
-// `state` (open, the blocks found, the one highlighted, where the "/" is) and the menu keys
-// are handled here, so they never reach the text while it is open.
+// arrows move and Enter picks. The extension only reports what the menu should show (`state`:
+// open, the blocks found, where the "/" is, the command that applies one) and hands the menu
+// keys to elastic-ui's SuggestionMenu (`keys`), so they never reach the text while it is open.
 export const SlashMenu = Extension.create({
   name: 'slashMenu',
 
   addOptions() {
-    return { state: null, find: () => [] }
+    return { state: null, find: () => [], keys: null }
   },
 
   addProseMirrorPlugins() {
-    const { state, find } = this.options
-
-    const pick = (index) => {
-      const block = state.items[index]
-      if (block) state.command?.(block)
-    }
+    const { state, find, keys } = this.options
 
     return [
       Suggestion({
@@ -39,11 +34,9 @@ export const SlashMenu = Extension.create({
             state.items = props.items
             state.command = props.command
             state.rect = props.clientRect?.() ?? null
-            if (state.index >= props.items.length) state.index = 0
           }
           return {
             onStart: (props) => {
-              state.index = 0
               sync(props)
               state.open = true
             },
@@ -52,22 +45,11 @@ export const SlashMenu = Extension.create({
               state.open = false
               state.items = []
             },
+            // Escape is the plugin's own: it closes the menu and leaves the "/" as text.
             onKeyDown: ({ event }) => {
-              // Escape is the plugin's own: it closes the menu and leaves the "/" as text.
-              const count = state.items.length
-              if (!count) return false
-              if (event.key === 'ArrowDown') {
-                state.index = (state.index + 1) % count
-                return true
-              }
-              if (event.key === 'ArrowUp') {
-                state.index = (state.index - 1 + count) % count
-                return true
-              }
-              if (event.key === 'Enter' || event.key === 'Tab') {
-                pick(state.index)
-                return true
-              }
+              if (event.key === 'ArrowDown') return keys.next(), true
+              if (event.key === 'ArrowUp') return keys.previous(), true
+              if (event.key === 'Enter' || event.key === 'Tab') return keys.pick()
               return false
             },
           }

@@ -85,14 +85,8 @@ async function forgot() {
       </form>
 
       <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-        <RouterLink class="text-fg-secondary hover:text-fg" to="/register">{{ t('login.signUp') }}</RouterLink>
-        <button
-          class="cursor-pointer text-fg-secondary hover:text-fg"
-          type="button"
-          @click="forgot"
-        >
-          {{ t('login.forgot') }}
-        </button>
+        <Button variant="link" size="sm" to="/register">{{ t('login.signUp') }}</Button>
+        <Button variant="link" size="sm" @click="forgot">{{ t('login.forgot') }}</Button>
       </div>
     </div>
   </AuthLayout>

@@ -7,7 +7,6 @@ import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
-import { useDelayed } from '../lib/delayed.js'
 import { profile } from '../lib/auth.js'
 import { formatDate, noteStatusLabel } from '../lib/format.js'
 import { plainText, splitNote } from '../lib/notes.js'
@@ -18,8 +17,6 @@ const { t } = useI18n()
 
 const notes = ref([])
 const loading = ref(true)
-// Shown only when the wait is long enough to notice.
-const slow = useDelayed(loading)
 const error = ref('')
 
 // The outcome colour of each status, the library's own meaning for them: what
@@ -63,9 +60,7 @@ onMounted(load)
 
       <h2 id="my-notes" class="mt-10">{{ t('notes.mine') }}</h2>
 
-      <template v-if="loading">
-        <StatusText v-if="slow" :text="t('notes.loading')" working />
-      </template>
+      <StatusText v-if="loading" :delay="300" :text="t('notes.loading')" working />
       <Callout v-else-if="error" type="caution" :title="t('notes.error')">
         {{ error }}
       </Callout>

@@ -69,9 +69,9 @@ async function submit() {
         <Button type="submit" :loading="loading">{{ t('register.submit') }}</Button>
       </form>
 
-      <p class="text-center text-sm">
-        <RouterLink class="text-fg-secondary hover:text-fg" to="/login">{{ t('register.back') }}</RouterLink>
-      </p>
+      <div class="flex justify-center">
+        <Button variant="link" size="sm" to="/login">{{ t('register.back') }}</Button>
+      </div>
     </div>
   </AuthLayout>
 </template>

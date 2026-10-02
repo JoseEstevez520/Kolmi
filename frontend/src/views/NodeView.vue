@@ -9,7 +9,6 @@ import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode } from '../lib/content.js'
-import { useDelayed } from '../lib/delayed.js'
 import { iconByName } from '../lib/icons.js'
 import { canRender, pageLibrary } from '../lib/openui/library.js'
 
@@ -35,7 +34,6 @@ const web = computed(() => node.value?.content_web?.trim() ?? '')
 const showWeb = computed(() => canRender(web.value))
 const title = computed(() => node.value?.title || (isPage.value ? t('node.page') : t('node.section')))
 const loadingContent = computed(() => isPage.value && !(id.value in pages.value))
-const slow = useDelayed(loadingContent)
 
 const lead = computed(() => {
   if (isPage.value) return ''
@@ -76,9 +74,7 @@ watch(id, load)
       </Callout>
 
       <template v-else-if="isPage">
-        <template v-if="loadingContent">
-          <StatusText v-if="slow" :text="t('common.loading')" working />
-        </template>
+        <StatusText v-if="loadingContent" :delay="300" :text="t('common.loading')" working />
         <Renderer
           v-else-if="showWeb"
           :key="id"
@@ -96,7 +92,7 @@ watch(id, load)
       </template>
 
       <template v-else>
-        <StatusText v-if="!node" :text="t('common.loading')" working />
+        <StatusText v-if="!node" :delay="300" :text="t('common.loading')" working />
         <template v-else>
           <Empty
             v-if="children.length === 0"

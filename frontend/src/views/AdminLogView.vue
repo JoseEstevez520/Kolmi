@@ -17,7 +17,6 @@ import {
 import { Bot, History, NotebookPen } from '@lucide/vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
-import { useDelayed } from '../lib/delayed.js'
 import { flatten, loadNodes } from '../lib/content.js'
 import { formatDuration, formatShortDate, noteStatusLabel } from '../lib/format.js'
 
@@ -31,8 +30,6 @@ const entries = ref([])
 const notes = ref([])
 const tree = ref([])
 const loading = ref(true)
-// Shown only when the wait is long enough to notice.
-const slow = useDelayed(loading)
 const error = ref('')
 
 const PASS_TONES = {
@@ -130,9 +127,7 @@ onMounted(load)
 <template>
   <main class="py-16">
     <PageLayout :title="t('aiLog.title')" :lead="t('aiLog.lead')">
-      <template v-if="loading">
-        <StatusText v-if="slow" :text="t('aiLog.loading')" working />
-      </template>
+      <StatusText v-if="loading" :delay="300" :text="t('aiLog.loading')" working />
 
       <Callout v-else-if="error" type="caution" :title="t('aiLog.error')">
         {{ error }}

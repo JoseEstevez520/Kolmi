@@ -2,10 +2,9 @@
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ActionButton, Button, Callout, Markdown, StatusText } from 'elastic-ui'
+import { ActionButton, Button, Callout, Input, Markdown, StatusText } from 'elastic-ui'
 import { ArrowLeft, Maximize2, Minimize2 } from '@lucide/vue'
 import { api } from '../lib/api.js'
-import { useDelayed } from '../lib/delayed.js'
 import { clearDraft, joinNote, loadDraft, saveDraft, splitNote } from '../lib/notes.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
@@ -25,8 +24,6 @@ const isNew = computed(() => id.value == null)
 const title = ref('')
 const body = ref('')
 const loading = ref(false)
-// Shown only when the wait is long enough to notice.
-const slow = useDelayed(loading)
 const error = ref('')
 // A note the pass already took: shown, no longer editable.
 const closed = ref(null)
@@ -144,9 +141,7 @@ watch(id, load)
       </div>
     </div>
 
-    <template v-if="loading">
-      <StatusText v-if="slow" :text="t('common.loading')" working />
-    </template>
+    <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
 
     <Callout v-else-if="error" type="caution" :title="t('notes.error')">{{ error }}</Callout>
 
@@ -157,10 +152,10 @@ watch(id, load)
     </template>
 
     <template v-else>
-      <input
+      <Input
         v-model="title"
-        type="text"
-        class="mb-6 w-full bg-transparent text-[2rem] leading-tight font-semibold text-fg outline-none placeholder:text-fg-faint"
+        bare
+        class="mb-6 text-display"
         :placeholder="t('notes.write.titlePlaceholder')"
         :aria-label="t('notes.write.titleLabel')"
         autofocus

@@ -7,14 +7,12 @@ import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { homeNodes, loadNodes, nodesError, nodesLoading, prefetchNode } from '../lib/content.js'
-import { useDelayed } from '../lib/delayed.js'
 import { iconByName } from '../lib/icons.js'
 
 const { t } = useI18n()
 
 // Only a first visit has nothing to draw while the tree comes; the next ones paint the saved one.
 const waiting = computed(() => nodesLoading.value && homeNodes.value.length === 0)
-const slow = useDelayed(waiting)
 
 onMounted(() => {
   loadNodes().catch(() => {})
@@ -24,9 +22,7 @@ onMounted(() => {
 <template>
   <main class="py-16">
     <PageLayout title="Kolmi" :lead="t('home.lead')">
-      <template v-if="waiting">
-        <StatusText v-if="slow" :text="t('common.loadingContent')" working />
-      </template>
+      <StatusText v-if="waiting" :delay="300" :text="t('common.loadingContent')" working />
       <Callout v-else-if="nodesError" type="caution" :title="t('common.contentError')">
         {{ nodesError }}
       </Callout>

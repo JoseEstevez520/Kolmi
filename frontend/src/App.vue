@@ -5,16 +5,15 @@ import { useRoute } from 'vue-router'
 import { MotionConfig } from 'motion-v'
 import { PageTransition, ScrollIndicator, SidebarLayout, SidebarLayoutHeader, ThemeToggle } from 'elastic-ui'
 import AppSidebar from './components/AppSidebar.vue'
-import LocaleToggle from './components/LocaleToggle.vue'
 import { session } from './lib/auth.js'
+import { forceMotion } from './lib/motion.js'
 import { zen } from './lib/zen.js'
 
 // Inside the app, the elastic-ui shell (USAGE 12, 13 and 15): the sidebar, the
 // page's own header with the theme toggle, and only the content changing
-// between pages. Login and Register are a plain centred column instead. In zen
-// mode the sidebar folds away to the left and the header fades up, with the
-// library's glide; both stay mounted, so the note being written is not mounted
-// again.
+// between pages. Login and Register are a plain centred column instead. Zen mode
+// is the layout gone bare: the sidebar and the header fold away, and nothing in
+// the page is drawn again.
 const route = useRoute()
 const withSidebar = computed(() => route.meta.layout === 'app' && Boolean(session.value))
 
@@ -24,31 +23,15 @@ const { t, locale } = useI18n()
 </script>
 
 <template>
-  <MotionConfig :key="locale" reduced-motion="user">
-    <SidebarLayout v-if="withSidebar">
-      <!-- A wrapper folds it: the Sidebar has two roots, so a v-show on it would do nothing. -->
-      <div
-        class="shrink-0 transition-[max-width,opacity] duration-500 ease-glide motion-reduce:transition-none"
-        :class="zen ? 'pointer-events-none max-w-0 overflow-hidden opacity-0' : 'max-w-[20rem]'"
-        :inert="zen"
-      >
-        <AppSidebar />
-      </div>
+  <MotionConfig :key="locale" :reduced-motion="forceMotion ? 'never' : 'user'">
+    <SidebarLayout v-if="withSidebar" :bare="zen">
+      <AppSidebar />
 
       <div class="min-w-0 flex-1">
-        <!-- The header keeps its place (and its stickiness) and only fades up out of sight. -->
-        <SidebarLayoutHeader
-          :toggle-label="t('app.openMenu')"
-          class="shadow-none transition-[opacity,translate] duration-500 ease-glide motion-reduce:transition-none"
-          :class="zen && 'pointer-events-none -translate-y-full opacity-0'"
-          :inert="zen"
-        >
+        <SidebarLayoutHeader :toggle-label="t('app.openMenu')" class="shadow-none">
           <span />
           <template #end>
-            <div class="flex items-center gap-1">
-              <LocaleToggle />
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </template>
         </SidebarLayoutHeader>
 

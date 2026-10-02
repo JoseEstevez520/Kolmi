@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Badge, Card, CardDescription, CardFooter, CardHeader, CardTitle } from 'elastic-ui'
+import { Badge, Button, Card, CardDescription, CardFooter, CardHeader, CardTitle } from 'elastic-ui'
 import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 
 // A card for one item (a node, a note): an optional icon, a title and its text,
@@ -98,14 +98,15 @@ watch(expanded, (open) => {
                 {{ description }}
               </CardDescription>
             </div>
-            <button
+            <Button
               v-if="clamp && overflowing && !linked"
-              type="button"
-              class="self-start text-xs font-medium text-fg-secondary hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
+              variant="link"
+              size="sm"
+              class="self-start"
               @click="expanded = !expanded"
             >
               {{ expanded ? t('notes.showLess') : t('notes.showMore') }}
-            </button>
+            </Button>
           </template>
         </div>
       </CardHeader>
