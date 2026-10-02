@@ -3,6 +3,7 @@ import { computed, onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Callout, Empty, StatusText } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
+import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminNode from '../components/AdminNode.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -12,7 +13,7 @@ import { flatten, loadNodes } from '../lib/content.js'
 // The whole tree, managed: create a section or a page at any level, rename,
 // edit (description, icon, colour, on_home), move, reorder and delete with a
 // confirmation. The tree itself is AdminNode, recursive, read like folders and
-// files.
+// files. Below it, the class settings: the language the AI writes the pages in.
 const { t } = useI18n()
 
 const tree = ref([])
@@ -101,6 +102,11 @@ onMounted(loadTree)
           </ul>
         </div>
       </template>
+
+      <h2 id="class">{{ t('admin.classSettings') }}</h2>
+      <div class="not-prose my-6">
+        <AdminClassLanguage />
+      </div>
     </PageLayout>
   </main>
 </template>

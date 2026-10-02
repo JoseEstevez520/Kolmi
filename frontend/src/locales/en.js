@@ -189,6 +189,14 @@ export default {
     parentHint: 'Where it sits in the tree.',
     topLevel: 'Top level',
     onHome: 'Show on the home',
+    classSettings: 'The class',
+    classLanguage: {
+      label: 'Class language',
+      hint: 'The language the AI writes the shared notes and pages in. Notes in other languages still count; their content ends up in this one.',
+      saving: 'Saving…',
+      saved: 'Saved. The next pass writes in this language.',
+      names: { en: 'English', es: 'Spanish' },
+    },
   },
 
   colors: {

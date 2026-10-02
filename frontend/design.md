@@ -48,7 +48,8 @@ appear in phase 1.
   when it has none.
 - **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
   move, reorder) and deleted with a confirmation, with a section or a page added at any
-  level.
+  level. Below it, the class language: a `Select` in a `Field`, saved as soon as
+  it's picked.
 
 The content is one tree of nodes: a **section** groups, a **page** holds the content. The
 sidebar lists only the top-level nodes; the rest is reached from a section.

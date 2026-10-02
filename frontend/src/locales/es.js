@@ -186,6 +186,14 @@ export default {
     parentHint: 'Dónde queda en el árbol.',
     topLevel: 'Nivel principal',
     onHome: 'Mostrar en el inicio',
+    classSettings: 'La clase',
+    classLanguage: {
+      label: 'Idioma de la clase',
+      hint: 'El idioma en el que la IA escribe los apuntes y las páginas compartidas. Las notas en otros idiomas también cuentan; su contenido acaba en este.',
+      saving: 'Guardando…',
+      saved: 'Guardado. La próxima pasada escribirá en este idioma.',
+      names: { en: 'Inglés', es: 'Español' },
+    },
   },
 
   colors: {

@@ -86,6 +86,13 @@ export const api = {
     return request(`/notes${suffix ? `?${suffix}` : ''}`)
   },
 
+  // The class settings: the class language, the one the AI writes the shared notes and pages
+  // in. Anyone signed in reads them; only an admin changes them.
+  settings: () => request('/settings'),
+
+  updateSettings: ({ classLanguage }) =>
+    request('/settings', { method: 'POST', body: { class_language: classLanguage } }),
+
   // Admin, the tree. The backend stores whatever fields it is given, so a node
   // is created with its icon, colour and home flag from the start.
   createNode: ({ parentId = null, kind, title, description, icon, color, onHome }) => {
