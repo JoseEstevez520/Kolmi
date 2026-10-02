@@ -39,7 +39,7 @@ What we're building and what's next. Open to whatever the class needs.
 
 - [ ] **Page format live** — the Gateway answers `429` (the Thesys organisation's billing is
   suspended), so every page is Markdown for now. Unblock it and run a real pass end to end.
-  Load the page renderer lazily so it leaves the main bundle.
+  The renderer already loads on demand, apart from the main bundle.
 - [ ] **Router and model choice** — a planner picks the model and catalog vs escape. OUI-1 is
   not on the Gateway, so compare the Gateway's models (`google/gemini-3.7-flash` by default)
   against DeepSeek on the same briefs; keep the winner as default and the other as fallback.
