@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from app.passes.daily import run_daily_pass
+from app.passes.daily import (
+    GIVEN_UP_REASON,
+    MAX_SKIPPED_PASSES,
+    UNREVIEWED_REASON,
+    run_daily_pass,
+)
 from tests.fakes import FakeLLM, FakeStore
 
 
@@ -160,8 +165,77 @@ def test_flags_a_note_the_gatekeeper_did_not_review():
     summary = run_daily_pass(store=store, llm=llm)
 
     assert summary["unreviewed"] == [1]
+    assert summary["given_up"] == []
     assert store._notes[1]["status"] == "pending"
     assert [entry["action"] for entry in store.logs] == ["flagged"]
+
+
+def _skip_everything() -> FakeLLM:
+    return FakeLLM(json_response={"batches": [], "discarded": []})
+
+
+def test_retries_a_skipped_note_and_discards_it_after_the_limit():
+    store = FakeStore(notes=[_note()], nodes=[_section()])
+
+    for _ in range(MAX_SKIPPED_PASSES - 1):
+        summary = run_daily_pass(store=store, llm=_skip_everything())
+        assert summary["given_up"] == []
+        assert store._notes[1]["status"] == "pending"
+
+    summary = run_daily_pass(store=store, llm=_skip_everything())
+
+    assert summary["given_up"] == [1]
+    assert summary["discarded"] == 1
+    assert store._notes[1]["status"] == "discarded"
+    assert [(e["action"], e["reason"]) for e in store.logs] == [
+        *[("flagged", UNREVIEWED_REASON)] * (MAX_SKIPPED_PASSES - 1),
+        ("discarded", GIVEN_UP_REASON),
+    ]
+
+    # Gone from the queue: the next pass has nothing to do.
+    assert run_daily_pass(store=store, llm=_skip_everything())["status"] == "empty"
+
+
+def test_only_counts_skips_of_the_same_note():
+    store = FakeStore(notes=[_note(1), _note(2)], nodes=[_section()])
+    for pass_id in range(1, MAX_SKIPPED_PASSES):
+        store.log(
+            pass_id=pass_id,
+            note_id=1,
+            node_id=None,
+            action="flagged",
+            reason=UNREVIEWED_REASON,
+        )
+    # A flag for another reason does not count.
+    store.log(pass_id=1, note_id=2, node_id=None, action="flagged", reason="other")
+
+    summary = run_daily_pass(store=store, llm=_skip_everything())
+
+    assert summary["unreviewed"] == [1, 2]
+    assert summary["given_up"] == [1]
+    assert store._notes[1]["status"] == "discarded"
+    assert store._notes[2]["status"] == "pending"
+
+
+def test_dry_run_reports_but_does_not_apply_the_discard_rule():
+    store = FakeStore(notes=[_note()], nodes=[_section()])
+    for pass_id in range(1, MAX_SKIPPED_PASSES):
+        store.log(
+            pass_id=pass_id,
+            note_id=1,
+            node_id=None,
+            action="flagged",
+            reason=UNREVIEWED_REASON,
+        )
+    logs_before = list(store.logs)
+
+    summary = run_daily_pass(store=store, llm=_skip_everything(), dry_run=True)
+
+    assert summary["status"] == "dry-run"
+    assert summary["would_give_up"] == [1]
+    assert store._notes[1]["status"] == "pending"
+    assert store.logs == logs_before
+    assert store.passes == {}
 
 
 def test_marks_the_pass_failed_when_the_model_breaks():

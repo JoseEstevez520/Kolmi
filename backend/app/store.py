@@ -41,6 +41,10 @@ class Store(Protocol):
         reason: str,
     ) -> None: ...
 
+    def flag_counts(self, note_ids: list[int], reason: str) -> dict[int, int]:
+        """How many `flagged` rows with this reason each note has in `ai_log`."""
+        ...
+
     def open_pass(self, model: str) -> int: ...
 
     def close_pass(
@@ -152,6 +156,23 @@ class SupabaseStore:
                 "reason": reason,
             }
         ).execute()
+
+    def flag_counts(self, note_ids: list[int], reason: str) -> dict[int, int]:
+        if not note_ids:
+            return {}
+        rows = (
+            self.client.table("ai_log")
+            .select("note_id")
+            .eq("action", "flagged")
+            .eq("reason", reason)
+            .in_("note_id", note_ids)
+            .execute()
+            .data
+        )
+        counts: dict[int, int] = {}
+        for row in rows:
+            counts[row["note_id"]] = counts.get(row["note_id"], 0) + 1
+        return counts
 
     def open_pass(self, model: str) -> int:
         row = (

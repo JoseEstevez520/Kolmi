@@ -92,6 +92,17 @@ class FakeStore:
             }
         )
 
+    def flag_counts(self, note_ids: list[int], reason: str) -> dict[int, int]:
+        counts: dict[int, int] = {}
+        for entry in self.logs:
+            if (
+                entry["action"] == "flagged"
+                and entry["reason"] == reason
+                and entry["note_id"] in note_ids
+            ):
+                counts[entry["note_id"]] = counts.get(entry["note_id"], 0) + 1
+        return counts
+
     def open_pass(self, model: str) -> int:
         pass_id = len(self.passes) + 1
         self.passes[pass_id] = {"id": pass_id, "status": "running", "model": model}

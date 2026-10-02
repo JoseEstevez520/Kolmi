@@ -78,6 +78,12 @@ Cron, on the server (see [Deploy](#deploy-docker) for the container version):
 The pass refuses to start while another one is still running (within the last
 two hours).
 
+If the gatekeeper's answer skips a pending note, the note stays pending and gets
+a `flagged` row in `ai_log`, so the next pass tries it again. The third pass that
+skips it marks it `discarded` and logs why (`MAX_SKIPPED_PASSES` in
+`app/passes/daily.py`). `--dry-run` lists those notes under `would_give_up` and
+changes nothing.
+
 ## Routes
 
 | Action | Route | Who |

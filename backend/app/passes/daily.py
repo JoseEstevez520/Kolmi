@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import json
 from typing import Any
 
 from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper
@@ -7,6 +9,14 @@ from ..agents.schemas import Batch, GatekeeperResult, NewPage
 from ..store import Store, SupabaseStore
 
 STALE_MINUTES = 120
+
+# A note the gatekeeper skips stays pending and is retried in the next pass.
+# On the MAX_SKIPPED_PASSES-th pass that skips it, it is discarded instead.
+MAX_SKIPPED_PASSES = 3
+UNREVIEWED_REASON = "The gatekeeper did not review this note; left pending."
+GIVEN_UP_REASON = (
+    f"The gatekeeper skipped this note in {MAX_SKIPPED_PASSES} passes; discarded."
+)
 
 
 def _model_name(llm: LLM) -> str:
@@ -18,6 +28,16 @@ def _review(plan: GatekeeperResult, note_ids: set[int]) -> list[int]:
     mentioned = {nid for batch in plan.batches for nid in batch.note_ids}
     mentioned |= {item.note_id for item in plan.discarded}
     return sorted(note_ids - mentioned)
+
+
+def _split_unreviewed(store: Store, unreviewed: list[int]) -> tuple[list[int], list[int]]:
+    """Split the skipped notes into (retry, give up), by how often they were skipped."""
+    if not unreviewed:
+        return [], []
+    counts = store.flag_counts(unreviewed, UNREVIEWED_REASON)
+    give_up = [nid for nid in unreviewed if counts.get(nid, 0) + 1 >= MAX_SKIPPED_PASSES]
+    retry = [nid for nid in unreviewed if nid not in give_up]
+    return retry, give_up
 
 
 def _resolve_target(
@@ -134,14 +154,26 @@ def _apply(
         )
         stats["discarded"] += 1
 
-    for note_id in _review(plan, note_ids):
+    retry, give_up = _split_unreviewed(store, _review(plan, note_ids))
+    for note_id in retry:
         store.log(
             pass_id=pass_id,
             note_id=note_id,
             node_id=None,
             action="flagged",
-            reason="The gatekeeper did not review this note; left pending.",
+            reason=UNREVIEWED_REASON,
         )
+    for note_id in give_up:
+        store.set_note_status(note_id, "discarded")
+        store.log(
+            pass_id=pass_id,
+            note_id=note_id,
+            node_id=None,
+            action="discarded",
+            reason=GIVEN_UP_REASON,
+        )
+        stats["discarded"] += 1
+    stats["given_up"] = give_up
 
 
 def run_daily_pass(
@@ -178,6 +210,8 @@ def run_daily_pass(
 
     if dry_run:
         plan = run_gatekeeper(llm, notes, nodes)
+        unreviewed = _review(plan, note_ids)
+        _, give_up = _split_unreviewed(store, unreviewed)
         return {
             "status": "dry-run",
             "model": _model_name(llm),
@@ -185,7 +219,8 @@ def run_daily_pass(
             "notes": len(notes),
             "batches": [batch.model_dump() for batch in plan.batches],
             "discarded": [item.model_dump() for item in plan.discarded],
-            "unreviewed": _review(plan, note_ids),
+            "unreviewed": unreviewed,
+            "would_give_up": give_up,
         }
 
     stats: dict[str, Any] = {
@@ -216,7 +251,18 @@ def run_daily_pass(
     return stats
 
 
-if __name__ == "__main__":
-    from .__main__ import main
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run the Kolmi daily pass.")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Ask the gatekeeper what it would do and write nothing.",
+    )
+    args = parser.parse_args()
 
+    summary = run_daily_pass(dry_run=args.dry_run)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
     main()
