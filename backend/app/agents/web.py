@@ -3,9 +3,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from ..class_settings import FALLBACK_LANGUAGE
 from . import openui
 from .client import LLM
 from .notes import write_markdown
+from .prompts import language_line
 
 log = logging.getLogger(__name__)
 
@@ -22,8 +24,19 @@ class Page:
     fallback_reason: str = ""
 
 
-def _brief(*, title: str, summary: str, existing_md: str, existing_web: str) -> str:
-    parts = [f"Page title: {title}", "", "Sanitized summary of the new notes:", summary]
+def _brief(
+    *, title: str, summary: str, existing_md: str, existing_web: str, language: str
+) -> str:
+    # The Gateway builds the system prompt from the page's config, so the language goes in
+    # the brief.
+    parts = [
+        language_line(language),
+        "",
+        f"Page title: {title}",
+        "",
+        "Sanitized summary of the new notes:",
+        summary,
+    ]
     if existing_web.strip():
         parts += ["", "Current page, in OpenUI Lang (keep what still holds):", existing_web]
     elif existing_md.strip():
@@ -32,14 +45,24 @@ def _brief(*, title: str, summary: str, existing_md: str, existing_web: str) -> 
 
 
 def write_web(
-    web_llm: LLM, *, title: str, summary: str, existing_md: str = "", existing_web: str = ""
+    web_llm: LLM,
+    *,
+    title: str,
+    summary: str,
+    existing_md: str = "",
+    existing_web: str = "",
+    language: str = FALLBACK_LANGUAGE,
 ) -> Page:
     """Ask the web agent for the page in OpenUI Lang and derive its Markdown.
 
     Raises when the call fails or the answer is not a page.
     """
     brief = _brief(
-        title=title, summary=summary, existing_md=existing_md, existing_web=existing_web
+        title=title,
+        summary=summary,
+        existing_md=existing_md,
+        existing_web=existing_web,
+        language=language,
     )
     raw = web_llm.complete_text(openui.gateway_prompt(), brief)
     source = openui.strip_fence(raw)
@@ -63,8 +86,9 @@ def build_page(
     summary: str,
     existing_md: str = "",
     existing_web: str = "",
+    language: str = FALLBACK_LANGUAGE,
 ) -> Page:
-    """Write the page: OpenUI Lang through the web agent, or Markdown when that fails.
+    """Write the page, in the class `language`: OpenUI Lang through the web agent, or Markdown when that fails.
 
     The web agent (Thesys Gateway) writes `content_web`, and `content_md` is derived from it
     for the RAG. Without a web agent, or when it fails, the notes agent (DeepSeek) writes the
@@ -79,12 +103,15 @@ def build_page(
                 summary=summary,
                 existing_md=existing_md,
                 existing_web=existing_web,
+                language=language,
             )
         except Exception as exc:  # any failure falls back; the pass goes on
             reason = f"web agent failed: {exc}"
             log.warning("%s; writing Markdown instead", reason)
 
-    markdown = write_markdown(llm, title=title, summary=summary, existing_md=existing_md)
+    markdown = write_markdown(
+        llm, title=title, summary=summary, existing_md=existing_md, language=language
+    )
     return Page(
         content_md=markdown.strip(),
         content_web="",

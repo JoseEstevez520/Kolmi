@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
+from .class_settings import class_language
 from .supabase_client import get_client
 
 NODE_COLUMNS = "id, parent_id, kind, title, description, icon, color, position, on_home"
@@ -16,6 +17,10 @@ class Store(Protocol):
     """
 
     def pending_notes(self) -> list[dict[str, Any]]: ...
+
+    def class_language(self) -> str:
+        """The language the notes and pages are written in (a code, like `en`)."""
+        ...
 
     def nodes(self) -> list[dict[str, Any]]: ...
 
@@ -64,6 +69,9 @@ class SupabaseStore:
 
     def __init__(self, client=None) -> None:
         self.client = client or get_client()
+
+    def class_language(self) -> str:
+        return class_language(self.client)
 
     def pending_notes(self) -> list[dict[str, Any]]:
         return (

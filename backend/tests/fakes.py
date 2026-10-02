@@ -34,7 +34,9 @@ class FakeStore:
         notes: list[dict[str, Any]] | None = None,
         nodes: list[dict[str, Any]] | None = None,
         pages: list[dict[str, Any]] | None = None,
+        language: str = "en",
     ) -> None:
+        self.language = language
         self._notes = {n["id"]: dict(n) for n in (notes or [])}
         self._nodes = list(nodes or [])
         self._pages = {p["id"]: dict(p) for p in (pages or [])}
@@ -42,6 +44,9 @@ class FakeStore:
         self.versions: list[dict[str, Any]] = []
         self.logs: list[dict[str, Any]] = []
         self.passes: dict[int, dict[str, Any]] = {}
+
+    def class_language(self) -> str:
+        return self.language
 
     def pending_notes(self) -> list[dict[str, Any]]:
         return [dict(n) for n in self._notes.values() if n["status"] == "pending"]

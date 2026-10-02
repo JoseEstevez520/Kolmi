@@ -20,7 +20,9 @@ cp .env.example .env                  # fill it in
 ```
 
 Create the tables by pasting [`../supabase/schema.sql`](../supabase/schema.sql)
-into the Supabase SQL editor.
+into the Supabase SQL editor. An instance created before a change to the schema
+gets it from the matching file in [`../supabase/migrations/`](../supabase/migrations/),
+pasted the same way (each one is safe to run twice).
 
 ## Run
 
@@ -43,8 +45,15 @@ so the suite spends no tokens and touches no network.
 ## Environment variables
 
 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CLASS_CODE`, the model (`LLM_API_KEY`,
-`LLM_BASE_URL`, `LLM_MODEL`) and, optionally, `CORS_ORIGINS`. In `.env`, never
-in git.
+`LLM_BASE_URL`, `LLM_MODEL`) and, optionally, `CORS_ORIGINS` and `CLASS_LANGUAGE`.
+In `.env`, never in git.
+
+`CLASS_LANGUAGE` (`en` or `es`, default `en`) is the language the daily pass
+writes the shared notes and pages in. An admin can change it in the admin panel,
+which stores it in the `settings` table; once that row exists it wins over the
+variable. Without the table (before the migration in
+`../supabase/migrations/` is applied) the variable decides. The supported codes
+live in `app/class_settings.py`.
 
 ## The daily pass
 
@@ -103,6 +112,8 @@ changes nothing.
 | `list_notes` | `GET /notes` | admin |
 | `view_ai_log` | `GET /ai-log` | admin |
 | `run_pass` | `POST /pass/run` | admin |
+| `get_settings` | `GET /settings` | any signed-in user |
+| `update_settings` | `POST /settings` | admin |
 
 Every route takes `Authorization: Bearer <Supabase access token>`.
 

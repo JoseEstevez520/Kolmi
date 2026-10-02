@@ -70,6 +70,30 @@ create table if not exists ai_log (
   created_at timestamptz not null default now()
 );
 
+-- The class settings: one row per instance. class_language is the language the AI writes
+-- the shared notes and pages in. Also in migrations/20261002120000_settings.sql.
+create table if not exists settings (
+  id smallint primary key default 1 check (id = 1),
+  class_language text not null default 'en',
+  updated_at timestamptz not null default now()
+);
+
+insert into settings (id) values (1) on conflict (id) do nothing;
+
+-- Whether the caller is an admin. Security definer so it can read profiles, which has RLS
+-- on and no policies of its own.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles where id = auth.uid() and role = 'admin'
+  );
+$$;
+
 -- RLS on, with no public policies: only the backend (service role) gets in.
 alter table profiles enable row level security;
 alter table nodes enable row level security;
@@ -77,3 +101,18 @@ alter table node_versions enable row level security;
 alter table notes enable row level security;
 alter table ai_passes enable row level security;
 alter table ai_log enable row level security;
+alter table settings enable row level security;
+
+-- settings is the one exception: everyone signed in reads it, only admins write it. The
+-- backend still goes through the service role.
+drop policy if exists "settings_read" on settings;
+create policy "settings_read" on settings
+  for select to authenticated using (true);
+
+drop policy if exists "settings_admin_insert" on settings;
+create policy "settings_admin_insert" on settings
+  for insert to authenticated with check (public.is_admin());
+
+drop policy if exists "settings_admin_update" on settings;
+create policy "settings_admin_update" on settings
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());

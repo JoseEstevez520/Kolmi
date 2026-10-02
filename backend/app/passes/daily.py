@@ -83,6 +83,7 @@ def _write_batch(
     batch: Batch,
     page: dict[str, Any],
     stats: dict[str, Any],
+    language: str,
 ) -> None:
     existing_md = page.get("content_md") or ""
     existing_web = page.get("content_web") or ""
@@ -94,6 +95,7 @@ def _write_batch(
         summary=batch.summary,
         existing_md=existing_md,
         existing_web=existing_web,
+        language=language,
     )
 
     if existing_md.strip() or existing_web.strip():
@@ -131,12 +133,13 @@ def _apply(
     plan: GatekeeperResult,
     note_ids: set[int],
     stats: dict[str, Any],
+    language: str,
 ) -> None:
     for batch in plan.batches:
         page = _resolve_target(store, pass_id, batch, stats)
         if page is None:
             continue
-        _write_batch(store, llm, web_llm, pass_id, batch, page, stats)
+        _write_batch(store, llm, web_llm, pass_id, batch, page, stats, language)
         for note_id in batch.note_ids:
             if note_id in note_ids:
                 store.set_note_status(note_id, "processed")
@@ -181,6 +184,7 @@ def run_daily_pass(
     store: Store | None = None,
     llm: LLM | None = None,
     web_llm: LLM | None = None,
+    language: str | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """One pass: read the pending notes and turn them into pages.
@@ -191,6 +195,10 @@ def run_daily_pass(
     `llm` runs the gatekeeper and the Markdown fallback; `web_llm` writes the
     pages as OpenUI Lang. With neither given, both come from the settings. When
     `llm` is given and `web_llm` is not, pages are written as Markdown only.
+
+    `language` is the class language the notes and pages are written in, whatever language
+    each note came in. Without it, it is read from the store (the `settings` row, or
+    `CLASS_LANGUAGE` when there is none).
     """
     store = store or SupabaseStore()
     if llm is None:
@@ -207,13 +215,15 @@ def run_daily_pass(
 
     note_ids = {note["id"] for note in notes}
     nodes = store.nodes()
+    language = language or store.class_language()
 
     if dry_run:
-        plan = run_gatekeeper(llm, notes, nodes)
+        plan = run_gatekeeper(llm, notes, nodes, language=language)
         unreviewed = _review(plan, note_ids)
         _, give_up = _split_unreviewed(store, unreviewed)
         return {
             "status": "dry-run",
+            "language": language,
             "model": _model_name(llm),
             "web_model": _model_name(web_llm) if web_llm is not None else None,
             "notes": len(notes),
@@ -225,6 +235,7 @@ def run_daily_pass(
 
     stats: dict[str, Any] = {
         "notes": len(notes),
+        "language": language,
         "batches": 0,
         "created": 0,
         "updated": 0,
@@ -237,10 +248,10 @@ def run_daily_pass(
 
     pass_id = store.open_pass(_model_name(llm))
     try:
-        plan = run_gatekeeper(llm, notes, nodes)
+        plan = run_gatekeeper(llm, notes, nodes, language=language)
         stats["batches"] = len(plan.batches)
         stats["unreviewed"] = _review(plan, note_ids)
-        _apply(store, llm, web_llm, pass_id, plan, note_ids, stats)
+        _apply(store, llm, web_llm, pass_id, plan, note_ids, stats, language)
         store.close_pass(pass_id, status="done", stats=stats)
     except Exception as exc:
         store.close_pass(pass_id, status="failed", stats=stats, error=str(exc))

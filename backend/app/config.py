@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     class_code: str
     cors_origins: str = "http://localhost:5173"
 
+    # The language the AI writes the shared notes and pages in, until an admin sets it in the
+    # admin panel (stored in the `settings` table). A code from app/class_settings.LANGUAGES.
+    class_language: str = "en"
+
     # The daily pass. Any OpenAI-compatible endpoint works; DeepSeek is the default.
     llm_api_key: str = ""
     llm_base_url: str = "https://api.deepseek.com"
