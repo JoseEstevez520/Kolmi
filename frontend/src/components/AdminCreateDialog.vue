@@ -2,11 +2,11 @@
 import { computed, inject, ref, watch } from 'vue'
 import {
   Button,
-  DialogMorph,
-  DialogMorphClose,
-  DialogMorphTitle,
   Field,
   Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Select,
   SelectContent,
   SelectItem,
@@ -74,18 +74,15 @@ async function create(close) {
 </script>
 
 <template>
-  <DialogMorph v-model:open="open">
-    <template #trigger>
+  <Popover v-slot="{ close }" v-model:open="open">
+    <PopoverTrigger as-child>
       <slot name="trigger">
-        <span class="inline-flex items-center gap-2">
-          <Plus class="size-4" />
-          Add inside
-        </span>
+        <Button variant="ghost" :icon="Plus">Add inside</Button>
       </slot>
-    </template>
+    </PopoverTrigger>
 
-    <template #default="{ close }">
-      <DialogMorphTitle>{{ heading }}</DialogMorphTitle>
+    <PopoverContent align="end" class="w-80">
+      <p class="mb-4 text-label font-medium text-fg">{{ heading }}</p>
 
       <div class="flex flex-col gap-4">
         <Field label="Kind" description="A section groups; a page holds the content.">
@@ -145,12 +142,10 @@ async function create(close) {
         </template>
 
         <div class="flex justify-end gap-2">
-          <DialogMorphClose as-child>
-            <Button variant="ghost">Cancel</Button>
-          </DialogMorphClose>
+          <Button variant="ghost" @click="close">Cancel</Button>
           <Button :disabled="!title.trim()" @click="create(close)">Add</Button>
         </div>
       </div>
-    </template>
-  </DialogMorph>
+    </PopoverContent>
+  </Popover>
 </template>

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, provide, ref } from 'vue'
-import { Callout, Empty, StatusText } from 'elastic-ui'
+import { Button, Callout, Empty, StatusText } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminNode from '../components/AdminNode.vue'
@@ -19,7 +19,7 @@ const error = ref('')
 
 // Every change runs here: it talks to the backend, reloads the tree and, if it
 // fails, leaves the reason for the page to show. It rethrows so the button that
-// started it (ActionButton, ConfirmButton) can show its own error.
+// started it can show its own error.
 function guarded(fn) {
   return async (...args) => {
     error.value = ''
@@ -72,10 +72,7 @@ onMounted(loadTree)
           <div class="flex justify-end">
             <AdminCreateDialog :parent-id="null" parent-title="the top level">
               <template #trigger>
-                <span class="inline-flex items-center gap-2">
-                  <Plus class="size-4" />
-                  Add at the top level
-                </span>
+                <Button variant="ghost" :icon="Plus">Add at the top level</Button>
               </template>
             </AdminCreateDialog>
           </div>

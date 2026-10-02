@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { Button, ConfirmButton, Input } from 'elastic-ui'
-import { ArrowDown, ArrowUp, Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
+import { Button, Input, Popover, PopoverContent, PopoverTrigger } from 'elastic-ui'
+import { ArrowDown, ArrowUp, Check, FileText, Folder, FolderOpen, Trash2, X } from '@lucide/vue'
 import { nodeIcon } from '../lib/icons.js'
 
 // One row of the admin tree, read like a file explorer: a section is a folder
@@ -42,6 +42,16 @@ async function save() {
   if (!title || title === props.node.title) return
   try {
     await props.rename(title)
+  } catch {
+    // The panel says what went wrong.
+  }
+}
+
+// The popover closes either way; if the delete fails, the panel says why.
+async function confirmRemove(close) {
+  close()
+  try {
+    await props.remove()
   } catch {
     // The panel says what went wrong.
   }
@@ -100,7 +110,22 @@ function call(fn) {
           :disabled="!canMoveDown"
           @click="call(moveDown)"
         />
-        <ConfirmButton tone="danger" :label="`Delete ${node.title}`" :action="remove" />
+        <Popover v-slot="{ close }">
+          <PopoverTrigger as-child>
+            <Button variant="ghost" size="icon" :icon="Trash2" :aria-label="`Delete ${node.title}`" />
+          </PopoverTrigger>
+          <PopoverContent align="end">
+            <p class="text-label font-medium text-fg">Delete “{{ node.title }}”?</p>
+            <p class="mt-1 text-label text-fg-secondary">
+              {{ node.kind === 'section' ? 'Everything inside it goes too. ' : '' }}This cannot be
+              undone.
+            </p>
+            <div class="mt-4 flex justify-end gap-2">
+              <Button variant="ghost" @click="close">Cancel</Button>
+              <Button variant="danger" @click="confirmRemove(close)">Delete</Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </template>
   </div>

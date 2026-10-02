@@ -2,11 +2,11 @@
 import { computed, inject, ref } from 'vue'
 import {
   Button,
-  DialogMorph,
-  DialogMorphClose,
-  DialogMorphTitle,
   Field,
   Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Select,
   SelectContent,
   SelectItem,
@@ -71,14 +71,13 @@ async function save(close) {
 </script>
 
 <template>
-  <DialogMorph>
-    <template #trigger>
-      <Settings2 class="size-4" aria-hidden="true" />
-      <span class="sr-only">Edit {{ node.title }}</span>
-    </template>
+  <Popover v-slot="{ close }">
+    <PopoverTrigger as-child>
+      <Button variant="ghost" size="icon" :icon="Settings2" :aria-label="`Edit ${node.title}`" />
+    </PopoverTrigger>
 
-    <template #default="{ close }">
-      <DialogMorphTitle>Edit “{{ node.title }}”</DialogMorphTitle>
+    <PopoverContent align="end" class="w-80">
+      <p class="mb-4 text-label font-medium text-fg">Edit “{{ node.title }}”</p>
 
       <div class="flex flex-col gap-4">
         <Field label="Title">
@@ -147,12 +146,10 @@ async function save(close) {
         <Switch v-model="onHome">Show on the home</Switch>
 
         <div class="flex justify-end gap-2">
-          <DialogMorphClose as-child>
-            <Button variant="ghost">Cancel</Button>
-          </DialogMorphClose>
+          <Button variant="ghost" @click="close">Cancel</Button>
           <Button @click="save(close)">Save</Button>
         </div>
       </div>
-    </template>
-  </DialogMorph>
+    </PopoverContent>
+  </Popover>
 </template>
