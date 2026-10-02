@@ -234,7 +234,9 @@ def run_daily_pass(
     language = language or store.class_language()
 
     if dry_run:
-        plan = run_gatekeeper(llm, notes, nodes, language=language)
+        plan = run_gatekeeper(
+            llm, notes, nodes, read_page=store.page, language=language
+        )
         unreviewed = _review(plan, note_ids)
         _, give_up = _split_unreviewed(store, unreviewed)
         return {
@@ -243,6 +245,7 @@ def run_daily_pass(
             "model": _model_name(llm),
             "web_model": _model_name(web_llm) if web_llm is not None else None,
             "notes": len(notes),
+            "read": plan.reads,
             "batches": [batch.model_dump() for batch in plan.batches],
             "discarded": [item.model_dump() for item in plan.discarded],
             "unreviewed": unreviewed,
@@ -267,8 +270,11 @@ def run_daily_pass(
 
     pass_id = store.open_pass(_model_name(llm))
     try:
-        plan = run_gatekeeper(llm, notes, nodes, language=language)
+        plan = run_gatekeeper(
+            llm, notes, nodes, read_page=store.page, language=language
+        )
         stats["batches"] = len(plan.batches)
+        stats["read"] = plan.reads
         stats["unreviewed"] = _review(plan, note_ids)
         _apply(store, llm, web_llm, pass_id, plan, note_ids, stats, language)
         store.close_pass(pass_id, status="done", stats=stats)

@@ -134,7 +134,7 @@ def test_writes_the_notes_then_the_page_from_them():
     assert summary["pages"][0]["format"] == "web"
     # The main model ran the gatekeeper and the notes; the web model wrote the page from them.
     assert [(kind, system) for kind, system, _ in llm.calls] == [
-        ("json", llm.calls[0][1]),
+        ("tools", llm.calls[0][1]),
         ("text", notes_system("en")),
     ]
     assert "How to amend the last commit." in llm.calls[1][2]

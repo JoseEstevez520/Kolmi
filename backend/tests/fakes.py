@@ -7,7 +7,9 @@ class FakeLLM:
     """A model that answers with whatever the test hands it.
 
     `text_response` is one answer for every text call, or a list of answers in order (an
-    exception in it is raised).
+    exception in it is raised). `tool_rounds` is what the model asks the tools for before it
+    answers `json_response`: a list of rounds, each a list of (tool name, arguments).
+    `tool_error`, when set, is raised by the tool loop, as a model without tools would.
     """
 
     model = "fake"
@@ -16,13 +18,26 @@ class FakeLLM:
         self,
         json_response: dict[str, Any] | None = None,
         text_response: str | list[Any] = "",
+        tool_rounds: list[list[tuple[str, dict[str, Any]]]] | None = None,
+        tool_error: Exception | None = None,
     ) -> None:
         self.json_response = json_response or {"batches": [], "discarded": []}
         self.text_response = list(text_response) if isinstance(text_response, list) else text_response
+        self.tool_rounds = tool_rounds or []
+        self.tool_error = tool_error
+        self.tool_results: list[str] = []
         self.calls: list[tuple[str, str, str]] = []
 
     def complete_json(self, system: str, user: str) -> dict[str, Any]:
         self.calls.append(("json", system, user))
+        return self.json_response
+
+    def complete_with_tools(self, system, user, tools, run_tool) -> dict[str, Any]:
+        self.calls.append(("tools", system, user))
+        if self.tool_error:
+            raise self.tool_error
+        for round_ in self.tool_rounds:
+            self.tool_results += [run_tool(name, args) for name, args in round_]
         return self.json_response
 
     def complete_text(self, system: str, user: str) -> str:

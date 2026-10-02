@@ -8,7 +8,6 @@ from app.passes.daily import (
     UNREVIEWED_REASON,
     run_daily_pass,
 )
-from app.agents.gatekeeper import OUTLINE_CHARS
 from tests.fakes import FakeLLM, FakeStore
 
 
@@ -129,34 +128,9 @@ def test_a_note_that_adds_nothing_is_discarded_with_its_reason():
         {"pass_id": 1, "note_id": 1, "node_id": None, "action": "discarded", "reason": reason}
     ]
     # Only the gatekeeper ran: no notes, no web, and the page is as it was.
-    assert [kind for kind, *_ in llm.calls] == ["json"]
+    assert [kind for kind, *_ in llm.calls] == ["tools"]
     assert store.versions == []
     assert "adds nothing" in llm.calls[0][1]
-
-
-def test_the_gatekeeper_sees_what_the_pages_already_say():
-    import json
-
-    long_md = "Opening line.\n\n## Singleton\n\n" + "detail " * 400 + "\n\n## Prototype\n\nMore."
-    nodes = [
-        _section(),
-        {"id": 20, "parent_id": 10, "kind": "page", "title": "Scopes", "description": "", "content_md": long_md},
-        {"id": 21, "parent_id": 10, "kind": "page", "title": "Beans", "description": "", "content_md": long_md},
-        {"id": 22, "parent_id": 10, "kind": "page", "title": "Empty", "description": "", "content_md": ""},
-    ]
-    store = FakeStore(notes=[{**_note(), "node_id": 21}], nodes=nodes)
-    llm = FakeLLM()
-
-    run_daily_pass(store=store, llm=llm, dry_run=True)
-
-    tree = {item["id"]: item for item in json.loads(llm.calls[0][2])["tree"]}
-    # Every page with content: its opening and its headings, short.
-    assert tree[20]["excerpt"] == "Opening line.\n## Singleton\n## Prototype"
-    assert len(tree[20]["excerpt"]) <= OUTLINE_CHARS
-    # The page a note points at: much more of it, to tell a repeat from something new.
-    assert tree[21]["excerpt"].startswith(long_md[:1000])
-    assert "excerpt" not in tree[22] and "excerpt" not in tree[10]
-    assert "content_md" not in tree[20]
 
 
 def test_dry_run_writes_nothing():
@@ -295,7 +269,7 @@ def test_marks_the_pass_failed_when_the_model_breaks():
     store = FakeStore(notes=[_note()], nodes=[_section()])
 
     with pytest.raises(RuntimeError):
-        run_daily_pass(store=store, llm=BrokenLLM())
+        run_daily_pass(store=store, llm=BrokenLLM(tool_error=RuntimeError("no tools")))
 
     assert store.passes[1]["status"] == "failed"
     assert store.passes[1]["error"] == "boom"

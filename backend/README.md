@@ -74,8 +74,12 @@ Once a day, a cron wakes a team of agents that turns the pending notes into
 pages:
 
 1. **Gatekeeper**: anonymizes, decides whether each note adds something new to what the
-   pages already say (it sees an excerpt of each page's Markdown), joins notes about the same
-   topic, discards what adds nothing and picks the target page (an existing one or a new one).
+   pages already say, joins notes about the same topic, discards what adds nothing and picks
+   the target page (an existing one or a new one). It works like a coding agent: it gets the
+   tree as an index (id, kind and title of each node) and each note with its hint, the node
+   the student picked, if any. It reads the pages it needs with a `read_page` tool before
+   deciding. If the model has no tools, or the loop fails, it decides from the index alone.
+   `--dry-run` lists what it read under `read`.
 2. **Notes**: writes or updates the page's Markdown (`content_md`), following the class notes
    site's writing guide. This Markdown is the page's source.
 3. **Web**: turns that Markdown into the page in OpenUI Lang (`content_web`), and the main

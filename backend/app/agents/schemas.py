@@ -30,3 +30,5 @@ class Discarded(BaseModel):
 class GatekeeperResult(BaseModel):
     batches: list[Batch] = Field(default_factory=list)
     discarded: list[Discarded] = Field(default_factory=list)
+    # The nodes it read before deciding; filled in by the gatekeeper, not by the model.
+    reads: list[int] = Field(default_factory=list, exclude=True)

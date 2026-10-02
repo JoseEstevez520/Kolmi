@@ -21,6 +21,17 @@ class UpdateNoteParams(BaseModel):
     note_id: int
     content: str
     format: NoteFormat = "markdown"
+    # Left out, the hint stays as it was; null clears it.
+    node_id: int | None = None
+
+
+def _check_hint(ctx: Context, node_id: int | None) -> None:
+    """The hint, where the student thinks the note goes, must be a node of the tree."""
+    if node_id is None:
+        return
+    found = ctx.client.table("nodes").select("id").eq("id", node_id).limit(1).execute().data
+    if not found:
+        raise HTTPException(422, "That section or page does not exist")
 
 
 class MyNotesParams(BaseModel):
@@ -36,6 +47,7 @@ class MyNotesParams(BaseModel):
 def create_note(ctx: Context, params: CreateNoteParams):
     if not ctx.profile or not ctx.profile.get("approved"):
         raise HTTPException(403, "Profile not approved")
+    _check_hint(ctx, params.node_id)
 
     row = {
         "user_id": ctx.user_id,
@@ -68,6 +80,9 @@ def update_note(ctx: Context, params: UpdateNoteParams):
         raise HTTPException(409, "The daily pass already took this note")
 
     data = {"content": params.content, "format": params.format}
+    if "node_id" in params.model_fields_set:
+        _check_hint(ctx, params.node_id)
+        data["node_id"] = params.node_id
     return (
         ctx.client.table("notes").update(data).eq("id", params.note_id).execute().data[0]
     )

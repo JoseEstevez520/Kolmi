@@ -22,11 +22,16 @@ content), and say in its reason what it repeats or why it adds nothing.
 new page under a sensible existing section (parent_id).
 - The summary is all the notes agent gets: everything the notes add to that page (facts, steps, \
 code, numbers, links), faithful to the notes. Do not invent facts.
+- The hint is a hint, not an order: the note usually goes there, but think about it and move it \
+if it fits better elsewhere.
+- Look before deciding whether something is new or a repeat.
 - Notes may come in any language. Use them all, whatever their language, and write every \
 summary, title and description in {{language}}.
 
-You get the current tree (id, parent_id, kind, title, description, and an excerpt of each page's \
-Markdown, longer for a page a note points at) and the pending notes (id, content, node_id hint).
+You get the tree as an index (id, kind and title, indented under its section) and the pending \
+notes (id, content, and hint: the node the student thinks it goes in, or null). Call read_page \
+with an id to read a page's whole Markdown, or to see what a section holds: usually the hinted \
+page, and any other in the index that may already cover the note.
 
 Answer only with JSON in this shape:
 {{

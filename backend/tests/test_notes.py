@@ -63,14 +63,16 @@ class _Table:
 
 
 class _Client:
-    """Just enough of the Supabase client for the notes table."""
+    """Just enough of the Supabase client for the notes table (and the nodes a hint names)."""
 
     def __init__(self) -> None:
         self.notes = _Table()
+        self.nodes = _Table()
+        self.nodes.rows = [{"id": 20}, {"id": 31}]
 
     def table(self, name: str) -> _Table:
-        assert name == "notes"
-        return self.notes
+        assert name in ("notes", "nodes")
+        return getattr(self, name)
 
 
 def _ctx(client: _Client, user_id: str = "u1") -> Context:
@@ -124,3 +126,36 @@ def test_a_note_the_pass_took_is_closed():
     with pytest.raises(HTTPException) as error:
         update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content="too late"))
     assert error.value.status_code == 409
+
+
+def test_a_note_can_say_where_it_goes():
+    client = _Client()
+    note = create_note(_ctx(client), CreateNoteParams(content="git stash", node_id=20))
+    assert note["node_id"] == 20
+
+
+def test_a_hint_to_a_missing_node_is_refused():
+    client = _Client()
+    with pytest.raises(HTTPException) as error:
+        create_note(_ctx(client), CreateNoteParams(content="git stash", node_id=99))
+    assert error.value.status_code == 422
+    assert client.notes.rows == []
+
+
+def test_the_hint_can_change_while_the_note_is_pending():
+    client = _Client()
+    note_id = create_note(_ctx(client), CreateNoteParams(content="draft", node_id=20))["id"]
+
+    note = update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content="draft", node_id=31))
+    assert note["node_id"] == 31
+
+    # Left out, it stays; null clears it ("Not sure").
+    note = update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content="again"))
+    assert note["node_id"] == 31
+    note = update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content="x", node_id=None))
+    assert note["node_id"] is None
+
+    with pytest.raises(HTTPException) as error:
+        update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content="x", node_id=99))
+    assert error.value.status_code == 422
+    assert client.notes.rows[0]["node_id"] is None

@@ -84,8 +84,10 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 - `list_modules()`
 - `view_section(section_id)`: with its list of pages
 - `view_page(page_id)`
-- `create_note(content, format?, node_id?)`
-- `update_note(note_id, content, format?)` — only your own note, while it is pending.
+- `create_note(content, format?, node_id?)`: `node_id` is where the student thinks the note
+  goes, a hint for the gatekeeper. It must be an existing section or page.
+- `update_note(note_id, content, format?, node_id?)` — only your own note, while it is pending.
+  Left out, the hint stays; `null` clears it.
 - `my_notes(status?)`
 
 ### Admin only
