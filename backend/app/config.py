@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.deepseek.com"
     llm_model: str = "deepseek-flash"
 
+    # The web agent writes pages as OpenUI Lang through the Thesys (OpenUI) Gateway, which
+    # validates and repairs the output. Without a key, pages are written as Markdown only.
+    thesys_api_key: str = ""
+    thesys_base_url: str = "https://api.thesys.dev/v1/embed"
+    thesys_model: str = "google/gemini-3.7-flash"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

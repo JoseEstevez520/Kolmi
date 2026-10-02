@@ -1,0 +1,283 @@
+{
+  "root": "Page",
+  "components": {
+    "Page": {
+      "signature": "Page(blocks: (Heading | Text | CodeBlock | Callout | Steps | Diagram | Artifact)[])",
+      "description": "The whole page: its blocks, top to bottom, in one column. Always the root."
+    },
+    "Heading": {
+      "signature": "Heading(text: string, level?: 2 | 3)",
+      "description": "A heading inside the page. The page title is already shown, so use level 2 for sections and 3 for subsections."
+    },
+    "Text": {
+      "signature": "Text(markdown: string)",
+      "description": "Running text in Markdown: paragraphs, lists, **bold**, `inline code`, links and tables. No headings and no code fences here."
+    },
+    "CodeBlock": {
+      "signature": "CodeBlock(code: string, language?: string, title?: string)",
+      "description": "A block of code with a copy button. Name it by its file (title) or its language."
+    },
+    "Callout": {
+      "signature": "Callout(type: \"note\" | \"tip\" | \"important\" | \"warning\" | \"caution\", text: string, title?: string)",
+      "description": "A note set apart from the text: note, tip, important, warning or caution. Its text is Markdown. Never two in a row."
+    },
+    "Steps": {
+      "signature": "Steps(items: StepItem[])",
+      "description": "Numbered steps for a procedure the reader follows in order."
+    },
+    "StepItem": {
+      "signature": "StepItem(title: string, text: string)",
+      "description": "One step: a short title and its explanation in Markdown."
+    },
+    "Diagram": {
+      "signature": "Diagram(label: string, svg: string, caption?: string)",
+      "description": "A small static drawing as a self-contained SVG string (viewBox, no scripts, no external images), with a label that says in words what it shows. Use mid greys that read on light and dark backgrounds."
+    },
+    "Artifact": {
+      "signature": "Artifact(title: string, html: string, height?: number)",
+      "description": "The escape hatch, for what the other components cannot show (an interactive widget, a simulation). A self-contained HTML document with inline CSS and JS, run in a sandboxed iframe with no network access. Use it rarely."
+    }
+  },
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "Page": {
+        "$ref": "#/$defs/Page"
+      },
+      "Heading": {
+        "$ref": "#/$defs/Heading"
+      },
+      "Text": {
+        "$ref": "#/$defs/Text"
+      },
+      "CodeBlock": {
+        "$ref": "#/$defs/CodeBlock"
+      },
+      "Callout": {
+        "$ref": "#/$defs/Callout"
+      },
+      "Steps": {
+        "$ref": "#/$defs/Steps"
+      },
+      "StepItem": {
+        "$ref": "#/$defs/StepItem"
+      },
+      "Diagram": {
+        "$ref": "#/$defs/Diagram"
+      },
+      "Artifact": {
+        "$ref": "#/$defs/Artifact"
+      }
+    },
+    "required": [
+      "Page",
+      "Heading",
+      "Text",
+      "CodeBlock",
+      "Callout",
+      "Steps",
+      "StepItem",
+      "Diagram",
+      "Artifact"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+      "Page": {
+        "type": "object",
+        "properties": {
+          "blocks": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Heading"
+                },
+                {
+                  "$ref": "#/$defs/Text"
+                },
+                {
+                  "$ref": "#/$defs/CodeBlock"
+                },
+                {
+                  "$ref": "#/$defs/Callout"
+                },
+                {
+                  "$ref": "#/$defs/Steps"
+                },
+                {
+                  "$ref": "#/$defs/Diagram"
+                },
+                {
+                  "$ref": "#/$defs/Artifact"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "blocks"
+        ],
+        "additionalProperties": false,
+        "description": "The whole page: its blocks, top to bottom, in one column. Always the root."
+      },
+      "Heading": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "number",
+                "const": 2
+              },
+              {
+                "type": "number",
+                "const": 3
+              }
+            ]
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "A heading inside the page. The page title is already shown, so use level 2 for sections and 3 for subsections."
+      },
+      "Text": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown"
+        ],
+        "additionalProperties": false,
+        "description": "Running text in Markdown: paragraphs, lists, **bold**, `inline code`, links and tables. No headings and no code fences here."
+      },
+      "CodeBlock": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false,
+        "description": "A block of code with a copy button. Name it by its file (title) or its language."
+      },
+      "Callout": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "note",
+              "tip",
+              "important",
+              "warning",
+              "caution"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "A note set apart from the text: note, tip, important, warning or caution. Its text is Markdown. Never two in a row."
+      },
+      "Steps": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/StepItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "Numbered steps for a procedure the reader follows in order."
+      },
+      "StepItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One step: a short title and its explanation in Markdown."
+      },
+      "Diagram": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "svg": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "svg"
+        ],
+        "additionalProperties": false,
+        "description": "A small static drawing as a self-contained SVG string (viewBox, no scripts, no external images), with a label that says in words what it shows. Use mid greys that read on light and dark backgrounds."
+      },
+      "Artifact": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "html": {
+            "type": "string"
+          },
+          "height": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "title",
+          "html"
+        ],
+        "additionalProperties": false,
+        "description": "The escape hatch, for what the other components cannot show (an interactive widget, a simulation). A self-contained HTML document with inline CSS and JS, run in a sandboxed iframe with no network access. Use it rarely."
+      }
+    }
+  }
+}

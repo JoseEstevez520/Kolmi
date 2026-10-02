@@ -59,5 +59,18 @@ def get_llm() -> LLM:
     )
 
 
+@lru_cache
+def get_web_llm() -> LLM | None:
+    """The web agent's model, through the Thesys Gateway; None when no key is set."""
+    settings = get_settings()
+    if not settings.thesys_api_key:
+        return None
+    return OpenAILLM(
+        api_key=settings.thesys_api_key,
+        base_url=settings.thesys_base_url,
+        model=settings.thesys_model,
+    )
+
+
 def model_name() -> str:
     return get_settings().llm_model

@@ -43,7 +43,8 @@ appear in phase 1.
   kept to a few lines with a fading end and a "Show more", so one never dominates the list.
 - **Section** (`/node/:id`, kind `section`): its children as a grid of cards, each opening
   its own node.
-- **Page** (`/node/:id`, kind `page`): one page's title and its Markdown; an empty state
+- **Page** (`/node/:id`, kind `page`): one page's title and its content, drawn from its OpenUI Lang
+  (`docs/page-format.md`) or, without it, from its Markdown; an empty state
   when it has none.
 - **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
   move, reorder) and deleted with a confirmation, with a section or a page added at any

@@ -6,17 +6,22 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "page-prompt": "node scripts/page-prompt.mjs"
   },
   "dependencies": {
     "@lucide/vue": "^1.47.0",
+    "@openuidev/vue-lang": "^0.3.0",
     "@supabase/supabase-js": "^2.45.0",
     "elastic-ui": "file:vendor/elastic-ui-0.3.5.tgz",
     "motion-v": "^2.4.4",
     "vue": "^3.5.42",
-    "vue-router": "^5.3.1"
+    "vue-router": "^5.3.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "^0.4.1",
+    "@openuidev/lang-core": "^0.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-vue": "^6.0.8",
     "tailwindcss": "^4.3.3",

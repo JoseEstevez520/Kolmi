@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..agents import LLM, build_page, get_llm, run_gatekeeper, write_markdown
+from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper
 from ..agents.schemas import Batch, GatekeeperResult, NewPage
 from ..store import Store, SupabaseStore
 
@@ -58,6 +58,7 @@ def _resolve_target(
 def _write_batch(
     store: Store,
     llm: LLM,
+    web_llm: LLM | None,
     pass_id: int,
     batch: Batch,
     page: dict[str, Any],
@@ -66,15 +67,26 @@ def _write_batch(
     existing_md = page.get("content_md") or ""
     existing_web = page.get("content_web") or ""
 
-    markdown = write_markdown(
-        llm, title=page["title"], summary=batch.summary, existing_md=existing_md
+    written = build_page(
+        llm,
+        web_llm,
+        title=page["title"],
+        summary=batch.summary,
+        existing_md=existing_md,
+        existing_web=existing_web,
     )
-    content_md, content_web = build_page(markdown)
 
     if existing_md.strip() or existing_web.strip():
         store.save_version(page["id"], existing_md, existing_web)
 
-    store.write_page(page["id"], content_md=content_md, content_web=content_web)
+    store.write_page(
+        page["id"], content_md=written.content_md, content_web=written.content_web
+    )
+
+    if web_llm is not None and written.source != "web":
+        stats["web_fallbacks"].append(
+            {"node_id": page["id"], "reason": written.fallback_reason}
+        )
 
     if batch.action == "update":
         store.log(
@@ -86,12 +98,15 @@ def _write_batch(
         )
         stats["updated"] += 1
 
-    stats["pages"].append({"node_id": page["id"], "title": page["title"]})
+    stats["pages"].append(
+        {"node_id": page["id"], "title": page["title"], "format": written.source}
+    )
 
 
 def _apply(
     store: Store,
     llm: LLM,
+    web_llm: LLM | None,
     pass_id: int,
     plan: GatekeeperResult,
     note_ids: set[int],
@@ -101,7 +116,7 @@ def _apply(
         page = _resolve_target(store, pass_id, batch, stats)
         if page is None:
             continue
-        _write_batch(store, llm, pass_id, batch, page, stats)
+        _write_batch(store, llm, web_llm, pass_id, batch, page, stats)
         for note_id in batch.note_ids:
             if note_id in note_ids:
                 store.set_note_status(note_id, "processed")
@@ -133,15 +148,22 @@ def run_daily_pass(
     *,
     store: Store | None = None,
     llm: LLM | None = None,
+    web_llm: LLM | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """One pass: read the pending notes and turn them into pages.
 
     Returns a summary. With `dry_run` it only asks the gatekeeper what it would
     do, and writes nothing (and spends no tokens beyond that one call).
+
+    `llm` runs the gatekeeper and the Markdown fallback; `web_llm` writes the
+    pages as OpenUI Lang. With neither given, both come from the settings. When
+    `llm` is given and `web_llm` is not, pages are written as Markdown only.
     """
     store = store or SupabaseStore()
-    llm = llm or get_llm()
+    if llm is None:
+        llm = get_llm()
+        web_llm = web_llm or get_web_llm()
 
     running = store.running_pass(STALE_MINUTES)
     if running:
@@ -159,6 +181,7 @@ def run_daily_pass(
         return {
             "status": "dry-run",
             "model": _model_name(llm),
+            "web_model": _model_name(web_llm) if web_llm is not None else None,
             "notes": len(notes),
             "batches": [batch.model_dump() for batch in plan.batches],
             "discarded": [item.model_dump() for item in plan.discarded],
@@ -173,6 +196,8 @@ def run_daily_pass(
         "discarded": 0,
         "pages": [],
         "flagged": [],
+        "web_model": _model_name(web_llm) if web_llm is not None else None,
+        "web_fallbacks": [],
     }
 
     pass_id = store.open_pass(_model_name(llm))
@@ -180,7 +205,7 @@ def run_daily_pass(
         plan = run_gatekeeper(llm, notes, nodes)
         stats["batches"] = len(plan.batches)
         stats["unreviewed"] = _review(plan, note_ids)
-        _apply(store, llm, pass_id, plan, note_ids, stats)
+        _apply(store, llm, web_llm, pass_id, plan, note_ids, stats)
         store.close_pass(pass_id, status="done", stats=stats)
     except Exception as exc:
         store.close_pass(pass_id, status="failed", stats=stats, error=str(exc))
