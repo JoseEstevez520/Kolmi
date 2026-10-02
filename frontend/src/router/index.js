@@ -30,6 +30,17 @@ const routes = [
     component: AdminLogView,
     meta: { layout: 'app', admin: true },
   },
+  // Development only: the sample pages of the web agent, drawn with the real renderer.
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/dev/pages',
+          name: 'dev-pages',
+          component: () => import('../views/DevPagesView.vue'),
+          meta: { public: true },
+        },
+      ]
+    : []),
   { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },
 ]
 
