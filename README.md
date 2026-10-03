@@ -32,12 +32,12 @@ See [ROADMAP.md](ROADMAP.md).
 
 Kolmi is self-hostable: each class runs its own instance (a small server and a Supabase
 project). Nothing is shared between classes. The backend ships as a Docker image; build, run
-and the nightly cron are in [backend/README.md](backend/README.md).
+and the cron that runs the pass are in [backend/README.md](backend/README.md).
 
 ## Status
 
 In development. Login, notes, the content tree, the admin panel with the AI log, and the
-nightly pass all work. DeepSeek writes the pages in OpenUI Lang, in the class's language.
+pass all work. DeepSeek writes the pages in OpenUI Lang, in the class's language.
 
 ## Docs
 

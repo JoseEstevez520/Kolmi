@@ -159,7 +159,7 @@ stats (`pages[].decisions`). When a page isn't what you expected, read them firs
 - Whether the gatekeeper's judgement is good enough, or its prompt needs a line.
 - Whether pages reach the class site's level, and which pieces the models use too little.
 - Whether the Gateway (a stronger web model) is worth bringing back.
-- What the pass costs per night, to set the schedule and the model.
+- What the pass costs per run, to set the schedule and the model.
 
 ## Known limits
 
