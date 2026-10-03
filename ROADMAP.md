@@ -54,6 +54,15 @@ What we're building and what's next. Open to whatever the class needs.
   glossaries, diffs, code walkthroughs, terminal and agent replays, cards, logos, and pieces built
   from library parts in a sandboxed frame.
 - [x] **Notes save themselves** — as you write, with no draft and no send button.
+- [x] **The pass's schedule in the admin** — on or off, the times and the days (Madrid time),
+  kept in `settings`; the host cron runs every hour with `--if-due` and the pass runs only when it
+  is due. "Run now" starts it in the background, and the next run is shown.
+- [x] **Where a new page goes** — the gatekeeper says where a new page sits among its siblings
+  (first, after one, or last) and why; the reason shows in the AI log.
+- [x] **Downloadable files** — a page can carry files to download: zips, PDFs, code. Students
+  can leave them with a note too: the gatekeeper looks at each one and either attaches it to the
+  page it belongs to or discards it, with its reason in the log. Up to 20 MB a file and 5 a
+  note; no executables.
 
 ## Now
 
@@ -69,14 +78,6 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **The pass's schedule in the admin** — whether it runs, at what times and on which days,
-  kept in `settings`; the host cron runs every hour and the pass exits when it isn't due. A
-  "Run now" button, and the next run shown.
-
-- [x] **Downloadable files** — a page can carry files to download: zips, PDFs, code. Students
-  can leave them with a note too: the gatekeeper looks at each one and either attaches it to the
-  page it belongs to or discards it, with its reason in the log. Up to 20 MB a file and 5 a
-  note; no executables.
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page. It runs on the
   main model, and each page's Markdown is its source.
 - [ ] **Status part** — a quieter way to show a note's or a pass's state (built in elastic-ui;
