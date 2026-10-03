@@ -105,10 +105,8 @@ onMounted(loadTree)
 
         <!-- With the tree, not before it: shown while the tree loads, it was pushed down. -->
         <h2 id="class">{{ t('admin.classSettings') }}</h2>
-        <div class="not-prose my-6">
+        <div class="not-prose my-6 flex flex-col divide-y divide-border border-y border-border">
           <AdminClassLanguage />
-        </div>
-        <div class="not-prose my-6">
           <AdminPass />
         </div>
       </template>

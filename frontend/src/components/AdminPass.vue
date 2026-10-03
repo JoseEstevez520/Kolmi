@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ActionButton, DayStrip, Field, StatusText, Switch, WeekPillbox } from 'elastic-ui'
+import { ActionButton, DayStrip, StatusText, Switch, WeekPillbox } from 'elastic-ui'
+import AdminSetting from './AdminSetting.vue'
 import { api } from '../lib/api.js'
 
 // When the daily pass runs: on or off, the times and the weekdays, all in Madrid time. Every
@@ -122,19 +123,22 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
+  <div class="contents">
     <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>
-      <Field :description="t('admin.pass.hint')" :error="saveError">
-        <Switch :model-value="enabled" @update:model-value="(on) => save({ passEnabled: on })">
-          {{ t('admin.pass.enabled') }}
-        </Switch>
-      </Field>
+      <AdminSetting :title="t('admin.pass.enabled')" :description="t('admin.pass.hint')">
+        <Switch :model-value="enabled" :aria-label="t('admin.pass.enabled')" @update:model-value="(on) => save({ passEnabled: on })" />
+        <StatusText v-if="saveError" :text="saveError" error />
+      </AdminSetting>
 
-      <template v-if="enabled">
-        <Field :label="t('admin.pass.days')">
+      <AdminSetting v-if="enabled" :title="t('admin.pass.schedule')" :description="t('admin.pass.scheduleHint')">
+        <template #aside>
+          <StatusText class="mt-4 block text-label text-fg" :text="status || nextText" :working="saving" />
+        </template>
+        <div class="flex w-full flex-col gap-2">
+          <span class="text-meta text-fg-muted">{{ t('admin.pass.days') }}</span>
           <WeekPillbox
             :model-value="days"
             :locale="locale"
@@ -142,21 +146,20 @@ onMounted(load)
             :words="dayWords"
             @update:model-value="setDays"
           />
-        </Field>
-
-        <Field :label="t('admin.pass.times')" :description="t('admin.pass.timesHint')">
+        </div>
+        <div class="flex w-full flex-col gap-2">
+          <span class="text-meta text-fg-muted">{{ t('admin.pass.times') }}</span>
           <DayStrip
             v-model="times"
             :label="t('admin.pass.times')"
             :add-label="t('admin.pass.addTime')"
             @changed="setTimes"
           />
-        </Field>
-      </template>
+          <p class="m-0 text-meta text-fg-muted">{{ t('admin.pass.timesHint') }}</p>
+        </div>
+      </AdminSetting>
 
-      <StatusText :text="status || nextText" :working="saving" />
-
-      <div class="flex flex-col items-start gap-2">
+      <AdminSetting :title="t('admin.pass.runTitle')" :description="t('admin.pass.runHint')">
         <ActionButton
           icon="play"
           :label="t('admin.pass.runNow')"
@@ -164,8 +167,7 @@ onMounted(load)
           :error-label="runFailed || t('common.somethingWrong')"
           :action="runNow"
         />
-        <p class="text-meta text-fg-muted">{{ t('admin.pass.runHint') }}</p>
-      </div>
+      </AdminSetting>
     </template>
-  </section>
+  </div>
 </template>
