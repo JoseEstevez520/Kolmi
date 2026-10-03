@@ -96,6 +96,26 @@ Controladores y Vistas`, `Tema 4: Servicios`) and its assignments, write notes f
 compare the pages with the hand-made ones. Don't paste an assignment's solutions as if they
 were notes.
 
+## First round (2026-10-03)
+
+Done with notes written from the class repo, two files from the Moodle
+(`Maven.pdf`, `proy0301.zip`) and Enrique's photos. Three passes took 5.5, 1.5 and 2 minutes for
+8, 2 and 2 notes, on `deepseek-v4-pro`. The cost in money wasn't measured.
+
+- **Gatekeeper:** every case came out as expected. Filler was discarded, a repeat was discarded
+  quoting the page, a wrong hint was moved (a Vue note aimed at Despregamento went to DIW), an
+  addition was merged without losing anything, new pages got a place and a reason, and the zip
+  and the PDF were attached under "Downloads". The photos-only note was discarded, as the pass
+  can't read images. It isn't deterministic: the same notes were one page in the dry run and two
+  in the real pass.
+- **Pages:** tables, code, callouts, steps, links between pages and previous/next all read well in
+  light and dark and on a phone. No page had a visual or a "To explore" section. One page had an
+  English heading, two showed backticks in a heading, and the model added examples the notes
+  didn't have. The prompts were changed for the first two, and a second run came out clean.
+- **Moodle:** the course's "Theory and examples" labels are empty; the theory is only in zips and
+  PDFs, so there was little text to write notes from.
+- **App:** no console errors. The sidebar kept an old title after a rename until a reload.
+
 ## What to decide after testing
 
 - Whether the gatekeeper's judgement is good enough, or its prompt needs a line.
