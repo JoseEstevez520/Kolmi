@@ -2,12 +2,12 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Badge, Button, Card, CardDescription, CardFooter, CardHeader, CardTitle } from 'elastic-ui'
+import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, Status } from 'elastic-ui'
 import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 
 // A card for one item (a node, a note): an optional icon, a title and its text,
-// and a footer with a short line (a date) and, when it carries meaning, a status
-// label with its outcome colour. With a `to` it is a router link, with an `href`
+// and a footer with a short line (a date) and, when it carries meaning, a Status
+// (its `state`, with `status` as the label in the app's own words). With a `to` it is a router link, with an `href`
 // a plain one; without either it is a plain card. With `clamp`, long text (a
 // note) is kept to a few lines with a fading end and a "Show more", so one note
 // never dominates the list; a linked card opens instead of a "Show more".
@@ -20,7 +20,7 @@ const props = defineProps({
   description: { type: String, default: '' },
   meta: { type: String, default: '' },
   status: { type: String, default: '' },
-  tone: { type: String, default: '' },
+  state: { type: String, default: '' },
   clamp: { type: Boolean, default: false },
 })
 
@@ -111,11 +111,9 @@ watch(expanded, (open) => {
         </div>
       </CardHeader>
 
-      <CardFooter v-if="meta || status" class="mt-auto justify-between gap-3">
+      <CardFooter v-if="meta || state" class="mt-auto justify-between gap-3">
         <time v-if="meta" class="text-meta text-fg-muted">{{ meta }}</time>
-        <Badge v-if="status" :color="tone || undefined" :class="!meta && 'ml-auto'">
-          {{ status }}
-        </Badge>
+        <Status v-if="state" :state="state" :label="status || undefined" :class="!meta && 'ml-auto'" />
       </CardFooter>
     </Card>
   </component>

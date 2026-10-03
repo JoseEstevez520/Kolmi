@@ -56,7 +56,7 @@ appear in phase 1.
   too.
 - **Home** (`/`): the class name and a grid of cards for the nodes marked "on the home".
 - **Notes**: a text box to leave a note and a grid of "my notes", each with its date and its
-  status (pending / processed / discarded) as a label in its outcome colour. Long notes are
+  status (pending / processed / discarded) as a `Status`: a ring whose icon carries the colour. Long notes are
   kept to a few lines with a fading end and a "Show more", so one never dominates the list.
 - **Section** (`/node/:id`, kind `section`): its children as a grid of cards, each opening
   its own node.

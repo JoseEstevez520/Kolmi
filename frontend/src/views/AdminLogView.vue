@@ -2,9 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  Badge,
   Callout,
   Empty,
+  Status,
   StatusText,
   Table,
   TableBody,
@@ -33,24 +33,25 @@ const tree = ref([])
 const loading = ref(true)
 const error = ref('')
 
-const PASS_TONES = {
-  running: 'var(--color-warning)',
-  done: 'var(--color-success)',
-  failed: 'var(--color-danger)',
+// Each value the backend sends, as the library's Status state. Discarded is a normal
+// decision, so it is grey and not the danger colour; only a failure is red.
+const PASS_STATES = {
+  running: 'working',
+  done: 'done',
+  failed: 'error',
 }
 
-// Updated is the quiet one: it carries no outcome, so it keeps the grey badge.
-const ACTION_TONES = {
-  created: 'var(--color-success)',
-  updated: '',
-  discarded: 'var(--color-danger)',
-  flagged: 'var(--color-warning)',
+const ACTION_STATES = {
+  created: 'done',
+  updated: 'done',
+  discarded: 'discarded',
+  flagged: 'flagged',
 }
 
-const NOTE_TONES = {
-  pending: 'var(--color-warning)',
-  processed: 'var(--color-success)',
-  discarded: 'var(--color-danger)',
+const NOTE_STATES = {
+  pending: 'idle',
+  processed: 'done',
+  discarded: 'discarded',
 }
 
 // A label looked up by a value from the backend; an unknown value shows as it came.
@@ -161,7 +162,7 @@ onMounted(load)
                   <span v-if="pass.model" class="block text-xs text-fg-muted">{{ pass.model }}</span>
                 </TableCell>
                 <TableCell>
-                  <Badge :color="PASS_TONES[pass.status]">{{ label('passStatus', pass.status) }}</Badge>
+                  <Status :state="PASS_STATES[pass.status] ?? 'idle'" :label="label('passStatus', pass.status)" />
                 </TableCell>
                 <TableCell class="whitespace-nowrap text-fg-muted">{{ passWhen(pass) }}</TableCell>
                 <TableCell :class="pass.error ? 'text-danger' : 'text-fg-secondary'">
@@ -192,7 +193,7 @@ onMounted(load)
             <TableBody>
               <TableRow v-for="entry in entries" :key="entry.id">
                 <TableCell>
-                  <Badge :color="ACTION_TONES[entry.action]">{{ label('actions', entry.action) }}</Badge>
+                  <Status :state="ACTION_STATES[entry.action] ?? 'idle'" :label="label('actions', entry.action)" />
                 </TableCell>
                 <TableCell>
                   <span class="block text-fg">{{ entryTarget(entry) }}</span>
@@ -232,7 +233,7 @@ onMounted(load)
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge :color="NOTE_TONES[note.status]">{{ noteStatusLabel(note.status) }}</Badge>
+                  <Status :state="NOTE_STATES[note.status] ?? 'idle'" :label="noteStatusLabel(note.status)" />
                 </TableCell>
                 <TableCell class="whitespace-nowrap text-fg-muted">
                   {{ formatShortDate(note.created_at) || '—' }}

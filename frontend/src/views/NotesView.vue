@@ -19,12 +19,11 @@ const notes = ref([])
 const loading = ref(true)
 const error = ref('')
 
-// The outcome colour of each status, the library's own meaning for them: what
-// needs care, what went well, what went wrong (elastic-ui USAGE 8).
-const STATUS_TONES = {
-  pending: 'var(--color-warning)',
-  processed: 'var(--color-success)',
-  discarded: 'var(--color-danger)',
+// A note's status as the library's Status state: waiting, taken in, or left out.
+const STATUS_STATES = {
+  pending: 'idle',
+  processed: 'done',
+  discarded: 'discarded',
 }
 
 const title = computed(() => (profile.value?.name ? t('notes.greeting', { name: profile.value.name }) : t('notes.title')))
@@ -81,7 +80,7 @@ onMounted(load)
           :description="preview(note).text"
           :meta="formatDate(note.created_at)"
           :status="noteStatusLabel(note.status)"
-          :tone="STATUS_TONES[note.status]"
+          :state="STATUS_STATES[note.status]"
           clamp
         />
       </CardGrid>
