@@ -1,16 +1,15 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ActionButton, Field, StatusText, Switch, TagsInput, ToggleGroup, ToggleGroupItem } from 'elastic-ui'
+import { ActionButton, DayStrip, Field, StatusText, Switch, WeekPillbox } from 'elastic-ui'
 import { api } from '../lib/api.js'
 
 // When the daily pass runs: on or off, the times and the weekdays, all in Madrid time. Every
 // change is saved at once, as in the class language block, and goes back to what was saved if
 // the backend refuses it. "Run now" starts the pass in the background; the AI log shows it.
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const ZONE = 'Europe/Madrid'
-const ALL_DAYS = [1, 2, 3, 4, 5, 6, 7]
 
 const enabled = ref(true)
 const times = ref([])
@@ -55,25 +54,24 @@ async function save(patch) {
   }
 }
 
-// "3:00" becomes "03:00"; what is not a time is left out.
-function normalise(text) {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(String(text).trim())
-  if (!match || +match[1] > 23 || +match[2] > 59) return null
-  return `${match[1].padStart(2, '0')}:${match[2]}`
-}
-
+// The strip hands over sorted "HH:MM" times, only once a knob is let go.
 function setTimes(list) {
-  const clean = [...new Set(list.map(normalise).filter(Boolean))].sort()
-  saveError.value = clean.length < list.length ? t('admin.pass.timesInvalid') : ''
-  times.value = clean
-  save({ passTimes: clean })
+  times.value = list
+  save({ passTimes: list })
 }
 
 function setDays(list) {
-  const clean = (list || []).map(Number).sort()
-  days.value = clean
-  save({ passDays: clean })
+  days.value = list
+  save({ passDays: list })
 }
+
+// The pillbox's line, in the class's words.
+const dayWords = computed(() => ({
+  everyDay: t('admin.pass.words.everyDay'),
+  weekdays: t('admin.pass.words.weekdays'),
+  weekends: t('admin.pass.words.weekends'),
+  none: t('admin.pass.words.none'),
+}))
 
 // The next slot, from the settings alone: today's later times, or the next chosen day.
 const next = computed(() => {
@@ -136,26 +134,23 @@ onMounted(load)
       </Field>
 
       <template v-if="enabled">
-        <Field :label="t('admin.pass.times')" :description="t('admin.pass.timesHint')">
-          <TagsInput
-            :model-value="times"
-            :placeholder="t('admin.pass.timesPlaceholder')"
-            :max="6"
-            @update:model-value="setTimes"
+        <Field :label="t('admin.pass.days')">
+          <WeekPillbox
+            :model-value="days"
+            :locale="locale"
+            :label="t('admin.pass.daysLabel')"
+            :words="dayWords"
+            @update:model-value="setDays"
           />
         </Field>
 
-        <Field :label="t('admin.pass.days')">
-          <ToggleGroup
-            type="multiple"
-            :model-value="days.map(String)"
-            :aria-label="t('admin.pass.daysLabel')"
-            @update:model-value="setDays"
-          >
-            <ToggleGroupItem v-for="day in ALL_DAYS" :key="day" :value="String(day)">
-              {{ t(`admin.pass.dayShort.${day}`) }}
-            </ToggleGroupItem>
-          </ToggleGroup>
+        <Field :label="t('admin.pass.times')" :description="t('admin.pass.timesHint')">
+          <DayStrip
+            v-model="times"
+            :label="t('admin.pass.times')"
+            :add-label="t('admin.pass.addTime')"
+            @changed="setTimes"
+          />
         </Field>
       </template>
 
