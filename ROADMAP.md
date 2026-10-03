@@ -57,6 +57,9 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **The pass's schedule in the admin** — on or off, the times and the days (Madrid time),
   kept in `settings`; the host cron runs every hour with `--if-due` and the pass runs only when it
   is due. "Run now" starts it in the background, and the next run is shown.
+- [x] **Attaching files stays out of the way** — a paperclip in the editor's top bar opens a small
+  panel; a file dropped anywhere on the editor, or pasted, attaches too, and a note can be only
+  files. Built on elastic-ui's compact `FileUpload` and `FileDropZone`.
 - [x] **Where a new page goes** — the gatekeeper says where a new page sits among its siblings
   (first, after one, or last) and why; the reason shows in the AI log.
 - [x] **Downloadable files** — a page can carry files to download: zips, PDFs, code. Students
@@ -67,11 +70,11 @@ What we're building and what's next. Open to whatever the class needs.
 ## Now
 
 - [ ] **Seed the tree** — the class's modules (DWCS, DIW, DWCC, Deployment, DASP) and Extra as
-  sections, each with a description, so the gatekeeper knows where things go. A test version is
-  in place; the real one comes with the class's content.
+  sections, each with a description, so the gatekeeper knows where things go. The database is
+  empty on purpose while the app is built: the real tree comes when it's ready for the class.
 - [ ] **Import the existing notes** — the class repo's notes as pages: their Markdown as it is,
-  and the web page made from it. Three were imported as a test; the rest waits until the app is
-  ready for the class.
+  and the web page made from it. Nothing is imported yet; it waits until the app is ready for
+  the class.
 - [ ] **First real pass** — notes written in the app, the daily pass run on them, and the pages
   it writes checked on screen.
 - [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
