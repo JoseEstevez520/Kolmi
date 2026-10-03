@@ -101,12 +101,13 @@ onMounted(loadTree)
             />
           </ul>
         </div>
-      </template>
 
-      <h2 id="class">{{ t('admin.classSettings') }}</h2>
-      <div class="not-prose my-6">
-        <AdminClassLanguage />
-      </div>
+        <!-- With the tree, not before it: shown while the tree loads, it was pushed down. -->
+        <h2 id="class">{{ t('admin.classSettings') }}</h2>
+        <div class="not-prose my-6">
+          <AdminClassLanguage />
+        </div>
+      </template>
     </PageLayout>
   </main>
 </template>
