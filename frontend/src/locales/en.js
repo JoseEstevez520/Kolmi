@@ -108,7 +108,7 @@ export default {
       closedTitle: 'Already in the shared notes',
       closed: 'The daily pass took this note, so it can no longer be changed.',
       hintLabel: 'Where do you think it goes?',
-      hintHelp: 'Optional. A hint for the daily pass, which decides in the end.',
+      hintEmpty: 'Where does it go?',
       hintNotSure: 'Not sure',
     },
     blocks: {

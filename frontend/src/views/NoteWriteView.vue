@@ -5,17 +5,17 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import {
   Button,
   Callout,
-  Field,
   Input,
   Markdown,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  NavTree,
+  NavTreeItem,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   StatusText,
 } from 'elastic-ui'
-import { ArrowLeft, Maximize2, Minimize2 } from '@lucide/vue'
+import { ArrowLeft, Folder, Maximize2, Minimize2 } from '@lucide/vue'
+import PlaceTree from '../components/PlaceTree.vue'
 import { api } from '../lib/api.js'
 import { loadNodes, nodes } from '../lib/content.js'
 import { joinNote, splitNote } from '../lib/notes.js'
@@ -43,23 +43,30 @@ const closed = ref(null)
 const editor = ref(null)
 
 // Where the student thinks the note goes, as a hint for the daily pass; "Not sure" leaves it
-// empty. A Select item needs a non-empty value, so that one travels under a sentinel.
+// empty. The tree's items need a non-empty value, so that one travels under a sentinel.
 const NOT_SURE = '__none__'
 const hint = ref(NOT_SURE)
 const hintId = computed(() => (hint.value === NOT_SURE ? null : Number(hint.value)))
 
-// Every section and page, parents first, each with its depth to indent it.
-const places = computed(() => {
-  const out = []
-  const walk = (items, depth) => {
+// The hint lives in the top bar as a quiet piece of metadata: a ghost button with the picked
+// place's short path, opening the tree. Picking a place closes it.
+const picking = ref(false)
+watch(hint, () => (picking.value = false))
+
+// Each node's path from the top, to name the picked one by its last two steps.
+const paths = computed(() => {
+  const out = new Map()
+  const walk = (items, trail) => {
     for (const item of items) {
-      out.push({ id: item.id, title: item.title, depth })
-      if (item.children?.length) walk(item.children, depth + 1)
+      const path = [...trail, item.title]
+      out.set(String(item.id), path)
+      if (item.children?.length) walk(item.children, path)
     }
   }
-  walk(nodes.value, 0)
+  walk(nodes.value, [])
   return out
 })
+const hintPath = computed(() => paths.value.get(hint.value)?.slice(-2).join(' / ') ?? '')
 
 const content = computed(() => joinNote(title.value, body.value))
 
@@ -197,7 +204,26 @@ onMounted(() => loadNodes().catch(() => {}))
   <div class="article">
     <div class="mb-10 flex items-center justify-between gap-3">
       <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
-      <div v-if="!closed && !error" class="flex items-center gap-2">
+      <div v-if="!closed && !error" class="flex min-w-0 items-center gap-2">
+        <Popover v-if="!loading" v-model:open="picking">
+          <PopoverTrigger as-child>
+            <Button
+              variant="ghost"
+              size="sm"
+              :icon="Folder"
+              class="min-w-0 text-fg-muted"
+              :aria-label="hintPath ? `${t('notes.write.hintLabel')} ${hintPath}` : undefined"
+            >
+              <span class="truncate">{{ hintPath || t('notes.write.hintEmpty') }}</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end">
+            <NavTree v-model="hint" :label="t('notes.write.hintLabel')">
+              <NavTreeItem :value="NOT_SURE">{{ t('notes.write.hintNotSure') }}</NavTreeItem>
+              <PlaceTree :items="nodes" />
+            </NavTree>
+          </PopoverContent>
+        </Popover>
         <StatusText
           v-if="status"
           :class="['text-meta', status !== 'error' && 'text-fg-muted']"
@@ -236,19 +262,6 @@ onMounted(() => loadNodes().catch(() => {}))
         autofocus
         @keydown.enter.prevent="toText"
       />
-      <Field :label="t('notes.write.hintLabel')" :description="t('notes.write.hintHelp')" class="mb-6">
-        <Select v-model="hint">
-          <SelectTrigger>
-            <SelectValue :placeholder="t('notes.write.hintNotSure')" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem :value="NOT_SURE">{{ t('notes.write.hintNotSure') }}</SelectItem>
-            <SelectItem v-for="place in places" :key="place.id" :value="String(place.id)">
-              <span :style="{ paddingInlineStart: `${place.depth}rem` }">{{ place.title }}</span>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </Field>
       <NoteEditor
         ref="editor"
         v-model="body"

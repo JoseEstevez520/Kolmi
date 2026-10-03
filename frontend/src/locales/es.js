@@ -105,7 +105,7 @@ export default {
       closedTitle: 'Ya está en los apuntes',
       closed: 'El repaso de la noche ya se llevó esta nota, así que no se puede cambiar.',
       hintLabel: '¿Dónde crees que va?',
-      hintHelp: 'Opcional. Una pista para el repaso de la noche, que decide al final.',
+      hintEmpty: '¿Dónde va?',
       hintNotSure: 'No lo sé',
     },
     blocks: {
