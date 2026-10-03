@@ -205,6 +205,7 @@ export default {
     colorHint: 'Only to tell sections apart.',
     onHome: 'Show on the home',
     classSettings: 'The class',
+    content: 'Content',
     classLanguage: {
       label: 'Class language',
       names: { en: 'English', es: 'Spanish' },

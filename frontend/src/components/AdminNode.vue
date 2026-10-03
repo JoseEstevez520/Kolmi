@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { TreeDragItem } from 'elastic-ui'
 import { Plus } from '@lucide/vue'
@@ -24,6 +24,17 @@ const children = computed(() => props.node.children ?? [])
 const isSection = computed(() => props.node.kind === 'section')
 const hasChildren = computed(() => children.value.length > 0)
 const open = ref(true)
+
+// A row held over this section, or dropped into it, opens it.
+watch(
+  () => admin.revealed.value,
+  (id) => {
+    if (id !== props.node.id) return
+    open.value = true
+    // Said once: the same section can be asked again later.
+    admin.revealed.value = null
+  },
+)
 
 </script>
 

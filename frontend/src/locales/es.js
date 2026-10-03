@@ -202,6 +202,7 @@ export default {
     colorHint: 'Solo sirve para distinguir secciones.',
     onHome: 'Mostrar en el inicio',
     classSettings: 'La clase',
+    content: 'Contenido',
     classLanguage: {
       label: 'Idioma de la clase',
       names: { en: 'Inglés', es: 'Español' },
