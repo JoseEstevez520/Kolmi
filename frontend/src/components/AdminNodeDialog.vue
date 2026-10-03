@@ -18,11 +18,11 @@ import {
 } from 'elastic-ui'
 import { Settings2 } from '@lucide/vue'
 import FilePicker from './FilePicker.vue'
-import { descendantIds, forgetNode } from '../lib/content.js'
+import { forgetNode } from '../lib/content.js'
 import { ICONS, ICON_NAMES, NODE_COLORS } from '../lib/icons.js'
 
-// Edit one node: its title, description, icon, colour, whether it is on the
-// home, and where it sits in the tree (move). Opened from the row's button.
+// Edit one node: its title, description, icon, colour and whether it is on the
+// home. Where it sits is changed by dragging its row. Opened from the row's button.
 const props = defineProps({
   node: { type: Object, required: true },
 })
@@ -31,7 +31,6 @@ const admin = inject('adminTree')
 const { t } = useI18n()
 
 const NONE = '__none__'
-const ROOT = '__root__'
 const GREY = '__grey__'
 
 const title = ref(props.node.title)
@@ -39,7 +38,6 @@ const description = ref(props.node.description ?? '')
 const icon = ref(props.node.icon || NONE)
 const color = ref(props.node.color || GREY)
 const onHome = ref(Boolean(props.node.on_home))
-const parentId = ref(props.node.parent_id == null ? ROOT : String(props.node.parent_id))
 
 const iconOptions = computed(() =>
   props.node.icon && !ICONS[props.node.icon] ? [props.node.icon, ...ICON_NAMES] : ICON_NAMES,
@@ -51,12 +49,6 @@ const colorOptions = computed(() =>
   NODE_COLORS.map((option) => ({ ...option, value: option.value || GREY })),
 )
 
-// Any node but this one and its descendants can hold it.
-const destinations = computed(() => {
-  const excluded = new Set([props.node.id, ...descendantIds(props.node)])
-  return admin.allNodes.value.filter((node) => !excluded.has(node.id))
-})
-
 async function save(close) {
   await admin.update(props.node.id, {
     title: title.value.trim() || props.node.title,
@@ -65,10 +57,6 @@ async function save(close) {
     color: color.value === GREY ? null : color.value,
     on_home: onHome.value,
   })
-  const nextParent = parentId.value === ROOT ? null : Number(parentId.value)
-  if (nextParent !== (props.node.parent_id ?? null)) {
-    await admin.move(props.node.id, nextParent)
-  }
   close()
 }
 </script>
@@ -128,20 +116,6 @@ async function save(close) {
                   />
                   {{ t(`colors.${option.key}`) }}
                 </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field :label="t('admin.parent')" :description="t('admin.parentHint')">
-          <Select v-model="parentId">
-            <SelectTrigger>
-              <SelectValue :placeholder="t('admin.topLevel')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem :value="ROOT">{{ t('admin.topLevel') }}</SelectItem>
-              <SelectItem v-for="node in destinations" :key="node.id" :value="String(node.id)">
-                {{ node.title }}
               </SelectItem>
             </SelectContent>
           </Select>

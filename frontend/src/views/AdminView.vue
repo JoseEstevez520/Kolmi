@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Callout, Empty, StatusText } from 'elastic-ui'
+import { Callout, Empty, StatusText, TreeDrag } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
 import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
@@ -12,7 +12,7 @@ import { api } from '../lib/api.js'
 import { flatten, loadNodes } from '../lib/content.js'
 
 // The whole tree, managed: create a section or a page at any level, rename,
-// edit (description, icon, colour, on_home), move, reorder and delete with a
+// edit (description, icon, colour, on_home), move and reorder by dragging, and delete with a
 // confirmation. The tree itself is AdminNode, recursive, read like folders and
 // files. Below it, the class settings: the language the AI writes the pages in.
 const { t } = useI18n()
@@ -53,11 +53,20 @@ async function loadTree() {
 
 const allNodes = computed(() => flatten(tree.value))
 
+// A row dropped somewhere: into its new parent if that changed, then the parent's children in
+// their new order. Reads the tree before either call, so the order is the one that was drawn.
+const relocate = guarded(async ({ id, parentId, index }) => {
+  const node = allNodes.value.find((n) => n.id === id)
+  const holder = parentId == null ? null : allNodes.value.find((n) => n.id === parentId)
+  const ids = (holder ? (holder.children ?? []) : tree.value).map((n) => n.id).filter((x) => x !== id)
+  ids.splice(index, 0, id)
+  if ((node?.parent_id ?? null) !== parentId) await api.moveNode({ nodeId: id, parentId })
+  await api.reorderNodes({ ids })
+})
+
 provide('adminTree', {
   create: guarded((parentId, payload) => api.createNode({ parentId, ...payload })),
   update: guarded((nodeId, patch) => api.updateNode({ nodeId, ...patch })),
-  move: guarded((nodeId, parentId) => api.moveNode({ nodeId, parentId })),
-  reorder: guarded((ids) => api.reorderNodes({ ids })),
   remove: guarded((nodeId) => api.deleteNode({ nodeId })),
   allNodes,
 })
@@ -92,15 +101,17 @@ onMounted(loadTree)
             :icon="Layers"
           />
 
-          <ul v-else class="flex flex-col gap-0.5 rounded-[var(--radius-lg)] border border-border p-1.5">
-            <AdminNode
-              v-for="(node, i) in tree"
-              :key="node.id"
-              :node="node"
-              :siblings="tree"
-              :index="i"
-            />
-          </ul>
+          <TreeDrag v-else @move="(move) => relocate(move).catch(() => {})">
+            <ul class="flex flex-col gap-0.5">
+              <AdminNode
+                v-for="(node, i) in tree"
+                :key="node.id"
+                :node="node"
+                :siblings="tree"
+                :index="i"
+              />
+            </ul>
+          </TreeDrag>
         </div>
 
         <!-- With the tree, not before it: shown while the tree loads, it was pushed down. -->

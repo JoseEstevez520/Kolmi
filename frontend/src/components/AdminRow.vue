@@ -2,25 +2,26 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, ConfirmButton, Input, TruncatedText } from 'elastic-ui'
-import { ArrowDown, ArrowUp, Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
+import { Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
 import { nodeIcon } from '../lib/icons.js'
 
 // One row of the admin tree, read like a file explorer: a section is a folder
 // (open or closed), a page is a file. It shows the node's own icon when it has
-// one, otherwise the folder/file default, with the title editable in place and
-// the row's actions (add inside, edit, move up/down, delete) at the end.
+// one, otherwise the folder/file default, with the title editable in place. At rest
+// it is only that; the grip and the row's actions (add inside, edit, delete) come in
+// when the row is pointed at or focused, and stay on a screen with no hover.
 const props = defineProps({
   node: { type: Object, required: true },
   open: { type: Boolean, default: true },
-  canMoveUp: { type: Boolean, default: false },
-  canMoveDown: { type: Boolean, default: false },
   rename: { type: Function, required: true },
-  moveUp: { type: Function, default: null },
-  moveDown: { type: Function, default: null },
   remove: { type: Function, required: true },
 })
 
 const { t } = useI18n()
+
+// Out of sight at rest, in when the row is pointed at or has focus inside it (TreeDragItem's group).
+const reveal =
+  'transition-opacity duration-150 opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100 [@media(pointer:coarse)]:opacity-100'
 
 const chosen = computed(() => nodeIcon(props.node))
 const fallback = computed(() =>
@@ -50,16 +51,11 @@ async function save() {
   }
 }
 
-function call(fn) {
-  if (!fn) return
-  Promise.resolve(fn()).catch(() => {})
-}
 </script>
 
 <template>
-  <div
-    class="flex min-w-0 items-center gap-1.5 px-1.5 py-1"
-  >
+  <div class="flex min-w-0 items-center gap-1.5 px-1.5 py-1">
+    <div :class="[reveal, 'flex items-center']"><slot name="handle" /></div>
     <slot name="toggle" />
 
     <component
@@ -80,25 +76,8 @@ function call(fn) {
         <TruncatedText class="min-w-0">{{ node.title }}</TruncatedText>
       </Button>
 
-      <div class="flex shrink-0 items-center gap-1">
+      <div :class="[reveal, 'flex shrink-0 items-center gap-1']">
         <slot name="actions" />
-
-        <Button
-          variant="ghost"
-          size="icon"
-          :icon="ArrowUp"
-          :aria-label="t('admin.moveUp')"
-          :disabled="!canMoveUp"
-          @click="call(moveUp)"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          :icon="ArrowDown"
-          :aria-label="t('admin.moveDown')"
-          :disabled="!canMoveDown"
-          @click="call(moveDown)"
-        />
         <ConfirmButton variant="ghost" tone="danger" :label="t('admin.delete', { title: node.title })" :action="remove" />
       </div>
     </template>
