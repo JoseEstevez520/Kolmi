@@ -70,6 +70,7 @@ class FakeStore:
         self.versions: list[dict[str, Any]] = []
         self.logs: list[dict[str, Any]] = []
         self.passes: dict[int, dict[str, Any]] = {}
+        self.attached: list[dict[str, Any]] = []
         self.last_started = None
         self.settings = {"pass_enabled": True, "pass_times": ["03:00"], "pass_days": list(range(1, 8))}
 
@@ -119,6 +120,14 @@ class FakeStore:
 
     def set_note_status(self, note_id: int, status: str) -> None:
         self._notes[note_id]["status"] = status
+
+    def attach_file(self, file_id: int, node_id: int, note_ids: list[int]) -> bool:
+        for note in self._notes.values():
+            for file in note.get("files") or []:
+                if file["id"] == file_id and note["id"] in note_ids:
+                    self.attached.append({"file_id": file_id, "node_id": node_id})
+                    return True
+        return False
 
     def log(
         self,

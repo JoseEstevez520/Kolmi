@@ -17,7 +17,8 @@ import {
   Textarea,
 } from 'elastic-ui'
 import { Settings2 } from '@lucide/vue'
-import { descendantIds } from '../lib/content.js'
+import FilePicker from './FilePicker.vue'
+import { descendantIds, forgetNode } from '../lib/content.js'
 import { ICONS, ICON_NAMES, NODE_COLORS } from '../lib/icons.js'
 
 // Edit one node: its title, description, icon, colour, whether it is on the
@@ -147,6 +148,10 @@ async function save(close) {
         </Field>
 
         <Switch v-model="onHome">{{ t('admin.onHome') }}</Switch>
+
+        <Field v-if="node.kind === 'page'" :label="t('files.label')" :description="t('files.hint')">
+          <FilePicker :node-id="node.id" @change="forgetNode(node.id)" />
+        </Field>
 
         <div class="flex justify-end gap-2">
           <DialogMorphClose as-child>

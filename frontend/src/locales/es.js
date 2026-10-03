@@ -29,6 +29,18 @@ export default {
     failed: 'La petición ha fallado',
   },
 
+  files: {
+    downloads: 'Descargas',
+    label: 'Archivos',
+    hint: 'Zips, PDFs, código e imágenes, hasta 20 MB cada uno. Salen al final de la página.',
+    attach: 'Suelta aquí los archivos o búscalos',
+    attachWait: 'Empieza a escribir para poder adjuntar archivos',
+    full: 'Una nota lleva hasta {n} archivos',
+    loadError: 'No se han podido cargar los archivos.',
+    removeError: 'No se ha podido quitar el archivo.',
+    downloadError: 'No se ha podido descargar el archivo.',
+  },
+
   sidebar: {
     home: 'Inicio',
     notes: 'Notas',

@@ -32,6 +32,18 @@ export default {
     failed: 'Request failed',
   },
 
+  files: {
+    downloads: 'Downloads',
+    label: 'Files',
+    hint: 'Zips, PDFs, code and images, up to 20 MB each. They show at the end of the page.',
+    attach: 'Drop files here or browse',
+    attachWait: 'Start writing to attach files',
+    full: 'A note carries up to {n} files',
+    loadError: 'Could not load the files.',
+    removeError: 'Could not remove the file.',
+    downloadError: 'Could not download the file.',
+  },
+
   sidebar: {
     home: 'Home',
     notes: 'Notes',

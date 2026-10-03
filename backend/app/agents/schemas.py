@@ -24,6 +24,8 @@ class Batch(BaseModel):
     new_page: NewPage | None = None
     summary: str
     reason: str = ""
+    # Files of those notes that stay: they are attached to the page.
+    file_ids: list[int] = Field(default_factory=list)
 
 
 class Discarded(BaseModel):
@@ -31,8 +33,14 @@ class Discarded(BaseModel):
     reason: str = ""
 
 
+class DiscardedFile(BaseModel):
+    file_id: int
+    reason: str = ""
+
+
 class GatekeeperResult(BaseModel):
     batches: list[Batch] = Field(default_factory=list)
     discarded: list[Discarded] = Field(default_factory=list)
+    discarded_files: list[DiscardedFile] = Field(default_factory=list)
     # The nodes it read before deciding; filled in by the gatekeeper, not by the model.
     reads: list[int] = Field(default_factory=list, exclude=True)

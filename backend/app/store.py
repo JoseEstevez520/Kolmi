@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
+from postgrest.exceptions import APIError
+
+from . import files as filelib
 from .class_settings import class_language, read_settings
 from .supabase_client import get_client
 
@@ -43,6 +46,10 @@ class Store(Protocol):
     def write_page(self, node_id: int, *, content_md: str, content_web: str) -> None: ...
 
     def set_note_status(self, note_id: int, status: str) -> None: ...
+
+    def attach_file(self, file_id: int, node_id: int, note_ids: list[int]) -> bool:
+        """Move a note's file to a page, if it is one of `note_ids`'s. False when it isn't."""
+        ...
 
     def log(
         self,
@@ -113,7 +120,7 @@ class SupabaseStore:
         return class_language(self.client)
 
     def pending_notes(self) -> list[dict[str, Any]]:
-        return (
+        notes = (
             self.client.table("notes")
             .select("id, content, node_id, user_id, created_at")
             .eq("status", "pending")
@@ -121,6 +128,50 @@ class SupabaseStore:
             .execute()
             .data
         )
+        return self._with_files(notes)
+
+    def _with_files(self, notes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Each note with its files, and for each what the gatekeeper can see of it."""
+        if not notes:
+            return notes
+        try:
+            rows = (
+                self.client.table("files")
+                .select("id, note_id, name, size, mime, path")
+                .in_("note_id", [n["id"] for n in notes])
+                .order("id")
+                .execute()
+                .data
+            )
+        except APIError as exc:
+            if filelib.is_missing(exc):
+                return notes
+            raise
+        for note in notes:
+            note["files"] = []
+        by_id = {n["id"]: n for n in notes}
+        for row in rows:
+            try:
+                data = self.client.storage.from_(filelib.BUCKET).download(row["path"])
+                peek = filelib.peek(row["name"], data)
+            except Exception:  # the file is listed without a peek
+                peek = ""
+            by_id[row["note_id"]]["files"].append(
+                {**row, "kind": filelib.kind_of(row["name"]), "peek": peek}
+            )
+        return notes
+
+    def attach_file(self, file_id: int, node_id: int, note_ids: list[int]) -> bool:
+        # The file leaves its note: the page owns it now, and the note going away leaves it be.
+        rows = (
+            self.client.table("files")
+            .update({"node_id": node_id, "note_id": None})
+            .eq("id", file_id)
+            .in_("note_id", note_ids)
+            .execute()
+            .data
+        )
+        return bool(rows)
 
     def nodes(self) -> list[dict[str, Any]]:
         return (
@@ -140,7 +191,9 @@ class SupabaseStore:
             .execute()
             .data
         )
-        return rows[0] if rows else None
+        if not rows:
+            return None
+        return {**rows[0], "files": filelib.node_files(self.client, node_id)}
 
     def create_page(
         self,

@@ -7,6 +7,7 @@ import { FileQuestion, FileText, Layers } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
+import PageFiles from '../components/PageFiles.vue'
 import PageNav from '../components/PageNav.vue'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode } from '../lib/content.js'
 import { iconByName } from '../lib/icons.js'
@@ -132,6 +133,7 @@ watch(id, load)
           :description="t('node.pageEmpty')"
           :icon="FileText"
         />
+        <PageFiles :files="node?.files ?? []" />
         <PageNav :id="id" />
       </template>
 

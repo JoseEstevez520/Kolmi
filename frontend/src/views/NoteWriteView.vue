@@ -14,6 +14,7 @@ import {
   TruncatedText,
 } from 'elastic-ui'
 import { ArrowLeft, Folder, Maximize2, Minimize2 } from '@lucide/vue'
+import FilePicker from '../components/FilePicker.vue'
 import PlaceTree from '../components/PlaceTree.vue'
 import { api } from '../lib/api.js'
 import { loadNodes, nodes } from '../lib/content.js'
@@ -280,6 +281,13 @@ onMounted(() => loadNodes().catch(() => {}))
         v-model="body"
         :label="t('notes.field')"
         :placeholder="t('notes.write.bodyPlaceholder')"
+      />
+      <!-- Files save as they go up, so they need the note to exist: it does after the first save. -->
+      <FilePicker
+        class="mt-10"
+        :note-id="noteId"
+        :disabled="noteId == null"
+        :drop-label="noteId == null ? t('files.attachWait') : ''"
       />
     </template>
   </div>

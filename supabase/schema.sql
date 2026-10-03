@@ -48,6 +48,24 @@ create table if not exists notes (
   created_at timestamptz not null default now()
 );
 
+-- Files on a page or on a note. Also in migrations/20261003130000_files.sql.
+create table if not exists files (
+  id bigserial primary key,
+  node_id bigint references nodes(id) on delete cascade,
+  note_id bigint references notes(id) on delete cascade,
+  name text not null,
+  size bigint not null,
+  mime text not null default 'application/octet-stream',
+  path text not null,  -- the object's key in the `files` bucket
+  user_id uuid not null references profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  -- A file belongs to a page or to a note, never both: the pass moves it from one to the other.
+  constraint files_belongs_check check (num_nonnulls(node_id, note_id) = 1)
+);
+
+create index if not exists files_node_id_idx on files (node_id);
+create index if not exists files_note_id_idx on files (note_id);
+
 -- One row per daily AI pass.
 create table if not exists ai_passes (
   id bigserial primary key,
@@ -121,6 +139,7 @@ alter table notes enable row level security;
 alter table ai_passes enable row level security;
 alter table ai_log enable row level security;
 alter table settings enable row level security;
+alter table files enable row level security;
 
 -- settings is the one exception: everyone signed in reads it, only admins write it. The
 -- backend still goes through the service role.
@@ -135,3 +154,7 @@ create policy "settings_admin_insert" on settings
 drop policy if exists "settings_admin_update" on settings;
 create policy "settings_admin_update" on settings
   for update to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Private bucket: the backend uploads, and hands out short-lived signed links to download.
+insert into storage.buckets (id, name, public) values ('files', 'files', false)
+on conflict (id) do nothing;

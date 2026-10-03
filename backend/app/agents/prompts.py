@@ -30,7 +30,9 @@ if it fits better elsewhere.
 summary, title and description in {{language}}.
 
 You get the tree as an index (id, kind and title, indented under its section) and the pending \
-notes (id, content, and hint: the node the student thinks it goes in, or null). Call read_page \
+notes (id, content, hint: the node the student thinks it goes in, or null, and files, if any: id, \
+name, kind, size and a peek at the start or a zip's entries). A file that adds something goes in \
+its batch's "file_ids"; one that adds nothing, in "discarded_files" with its reason. Call read_page \
 with an id to read a page's whole Markdown, or to see what a section holds: usually the hinted \
 page, and any other in the index that may already cover the note.
 
@@ -43,10 +45,12 @@ Answer only with JSON in this shape:
       "node_id": 12,
       "new_page": {{"parent_id": 4, "title": "Git basics", "description": "", "placement": "first" | "after" | "last", "after_node_id": 7, "placement_reason": "why it goes there"}},
       "summary": "cleaned, merged content, no names",
-      "reason": "what it adds to that page"
+      "reason": "what it adds to that page",
+      "file_ids": [5]
     }}
   ],
-  "discarded": [{{"note_id": 2, "reason": "what it repeats, or why it adds nothing"}}]
+  "discarded": [{{"note_id": 2, "reason": "what it repeats, or why it adds nothing"}}],
+  "discarded_files": [{{"file_id": 6, "reason": "why it adds nothing"}}]
 }}
 "node_id" is set when action is "update"; "new_page" when it is "create" ("after_node_id" only when placement is "after").
 """

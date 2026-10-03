@@ -49,6 +49,36 @@ async function request(path, { method = 'GET', body, keepalive = false } = {}) {
   return data
 }
 
+// A file goes up as the request's body, with its progress reported as it goes (fetch has none).
+function upload({ file, noteId = null, nodeId = null, onProgress }) {
+  const query = new URLSearchParams({ name: file.name })
+  if (noteId != null) query.set('note_id', noteId)
+  if (nodeId != null) query.set('node_id', nodeId)
+  const token = accessToken()
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${BASE_URL}/files/upload?${query}`)
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded / event.total)
+    }
+    xhr.onerror = () => reject(new ApiError(0, t('api.unreachable')))
+    xhr.onload = () => {
+      let data = null
+      try {
+        data = JSON.parse(xhr.responseText)
+      } catch {
+        // Not JSON: the status says enough.
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(data)
+      else reject(new ApiError(xhr.status, (data && data.detail) || t('api.failed')))
+    }
+    xhr.send(file)
+  })
+}
+
 export const api = {
   getProfile: () => request('/profile'),
 
@@ -132,4 +162,14 @@ export const api = {
 
   deleteNode: ({ nodeId }) =>
     request('/node/delete', { method: 'POST', body: { node_id: nodeId } }),
+
+  // Files: on a page (admin) or on a note (its author). Upload and delete change them; a
+  // download is a short-lived link, asked for at the click.
+  uploadFile: upload,
+
+  noteFiles: (noteId) => request(`/files?note_id=${encodeURIComponent(noteId)}`),
+
+  deleteFile: (fileId) => request('/files/delete', { method: 'POST', body: { file_id: fileId } }),
+
+  fileLink: (fileId) => request(`/files/download?file_id=${encodeURIComponent(fileId)}`),
 }

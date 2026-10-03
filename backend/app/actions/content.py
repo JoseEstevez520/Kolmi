@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from ..auth import Context
+from ..files import node_files
 from .registry import action
 
 
@@ -115,6 +116,8 @@ def view_node(ctx: Context, params: ViewNodeParams):
     if node["kind"] != "page":
         node.pop("content_md", None)
         node.pop("content_web", None)
+    else:
+        node["files"] = node_files(ctx.client, params.node_id)
 
     node["children"] = (
         ctx.client.table("nodes")

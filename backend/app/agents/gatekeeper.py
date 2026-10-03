@@ -49,11 +49,26 @@ def build_index(nodes: list[dict[str, Any]]) -> str:
     return "\n".join(lines) or "(empty: no sections or pages yet)"
 
 
+def _file(file: dict[str, Any]) -> dict[str, Any]:
+    out = {
+        "id": file["id"],
+        "name": file["name"],
+        "kind": file.get("kind"),
+        "size": file.get("size"),
+    }
+    if file.get("peek"):
+        out["peek"] = file["peek"]
+    return out
+
+
 def _notes(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        {"id": row["id"], "content": row["content"], "hint": row.get("node_id")}
-        for row in rows
-    ]
+    notes = []
+    for row in rows:
+        note = {"id": row["id"], "content": row["content"], "hint": row.get("node_id")}
+        if row.get("files"):
+            note["files"] = [_file(f) for f in row["files"]]
+        notes.append(note)
+    return notes
 
 
 def _payload(notes: list[dict[str, Any]], nodes: list[dict[str, Any]]) -> str:
@@ -86,7 +101,12 @@ def _reader(
             return f"Section {node_id}, {node.get('title')}:\n{listing or '(empty)'}"
         page = read_page(node_id) or {}
         markdown = (page.get("content_md") or "").strip()
-        return f"Page {node_id}, {node.get('title')}:\n\n{markdown or '(this page is still empty)'}"
+        names = ", ".join(f["name"] for f in page.get("files") or [])
+        attached = f"\n\nFiles: {names}" if names else ""
+        return (
+            f"Page {node_id}, {node.get('title')}:\n\n{markdown or '(this page is still empty)'}"
+            f"{attached}"
+        )
 
     return run
 

@@ -153,6 +153,29 @@ def _write_batch(
     )
 
 
+def _attach_files(
+    store: Store,
+    pass_id: int,
+    batch: Batch,
+    page: dict[str, Any],
+    files: dict[int, dict[str, Any]],
+    stats: dict[str, Any],
+) -> None:
+    """The batch's kept files go to its page, if they are files of the batch's own notes."""
+    for file_id in batch.file_ids:
+        file = files.get(file_id)
+        if file is None or not store.attach_file(file_id, page["id"], batch.note_ids):
+            continue
+        store.log(
+            pass_id=pass_id,
+            note_id=file["note_id"],
+            node_id=page["id"],
+            action="updated",
+            reason=f"File attached: {file['name']}",
+        )
+        stats["files_attached"] += 1
+
+
 def _apply(
     store: Store,
     llm: LLM,
@@ -162,15 +185,31 @@ def _apply(
     note_ids: set[int],
     stats: dict[str, Any],
     language: str,
+    files: dict[int, dict[str, Any]] | None = None,
 ) -> None:
+    files = files or {}
     for batch in plan.batches:
         page = _resolve_target(store, pass_id, batch, stats)
         if page is None:
             continue
         _write_batch(store, llm, web_llm, pass_id, batch, page, stats, language)
+        _attach_files(store, pass_id, batch, page, files, stats)
         for note_id in batch.note_ids:
             if note_id in note_ids:
                 store.set_note_status(note_id, "processed")
+
+    for item in plan.discarded_files:
+        file = files.get(item.file_id)
+        if file is None:
+            continue
+        store.log(
+            pass_id=pass_id,
+            note_id=file["note_id"],
+            node_id=None,
+            action="discarded",
+            reason=f"File {file['name']}: {item.reason}".strip(),
+        )
+        stats["files_discarded"] += 1
 
     for item in plan.discarded:
         if item.note_id not in note_ids:
@@ -276,6 +315,8 @@ def run_daily_pass(
         "created": 0,
         "updated": 0,
         "discarded": 0,
+        "files_attached": 0,
+        "files_discarded": 0,
         "pages": [],
         "flagged": [],
         "web_model": _model_name(web_llm) if web_llm is not None else None,
@@ -293,7 +334,8 @@ def run_daily_pass(
         stats["batches"] = len(plan.batches)
         stats["read"] = plan.reads
         stats["unreviewed"] = _review(plan, note_ids)
-        _apply(store, llm, web_llm, pass_id, plan, note_ids, stats, language)
+        files = {f["id"]: f for n in notes for f in n.get("files") or []}
+        _apply(store, llm, web_llm, pass_id, plan, note_ids, stats, language, files)
         store.close_pass(pass_id, status="done", stats=stats)
     except Exception as exc:
         store.close_pass(pass_id, status="failed", stats=stats, error=str(exc))

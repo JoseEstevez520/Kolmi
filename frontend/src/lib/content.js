@@ -126,3 +126,8 @@ export function trailTo(id, list = nodes.value) {
   }
   return []
 }
+
+// A page's files changed: forget what was read of it, so the page asks again.
+export function forgetNode(id) {
+  delete pages.value[id]
+}

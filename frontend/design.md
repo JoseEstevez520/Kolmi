@@ -63,6 +63,10 @@ appear in phase 1.
 - **Page** (`/node/:id`, kind `page`): one page's title and its content, drawn from its OpenUI Lang
   (`docs/page-format.md`) or, without it, from its Markdown; an empty state
   when it has none.
+- **Files**: a page ends with a "Downloads" section, drawn by the app (never by the AI): a
+  card per file, with its icon, name and size. An admin adds them from the page's Edit dialog;
+  a student attaches them to a note in the editor, below the text. Both use elastic-ui's
+  `FileUpload`.
 - **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
   move, reorder) and deleted with a confirmation, with a section or a page added at any
   level. Below it, the class language: a `Select` in a `Field`, saved as soon as
