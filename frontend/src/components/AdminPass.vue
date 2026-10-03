@@ -6,8 +6,8 @@ import AdminSetting from './AdminSetting.vue'
 import { api } from '../lib/api.js'
 
 // When the daily pass runs: on or off, the times and the weekdays, all in Madrid time. Every
-// change is saved at once, as in the class language block, and goes back to what was saved if
-// the backend refuses it. "Run now" starts the pass in the background; the AI log shows it.
+// change is saved at once and without a word: the next-pass line is the answer, and it follows the
+// change. It goes back to what was saved if the backend refuses it. "Run now" starts the pass in the background; the AI log shows it.
 const { t, locale } = useI18n()
 
 const ZONE = 'Europe/Madrid'
@@ -18,7 +18,6 @@ const days = ref([])
 const loading = ref(true)
 const loadError = ref('')
 const saveError = ref('')
-const status = ref('')
 const saving = ref(false)
 
 async function load() {
@@ -37,21 +36,28 @@ function apply(settings) {
   days.value = settings.pass_days
 }
 
+// One save at a time; a change made while one is in flight is saved right after it.
+let queued = null
 async function save(patch) {
-  if (saving.value) return
+  if (saving.value) {
+    queued = { ...queued, ...patch }
+    return
+  }
   const before = { enabled: enabled.value, times: times.value, days: days.value }
   saveError.value = ''
   saving.value = true
-  status.value = t('admin.pass.saving')
   try {
     apply(await api.updateSettings(patch))
-    status.value = t('admin.pass.saved')
   } catch (e) {
     ;({ enabled: enabled.value, times: times.value, days: days.value } = before)
-    status.value = ''
     saveError.value = e.message || t('common.somethingWrongLong')
   } finally {
     saving.value = false
+  }
+  if (queued) {
+    const next = queued
+    queued = null
+    await save(next)
   }
 }
 
@@ -123,51 +129,41 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="contents">
+  <AdminSetting :title="t('admin.pass.title')" :description="t('admin.pass.zone')">
+    <template #aside>
+      <StatusText class="mt-4 block text-label text-fg" :text="nextText" />
+      <ActionButton
+        class="mt-4"
+        icon="play"
+        :label="t('admin.pass.runNow')"
+        :done-label="t('admin.pass.started')"
+        :error-label="runFailed || t('common.somethingWrong')"
+        :action="runNow"
+      />
+    </template>
+
     <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>
-      <AdminSetting :title="t('admin.pass.enabled')" :description="t('admin.pass.hint')">
-        <Switch :model-value="enabled" :aria-label="t('admin.pass.enabled')" @update:model-value="(on) => save({ passEnabled: on })" />
-        <StatusText v-if="saveError" :text="saveError" error />
-      </AdminSetting>
+      <Switch :model-value="enabled" :aria-label="t('admin.pass.enabled')" @update:model-value="(on) => save({ passEnabled: on })" />
+      <StatusText v-if="saveError" :text="saveError" error />
 
-      <AdminSetting v-if="enabled" :title="t('admin.pass.schedule')" :description="t('admin.pass.scheduleHint')">
-        <template #aside>
-          <StatusText class="mt-4 block text-label text-fg" :text="status || nextText" :working="saving" />
-        </template>
-        <div class="flex w-full flex-col gap-2">
-          <span class="text-meta text-fg-muted">{{ t('admin.pass.days') }}</span>
-          <WeekPillbox
-            :model-value="days"
-            :locale="locale"
-            :label="t('admin.pass.daysLabel')"
-            :words="dayWords"
-            @update:model-value="setDays"
-          />
-        </div>
-        <div class="flex w-full flex-col gap-2">
-          <span class="text-meta text-fg-muted">{{ t('admin.pass.times') }}</span>
-          <DayStrip
-            v-model="times"
-            :label="t('admin.pass.times')"
-            :add-label="t('admin.pass.addTime')"
-            @changed="setTimes"
-          />
-          <p class="m-0 text-meta text-fg-muted">{{ t('admin.pass.timesHint') }}</p>
-        </div>
-      </AdminSetting>
-
-      <AdminSetting :title="t('admin.pass.runTitle')" :description="t('admin.pass.runHint')">
-        <ActionButton
-          icon="play"
-          :label="t('admin.pass.runNow')"
-          :done-label="t('admin.pass.started')"
-          :error-label="runFailed || t('common.somethingWrong')"
-          :action="runNow"
+      <template v-if="enabled">
+        <WeekPillbox
+          :model-value="days"
+          :locale="locale"
+          :label="t('admin.pass.daysLabel')"
+          :words="dayWords"
+          @update:model-value="setDays"
         />
-      </AdminSetting>
+        <DayStrip
+          v-model="times"
+          :label="t('admin.pass.times')"
+          :add-label="t('admin.pass.addTime')"
+          @changed="setTimes"
+        />
+      </template>
     </template>
-  </div>
+  </AdminSetting>
 </template>
