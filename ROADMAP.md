@@ -56,10 +56,12 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page. It runs on the
-  main model, and each page's Markdown is its source.
 - [ ] **Downloadable files** — a page can carry files to download: zips, PDFs, code. Students
   can leave them with a note too, and they end up on the page they belong to.
+  Open question: how students' files are handled (who checks them, size and type limits,
+  what the pass does with them).
+- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page. It runs on the
+  main model, and each page's Markdown is its source.
 - [ ] **Status part** — a quieter way to show a note's or a pass's state (built in elastic-ui;
   see its roadmap), in place of the coloured badges.
 - [ ] **Forums** — doubts and answers, not just notes.
