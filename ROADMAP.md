@@ -89,8 +89,6 @@ What we're building and what's next. Open to whatever the class needs.
   Spring Boot basics). Look at it with more real notes before changing the prompt.
 - [ ] **Measure a pass** — time is known (about 1.5 to 5.5 minutes for 2 to 8 notes); the cost per
   night is not. Needed to set the schedule and the model.
-- [ ] **Sidebar after a rename** — it keeps the old title until a reload while Admin updates.
-  Probably in elastic-ui's `NavTreeItem`; reproduce it first.
 - [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
 
 ## Next

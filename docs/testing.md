@@ -120,7 +120,7 @@ Done with notes written from the class repo, two files from the Moodle
   didn't have. The prompts were changed for the first two, and a second run came out clean.
 - **Moodle:** the course's "Theory and examples" labels are empty; the theory is only in zips and
   PDFs, so there was little text to write notes from.
-- **App:** no console errors. The sidebar kept an old title after a rename until a reload.
+- **App:** no console errors. The sidebar kept an old title after a rename until a reload (fixed in elastic-ui 0.7.2).
 
 ## What to decide after testing
 
