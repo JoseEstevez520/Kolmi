@@ -51,12 +51,15 @@ async function load() {
 onMounted(load)
 
 // A note created for the first file takes its id here while that file goes up: reloading then
-// would empty the list under it.
+// would empty the list under it. The parent gives the id the moment the note exists, before
+// `ensureNote()` returns, so this watch runs first: it can't wait for the return to know the id
+// is ours, and asks the parent through `creating` (set while `ensureNote` is pending).
+let creating = false
 let createdId = null
 watch(
   () => [props.noteId, props.nodeId],
   () => {
-    if (props.noteId != null && props.noteId === createdId) return
+    if (props.noteId != null && (creating || props.noteId === createdId)) return
     load()
   },
 )
@@ -65,8 +68,13 @@ async function upload(file, onProgress) {
   error.value = ''
   let noteId = props.noteId
   if (noteId == null && props.nodeId == null && props.ensureNote) {
-    noteId = await props.ensureNote()
-    createdId = noteId
+    creating = true
+    try {
+      noteId = await props.ensureNote()
+      createdId = noteId
+    } finally {
+      creating = false
+    }
   }
   const saved = await api.uploadFile({
     file,
