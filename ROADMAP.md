@@ -75,9 +75,22 @@ What we're building and what's next. Open to whatever the class needs.
 - [ ] **Import the existing notes** — the class repo's notes as pages: their Markdown as it is,
   and the web page made from it. Nothing is imported yet; it waits until the app is ready for
   the class.
-- [ ] **First real pass** — notes written in the app, the daily pass run on them, and the pages
-  it writes checked on screen, with real cases from the class repo and the Moodle. The plan is
-  in [docs/testing.md](docs/testing.md).
+- [x] **First real pass** — tried on 2026-10-03 with notes from the class repo, the Moodle and a
+  classmate's photos, and then cleaned up. The gatekeeper did what the plan expects in every case
+  (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
+  The plan and the results are in [docs/testing.md](docs/testing.md).
+- [ ] **Better pages** — what the test showed: the model adds code examples the note didn't
+  have (the notes guide asks for examples, the prompt says not to invent: pick one); pages come
+  out with no visuals and no "To explore" section; the pass can't read a PDF, a zip or a photo,
+  so a file only gets judged by its name. Decide whether the Gateway's web model is worth
+  bringing back.
+- [ ] **Gatekeeper judgement** — it isn't deterministic (the same notes were split into two pages
+  in one run and merged in another) and it can fold an unrelated topic into a page (Maven inside
+  Spring Boot basics). Look at it with more real notes before changing the prompt.
+- [ ] **Measure a pass** — time is known (about 1.5 to 5.5 minutes for 2 to 8 notes); the cost per
+  night is not. Needed to set the schedule and the model.
+- [ ] **Sidebar after a rename** — it keeps the old title until a reload while Admin updates.
+  Probably in elastic-ui's `NavTreeItem`; reproduce it first.
 - [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
 
 ## Next
