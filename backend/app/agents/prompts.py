@@ -216,9 +216,7 @@ current Markdown. Write the notes following this guide:
 The answer:
 - The whole page in {{language}}, even when the material or the current page is in another \
 language: translate what you keep. No level-1 heading: the title is shown already.
-- No names or personal data. Do not invent facts, code or numbers: what the page says comes from \
-the notes or from the page it already has. The page is as long as its material: a short note \
-makes a short page.
+- No names or personal data. Do not invent facts.
 - Answer with the Markdown only: no preamble, no code fence around the whole page.
 """
 
