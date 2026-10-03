@@ -76,7 +76,8 @@ What we're building and what's next. Open to whatever the class needs.
   and the web page made from it. Nothing is imported yet; it waits until the app is ready for
   the class.
 - [ ] **First real pass** — notes written in the app, the daily pass run on them, and the pages
-  it writes checked on screen.
+  it writes checked on screen, with real cases from the class repo and the Moodle. The plan is
+  in [docs/testing.md](docs/testing.md).
 - [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
 
 ## Next
