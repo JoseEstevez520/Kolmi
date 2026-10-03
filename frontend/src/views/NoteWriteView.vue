@@ -10,6 +10,7 @@ import {
   NavTree,
   NavTreeItem,
   PopoverMorph,
+  useTruncated,
   StatusText,
 } from 'elastic-ui'
 import { ArrowLeft, Folder, Maximize2, Minimize2 } from '@lucide/vue'
@@ -63,6 +64,9 @@ const paths = computed(() => {
   return out
 })
 const hintPath = computed(() => paths.value.get(hint.value)?.slice(-2).join(' / ') ?? '')
+// The path fades at its end only when it runs past the button, not always.
+const hintTextEl = ref(null)
+const hintTruncated = useTruncated(hintTextEl, hintPath)
 
 const content = computed(() => joinNote(title.value, body.value))
 
@@ -212,7 +216,11 @@ onMounted(() => loadNodes().catch(() => {}))
         >
           <template #trigger>
             <Folder class="size-4 shrink-0" aria-hidden="true" />
-            <span class="min-w-0 overflow-hidden whitespace-nowrap mask-fade-r">
+            <span
+              ref="hintTextEl"
+              class="min-w-0 overflow-hidden whitespace-nowrap"
+              :class="hintTruncated && 'mask-fade-r'"
+            >
               {{ hintPath || t('notes.write.hintEmpty') }}
             </span>
           </template>

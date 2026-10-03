@@ -19,6 +19,11 @@ here: no hand-styled stand-ins, no overriding its classes. The steps:
 4. Swap the tarball in `vendor/` and `package.json`.
 5. Restart the dev server: a reload keeps the old version.
 
+**A fading edge only when the text runs past.** `mask-fade-r` always fades a line's end,
+whether it fits or not, so a short label loses its last letters. Use it only behind
+elastic-ui's `useTruncated` (`:class="truncated && 'mask-fade-r'"`, as `AdminRow` does), never as
+a plain class.
+
 The page catalogue (`src/lib/openui/`) follows the same rule. Each component the AI may write
 maps to a library part, and its renderer only passes the props on.
 
