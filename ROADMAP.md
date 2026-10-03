@@ -30,9 +30,8 @@ What we're building and what's next. Open to whatever the class needs.
   note can be edited until the daily pass, and zen mode hides the sidebar and header.
 - [x] **Spanish UI** — every screen in English and Spanish, picked by the browser's language,
   with a switch in the app. All strings go through Vue I18n.
-- [x] **Settings** — language and animations, kept in each browser. Animations stay on by
-  default even when the system asks for reduced motion; the switch hands the choice back to
-  the system.
+- [x] **Settings** — language (from a list) and animations (on or off, on by default, whatever
+  the system says), kept in each browser. A language switch no longer remounts the app.
 - [x] **Faster pages** — the API checks the session against the project's signing keys
   instead of asking Supabase on every request, the tree is kept in the browser, and pages
   are read ahead when a link is pointed at.
@@ -42,19 +41,37 @@ What we're building and what's next. Open to whatever the class needs.
   decides (`en` by default). Apply
   [supabase/migrations/20261002120000_settings.sql](supabase/migrations/20261002120000_settings.sql)
   in the Supabase SQL editor to turn the control on.
+- [x] **Navigation like the class site** — breadcrumbs whose chevrons open the siblings, the
+  top-level sections in the sidebar, a table of contents, previous and next, and links between
+  pages that the agents can write.
+- [x] **The gatekeeper looks before it decides** — it gets the tree as an index (with each
+  node's description) and reads the pages it needs with a tool. A note can carry a hint of where
+  it goes, from a quiet picker in the editor; it's a hint, not an order.
+- [x] **Notes first, then the page** — the notes agent writes the Markdown with the class repo's
+  apuntes-claros skill; the web agent makes the page from it with apuntes-web; the main model
+  draws the visuals.
+- [x] **A richer page catalogue** — elastic-ui's own parts: charts, composed diagrams, tables,
+  glossaries, diffs, code walkthroughs, terminal and agent replays, cards, logos, and pieces built
+  from library parts in a sandboxed frame.
+- [x] **Notes save themselves** — as you write, with no draft and no send button.
 
 ## Now
 
 - [ ] **Seed the tree** — the class's modules (DWCS, DIW, DWCC, Deployment, DASP) and Extra as
-  sections, each with a description, so the gatekeeper knows where things go.
+  sections, each with a description, so the gatekeeper knows where things go. A test version is
+  in place; the real one comes with the class's content.
 - [ ] **Import the existing notes** — the class repo's notes as pages: their Markdown as it is,
-  and the web page made from it. Kolmi starts with real content, and it tests the web agent on
-  about 40 real notes.
+  and the web page made from it. Three were imported as a test; the rest waits until the app is
+  ready for the class.
 - [ ] **First real pass** — notes written in the app, the daily pass run on them, and the pages
   it writes checked on screen.
 - [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
 
 ## Next
+
+- [ ] **The pass's schedule in the admin** — whether it runs, at what times and on which days,
+  kept in `settings`; the host cron runs every hour and the pass exits when it isn't due. A
+  "Run now" button, and the next run shown.
 
 - [ ] **Downloadable files** — a page can carry files to download: zips, PDFs, code. Students
   can leave them with a note too, and they end up on the page they belong to.
