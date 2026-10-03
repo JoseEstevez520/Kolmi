@@ -87,7 +87,8 @@ function passResult(pass) {
   const stats = pass.stats ?? {}
   const parts = []
   for (const key of ['notes', 'created', 'updated', 'discarded', 'flagged']) {
-    const n = stats[key]
+    // Some stats are counts and some are lists of what was counted (flagged notes, say).
+    const n = Array.isArray(stats[key]) ? stats[key].length : stats[key]
     if (n != null) parts.push(t(`aiLog.stats.${key}`, { n }, n))
   }
   return parts.join(' · ')
