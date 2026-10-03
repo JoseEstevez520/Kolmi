@@ -8,7 +8,8 @@ import { api } from '../lib/api.js'
 // The class language: the one the daily pass writes the shared notes and pages in, whatever
 // language each note comes in. One value for the whole class, set here by an admin and kept in
 // the backend; each person's own UI language lives in Settings and is not this. A pick is saved
-// at once, as in Settings, and goes back to what was saved if the backend refuses it.
+// at once and without a word (the select already shows it), and goes back to what was saved if
+// the backend refuses it.
 const { t, te } = useI18n()
 
 const language = ref('')
@@ -16,7 +17,6 @@ const languages = ref([])
 const loading = ref(true)
 const loadError = ref('')
 const saveError = ref('')
-const status = ref('')
 const saving = ref(false)
 
 function languageName({ code, name }) {
@@ -44,14 +44,11 @@ async function save(code) {
   language.value = code
   saveError.value = ''
   saving.value = true
-  status.value = t('admin.classLanguage.saving')
   try {
     const settings = await api.updateSettings({ classLanguage: code })
     language.value = settings.class_language
-    status.value = t('admin.classLanguage.saved')
   } catch (e) {
     language.value = previous
-    status.value = ''
     saveError.value = e.message || t('common.somethingWrongLong')
   } finally {
     saving.value = false
@@ -62,7 +59,7 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminSetting :title="t('admin.classLanguage.label')" :description="t('admin.classLanguage.hint')">
+  <AdminSetting :title="t('admin.classLanguage.label')">
     <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
@@ -79,7 +76,6 @@ onMounted(load)
           </SelectContent>
         </Select>
       </Field>
-      <StatusText v-if="status" :text="status" :working="saving" />
     </template>
   </AdminSetting>
 </template>
