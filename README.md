@@ -46,6 +46,7 @@ pass all work. DeepSeek writes the pages in OpenUI Lang, in the class's language
 - [Features and actions](docs/features.md)
 - [Page format](docs/page-format.md)
 - [Testing with real cases](docs/testing.md)
+- [Data and privacy](docs/privacy.md)
 - [Brand tone](docs/brand-tone.md)
 
 ## Structure
