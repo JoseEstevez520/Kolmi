@@ -2,8 +2,8 @@ import { computed, ref } from 'vue'
 import { api } from './api.js'
 import { t } from './i18n.js'
 
-// The whole content tree, loaded once and shared. The sidebar lists all of it;
-// the admin panel refreshes it after every change, so the sidebar follows.
+// The whole content tree, loaded once and shared. The sidebar lists only its
+// roots; the admin panel refreshes it after every change, so the sidebar follows.
 // The last tree seen is kept in this browser too, so opening the app paints it at
 // once while the fresh one arrives (the tree is the same for everyone in a class).
 const TREE_KEY = 'kolmi.tree'
@@ -116,7 +116,7 @@ export function descendantIds(node) {
 
 // The way down to a node: each node from the top level to it, with the list it sits in (its
 // siblings, itself included, in the admin's order). Empty when the node is not in the tree. The
-// breadcrumbs, the sidebar's open sections and a page's previous and next come from it.
+// breadcrumbs, the sidebar's lit section and a page's previous and next come from it.
 export function trailTo(id, list = nodes.value) {
   const target = Number(id)
   for (const node of list) {

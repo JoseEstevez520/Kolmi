@@ -41,7 +41,6 @@ export default {
     settings: 'Settings',
     signOut: 'Sign out',
     signOutAs: 'Sign out ({name})',
-    toggleSection: 'Show or hide what {name} holds',
   },
 
   settings: {

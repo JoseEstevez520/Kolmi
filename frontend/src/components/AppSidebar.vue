@@ -1,28 +1,30 @@
 <script setup>
-import { onMounted, reactive, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import { Home, LogOut, NotebookPen, ScrollText, Settings, SlidersHorizontal } from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
-import { loadNodes, nodes, trailTo } from '../lib/content.js'
-import NavNode from './NavNode.vue'
+import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
+import { nodeIcon } from '../lib/icons.js'
 
-// The app's sidebar (elastic-ui "connected" variant): Home, Notes, the whole
-// tree (sections fold their pages, so the tab slides to the page being read),
-// the admin panel for admins, and, at the bottom, Settings and sign out.
+// The app's sidebar (elastic-ui "connected" variant): Home, Notes, the
+// top-level nodes with their icon and colour (never the whole tree; the pages
+// inside are reached from a section and the header's breadcrumbs), the admin
+// panel for admins, and, at the bottom, Settings and sign out.
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 
-// The sections on the way to the node being read open, so its tab shows; the
-// ones opened by hand stay as they are.
-const open = reactive({})
-watch(
-  () => (route.name === 'node' ? trailTo(route.params.id, nodes.value) : []),
-  (trail) => trail.forEach(({ node }) => (open[node.id] = true)),
-  { immediate: true },
-)
+// Reading a node keeps its top-level section lit, so the tab stays on the
+// section while you move between its pages.
+const active = computed(() => {
+  if (route.name === 'node') {
+    const root = trailTo(route.params.id, nodes.value)[0]?.node
+    if (root) return `/node/${root.id}`
+  }
+  return route.path
+})
 
 onMounted(() => {
   loadNodes().catch(() => {})
@@ -43,11 +45,20 @@ async function handleSignOut() {
       </RouterLink>
     </template>
 
-    <NavTree :model-value="route.path">
+    <NavTree :model-value="active">
       <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
       <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen">{{ t('sidebar.notes') }}</NavTreeItem>
 
-      <NavNode v-for="node in nodes" :key="node.id" :node="node" :open="open" top />
+      <NavTreeItem
+        v-for="node in nodes"
+        :key="node.id"
+        :value="`/node/${node.id}`"
+        :to="`/node/${node.id}`"
+        :icon="nodeIcon(node)"
+        @pointerenter="prefetchNode(node.id)"
+      >
+        {{ node.title }}
+      </NavTreeItem>
 
       <NavTreeItem v-if="profile?.role === 'admin'" value="/admin" to="/admin" :icon="Settings">
         {{ t('sidebar.admin') }}
@@ -64,7 +75,7 @@ async function handleSignOut() {
     </NavTree>
 
     <template #footer>
-      <NavTree :model-value="route.path" :label="t('sidebar.account')">
+      <NavTree :model-value="active" :label="t('sidebar.account')">
         <NavTreeItem value="/settings" to="/settings" :icon="SlidersHorizontal">
           {{ t('sidebar.settings') }}
         </NavTreeItem>

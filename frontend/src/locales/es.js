@@ -38,7 +38,6 @@ export default {
     settings: 'Ajustes',
     signOut: 'Cerrar sesión',
     signOutAs: 'Cerrar sesión ({name})',
-    toggleSection: 'Mostrar u ocultar lo que hay en {name}',
   },
 
   settings: {
