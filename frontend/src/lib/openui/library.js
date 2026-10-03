@@ -159,8 +159,12 @@ const renderers = {
     h(DescriptionList, { divided: true, class: 'not-prose' }, () => renderNode(items ?? [])),
   ),
 
+  // The term goes in the `#term` slot so its inline Markdown (`code`, **bold**) is drawn, as in a cell.
   DescriptionItem: renderer(({ term, text }) =>
-    h(DescriptionItem, { term }, () => h(Markdown, { source: text ?? '', class: 'text-fg-secondary [&_p]:m-0' })),
+    h(DescriptionItem, null, {
+      term: () => cell(term),
+      default: () => h(Markdown, { source: text ?? '', class: 'text-fg-secondary [&_p]:m-0' }),
+    }),
   ),
 
   Accordion: renderer(({ items }) =>
