@@ -73,7 +73,8 @@ appear in phase 1.
 - **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
   move, reorder) and deleted with a confirmation, with a section or a page added at any
   level. Below it, the class language: a `Select` in a `Field`, saved as soon as
-  it's picked.
+  it's picked; and when the daily AI pass runs: the days in a `WeekPillbox`, the times on a
+  `DayStrip`, saved as soon as they are settled.
 
 The content is one tree of nodes: a **section** groups, a **page** holds the content. The
 sidebar lists only the top-level nodes, the one holding the current page lit; the rest is
