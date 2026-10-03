@@ -291,25 +291,26 @@ _PARTS = (
     "DiagramArrow, Chart"
 )
 
-# Adapted from elastic-ui's SandboxFrame story "With Library Parts": the format, not the topic.
-_PIECE_EXAMPLE = """\
+# Three pieces in the style wanted, on topics of their own: a step button moving files between
+# areas, a Slider driving two numbers, a toggle comparing two behaviours. Each shows something
+# before it is touched.
+_PIECE_STEPS = """\
 <template>
   <div class="flex flex-col gap-4">
-    <p class="m-0 text-ui text-fg-secondary">Each press asks the container for a logger.</p>
-    <div class="flex flex-wrap gap-2">
-      <Button @click="asked++">Ask for a logger</Button>
-      <Button variant="ghost" :disabled="!asked" @click="asked = 0">Start over</Button>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <Button :disabled="at === steps.length - 1" @click="at++">Run {{ next }}</Button>
+      <Button variant="ghost" size="sm" :disabled="!at" @click="at = 0">Start over</Button>
     </div>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <div v-for="scope in scopes" :key="scope.name" class="flex flex-col gap-2">
-        <span class="text-label text-fg">{{ scope.name }}
-          <TextMorph class="text-fg-muted" :text="scope.instances + ' instances'" />
-        </span>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div v-for="area in areas" :key="area.name" class="flex flex-col gap-2">
+        <span class="text-label text-fg">{{ area.name }}</span>
         <div class="flex flex-wrap gap-2">
-          <DiagramChip v-for="n in scope.instances" :key="n" :color="scope.color">Logger #{{ n }}</DiagramChip>
+          <DiagramChip v-for="file in step[area.key]" :key="file" :color="area.color">{{ file }}</DiagramChip>
+          <span v-if="!step[area.key].length" class="text-meta text-fg-muted">nothing here</span>
         </div>
       </div>
     </div>
+    <TextMorph class="text-ui text-fg-secondary" :text="step.said" />
   </div>
 </template>
 
@@ -318,39 +319,120 @@ import { computed, ref } from 'vue'
 
 export default {
   setup() {
-    const asked = ref(0)
-    const scopes = computed(() => [
-      { name: 'Singleton', color: '#2563eb', instances: asked.value ? 1 : 0 },
-      { name: 'Prototype', color: '#7c3aed', instances: asked.value },
-    ])
-    return { asked, scopes }
+    const areas = [
+      { key: 'work', name: 'Working tree', color: '#ca8a04' },
+      { key: 'staged', name: 'Staging area', color: '#0891b2' },
+      { key: 'repo', name: 'Repository', color: '#2563eb' },
+    ]
+    const steps = [
+      { run: '', work: ['app.js', 'notes.txt'], staged: ['style.css'], repo: ['index.html'], said: 'style.css is staged; app.js and notes.txt are only edited.' },
+      { run: 'git add app.js', work: ['notes.txt'], staged: ['style.css', 'app.js'], repo: ['index.html'], said: 'app.js joins style.css in the staging area.' },
+      { run: 'git commit', work: ['notes.txt'], staged: [], repo: ['index.html', 'style.css', 'app.js'], said: 'The commit takes what was staged. notes.txt was never added, so it stays out.' },
+    ]
+    const at = ref(0)
+    const step = computed(() => steps[at.value])
+    const next = computed(() => steps[at.value + 1]?.run ?? 'git commit')
+    return { areas, steps, at, step, next }
+  },
+}
+</script>"""
+
+_PIECE_SLIDER = """\
+<template>
+  <div class="flex flex-col gap-5">
+    <Field label="Elements in the sorted list">
+      <Slider v-model="size" :min="10" :max="1000" :step="10" />
+    </Field>
+    <StatGroup>
+      <Stat label="Linear search" :value="size" />
+      <Stat label="Binary search" :value="binary" />
+    </StatGroup>
+    <p class="m-0 text-ui text-fg-secondary">
+      Comparisons at worst: binary search checks <TextMorph class="font-semibold text-fg" :text="ratio" /> fewer elements.
+    </p>
+  </div>
+</template>
+
+<script>
+import { computed, ref } from 'vue'
+
+export default {
+  setup() {
+    const size = ref(100)
+    const binary = computed(() => Math.ceil(Math.log2(size.value + 1)))
+    const ratio = computed(() => Math.round(size.value / binary.value) + ' times')
+    return { size, binary, ratio }
+  },
+}
+</script>"""
+
+_PIECE_TOGGLE = """\
+<template>
+  <div class="flex flex-col gap-4">
+    <ToggleGroup v-model="mode" type="single" aria-label="Cache">
+      <ToggleGroupItem value="off">Without cache</ToggleGroupItem>
+      <ToggleGroupItem value="on">With cache</ToggleGroupItem>
+    </ToggleGroup>
+    <div class="flex flex-col gap-2">
+      <span class="text-label text-fg">Five requests for /products</span>
+      <div class="flex flex-wrap gap-2">
+        <DiagramChip v-for="request in requests" :key="request.n" :color="request.color" :note="request.ms + ' ms'">
+          #{{ request.n }} {{ request.from }}
+        </DiagramChip>
+      </div>
+    </div>
+    <p class="m-0 text-ui text-fg-secondary">
+      Total: <TextMorph class="font-semibold text-fg tabular-nums" :text="total + ' ms'" />,
+      <TextMorph :text="queries" />
+    </p>
+  </div>
+</template>
+
+<script>
+import { computed, ref } from 'vue'
+
+export default {
+  setup() {
+    const mode = ref('off')
+    const requests = computed(() =>
+      [1, 2, 3, 4, 5].map((n) =>
+        mode.value === 'on' && n > 1
+          ? { n, from: 'cache', ms: 4, color: '#7c3aed' }
+          : { n, from: 'database', ms: 120, color: '#0891b2' },
+      ),
+    )
+    const total = computed(() => requests.value.reduce((sum, r) => sum + r.ms, 0))
+    const queries = computed(() => (mode.value === 'on' ? 'one database query' : 'five database queries'))
+    return { mode, requests, total, queries }
   },
 }
 </script>"""
 
 _PIECE = f"""\
-You build one small interactive piece for a page of Kolmi, a class notebook, as a Vue \
-single-file component made of the elastic-ui library's parts. Every word in it is in {{language}}.
+You build one small interactive piece for a page of Kolmi, a class notebook: a Vue component \
+made of the elastic-ui library's parts. Every word in it is in {{language}}.
 
-{_NOTES_LINE}
+The brief says what it is for, and the page's notes are its context: every name and number \
+comes from them. The page around it explains; the piece lets the reader touch one idea.
 
-- Answer with the component only, a <template> and then a <script>: no prose, no code fence.
-- The <script> is plain, `export default {{ setup() {{ … return {{ … }} }} }}`, never \
-<script setup>. Imports only, and only named, from 'vue' and '@joseestevez/vue-elastic-ui'.
-- These parts are already registered; use them by name in the template: {_PARTS}.
-- It runs in a frame with no network, already in the app's theme, light or dark. Never write \
-a colour of your own, except the concept colour a part takes (a DiagramChip's or DiagramArea's \
-color, a Chart series' color). {_COLOURS}
-- Your own markup takes only layout and type classes: flex, grid, gap-*, p-*, m-*, \
-grid-cols-*, sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, text-fg-secondary, \
-text-fg-muted, tabular-nums.
-- One thing to touch, and it already shows something meaningful before anyone touches it. \
-Full, not sparse: it shows all the brief and the notes give for it, with no large empty areas.
-- It fits any width from 340 to 720px, and takes the height of what it holds.
-- Short labels: the page around it explains.
+- Answer with a <template> and then a plain <script>, `export default {{ setup() {{ … return \
+{{ … }} }} }}`, never <script setup>; no prose, no code fence. Imports only named, and only \
+from 'vue' and '@joseestevez/vue-elastic-ui'. There is no network.
+- These parts are registered; use them by name: {_PARTS}.
+- Your own markup takes only layout and type classes: flex, grid, gap-*, p-*, m-*, items-*, \
+justify-*, grid-cols-*, sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, \
+text-fg-secondary, text-fg-muted, font-semibold, tabular-nums. The frame already has the \
+app's theme, light or dark, on a tinted ground: no colours or backgrounds of your own, except \
+a part's concept colour (a DiagramChip's color, a Chart series'). {_COLOURS}
+- It fits any width from 340 to 720px.
 
-The format, in a short example (yours is about its own topic, in {{language}}):
-{_PIECE_EXAMPLE}
+Three examples, each on its own topic (yours is on the brief's, in {{language}}):
+
+{_PIECE_STEPS}
+
+{_PIECE_SLIDER}
+
+{_PIECE_TOGGLE}
 """
 
 
