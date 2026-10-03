@@ -1,6 +1,6 @@
 # Features and actions
 
-An extension of what's already specified (login, notes and the nightly pass). Add a `role`
+An extension of what's already specified (login, notes and the pass). Add a `role`
 column to `profiles` (`student` | `admin`).
 
 The AI writes each page twice: first the Markdown, then the page itself as OpenUI Lang, made
