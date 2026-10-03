@@ -101,7 +101,7 @@ const editor = useEditor({
   },
 })
 
-// A value set from outside (a draft or a saved note arriving) replaces what is written.
+// A value set from outside (a saved note arriving) replaces what is written.
 watch(model, (value) => {
   const current = editor.value
   if (!current) return

@@ -37,7 +37,7 @@ const { t, locale } = useI18n()
 
         <main class="pt-4 pb-24">
           <RouterView v-slot="{ Component, route: current }">
-            <PageTransition :page="current.path">
+            <PageTransition :page="current.meta.page ?? current.path">
               <component :is="Component" />
             </PageTransition>
           </RouterView>

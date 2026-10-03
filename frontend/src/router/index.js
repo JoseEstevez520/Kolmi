@@ -17,9 +17,14 @@ const routes = [
   { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/register', name: 'register', component: RegisterView, meta: { public: true } },
   { path: '/notes', name: 'notes', component: NotesView, meta: { layout: 'app' } },
-  // Writing one: a new note, or one of yours until the daily pass takes it.
-  { path: '/notes/new', name: 'note-new', component: NoteWriteView, meta: { layout: 'app' } },
-  { path: '/notes/:id(\\d+)', name: 'note', component: NoteWriteView, meta: { layout: 'app' } },
+  // Writing one: a new note (`new`), or one of yours until the daily pass takes it. One route,
+  // kept as one page (`meta.page`), so a new note taking its id in the URL doesn't reload it.
+  {
+    path: '/notes/:id(\\d+|new)',
+    name: 'note',
+    component: NoteWriteView,
+    meta: { layout: 'app', page: 'note' },
+  },
   // One screen for a section and one for a page: the node says which.
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { layout: 'app' } },

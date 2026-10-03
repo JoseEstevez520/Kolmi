@@ -16,37 +16,6 @@ export function joinNote(title, body) {
   return rest ? `# ${head}\n\n${rest}` : `# ${head}`
 }
 
-// A draft lives in this browser until it is sent, so closing the tab at the end of a class
-// loses nothing. One per note: `new` for the one being started, the id for one being edited.
-const draftKey = (id) => `kolmi.draft.${id ?? 'new'}`
-
-export function loadDraft(id) {
-  try {
-    const saved = localStorage.getItem(draftKey(id))
-    return saved ? JSON.parse(saved) : null
-  } catch {
-    return null
-  }
-}
-
-export function saveDraft(id, draft) {
-  try {
-    localStorage.setItem(draftKey(id), JSON.stringify(draft))
-    return true
-  } catch {
-    // Private mode or blocked storage: the note is still on screen, just not kept.
-    return false
-  }
-}
-
-export function clearDraft(id) {
-  try {
-    localStorage.removeItem(draftKey(id))
-  } catch {
-    // Nothing kept, nothing to clear.
-  }
-}
-
 // A note's text without its marks, for a card's preview: the card is a link, so it shows
 // words, not the note's own links and code blocks.
 export function plainText(markdown = '') {

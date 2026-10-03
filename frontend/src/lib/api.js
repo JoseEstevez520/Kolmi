@@ -11,7 +11,8 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body } = {}) {
+// `keepalive` lets a request outlive the page, for a save as the tab closes.
+async function request(path, { method = 'GET', body, keepalive = false } = {}) {
   const token = accessToken()
   const headers = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -23,6 +24,7 @@ async function request(path, { method = 'GET', body } = {}) {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      keepalive,
     })
   } catch {
     throw new ApiError(0, t('api.unreachable'))
@@ -52,13 +54,14 @@ export const api = {
 
   register: ({ code, name }) => request('/register', { method: 'POST', body: { code, name } }),
 
-  createNote: ({ content, format = 'text', nodeId = null }) =>
-    request('/notes', { method: 'POST', body: { content, format, node_id: nodeId } }),
+  createNote: ({ content, format = 'text', nodeId = null, keepalive }) =>
+    request('/notes', { method: 'POST', body: { content, format, node_id: nodeId }, keepalive }),
 
-  updateNote: ({ noteId, content, format = 'markdown', nodeId = null }) =>
+  updateNote: ({ noteId, content, format = 'markdown', nodeId = null, keepalive }) =>
     request('/notes/update', {
       method: 'POST',
       body: { note_id: noteId, content, format, node_id: nodeId },
+      keepalive,
     }),
 
   myNotes: () => request('/notes/mine'),

@@ -1,9 +1,8 @@
 <script setup>
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import {
-  ActionButton,
   Button,
   Callout,
   Field,
@@ -19,12 +18,12 @@ import {
 import { ArrowLeft, Maximize2, Minimize2 } from '@lucide/vue'
 import { api } from '../lib/api.js'
 import { loadNodes, nodes } from '../lib/content.js'
-import { clearDraft, joinNote, loadDraft, saveDraft, splitNote } from '../lib/notes.js'
+import { joinNote, splitNote } from '../lib/notes.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
 // Writing a note, as a page of its own: a title and the text under it, nothing else in the
 // way. At /notes/new it starts one; at /notes/:id it reopens one of yours, until the daily
-// pass takes it. What is written is kept in this browser as a draft until it is sent.
+// pass takes it. What is written is saved to the server as it goes: there is no send.
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -32,8 +31,8 @@ const { t } = useI18n()
 // The editor brings Tiptap with it, so it loads with this screen, not with the app.
 const NoteEditor = defineAsyncComponent(() => import('../components/NoteEditor.vue'))
 
-const id = computed(() => (route.params.id ? Number(route.params.id) : null))
-const isNew = computed(() => id.value == null)
+// The note being written: none until a new one is first saved.
+const noteId = ref(route.params.id === 'new' ? null : Number(route.params.id))
 
 const title = ref('')
 const body = ref('')
@@ -41,7 +40,6 @@ const loading = ref(false)
 const error = ref('')
 // A note the pass already took: shown, no longer editable.
 const closed = ref(null)
-const draftSaved = ref(false)
 const editor = ref(null)
 
 // Where the student thinks the note goes, as a hint for the daily pass; "Not sure" leaves it
@@ -64,44 +62,25 @@ const places = computed(() => {
 })
 
 const content = computed(() => joinNote(title.value, body.value))
-const empty = computed(() => !content.value)
 
-// What was there when the screen opened: only a change from it is a draft worth keeping.
-let baseline = ''
-let baselineHint = NOT_SURE
-
-function fill(text, nodeId = null) {
-  const parts = splitNote(text)
-  title.value = parts.title
-  body.value = parts.body
-  hint.value = nodeId == null ? NOT_SURE : String(nodeId)
-  baseline = joinNote(parts.title, parts.body)
-  baselineHint = hint.value
-}
+// What the server has, to save only a change from it.
+let saved = { content: '', hint: NOT_SURE }
 
 async function load() {
-  error.value = ''
-  closed.value = null
-  draftSaved.value = false
-  const draft = loadDraft(id.value)
-
-  if (isNew.value) {
-    fill(draft ? joinNote(draft.title, draft.body) : '', draft?.nodeId ?? null)
-    return
-  }
-
+  if (noteId.value == null) return
   loading.value = true
   try {
-    const note = (await api.myNotes()).find((n) => n.id === id.value)
+    const note = (await api.myNotes()).find((n) => n.id === noteId.value)
     if (!note) {
       error.value = t('notes.write.notFound')
     } else if (note.status !== 'pending') {
       closed.value = note
     } else {
-      fill(
-        draft ? joinNote(draft.title, draft.body) : note.content,
-        draft && 'nodeId' in draft ? draft.nodeId : note.node_id,
-      )
+      const parts = splitNote(note.content)
+      title.value = parts.title
+      body.value = parts.body
+      hint.value = note.node_id == null ? NOT_SURE : String(note.node_id)
+      saved = { content: content.value, hint: hint.value }
     }
   } catch (e) {
     error.value = e.message || t('notes.errorLong')
@@ -110,22 +89,88 @@ async function load() {
   }
 }
 
-// Kept a moment after the last key, not on every one.
+// '' (nothing to say yet), 'saving', 'saved' or 'error'.
+const status = ref('')
+const statusText = computed(
+  () =>
+    ({
+      saving: t('notes.write.saving'),
+      saved: t('notes.write.saved'),
+      error: t('notes.write.saveError'),
+    })[status.value] ?? '',
+)
+
+// One save at a time. A change made while one is in flight is saved right after it, so the
+// latest text wins and a new note is created only once. An empty note is never sent: a new one
+// isn't created, and a cleared one keeps its last text.
 let timer = null
+let inFlight = null
+let again = false
+let leaving = false
+
+function save(keepalive = false) {
+  clearTimeout(timer)
+  if (inFlight) {
+    again = true
+    return inFlight
+  }
+  if (loading.value || closed.value || error.value || !content.value) return
+  if (content.value === saved.content && hint.value === saved.hint) return
+
+  const sent = { content: content.value, hint: hint.value }
+  status.value = 'saving'
+  inFlight = (async () => {
+    try {
+      const fields = { content: sent.content, nodeId: hintId.value, keepalive }
+      if (noteId.value == null) {
+        const note = await api.createNote({ ...fields, format: 'markdown' })
+        noteId.value = note.id
+        // The URL becomes the note's own, so going back and reopening finds it.
+        if (!leaving) router.replace({ name: 'note', params: { id: note.id } })
+      } else {
+        await api.updateNote({ ...fields, noteId: noteId.value })
+      }
+      saved = sent
+      status.value = 'saved'
+    } catch {
+      // The text stays on screen; the next change tries again.
+      status.value = 'error'
+    } finally {
+      inFlight = null
+    }
+    if (again) {
+      again = false
+      if (status.value !== 'error') await save(keepalive)
+    }
+  })()
+  return inFlight
+}
+
+// Saved a moment after the last key, not on every one.
 watch([title, body, hint], () => {
   if (loading.value || closed.value) return
-  if (content.value === baseline && hint.value === baselineHint) return
-  draftSaved.value = false
   clearTimeout(timer)
-  timer = setTimeout(() => {
-    draftSaved.value = saveDraft(id.value, {
-      title: title.value,
-      body: body.value,
-      nodeId: hintId.value,
-    })
-  }, 600)
+  timer = setTimeout(save, 1200)
 })
-onBeforeUnmount(() => clearTimeout(timer))
+
+// Leaving the screen, or the tab, saves what is pending. A closing tab can't wait, so that save
+// is sent with keepalive to outlive the page.
+onBeforeRouteLeave(() => {
+  leaving = true
+  return save()
+})
+function onHide() {
+  if (document.visibilityState === 'hidden') save(true)
+}
+onMounted(() => {
+  document.addEventListener('visibilitychange', onHide)
+  window.addEventListener('pagehide', onHide)
+})
+onBeforeUnmount(() => {
+  clearTimeout(timer)
+  document.removeEventListener('visibilitychange', onHide)
+  window.removeEventListener('pagehide', onHide)
+})
 
 // Escape leaves zen mode, unless it was closing the "/" menu. Leaving the screen leaves it too.
 function onKey(event) {
@@ -138,17 +183,6 @@ onBeforeUnmount(() => {
   exitZen()
 })
 
-async function send() {
-  clearTimeout(timer)
-  if (isNew.value) {
-    await api.createNote({ content: content.value, format: 'markdown', nodeId: hintId.value })
-  } else {
-    await api.updateNote({ noteId: id.value, content: content.value, nodeId: hintId.value })
-  }
-  clearDraft(id.value)
-  router.push('/notes')
-}
-
 // Enter in the title goes on to the text, as in a document.
 function toText() {
   editor.value?.focus()
@@ -157,7 +191,6 @@ function toText() {
 onMounted(load)
 // The tree is usually loaded already, for the sidebar; if it fails, the hint just has no options.
 onMounted(() => loadNodes().catch(() => {}))
-watch(id, load)
 </script>
 
 <template>
@@ -165,9 +198,13 @@ watch(id, load)
     <div class="mb-10 flex items-center justify-between gap-3">
       <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
       <div v-if="!closed && !error" class="flex items-center gap-2">
-        <span class="text-meta text-fg-muted" aria-live="polite">
-          {{ draftSaved ? t('notes.write.draftSaved') : '' }}
-        </span>
+        <StatusText
+          v-if="status"
+          :class="['text-meta', status !== 'error' && 'text-fg-muted']"
+          :text="statusText"
+          :working="status === 'saving'"
+          :error="status === 'error'"
+        />
         <Button
           variant="ghost"
           size="icon"
@@ -175,14 +212,6 @@ watch(id, load)
           :aria-label="zen ? t('notes.write.zenExit') : t('notes.write.zen')"
           :aria-pressed="zen"
           @click="toggleZen"
-        />
-        <ActionButton
-          :action="send"
-          :disabled="empty || loading"
-          :label="isNew ? t('notes.send') : t('notes.write.save')"
-          :done-label="isNew ? t('notes.sent') : t('notes.write.saved')"
-          :error-label="t('notes.sendError')"
-          :icon="isNew ? 'arrowUp' : 'check'"
         />
       </div>
     </div>
