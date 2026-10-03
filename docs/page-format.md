@@ -52,8 +52,9 @@ props and descriptions, with no renderers. Argument order is the order of the ke
 | `Chip(text, color?, icon?, note?)` | `DiagramChip`: a tinted part |
 | `Label(text, icon?, color?)` | `DiagramItem`: a plain line with an icon |
 | `Arrow(label?, both?)` | `DiagramArrow`: points along its layout, and turns when a row runs down |
+| `Chart(label, series, variant?, x?, y?, caption?)`, `ChartSeries(name, points, color?)` | `Chart`: values on real axes, as a line, bars or points; each axis `{title, unit, scale, min, max}`, each point `{x, y, label?}` |
 | `Diagram(label, brief, caption?, svg?)` | `Diagram` round a `DiagramImage`: the SVG as an `<img>`, so it cannot run scripts |
-| `Artifact(title, brief, height?, html?)` | `SandboxFrame`: `sandbox="allow-scripts"`, no same-origin access, a content policy with no network, and as tall as its content (`height` is only where it starts) |
+| `Artifact(title, brief, height?, piece?)` | `SandboxFrame`: `sandbox="allow-scripts"`, no same-origin access, a content policy with no network, and as tall as its content (`height` is only where it starts). The piece runs on the library's sandbox runtime |
 
 The figure pieces are elastic-ui's diagram parts (on its `diagram-area` and `diagram-chip`
 classes, tinted by `--diagram-color`), so a model can compose the boxes-with-tints drawings the class notes site
@@ -62,22 +63,34 @@ yellow, grey, and green/amber/red for outcomes), and icons names from a fixed Lu
 (`icon-names.js`). Both read in light and dark because the library mixes the tint with the
 theme's own colours.
 
-A Diagram's SVG and an Artifact's document get the elastic-ui tokens, resolved in the current
+A piece runs in `SandboxFrame` on the library's sandbox runtime
+(`elastic-ui/sandbox-runtime.js`, about 220 KB gzipped: Vue with its template compiler and the
+parts). `library.js` imports it with Vite's `?url`, so it ships as a file of its own, outside the
+main bundle, and only a frame with a piece loads it. An Artifact written before pieces holds a
+whole HTML document in the same slot, and still renders as plain HTML.
+
+A Diagram's SVG and an Artifact get the elastic-ui tokens, resolved in the current
 theme, and the diagram classes as plain CSS, from the library (`DiagramImage`, `SandboxFrame`),
 so they look like the app in both themes. On a theme change the SVG is drawn again, and the
 Artifact gets the new tokens by message, keeping its state.
 
-### Diagrams and Artifacts
+### Charts, Diagrams and Artifacts
 
-The page model does not write SVG or HTML. It writes a **brief** (what to show, its parts and
+A `Chart` is data, so the page model writes it itself, with the numbers from the notes. A
+chart of values is never a `Diagram`.
+
+The page model does not write SVG or code. For a Diagram or an Artifact it writes a **brief** (what to show, its parts and
 labels, the colour of each concept, what to notice) and leaves the last argument out. Once the
 page parses, `draw_visuals` in `backend/app/agents/web.py` sends each brief to the main model
-(`LLM_*`), checks the answer (an `<svg>` with a viewBox, no scripts, no event attributes, no
-outside resources; or a whole HTML document) and writes it into the source. A bad answer is
+(`LLM_*`), checks the answer and writes it into the source. A Diagram's is an `<svg>` with a viewBox, no
+scripts, no event attributes and no outside resources. An Artifact's is a **piece**: a Vue
+single-file component made of elastic-ui's parts, a `<template>` and a plain `<script>` with
+`export default { setup() { … } }` (never `<script setup>`), importing only, by name, from
+`vue` and `@joseestevez/vue-elastic-ui`. A bad answer is
 sent back once with its problem; a failed call is tried once more. If the second answer fails
 too, the block is taken out of the page, and the pass stats record it (`visuals`). The page
 itself never fails because of a drawing. An SVG whose labels overlap (a rough measure of each
-`<text>`'s box) is sent back once too, but kept if the second answer still overlaps. A block that already has its SVG or HTML (kept on an
+`<text>`'s box) is sent back once too, but kept if the second answer still overlaps. A block that already has its SVG or piece (kept on an
 update) is not drawn again.
 
 `library.js` maps each name onto elastic-ui. `prompt.js` builds the same catalogue with

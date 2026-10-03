@@ -25,7 +25,7 @@ The notes (the Markdown) carry the text; the page decides what goes in cards, ta
 
 ## Before writing
 
-- If you show numbers (prices, benchmarks), with their source and their date, and in a real chart (axes, grid), not in a conceptual drawing.
+- If you show numbers (prices, benchmarks), with their source and their date, and in a real chart (a Chart, with axes), not in a conceptual drawing.
 - **No links that lead away.** Do not add a "see X" to another page that takes the reader out; if there is one, it must be essential.
 - **Concepts, not a tool.** The idea is explained so it holds for any tool; a specific tool is only the example ("in OpenCode, ..."), never the topic of the page.
 - Find **what has to be understood first**, and tell it with the minimum.
@@ -69,7 +69,7 @@ export const promptOptions = {
     'Start with root = Page([...]). The page title is shown already: do not repeat it as a heading.',
     'The notes are the page\'s content: everything in them goes on the page, in their order, and nothing they do not say. Never invent commands, numbers, URLs or facts.',
     `The icon set (for Area, Chip, Label and AgentStep), and no other: ${ICON_NAMES.join(', ')}.`,
-    'Diagram only for what a Figure cannot draw (a curve, a timeline, a chart with axes); Artifact only when touching it is the point, at most one per page. For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or HTML yourself.',
+    'Numbers on axes (prices, benchmarks, times) are a Chart, its data written from the notes. Diagram only for what neither a Figure nor a Chart can draw (a curve that only shows a shape, a timeline); Artifact only when touching it is the point, at most one per page. For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or code yourself.',
     'For something the reader steps through or plays, use the piece made for it: CodeWalkthrough for code explained part by part or built up (a class that gains its routes), TerminalReplay for a terminal session, AgentReplay for an agent at work, Steps for a procedure. An Artifact is only for what none of them can show.',
     'When you are also given the current page in OpenUI Lang, start from it: keep the blocks that still match the notes, with their Diagram and Artifact blocks as they are, and change or add only what the notes changed or added.',
     'Answer with OpenUI Lang only: no prose before or after it.',

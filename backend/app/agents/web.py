@@ -83,21 +83,50 @@ def _name(llm: LLM) -> str:
 # -- the visuals: a page's Diagram and Artifact briefs, drawn by the main model ----------------
 
 # For each kind: the argument with the brief, the one the drawing goes in, and what it is.
-_VISUALS = {"Diagram": (1, 3, "svg"), "Artifact": (1, 3, "html")}
+_VISUALS = {"Diagram": (1, 3, "svg"), "Artifact": (1, 3, "piece")}
 _DROP = object()
 _SVG = re.compile(r"<svg\b.*</svg>", re.S | re.I)
-_HTML = re.compile(r"<!doctype html.*</html>|<html\b.*</html>", re.S | re.I)
+# A piece: from its <template> to the last closing tag of the component.
+_PIECE = re.compile(r"<template\b.*</(?:template|script|style)>", re.S | re.I)
 _OUTSIDE = re.compile(r"""(?:src|href)\s*=\s*["']?\s*(?:https?:)?//""", re.I)
+# What a piece may import, as the sandbox runtime reads it: named imports from these two only.
+_IMPORTABLE = {"vue", "@joseestevez/vue-elastic-ui"}
+_NAMED_IMPORT = re.compile(r"""^\s*import\s*\{[^}]*\}\s*from\s*['"]([^'"]+)['"]""", re.M)
+_ANY_IMPORT = re.compile(r"^\s*import\b.*$", re.M)
+
+
+def _piece_problem(piece: str) -> str:
+    """What stops a piece running on the sandbox runtime, or "" when nothing does."""
+    if not re.search(r"<template(\s[^>]*)?>", piece, re.I):
+        return "there is no <template>"
+    script = re.search(r"<script(\s[^>]*)?>(.*?)</script>", piece, re.S | re.I)
+    if not script:
+        return "there is no <script> with export default { setup() { ... } }"
+    if re.search(r"\bsetup\b", script.group(1) or ""):
+        return (
+            "<script setup> cannot run in the frame: write a plain <script> with "
+            "export default { setup() { ... return { ... } } }"
+        )
+    body = script.group(2)
+    if not re.search(r"\bexport\s+default\b", body):
+        return "the <script> has no export default"
+    for line in _ANY_IMPORT.findall(body):
+        named = _NAMED_IMPORT.match(line)
+        if not named:
+            return f"only named imports work ({line.strip()})"
+        if named.group(1) not in _IMPORTABLE:
+            return f'it imports from "{named.group(1)}": only vue and @joseestevez/vue-elastic-ui'
+    return ""
 
 
 def _problem(kind: str, answer: str) -> tuple[str, str]:
     """The usable drawing in `answer` and, when there is none, what is wrong with it."""
     text = openui.strip_fence(answer)
-    match = (_SVG if kind == "svg" else _HTML).search(text)
+    match = (_SVG if kind == "svg" else _PIECE).search(text)
     if not match:
         if kind == "svg":
             return "", "there is no complete <svg> element"
-        return "", "the HTML document is incomplete: it must run from <!doctype html> to </html>"
+        return "", "there is no <template> followed by a <script>"
     drawing = match.group(0)
     if kind == "svg":
         opening = re.match(r"<svg\b[^>]*>", drawing, re.I)
@@ -109,6 +138,10 @@ def _problem(kind: str, answer: str) -> tuple[str, str]:
             return "", "it has an event attribute (onclick, onload...)"
         if re.search(r"<foreignObject\b", drawing, re.I):
             return "", "it contains a <foreignObject>"
+    else:
+        problem = _piece_problem(drawing)
+        if problem:
+            return "", problem
     if _OUTSIDE.search(drawing):
         return "", "it loads something from outside (a src or href to another site)"
     # Usable, but worth one more try.

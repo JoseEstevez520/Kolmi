@@ -1,31 +1,58 @@
-root = Page([intro, h1, dims, analogia, h2, p2, diagrama, tabla, cierre1, h3, tabla2, plan, tip, h4, pOpen, cmd, pConfig, h5, contexto, h6, futuro, h7, explorar])
-intro = Text("Un agente es un modelo con herramientas: el **modelo** es la parte que piensa y decide. No hay uno que sirva para todo; hay modelos más listos y más caros, y otros rápidos y baratos que para muchas tareas bastan.")
+root = Page([intro, h1, terms, analogia, h2, p2, chart, tabla, end2, h3, p3, tablaTareas, p4, planFig, end3, tip, h4, p5, cmds, h5, p6, h6, p7, h7, explore, footer])
+
+intro = Text("Un agente es un modelo con herramientas. El **modelo** es el que piensa, y no hay uno mejor para todo: los hay más listos y más caros, y otros rápidos y baratos que para muchas tareas bastan.")
+
 h1 = Heading("Qué cambia entre modelos")
-dims = DescriptionList([d1, d2, d3, d4, d5])
-d1 = DescriptionItem("Capacidad", "Cuántos pasos seguidos acierta sin perderse. Se mide con pruebas estándar (*benchmarks*), como SWE-bench.")
-d2 = DescriptionItem("Rapidez", "Lo que tarda en empezar a responder. En un agente, que da muchas vueltas, se nota.")
-d3 = DescriptionItem("Precio", "Lo que cuesta cada millón de tokens, de entrada y de salida.")
-d4 = DescriptionItem("Contexto", "Cuánto texto le cabe a la vez.")
-d5 = DescriptionItem("Razonamiento", "Si «piensa» antes de responder. Acierta más en lo difícil, pero tarda y cuesta más.")
-analogia = Figure("Un vehículo para cada recado: no se coge el camión para comprar el pan.", [v1, v2], "row", "Un vehículo para cada encargo")
-v1 = Chip("Furgoneta pequeña", "blue", "package", "repartir por el barrio")
-v2 = Chip("Camión", "yellow", "hammer", "una mudanza")
+terms = DescriptionList([dCap, dRap, dPre, dCon, dRaz])
+dCap = DescriptionItem("Capacidad", "Cuántos pasos seguidos acierta sin perderse. Se mide con pruebas (*benchmarks*) como SWE-bench, que le pide resolver problemas reales de código.")
+dRap = DescriptionItem("Rapidez", "Lo que tarda en empezar a responder. En un agente, que da muchas vueltas, se nota.")
+dPre = DescriptionItem("Precio", "Lo que cuesta cada millón de *tokens*, los trozos de texto en que se parte lo que escribes, de entrada y de salida.")
+dCon = DescriptionItem("Contexto", "Cuánto texto le cabe a la vez.")
+dRaz = DescriptionItem("Razonamiento", "Si piensa antes de responder. Acierta más en lo difícil, pero tarda y cuesta más.")
+
+analogia = Text("Elegir modelo es como elegir vehículo: una furgoneta pequeña para repartir por el barrio, un camión para una mudanza. No coges el camión para comprar el pan.")
+
 h2 = Heading("No siempre el más potente")
-p2 = Text("Pagar más no siempre compra más calidad. En estos seis modelos la calidad es casi la misma (en torno al 80 % en SWE-bench); lo que cambia de verdad es el coste, de veinte céntimos a setenta y cuatro dólares por tarea.")
-diagrama = Diagram("Calidad frente a coste por tarea", "Gráfico de dispersión con dos ejes y seis puntos, uno por modelo. Eje X: coste por tarea resuelta, en dólares, de $0,20 a $74. Eje Y: SWE-bench Verified, en porcentaje, del 79 % al 81 %. Un punto por modelo, etiquetado a su lado: DeepSeek V4 Pro (79,3 %; $0,20), Qwen3.5 (80,2 %; $0,46), MiniMax M2.5 (80,6 %; $1,31), Gemini 3.1 Pro (80,8 %; $11), GPT-5.4 (80,6 %; $18) y Claude Opus 4.6 (80,8 %; $74). Una línea horizontal discontinua marca el nivel de calidad común, en torno al 80 %. Todos los puntos y etiquetas en azul, menos el de Claude Opus 4.6, en ámbar, por ser el más caro. Lo que hay que notar de un vistazo: los seis puntos están casi a la misma altura, pero repartidos por todo el ancho del eje de coste, hasta 370 veces de diferencia. Fondo claro, rejilla suave, texto legible en modo oscuro.", "Seis modelos, casi la misma calidad y hasta 370 veces de diferencia en el coste.", "<svg viewBox=\"0 0 640 450\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Dispersión de seis modelos: calidad casi idéntica, en torno al 80 % en SWE-bench, con un coste por tarea que va de 0,20 a 74 dólares\">\n  <defs>\n    <marker id=\"punta\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\">\n      <path d=\"M0 0 L10 5 L0 10 Z\" fill=\"var(--color-border-strong)\"/>\n    </marker>\n  </defs>\n\n  <!-- rejilla -->\n  <line class=\"diagram-grid\" x1=\"187\" y1=\"70\" x2=\"187\" y2=\"350\"/>\n  <line class=\"diagram-grid\" x1=\"304\" y1=\"70\" x2=\"304\" y2=\"350\"/>\n  <line class=\"diagram-grid\" x1=\"405\" y1=\"70\" x2=\"405\" y2=\"350\"/>\n  <line class=\"diagram-grid\" x1=\"70\" y1=\"70\" x2=\"500\" y2=\"70\"/>\n\n  <!-- ejes -->\n  <line class=\"diagram-line\" x1=\"70\" y1=\"70\" x2=\"70\" y2=\"350\"/>\n  <line class=\"diagram-line\" x1=\"70\" y1=\"350\" x2=\"500\" y2=\"350\"/>\n\n  <!-- nivel de calidad común -->\n  <line class=\"diagram-quiet\" x1=\"70\" y1=\"210\" x2=\"500\" y2=\"210\"/>\n  <text class=\"diagram-text\" x=\"490\" y=\"200\" text-anchor=\"end\" style=\"font-size:12px\">casi la misma calidad: ≈ 80 %</text>\n\n  <!-- eje Y -->\n  <text class=\"diagram-text\" x=\"62\" y=\"74\" text-anchor=\"end\" style=\"font-size:12px\">81 %</text>\n  <text class=\"diagram-text\" x=\"62\" y=\"214\" text-anchor=\"end\" style=\"font-size:12px\">80 %</text>\n  <text class=\"diagram-text\" x=\"62\" y=\"354\" text-anchor=\"end\" style=\"font-size:12px\">79 %</text>\n  <text class=\"diagram-text\" transform=\"rotate(-90 26 210)\" x=\"26\" y=\"210\" text-anchor=\"middle\" style=\"font-size:12px\">SWE-bench Verified (%)</text>\n\n  <!-- eje X -->\n  <text class=\"diagram-text\" x=\"70\" y=\"372\" text-anchor=\"middle\" style=\"font-size:12px\">$0,20</text>\n  <text class=\"diagram-text\" x=\"187\" y=\"372\" text-anchor=\"middle\" style=\"font-size:12px\">$1</text>\n  <text class=\"diagram-text\" x=\"304\" y=\"372\" text-anchor=\"middle\" style=\"font-size:12px\">$5</text>\n  <text class=\"diagram-text\" x=\"405\" y=\"372\" text-anchor=\"middle\" style=\"font-size:12px\">$20</text>\n  <text class=\"diagram-text\" x=\"500\" y=\"372\" text-anchor=\"middle\" style=\"font-size:12px\">$74</text>\n\n  <!-- modelos -->\n  <g style=\"--diagram-color: #2563eb\">\n    <circle class=\"diagram-part\" cx=\"70\" cy=\"308\" r=\"5\"/>\n    <text class=\"diagram-label\" x=\"84\" y=\"304\" style=\"font-size:13px\">DeepSeek V4 Pro</text>\n    <text class=\"diagram-text\" x=\"84\" y=\"320\" style=\"font-size:12px\">79,3 % · $0,20</text>\n\n    <circle class=\"diagram-part\" cx=\"131\" cy=\"182\" r=\"5\"/>\n    <text class=\"diagram-label\" x=\"104\" y=\"150\" style=\"font-size:13px\">Qwen3.5</text>\n    <text class=\"diagram-text\" x=\"104\" y=\"166\" style=\"font-size:12px\">80,2 % · $0,46</text>\n\n    <circle class=\"diagram-part\" cx=\"207\" cy=\"126\" r=\"5\"/>\n    <text class=\"diagram-label\" x=\"219\" y=\"122\" style=\"font-size:13px\">MiniMax M2.5</text>\n    <text class=\"diagram-text\" x=\"219\" y=\"138\" style=\"font-size:12px\">80,6 % · $1,31</text>\n\n    <circle class=\"diagram-part\" cx=\"361\" cy=\"98\" r=\"5\"/>\n    <text class=\"diagram-label\" x=\"350\" y=\"66\" text-anchor=\"end\" style=\"font-size:13px\">Gemini 3.1 Pro</text>\n    <text class=\"diagram-text\" x=\"350\" y=\"82\" text-anchor=\"end\" style=\"font-size:12px\">80,8 % · $11</text>\n\n    <circle class=\"diagram-part\" cx=\"397\" cy=\"126\" r=\"5\"/>\n    <text class=\"diagram-label\" x=\"409\" y=\"122\" style=\"font-size:13px\">GPT-5.4</text>\n    <text class=\"diagram-text\" x=\"409\" y=\"138\" style=\"font-size:12px\">80,6 % · $18</text>\n  </g>\n\n  <g style=\"--diagram-color: var(--color-warning)\">\n    <circle class=\"diagram-part\" cx=\"500\" cy=\"98\" r=\"6\"/>\n    <text class=\"diagram-label\" x=\"514\" y=\"94\" style=\"font-size:13px\">Claude Opus 4.6</text>\n    <text class=\"diagram-text\" x=\"514\" y=\"110\" style=\"font-size:12px\">80,8 % · $74</text>\n  </g>\n\n  <!-- medida del reparto de coste -->\n  <line class=\"diagram-line\" x1=\"70\" y1=\"394\" x2=\"500\" y2=\"394\" marker-start=\"url(#punta)\" marker-end=\"url(#punta)\"/>\n  <text class=\"diagram-text\" x=\"285\" y=\"416\" text-anchor=\"middle\" style=\"font-size:12px\">Coste por tarea resuelta ($, escala logarítmica)</text>\n  <text class=\"diagram-text\" x=\"285\" y=\"432\" text-anchor=\"middle\" style=\"font-size:12px\">hasta 370 veces de diferencia en coste</text>\n</svg>")
-tabla = Table(["Modelo", "SWE-bench Verified", "Coste por tarea resuelta"], [["DeepSeek V4 Pro", "79,3 %", "$0,20"], ["Qwen3.5", "80,2 %", "$0,46"], ["MiniMax M2.5", "80,6 %", "$1,31"], ["Gemini 3.1 Pro", "80,8 %", "$11"], ["GPT-5.4", "80,6 %", "$18"], ["Claude Opus 4.6", "80,8 %", "$74"]], "Datos de AgentMarketCap, abril de 2026, sobre 2 millones de tokens por tarea. Cambian a menudo.")
-cierre1 = Text("**La calidad apenas cambia; lo que cambia de verdad es lo que cuesta cada tarea.**")
+p2 = Text("Pagar más no siempre compra más calidad. En estos seis modelos la calidad es casi la misma (en torno al 80 % en SWE-bench) y lo que cambia de verdad es el coste: de veinte céntimos a setenta y cuatro dólares por tarea.")
+chart = Chart("Calidad frente a coste por tarea: seis modelos, casi la misma calidad y hasta 370 veces de diferencia en el coste.", [serie], "points", ejeX, ejeY, "Datos de AgentMarketCap, abril de 2026, sobre 2 millones de tokens por tarea. Cambian a menudo.")
+serie = ChartSeries("Calidad (SWE-bench) frente a coste por tarea", [pt1, pt2, pt3, pt4, pt5, pt6])
+pt1 = {x: 0.2, y: 79.3, label: "DeepSeek V4 Pro"}
+pt2 = {x: 0.46, y: 80.2, label: "Qwen3.5"}
+pt3 = {x: 1.31, y: 80.6, label: "MiniMax M2.5"}
+pt4 = {x: 11, y: 80.8, label: "Gemini 3.1 Pro"}
+pt5 = {x: 18, y: 80.6, label: "GPT-5.4"}
+pt6 = {x: 74, y: 80.8, label: "Claude Opus 4.6"}
+ejeX = {title: "Coste por tarea resuelta", unit: "$", scale: "log"}
+ejeY = {title: "SWE-bench Verified", unit: "%", scale: "linear", min: 78, max: 82}
+
+tabla = Table(["Modelo", "SWE-bench Verified", "Coste por tarea resuelta"], [["DeepSeek V4 Pro", "79,3 %", "$0,20"], ["Qwen3.5", "80,2 %", "$0,46"], ["MiniMax M2.5", "80,6 %", "$1,31"], ["Gemini 3.1 Pro", "80,8 %", "$11"], ["GPT-5.4", "80,6 %", "$18"], ["Claude Opus 4.6", "80,8 %", "$74"]])
+end2 = Text("**Pagar más no compra más: lo que cambia entre estos modelos es el coste, no la calidad.**")
+
 h3 = Heading("Repartir el trabajo")
-tabla2 = Table(["Lo que haces", "Con qué"], [["Autocompletar, resumir, renombrar, un test sencillo", "barato y rápido"], ["Una feature normal, leyendo el código", "el de en medio"], ["Depurar algo difícil, decidir la arquitectura, un refactor grande", "el más potente"]])
-plan = Text("Una práctica común: el más listo hace el **plan** y el barato lo **ejecuta**. En el plan se decide bien o mal; ejecutar es seguir unos pasos, que no necesita tanta cabeza.")
-tip = Callout("tip", "Para el uso normal basta con coger uno bueno. Saber esto vale para optimizar, bajando de modelo en lo fácil.")
+p3 = Text("Lo interesante no es usar siempre el modelo más potente, sino darle a cada tarea el que le vale.")
+tablaTareas = Table(["Lo que haces", "Con qué"], [["Autocompletar, resumir, renombrar, un test sencillo", "barato y rápido"], ["Una feature normal, leyendo el código", "el de en medio"], ["Depurar algo difícil, decidir la arquitectura, un refactor grande", "el más potente"]])
+p4 = Text("Una práctica común es que el más listo haga el **plan** y el barato lo **ejecute**: en el plan se decide bien o mal, y ejecutar es seguir unos pasos, que no necesita tanta cabeza.")
+planFig = Figure("La tarea se parte en dos: el modelo potente decide el plan y el barato ejecuta los pasos.", [areaPlan, flecha, areaEjec])
+areaPlan = Area("Plan", [chipPotente], "violet", "brain", "Aquí se decide bien o mal.")
+chipPotente = Chip("Modelo potente")
+flecha = Arrow("los pasos")
+areaEjec = Area("Ejecución", [chipBarato], "cyan", "list-checks", "Seguir pasos no necesita tanta cabeza.")
+chipBarato = Chip("Modelo barato")
+end3 = Text("**El que decide es el potente; el que ejecuta, el barato.**")
+
+tip = Callout("tip", "Para el uso del día a día no hace falta darle muchas vueltas: coge uno bueno y listo. Saberlo vale para optimizar, bajando de modelo en lo fácil.")
+
 h4 = Heading("Cómo se elige en OpenCode")
-pOpen = Text("En la terminal, `/models` abre el selector dentro del chat. También se puede fijar al arrancar o en la configuración:")
-cmd = CodeBlock("opencode models                     # lista los modelos que tienes\nopencode --model proveedor/modelo   # arranca con ese", "bash")
-pConfig = Text("En `opencode.json` se deja el de por defecto, y `opencode stats --models` enseña lo que gastas por modelo.")
+p5 = Text("En el chat, `/models` abre el selector de modelos. También se puede fijar al arrancar o en la configuración: en `opencode.json` se deja el de por defecto, y `opencode stats --models` enseña lo que gastas por modelo.")
+cmds = CodeBlock("opencode models                     # lista los modelos que tienes\nopencode --model proveedor/modelo   # arranca con ese", "bash")
+
 h5 = Heading("El contexto se llena")
-contexto = Text("A un modelo solo le cabe un trozo de conversación. Cuando la charla se hace muy larga, se pierde: cuesta más y acierta menos. Es como una mesa: con dos papeles los ves, con doscientos no encuentras nada. Por eso el agente resume lo viejo, y conviene abrir una sesión nueva para otro tema.")
-h6 = Heading("A dónde va esto")
-futuro = Text("Además de generalistas cada vez más listos, van a crecer los **pequeños y específicos**, buenos en una sola cosa. Como un equipo: a cada recado, quien mejor lo hace.")
+p6 = Text("A un modelo solo le cabe un trozo de conversación. Cuando la charla se hace muy larga se pierde: cuesta más y acierta menos. Es como una mesa: con dos papeles los ves, con doscientos no encuentras nada. Por eso el agente resume lo viejo, y conviene abrir una sesión nueva para otro tema.")
+
+h6 = Heading("Modelos pequeños y específicos")
+p7 = Text("Además de generalistas cada vez más listos, van a crecer los pequeños centrados en una sola cosa. Como en un equipo: a cada recado, quien mejor lo hace.")
+
 h7 = Heading("Para explorar")
-explorar = Text("- [Modelos en OpenCode](https://opencode.ai/docs/models/).\n- [models.dev](https://models.dev) — el catálogo de modelos y proveedores.\n- [Artificial Analysis](https://artificialanalysis.ai/) — calidad frente a coste.\n- [SWE-bench](https://www.swebench.com/) — la prueba de código que enseña la gráfica.")
+explore = Text("- [Modelos en OpenCode](https://opencode.ai/docs/models/).\n- [models.dev](https://models.dev): el catálogo de modelos y proveedores.\n- [Artificial Analysis](https://artificialanalysis.ai/): calidad frente a coste.\n- [SWE-bench](https://www.swebench.com/): la prueba de código que enseña la gráfica.")
+
+footer = Text("**3 de 9** · Anterior: [Tu primer agente](../opencode/) · Siguiente: [Darle contexto](../contexto/)")

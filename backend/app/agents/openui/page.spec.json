@@ -2,7 +2,7 @@
   "root": "Page",
   "components": {
     "Page": {
-      "signature": "Page(blocks: (Heading | Text | CodeBlock | CodeDiff | CodeWalkthrough | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Diagram | Artifact)[])",
+      "signature": "Page(blocks: (Heading | Text | CodeBlock | CodeDiff | CodeWalkthrough | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Chart | Diagram | Artifact)[])",
       "description": "The whole page: its blocks, top to bottom, in one column. Always the root."
     },
     "Heading": {
@@ -129,13 +129,21 @@
       "signature": "Arrow(label?: string, both?: boolean)",
       "description": "A connector between the parts before and after it: an arrow that points along the layout (down on a phone), with an optional word on it (\"calls\")."
     },
+    "Chart": {
+      "signature": "Chart(label: string, series: ChartSeries[], variant?: \"line\" | \"bars\" | \"points\", x?: {title?: string, unit?: string, scale?: \"linear\" | \"log\", min?: number, max?: number}, y?: {title?: string, unit?: string, scale?: \"linear\" | \"log\", min?: number, max?: number}, caption?: string)",
+      "description": "Real numbers on real axes: a line for something that changes along x, bars to compare categories, points for two measures of the same things (cost against score). Write the data from the notes, never invented. One series stays grey; several get a legend. Label only the points the text talks about. One y axis: two units are two charts. The label says what it shows and its conclusion."
+    },
+    "ChartSeries": {
+      "signature": "ChartSeries(name: string, points: {x: number | string, y: number, label?: string}[], color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\")",
+      "description": "One series of a Chart: its name, its points ({x, y, label?}) and, only when it is the same concept elsewhere on the page, a colour."
+    },
     "Diagram": {
       "signature": "Diagram(label: string, brief: string, caption?: string, svg?: string)",
-      "description": "A drawing the Figure pieces cannot make: a curve, a timeline, axes, a cycle, a shape that matters. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out."
+      "description": "A drawing neither the Figure pieces nor a Chart can make: a curve that only shows a shape, a timeline, a cycle. A chart of values is a Chart, not a Diagram. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out."
     },
     "Artifact": {
-      "signature": "Artifact(title: string, brief: string, height?: number, html?: string)",
-      "description": "A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model writes the HTML from it. Leave `html` out."
+      "signature": "Artifact(title: string, brief: string, height?: number, piece?: string)",
+      "description": "A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model builds it from the library's parts (buttons, sliders, switches, tinted chips, charts). Leave `piece` out."
     }
   },
   "schema": {
@@ -238,6 +246,12 @@
       "Arrow": {
         "$ref": "#/$defs/Arrow"
       },
+      "Chart": {
+        "$ref": "#/$defs/Chart"
+      },
+      "ChartSeries": {
+        "$ref": "#/$defs/ChartSeries"
+      },
       "Diagram": {
         "$ref": "#/$defs/Diagram"
       },
@@ -278,6 +292,8 @@
       "Chip",
       "Label",
       "Arrow",
+      "Chart",
+      "ChartSeries",
       "Diagram",
       "Artifact"
     ],
@@ -337,6 +353,9 @@
                 },
                 {
                   "$ref": "#/$defs/Figure"
+                },
+                {
+                  "$ref": "#/$defs/Chart"
                 },
                 {
                   "$ref": "#/$defs/Diagram"
@@ -1071,6 +1090,140 @@
         "additionalProperties": false,
         "description": "Lays out parts in a row, a column or a grid inside a Figure, with no tint of its own: two Areas stacked at the end of a row, or four Areas in a grid. A row turns into a column on a phone."
       },
+      "Chart": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ChartSeries"
+            }
+          },
+          "variant": {
+            "type": "string",
+            "enum": [
+              "line",
+              "bars",
+              "points"
+            ]
+          },
+          "x": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "scale": {
+                "type": "string",
+                "enum": [
+                  "linear",
+                  "log"
+                ]
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "y": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "scale": {
+                "type": "string",
+                "enum": [
+                  "linear",
+                  "log"
+                ]
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "series"
+        ],
+        "additionalProperties": false,
+        "description": "Real numbers on real axes: a line for something that changes along x, bars to compare categories, points for two measures of the same things (cost against score). Write the data from the notes, never invented. One series stays grey; several get a legend. Label only the points the text talks about. One y axis: two units are two charts. The label says what it shows and its conclusion."
+      },
+      "ChartSeries": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "y": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "points"
+        ],
+        "additionalProperties": false,
+        "description": "One series of a Chart: its name, its points ({x, y, label?}) and, only when it is the same concept elsewhere on the page, a colour."
+      },
       "Diagram": {
         "type": "object",
         "properties": {
@@ -1092,7 +1245,7 @@
           "brief"
         ],
         "additionalProperties": false,
-        "description": "A drawing the Figure pieces cannot make: a curve, a timeline, axes, a cycle, a shape that matters. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out."
+        "description": "A drawing neither the Figure pieces nor a Chart can make: a curve that only shows a shape, a timeline, a cycle. A chart of values is a Chart, not a Diagram. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out."
       },
       "Artifact": {
         "type": "object",
@@ -1106,7 +1259,7 @@
           "height": {
             "type": "number"
           },
-          "html": {
+          "piece": {
             "type": "string"
           }
         },
@@ -1115,7 +1268,7 @@
           "brief"
         ],
         "additionalProperties": false,
-        "description": "A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model writes the HTML from it. Leave `html` out."
+        "description": "A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model builds it from the library's parts (buttons, sliders, switches, tinted chips, charts). Leave `piece` out."
       }
     }
   }

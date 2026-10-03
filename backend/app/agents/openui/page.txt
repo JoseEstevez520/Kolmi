@@ -17,7 +17,7 @@ The notes (the Markdown) carry the text; the page decides what goes in cards, ta
 
 ## Before writing
 
-- If you show numbers (prices, benchmarks), with their source and their date, and in a real chart (axes, grid), not in a conceptual drawing.
+- If you show numbers (prices, benchmarks), with their source and their date, and in a real chart (a Chart, with axes), not in a conceptual drawing.
 - **No links that lead away.** Do not add a "see X" to another page that takes the reader out; if there is one, it must be essential.
 - **Concepts, not a tool.** The idea is explained so it holds for any tool; a specific tool is only the example ("in OpenCode, ..."), never the topic of the page.
 - Find **what has to be understood first**, and tell it with the minimum.
@@ -70,7 +70,7 @@ Before making a piece, check whether a table or a code block is enough.
 
 Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.
 
-Page(blocks: (Heading | Text | CodeBlock | CodeDiff | CodeWalkthrough | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Diagram | Artifact)[]) — The whole page: its blocks, top to bottom, in one column. Always the root.
+Page(blocks: (Heading | Text | CodeBlock | CodeDiff | CodeWalkthrough | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Chart | Diagram | Artifact)[]) — The whole page: its blocks, top to bottom, in one column. Always the root.
 Heading(text: string, level?: 2 | 3) — A section heading. The page title is shown already, so level 2 for sections and 3 for subsections. Prefer role headings that say what kind of section it is.
 Text(markdown: string) — Running text in Markdown: paragraphs, short lists (up to 5 points), **bold**, `inline code` and links. No headings, no code fences and no tables here.
 CodeBlock(code: string, language?: string, title?: string) — Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose. Long code that is only read goes here too, not in a CodeWalkthrough.
@@ -102,8 +102,10 @@ Area(title: string, parts: (Chip | Label | Arrow)[], color?: "blue" | "violet" |
 Chip(text: string, color?: "blue" | "violet" | "cyan" | "pink" | "yellow" | "grey" | "green" | "amber" | "red", icon?: string, note?: string) — A tinted part of a figure: a short name, an optional icon and an optional quieter note after it.
 Label(text: string, icon?: string, color?: "blue" | "violet" | "cyan" | "pink" | "yellow" | "grey" | "green" | "amber" | "red") — A plain line in a figure, no tint: an icon and a short text, as one item of a list inside an Area. Its colour, if any, is for the text and icon (green/amber/red for yes/ask/no).
 Arrow(label?: string, both?: boolean) — A connector between the parts before and after it: an arrow that points along the layout (down on a phone), with an optional word on it ("calls").
-Diagram(label: string, brief: string, caption?: string, svg?: string) — A drawing the Figure pieces cannot make: a curve, a timeline, axes, a cycle, a shape that matters. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out.
-Artifact(title: string, brief: string, height?: number, html?: string) — A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model writes the HTML from it. Leave `html` out.
+Chart(label: string, series: ChartSeries[], variant?: "line" | "bars" | "points", x?: {title?: string, unit?: string, scale?: "linear" | "log", min?: number, max?: number}, y?: {title?: string, unit?: string, scale?: "linear" | "log", min?: number, max?: number}, caption?: string) — Real numbers on real axes: a line for something that changes along x, bars to compare categories, points for two measures of the same things (cost against score). Write the data from the notes, never invented. One series stays grey; several get a legend. Label only the points the text talks about. One y axis: two units are two charts. The label says what it shows and its conclusion.
+ChartSeries(name: string, points: {x: number | string, y: number, label?: string}[], color?: "blue" | "violet" | "cyan" | "pink" | "yellow" | "grey" | "green" | "amber" | "red") — One series of a Chart: its name, its points ({x, y, label?}) and, only when it is the same concept elsewhere on the page, a colour.
+Diagram(label: string, brief: string, caption?: string, svg?: string) — A drawing neither the Figure pieces nor a Chart can make: a curve that only shows a shape, a timeline, a cycle. A chart of values is a Chart, not a Diagram. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out.
+Artifact(title: string, brief: string, height?: number, piece?: string) — A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model builds it from the library's parts (buttons, sliders, switches, tinted chips, charts). Leave `piece` out.
 
 ## Hoisting & Streaming (CRITICAL)
 
@@ -190,7 +192,7 @@ Before finishing, walk your output and verify:
 - Start with root = Page([...]). The page title is shown already: do not repeat it as a heading.
 - The notes are the page's content: everything in them goes on the page, in their order, and nothing they do not say. Never invent commands, numbers, URLs or facts.
 - The icon set (for Area, Chip, Label and AgentStep), and no other: user, users, brain, bot, file, file-code, file-text, file-pen, folder, terminal, code, braces, database, server, globe, cloud, route, cog, shield, lock, key, search, message, mail, book, list-checks, check, x, help, plus, clock, calendar, layers, cpu, monitor, smartphone, network, package, git-branch, play, zap, link, hammer, graduation-cap, eye, cookie, pencil, flask, image, table, repeat, puzzle, wrench, bug, send, lightbulb.
-- Diagram only for what a Figure cannot draw (a curve, a timeline, a chart with axes); Artifact only when touching it is the point, at most one per page. For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or HTML yourself.
+- Numbers on axes (prices, benchmarks, times) are a Chart, its data written from the notes. Diagram only for what neither a Figure nor a Chart can draw (a curve that only shows a shape, a timeline); Artifact only when touching it is the point, at most one per page. For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or code yourself.
 - For something the reader steps through or plays, use the piece made for it: CodeWalkthrough for code explained part by part or built up (a class that gains its routes), TerminalReplay for a terminal session, AgentReplay for an agent at work, Steps for a procedure. An Artifact is only for what none of them can show.
 - When you are also given the current page in OpenUI Lang, start from it: keep the blocks that still match the notes, with their Diagram and Artifact blocks as they are, and change or add only what the notes changed or added.
 - Answer with OpenUI Lang only: no prose before or after it.

@@ -6,7 +6,7 @@ import pytest
 
 from app.agents import openui
 from app.agents.prompts import notes_system, visual_system
-from app.agents.web import draw_visuals, write_web
+from app.agents.web import _problem, draw_visuals, write_web
 from app.passes.daily import run_daily_pass
 from tests.fakes import FakeLLM, FakeStore
 
@@ -350,7 +350,11 @@ def test_parses_a_code_walkthrough():
 # -- the visuals: Diagram and Artifact briefs, drawn by the main model ---------------------
 
 SVG = '<svg viewBox="0 0 640 200"><rect class="diagram-part" width="100" height="40"/></svg>'
-HTML = "<!doctype html><html><body><button>Ask</button><script>let n = 0</script></body></html>"
+PIECE = (
+    "<template>\n  <Button @click=\"n++\">Ask</Button>\n  <DiagramChip v-for=\"i in n\" :key=\"i\">#{{ i }}</DiagramChip>\n</template>\n\n"
+    "<script>\nimport { ref } from 'vue'\nimport { Button } from '@joseestevez/vue-elastic-ui'\n\n"
+    "export default {\n  setup() {\n    const n = ref(1)\n    return { n }\n  },\n}\n</script>"
+)
 
 VISUAL_PAGE = '''root = Page([intro, d, art])
 intro = Text("Scopes.")
@@ -365,22 +369,22 @@ def ScriptedLLM(answers):
 
 
 def test_draws_each_brief_into_the_page():
-    llm = ScriptedLLM([f"```svg\n{SVG}\n```", HTML])
+    llm = ScriptedLLM([f"```svg\n{SVG}\n```", PIECE])
 
     source, report = write_visuals(llm)
 
     root = openui.parse(source)
     diagram, artifact = root.args[0][1], root.args[0][2]
     assert diagram.args == ["Two curves", "Draw two curves.", "caption", SVG]
-    assert artifact.args == ["Compare scopes", "Two buttons, one per scope.", 300, HTML]
+    assert artifact.args == ["Compare scopes", "Two buttons, one per scope.", 300, PIECE]
     assert [r["drawn"] for r in report] == [True, True]
     # Each kind gets its own prompt, and the brief.
     assert "<svg>" in llm.calls[0][1] and "Draw two curves." in llm.calls[0][2]
-    assert "<!doctype html>" in llm.calls[1][1]
+    assert "export default { setup()" in llm.calls[1][1]
 
 
 def test_a_bad_drawing_is_sent_back_once_with_its_problem():
-    llm = ScriptedLLM(['<svg width="10"><rect/></svg>', SVG, HTML])
+    llm = ScriptedLLM(['<svg width="10"><rect/></svg>', SVG, PIECE])
 
     source, report = write_visuals(llm)
 
@@ -392,7 +396,7 @@ def test_a_bad_drawing_is_sent_back_once_with_its_problem():
 
 
 def test_a_failed_call_is_tried_once_more():
-    llm = ScriptedLLM([RuntimeError("timeout"), SVG, HTML])
+    llm = ScriptedLLM([RuntimeError("timeout"), SVG, PIECE])
 
     source, report = write_visuals(llm)
 
@@ -401,7 +405,7 @@ def test_a_failed_call_is_tried_once_more():
 
 
 def test_a_drawing_that_fails_twice_is_dropped_from_the_page():
-    llm = ScriptedLLM(['<svg viewBox="0 0 9 9"><script>x()</script></svg>', RuntimeError("down"), "no html here", "still none"])
+    llm = ScriptedLLM(['<svg viewBox="0 0 9 9"><script>x()</script></svg>', RuntimeError("down"), "no piece here", "still none"])
 
     source, report = write_visuals(llm)
 
@@ -413,7 +417,7 @@ def test_a_drawing_that_fails_twice_is_dropped_from_the_page():
             "kind": "Artifact",
             "label": "Compare scopes",
             "drawn": False,
-            "reason": "the HTML document is incomplete: it must run from <!doctype html> to </html>",
+            "reason": "there is no <template> followed by a <script>",
         },
     ]
     assert "it contains a <script>" in llm.calls[1][2]
@@ -445,7 +449,7 @@ def test_the_pass_records_the_visuals_and_keeps_the_page():
 
 def test_the_pass_runs_gatekeeper_notes_web_then_visuals():
     store = FakeStore(notes=[_note()], nodes=[])
-    llm = FakeLLM(json_response=_create_plan(), text_response=[MD, SVG, HTML])
+    llm = FakeLLM(json_response=_create_plan(), text_response=[MD, SVG, PIECE])
     web = FakeLLM(text_response=VISUAL_PAGE)
     web.calls = llm.calls  # one log for both models, to see the order
 
@@ -456,14 +460,14 @@ def test_the_pass_runs_gatekeeper_notes_web_then_visuals():
         notes_system("en"),
         openui.full_prompt(),
         visual_system("svg", "en"),
-        visual_system("html", "en"),
+        visual_system("piece", "en"),
     ]
     # The web is written from the notes, and the visuals get them as context.
     assert all(MD in user for _, _, user in llm.calls[2:])
     page = next(iter(store._pages.values()))
     assert page["content_md"] == MD
     blocks = openui.parse(page["content_web"]).args[0]
-    assert (blocks[1].args[3], blocks[2].args[3]) == (SVG, HTML)
+    assert (blocks[1].args[3], blocks[2].args[3]) == (SVG, PIECE)
     assert [v["drawn"] for v in summary["visuals"]] == [True, True]
 
 
@@ -476,7 +480,7 @@ OVERLAPPING = (
 
 
 def test_overlapping_labels_are_sent_back_once():
-    llm = ScriptedLLM([OVERLAPPING, SVG, HTML])
+    llm = ScriptedLLM([OVERLAPPING, SVG, PIECE])
 
     source, report = write_visuals(llm)
 
@@ -486,7 +490,7 @@ def test_overlapping_labels_are_sent_back_once():
 
 
 def test_a_chart_that_still_overlaps_is_kept_rather_than_dropped():
-    llm = ScriptedLLM([OVERLAPPING, OVERLAPPING, HTML])
+    llm = ScriptedLLM([OVERLAPPING, OVERLAPPING, PIECE])
 
     source, report = write_visuals(llm)
 
@@ -500,7 +504,7 @@ def test_labels_apart_or_rotated_are_not_flagged():
         '<text x="10" y="60">Another one</text>'
         '<text transform="translate(30, 30) rotate(-90)">Axis title over them</text></svg>'
     )
-    llm = ScriptedLLM([apart, HTML])
+    llm = ScriptedLLM([apart, PIECE])
 
     _, report = write_visuals(llm)
 
@@ -509,3 +513,46 @@ def test_labels_apart_or_rotated_are_not_flagged():
 
 def write_visuals(llm):
     return draw_visuals(llm, VISUAL_PAGE, language="en")
+
+
+# -- a Chart, and an Artifact as a piece made of the library's parts ----------------------
+
+CHART = """root = Page([intro, chart])
+intro = Text("Cost against score.")
+chart = Chart("Score against cost: almost flat", [s1], "points", {title: "Cost per task", unit: "USD", scale: "log"}, {title: "SWE-bench", unit: "%"}, "AgentMarketCap, April 2026")
+s1 = ChartSeries("Models", [{x: 0.2, y: 79.3, label: "DeepSeek V4 Pro"}, {x: 74, y: 80.8}])
+"""
+
+
+def test_parses_a_page_with_a_chart():
+    root = openui.parse(CHART)
+    assert openui.unknown_components(root) == set()
+    chart = root.args[0][1]
+    assert chart.name == "Chart" and chart.args[2] == "points"
+    assert chart.args[3] == {"title": "Cost per task", "unit": "USD", "scale": "log"}
+    series = chart.args[1][0]
+    assert series.name == "ChartSeries"
+    assert series.args[1][0] == {"x": 0.2, "y": 79.3, "label": "DeepSeek V4 Pro"}
+
+
+def test_a_valid_piece_passes():
+    assert _problem("piece", f"```vue\n{PIECE}\n```") == (PIECE, "")
+
+
+def test_a_script_setup_piece_is_sent_back_once():
+    setup = "<template><Button>Ask</Button></template>\n<script setup>\nimport { ref } from 'vue'\n</script>"
+    llm = ScriptedLLM([SVG, setup, PIECE])
+
+    source, report = write_visuals(llm)
+
+    assert "<script setup> cannot run in the frame" in llm.calls[2][2]
+    assert openui.parse(source).args[0][2].args[3] == PIECE
+    assert report[1] == {"kind": "Artifact", "label": "Compare scopes", "drawn": True, "reason": ""}
+
+
+def test_a_piece_that_imports_from_outside_is_rejected():
+    outside = PIECE.replace("import { ref } from 'vue'", "import { ref } from 'vue'\nimport { format } from 'date-fns'")
+    default = PIECE.replace("import { ref } from 'vue'", "import Vue from 'vue'")
+
+    assert _problem("piece", outside) == ("", 'it imports from "date-fns": only vue and @joseestevez/vue-elastic-ui')
+    assert _problem("piece", default)[1].startswith("only named imports work")

@@ -278,83 +278,82 @@ are close). Every <text> has its own x and y.
 - No <script>, no event attributes, no <foreignObject>, no external images or fonts.
 """
 
-# DiagramaScopes, from the class notes site, written as one document: the level of detail and
-# of finish an Artifact should reach. Its words are English here; a real one uses the class's.
-_HTML_EXAMPLE = """\
-<!doctype html>
-<html><head><style>
-.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-.top p { margin: 0; color: var(--color-fg-secondary); font-size: 13px; }
-.reset { background: none; color: var(--color-fg-secondary); }
-.sides { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.side { display: flex; flex-direction: column; gap: 10px; }
-.side header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-.side header span { font-weight: 600; }
-.side header small { color: var(--color-fg-muted); font-weight: 400; }
-ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-height: 64px; }
-.count { margin: 0; color: var(--color-fg-secondary); font-size: 13px; }
-</style></head><body>
-<div class="top"><p>Ask for the bean on each side and compare.</p><button class="reset" id="reset">Reset</button></div>
-<div class="sides">
-  <section class="side" style="--diagram-color: #2563eb">
-    <header><span>Singleton <small>· the default</small></span><button id="ask-s">Ask for the bean</button></header>
-    <ul id="list-s"></ul><p class="count" id="count-s"></p>
-  </section>
-  <section class="side" style="--diagram-color: #7c3aed">
-    <header><span>Prototype</span><button id="ask-p">Ask for the bean</button></header>
-    <ul id="list-p"></ul><p class="count" id="count-p"></p>
-  </section>
-</div>
-<script>
-const id = () => '#' + Math.random().toString(16).slice(2, 8)
-let single = null, s = [], p = []
-function draw() {
-  const row = (x, i) => `<li class="diagram-chip">Request ${i + 1} → ${x}</li>`
-  document.getElementById('list-s').innerHTML = s.map(row).join('')
-  document.getElementById('list-p').innerHTML = p.map(row).join('')
-  document.getElementById('count-s').innerHTML = `${s.length} requests · <strong>1 instance</strong>, always the same`
-  document.getElementById('count-p').innerHTML = `${p.length} requests · <strong>${p.length} instances</strong>`
-}
-function askS() { single = single || id(); s.push(single); draw() }
-function askP() { p.push(id()); draw() }
-function reset() { single = null; s = []; p = []; askS(); askS(); askP(); askP() }
-document.getElementById('ask-s').onclick = askS
-document.getElementById('ask-p').onclick = askP
-document.getElementById('reset').onclick = reset
-reset()
-</script></body></html>"""
+# The parts the sandbox runtime registers by name (elastic-ui's src/sandbox-runtime/runtime.ts).
+_PARTS = (
+    "Button, Toggle, ToggleGroup, ToggleGroupItem, Switch, Checkbox, RadioGroup, RadioGroupItem, "
+    "Slider, NumberField, Input, Textarea, Field, Select, SelectTrigger, SelectValue, "
+    "SelectContent, SelectItem, Tabs, TabsList, TabsTrigger, TabsContent, Collapsible, "
+    "CollapsibleTrigger, CollapsibleContent, Tooltip, Badge, BadgeCount, Callout, Card, "
+    "CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Stat, StatGroup, "
+    "StatusText, Progress, Separator, DescriptionList, DescriptionItem, Table, TableHeader, "
+    "TableBody, TableRow, TableHead, TableCell, TableCaption, Steps, StepsItem, StepsNext, "
+    "AnimatedList, TextMorph, Diagram, DiagramGroup, DiagramArea, DiagramChip, DiagramItem, "
+    "DiagramArrow, Chart"
+)
 
-_HTML = f"""\
-You build one small interactive piece for a page of Kolmi, a class notebook, as one \
-self-contained HTML document. Every word in it is in {{language}}.
+# Adapted from elastic-ui's SandboxFrame story "With Library Parts": the format, not the topic.
+_PIECE_EXAMPLE = """\
+<template>
+  <div class="flex flex-col gap-4">
+    <p class="m-0 text-ui text-fg-secondary">Each press asks the container for a logger.</p>
+    <div class="flex flex-wrap gap-2">
+      <Button @click="asked++">Ask for a logger</Button>
+      <Button variant="ghost" :disabled="!asked" @click="asked = 0">Start over</Button>
+    </div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div v-for="scope in scopes" :key="scope.name" class="flex flex-col gap-2">
+        <span class="text-label text-fg">{{ scope.name }}
+          <TextMorph class="text-fg-muted" :text="scope.instances + ' instances'" />
+        </span>
+        <div class="flex flex-wrap gap-2">
+          <DiagramChip v-for="n in scope.instances" :key="n" :color="scope.color">Logger #{{ n }}</DiagramChip>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { computed, ref } from 'vue'
+
+export default {
+  setup() {
+    const asked = ref(0)
+    const scopes = computed(() => [
+      { name: 'Singleton', color: '#2563eb', instances: asked.value ? 1 : 0 },
+      { name: 'Prototype', color: '#7c3aed', instances: asked.value },
+    ])
+    return { asked, scopes }
+  },
+}
+</script>"""
+
+_PIECE = f"""\
+You build one small interactive piece for a page of Kolmi, a class notebook, as a Vue \
+single-file component made of the elastic-ui library's parts. Every word in it is in {{language}}.
 
 {_NOTES_LINE}
 
-- Answer with the document only, from <!doctype html> to </html>: no prose, no code fence.
-- Inline CSS and JS only. It runs with no network: no external scripts, styles, fonts or \
-images, and no fetch.
-- It sits in a frame inside the page, already in the app's theme, light or dark: the body has the \
-app's font, text colour, a soft background and 16px of padding, and buttons, inputs and selects \
-look like the app's. Never write a colour of your own; use the theme's CSS variables: \
---color-fg, --color-fg-secondary, --color-fg-muted, --color-bg, --color-bg-subtle, \
---color-border, --color-accent, --color-success, --color-warning, --color-danger, --radius-md, \
---radius-lg, --font-mono.
-- For tinted parts, the classes diagram-chip (a small part) and diagram-area (a larger group), \
-coloured with style="--diagram-color: #7c3aed". {_COLOURS}
-- One thing to touch (a few buttons, one slider), and it already shows something meaningful \
-before anyone touches it. Full, not sparse: it shows all the brief and the notes give for it, \
-with no large empty areas, at the level of the example below.
-- No borders for decoration, no shadows, no tint inside a tint.
-- It fits any width from 340 to 720px. The frame takes the height of what it holds, so never \
-fix the page's height (no height: 100vh) and nothing scrolls inside it.
+- Answer with the component only, a <template> and then a <script>: no prose, no code fence.
+- The <script> is plain, `export default {{ setup() {{ … return {{ … }} }} }}`, never \
+<script setup>. Imports only, and only named, from 'vue' and '@joseestevez/vue-elastic-ui'.
+- These parts are already registered; use them by name in the template: {_PARTS}.
+- It runs in a frame with no network, already in the app's theme, light or dark. Never write \
+a colour of your own, except the concept colour a part takes (a DiagramChip's or DiagramArea's \
+color, a Chart series' color). {_COLOURS}
+- Your own markup takes only layout and type classes: flex, grid, gap-*, p-*, m-*, \
+grid-cols-*, sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, text-fg-secondary, \
+text-fg-muted, tabular-nums.
+- One thing to touch, and it already shows something meaningful before anyone touches it. \
+Full, not sparse: it shows all the brief and the notes give for it, with no large empty areas.
+- It fits any width from 340 to 720px, and takes the height of what it holds.
 - Short labels: the page around it explains.
 
-This is the level expected, a piece from the class notes site that compares two Spring scopes \
-live (yours will be about its own topic, in {{language}}):
-{_HTML_EXAMPLE}
+The format, in a short example (yours is about its own topic, in {{language}}):
+{_PIECE_EXAMPLE}
 """
 
 
 def visual_system(kind: str, language: str = FALLBACK_LANGUAGE) -> str:
-    """The prompt for a page's figure (`svg`) or interactive piece (`html`)."""
-    return _fill(_SVG if kind == "svg" else _HTML, language)
+    """The prompt for a page's figure (`svg`) or interactive piece (`piece`)."""
+    return _fill(_SVG if kind == "svg" else _PIECE, language)

@@ -10,8 +10,9 @@ import { COLORS } from './colors.js'
 // Each component mirrors an elastic-ui part, its props simplified, and its description says
 // when to reach for it. The figure pieces (Figure, Group, Area, Chip, Label, Arrow) are the
 // library's diagram classes, so a model can compose the boxes-with-tints drawings the class
-// site draws by hand. Diagram and Artifact are written as a brief, and a stronger model draws
-// them after the page is written (backend/app/agents/web.py).
+// site draws by hand. A Chart's data is written by the page model itself. Diagram and Artifact
+// are written as a brief, and a stronger model draws them after the page is written
+// (backend/app/agents/web.py): an SVG, and a small Vue piece made of the library's parts.
 
 export const ROOT = 'Page'
 
@@ -64,10 +65,13 @@ const DESCRIPTIONS = {
   Group: 'Lays out parts in a row, a column or a grid inside a Figure, with no tint of its own: two Areas stacked at the end of a row, or four Areas in a grid. A row turns into a column on a phone.',
   Figure:
     'A drawing composed from tinted parts, for pieces that fit together or a flow: Areas, Chips, Labels and Arrows laid out in a row, a column or a grid, on a soft background. The label says in words what it shows. The way to draw most ideas; one colour per concept, the same in the whole page.',
+  ChartSeries: 'One series of a Chart: its name, its points ({x, y, label?}) and, only when it is the same concept elsewhere on the page, a colour.',
+  Chart:
+    'Real numbers on real axes: a line for something that changes along x, bars to compare categories, points for two measures of the same things (cost against score). Write the data from the notes, never invented. One series stays grey; several get a legend. Label only the points the text talks about. One y axis: two units are two charts. The label says what it shows and its conclusion.',
   Diagram:
-    'A drawing the Figure pieces cannot make: a curve, a timeline, axes, a cycle, a shape that matters. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out.',
+    'A drawing neither the Figure pieces nor a Chart can make: a curve that only shows a shape, a timeline, a cycle. A chart of values is a Chart, not a Diagram. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out.',
   Artifact:
-    'A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model writes the HTML from it. Leave `html` out.',
+    'A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model builds it from the library\'s parts (buttons, sliders, switches, tinted chips, charts). Leave `piece` out.',
 }
 
 const color = z
@@ -282,6 +286,43 @@ export function buildLibrary(renderers) {
     }),
   )
 
+  const axis = z
+    .object({
+      title: z.string().optional().describe('What the axis measures: "Cost per task"'),
+      unit: z.string().optional().describe('Its unit: "USD", "%"'),
+      scale: z.enum(['linear', 'log']).optional().describe('log when the values span several orders of magnitude'),
+      min: z.number().optional(),
+      max: z.number().optional(),
+    })
+    .optional()
+  const ChartSeries = component(
+    'ChartSeries',
+    z.object({
+      name: z.string(),
+      points: z
+        .array(
+          z.object({
+            x: z.union([z.number(), z.string()]).describe('A number, or a category name for bars'),
+            y: z.number(),
+            label: z.string().optional().describe('A name written by the point, only for those the text talks about'),
+          }),
+        )
+        .describe('The values, as {x, y, label?}'),
+      color,
+    }),
+  )
+  const Chart = component(
+    'Chart',
+    z.object({
+      label: z.string().describe('What it shows and its conclusion, as a sentence'),
+      series: z.array(ChartSeries.ref),
+      variant: z.enum(['line', 'bars', 'points']).optional().describe('line (default), bars or points'),
+      x: axis.describe('The x axis: {title, unit, scale, min, max}; left out for bars'),
+      y: axis.describe('The y axis: {title, unit, scale, min, max}'),
+      caption: z.string().optional().describe('The source and date of the data'),
+    }),
+  )
+
   const Diagram = component(
     'Diagram',
     z.object({
@@ -302,7 +343,7 @@ export function buildLibrary(renderers) {
         .string()
         .describe('For the coding model: what the piece shows, what the reader can do with it, its parts and colours, and what it should make obvious'),
       height: z.number().optional().describe('Its height in pixels while it loads; it then takes the height of what it holds'),
-      html: z.string().optional().describe('Leave out: filled in by the coding model'),
+      piece: z.string().optional().describe('Leave out: filled in by the coding model'),
     }),
   )
 
@@ -323,6 +364,7 @@ export function buildLibrary(renderers) {
     AgentReplay.ref,
     Chat.ref,
     Figure.ref,
+    Chart.ref,
     Diagram.ref,
     Artifact.ref,
   ])
@@ -364,6 +406,8 @@ export function buildLibrary(renderers) {
       Chip,
       Label,
       Arrow,
+      Chart,
+      ChartSeries,
       Diagram,
       Artifact,
     ],

@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardImage,
   CardTitle,
+  Chart,
   ChatMessage,
   CodeBlock,
   CodeDiff,
@@ -43,6 +44,9 @@ import {
   slugify,
 } from 'elastic-ui'
 import { createParser } from '@openuidev/vue-lang'
+// The runtime an Artifact's piece runs on, served as a file of its own: only a page with a piece
+// loads it, inside the piece's frame.
+import sandboxRuntime from 'elastic-ui/sandbox-runtime.js?url'
 import { buildLibrary, ROOT } from './catalog.js'
 import { COLOR_VALUES } from './colors.js'
 import { iconFor } from './icons.js'
@@ -70,6 +74,12 @@ const list = (value) => (Array.isArray(value) ? value : [])
 // The figure pieces' props, mapped onto elastic-ui's diagram parts: a colour by its name in the
 // palette, an icon by its name in the icon set, a layout only if it is one of the three.
 const colorOf = (name) => COLOR_VALUES[name]
+const axisOf = (axis) => {
+  if (!axis || typeof axis !== 'object') return undefined
+  const { title, unit, scale, min, max } = axis
+  const number = (v) => (Number.isFinite(Number(v)) && v !== null && v !== '' ? Number(v) : undefined)
+  return { title, unit, scale: scale === 'log' ? 'log' : undefined, min: number(min), max: number(max) }
+}
 const layoutOf = (value) => (value === 'row' || value === 'column' || value === 'grid' ? value : undefined)
 
 // -- cards -----------------------------------------------------------------------------------
@@ -263,12 +273,38 @@ const renderers = {
     )
   }),
 
+  // Values on real axes, the library's Chart. The axes keep only what the catalogue offers.
+  Chart: renderer(({ label = '', series, variant, x, y, caption }) => {
+    const drawn = list(series)
+      .map(propsOf)
+      .map(({ name = '', points, color }) => ({
+        name,
+        color: colorOf(color),
+        points: list(points).filter((p) => p && p.x != null && Number.isFinite(Number(p.y))).map((p) => ({ x: p.x, y: Number(p.y), label: p.label || undefined })),
+      }))
+      .filter((one) => one.points.length)
+    if (!drawn.length) return null
+    return h(Chart, {
+      label,
+      caption,
+      series: drawn,
+      variant: ['line', 'bars', 'points'].includes(variant) ? variant : 'line',
+      x: axisOf(x),
+      y: axisOf(y),
+      class: 'not-prose my-8',
+    })
+  }),
+  ChartSeries: renderer(() => null),
+
   // An interactive piece in the library's sandboxed frame: no way to the app or the network, the
-  // theme's tokens, and as tall as what it holds. `height` is only where it starts.
-  Artifact: renderer(({ title = '', brief = '', height, html }) => {
-    const source = html || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '')
-    if (!source) return null
-    return h(SandboxFrame, { html: source, label: title, height: Number(height) > 0 ? Number(height) : undefined })
+  // theme's tokens, and as tall as what it holds. `height` is only where it starts. A piece made
+  // of the library's parts (a Vue component, from <template>) runs on the sandbox runtime; a page
+  // written before it carries a whole HTML document, in that slot or, older, in the brief's.
+  Artifact: renderer(({ title = '', brief = '', height, piece }) => {
+    const common = { label: title, height: Number(height) > 0 ? Number(height) : undefined }
+    if (/^\s*<template[\s>]/i.test(piece ?? '')) return h(SandboxFrame, { ...common, piece, runtime: sandboxRuntime })
+    const html = piece || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '')
+    return html ? h(SandboxFrame, { ...common, html }) : null
   }),
 }
 
