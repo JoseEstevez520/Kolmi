@@ -39,6 +39,7 @@ The notes (the Markdown) carry the text; the page decides what goes in cards, ta
 | details or cases within a topic | a level-3 heading for each one |
 | a comparison | table |
 | a file or a command | code block with the real example |
+| code that is only read, and is long | code block, not a CodeWalkthrough that drags on |
 | the folder structure of a project | code block with the tree |
 | a change to a file | CodeDiff |
 | commands and their output | TerminalReplay |
@@ -69,6 +70,7 @@ export const promptOptions = {
     'The notes are the page\'s content: everything in them goes on the page, in their order, and nothing they do not say. Never invent commands, numbers, URLs or facts.',
     `The icon set (for Area, Chip, Label and AgentStep), and no other: ${ICON_NAMES.join(', ')}.`,
     'Diagram only for what a Figure cannot draw (a curve, a timeline, a chart with axes); Artifact only when touching it is the point, at most one per page. For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or HTML yourself.',
+    'For something the reader steps through or plays, use the piece made for it: CodeWalkthrough for code explained part by part or built up (a class that gains its routes), TerminalReplay for a terminal session, AgentReplay for an agent at work, Steps for a procedure. An Artifact is only for what none of them can show.',
     'When you are also given the current page in OpenUI Lang, start from it: keep the blocks that still match the notes, with their Diagram and Artifact blocks as they are, and change or add only what the notes changed or added.',
     'Answer with OpenUI Lang only: no prose before or after it.',
   ],

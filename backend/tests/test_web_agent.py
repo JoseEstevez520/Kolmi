@@ -329,6 +329,24 @@ def test_parses_every_component_and_writes_it_back():
     assert openui.parse(again) == root
 
 
+
+WALK = r"""root = Page([intro, walk])
+intro = Text("Build the controller one route at a time.")
+walk = CodeWalkthrough([s1, s2], "HomeController.java")
+s1 = WalkthroughStep("The class", "Mark it with `@Controller`.", "@Controller\npublic class HomeController { }")
+s2 = WalkthroughStep("A route", "`@GetMapping` ties `/` to the method.", "@Controller\npublic class HomeController {\n    @GetMapping(\"/\")\n    String home() { return \"home\"; }\n}", "3-4")
+"""
+
+
+def test_parses_a_code_walkthrough():
+    root = openui.parse(WALK)
+    assert openui.unknown_components(root) == set()
+    walk = root.args[0][1]
+    assert walk.name == "CodeWalkthrough" and walk.args[1] == "HomeController.java"
+    first, second = walk.args[0]
+    assert first.name == second.name == "WalkthroughStep"
+    assert second.args[3] == "3-4" and "@GetMapping" in second.args[2]
+
 # -- the visuals: Diagram and Artifact briefs, drawn by the main model ---------------------
 
 SVG = '<svg viewBox="0 0 640 200"><rect class="diagram-part" width="100" height="40"/></svg>'

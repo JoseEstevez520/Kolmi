@@ -21,13 +21,18 @@ const DESCRIPTIONS = {
     'A section heading. The page title is shown already, so level 2 for sections and 3 for subsections. Prefer role headings that say what kind of section it is.',
   Text: 'Running text in Markdown: paragraphs, short lists (up to 5 points), **bold**, `inline code` and links. No headings, no code fences and no tables here.',
   CodeBlock:
-    'Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose.',
+    'Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose. Long code that is only read goes here too, not in a CodeWalkthrough.',
   CodeDiff:
     'A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed.',
+  WalkthroughStep:
+    'One step of a CodeWalkthrough: a short title, what it explains in Markdown, the whole code as it stands at this step (not only what changes), and the line numbers it is about ("4-7"), left out to light up the lines it adds.',
+  CodeWalkthrough:
+    'Code built or read step by step: the reader scrolls the steps while the code stays beside them and each step lights up its lines. For a file that grows (a route, then a second one) or a short piece explained line by line. 2 to 5 steps.',
   Callout:
     'An aside set apart from the text: note, tip, important, warning or caution, one kind per thing. Its text is Markdown. Never two in a row, and never for the main idea.',
   StepItem: 'One step: a short title and its explanation in Markdown.',
-  Steps: 'Numbered steps for a procedure the reader follows in order.',
+  Steps:
+    'Numbered steps for a procedure the reader follows in order (install, configure, run). For code that grows step by step, use CodeWalkthrough; for commands and their output, TerminalReplay.',
   Table:
     'A comparison or structured facts: column headers and rows of short cells (Markdown inline: `code`, **bold**). Use it whenever two or more things are compared on the same points.',
   DescriptionItem: 'One term and what it is, in a sentence (Markdown).',
@@ -43,13 +48,13 @@ const DESCRIPTIONS = {
     'A row of technology or brand names with their logos, to name a stack without spending text (Java, Spring Boot, Vue, Docker...). Names only; the logos are looked up.',
   TerminalEntry: 'One command: what is typed, what it printed, and an optional comment saying what it is for.',
   TerminalReplay:
-    'Commands that are run, played back in a terminal with their output. For a short sequence the reader will type. A single command with no output is a CodeBlock instead.',
+    'A terminal session played back: the commands typed, one after another, with their output. For a short sequence the reader will type and what it prints. A single command with no output is a CodeBlock instead.',
   AgentPrompt: 'What the person asks the agent, with an optional note on what to notice.',
   AgentStep:
     'Something the agent does on its way (search, read, run, edit): the line while it runs, the line once done, an optional icon, what it printed, a note, and whether it had to ask permission.',
   AgentAnswer: "The agent's answer, with optional code it hands over and a note.",
   AgentReplay:
-    'A session with an AI agent, played back step by step, with a short note for each moment. The way to show how an agent works, rather than drawing it. One idea per session; say in the text that it is an example.',
+    'A session with an AI agent, played back step by step (what it is asked, what it reads and runs, what it answers), with a short note for each moment. The way to show how an agent works, rather than drawing it or describing it. One idea per session; say in the text that it is an example.',
   ChatMessage: 'One message: who sends it (user or assistant) and its text in Markdown.',
   Chat: 'A short chat exchange, shown as a chat: to show what asking an assistant looks like. For an agent that acts, use AgentReplay.',
   Chip: 'A tinted part of a figure: a short name, an optional icon and an optional quieter note after it.',
@@ -105,6 +110,23 @@ export function buildLibrary(renderers) {
       before: z.string().describe('The code before the change'),
       after: z.string().describe('The same code after it'),
       file: z.string().optional().describe('The file changed'),
+    }),
+  )
+
+  const WalkthroughStep = component(
+    'WalkthroughStep',
+    z.object({
+      title: z.string(),
+      text: z.string().describe('Markdown: what this step does and why, in a sentence or two'),
+      code: z.string().describe('The whole code at this step, exactly as it should be copied'),
+      highlight: z.string().optional().describe('Line numbers, not code: the lines this step is about, such as "3-5" or "2, 7-9". Leave it out to light up the lines the step adds'),
+    }),
+  )
+  const CodeWalkthrough = component(
+    'CodeWalkthrough',
+    z.object({
+      steps: z.array(WalkthroughStep.ref),
+      file: z.string().optional().describe('The file it is, such as "ProductController.java"'),
     }),
   )
 
@@ -289,6 +311,7 @@ export function buildLibrary(renderers) {
     Text.ref,
     CodeBlock.ref,
     CodeDiff.ref,
+    CodeWalkthrough.ref,
     Callout.ref,
     Steps.ref,
     Table.ref,
@@ -314,6 +337,8 @@ export function buildLibrary(renderers) {
       Text,
       CodeBlock,
       CodeDiff,
+      CodeWalkthrough,
+      WalkthroughStep,
       Callout,
       Steps,
       StepItem,

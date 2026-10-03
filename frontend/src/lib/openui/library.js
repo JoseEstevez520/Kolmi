@@ -14,6 +14,8 @@ import {
   ChatMessage,
   CodeBlock,
   CodeDiff,
+  CodeWalkthrough,
+  CodeWalkthroughStep,
   DescriptionItem,
   DescriptionList,
   Diagram,
@@ -85,6 +87,9 @@ function card({ title = '', text, href, image }) {
 // A cell's Markdown (`code`, **bold**), in the table's own type rather than an article's.
 const cell = (value) => h(Markdown, { source: String(value ?? ''), class: 'text-ui [color:inherit] [&_p]:m-0' })
 
+// Line numbers such as "3-5, 9"; anything else (a model pasting the code) lights up what the step adds.
+const lineRanges = (value) => (/^\s*\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*\s*$/.test(value ?? '') ? value : undefined)
+
 // -- the renderers ---------------------------------------------------------------------------
 
 const renderers = {
@@ -101,6 +106,18 @@ const renderers = {
   ),
 
   CodeDiff: renderer(({ before = '', after = '', file }) => h(CodeDiff, { before, after, file })),
+
+  // Each step carries the whole code as it stands then; the file is the walkthrough's, one for all.
+  CodeWalkthrough: renderer(({ steps, file }) => {
+    const rows = list(steps).map(propsOf).filter((step) => step.code)
+    if (!rows.length) return null
+    return h(CodeWalkthrough, { class: 'my-8' }, () =>
+      rows.map(({ title, text, code, highlight }, i) =>
+        h(CodeWalkthroughStep, { key: i, title, code, highlight: lineRanges(highlight), file }, () => markdown(text)),
+      ),
+    )
+  }),
+  WalkthroughStep: renderer(() => null),
 
   Callout: renderer(({ type = 'note', text, title }) =>
     h(Callout, { type, title }, () => markdown(text)),

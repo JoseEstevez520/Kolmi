@@ -2,7 +2,7 @@
   "root": "Page",
   "components": {
     "Page": {
-      "signature": "Page(blocks: (Heading | Text | CodeBlock | CodeDiff | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Diagram | Artifact)[])",
+      "signature": "Page(blocks: (Heading | Text | CodeBlock | CodeDiff | CodeWalkthrough | Callout | Steps | Table | DescriptionList | Accordion | Cards | Logos | TerminalReplay | AgentReplay | Chat | Figure | Diagram | Artifact)[])",
       "description": "The whole page: its blocks, top to bottom, in one column. Always the root."
     },
     "Heading": {
@@ -15,11 +15,19 @@
     },
     "CodeBlock": {
       "signature": "CodeBlock(code: string, language?: string, title?: string)",
-      "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose."
+      "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose. Long code that is only read goes here too, not in a CodeWalkthrough."
     },
     "CodeDiff": {
       "signature": "CodeDiff(before: string, after: string, file?: string)",
       "description": "A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed."
+    },
+    "CodeWalkthrough": {
+      "signature": "CodeWalkthrough(steps: WalkthroughStep[], file?: string)",
+      "description": "Code built or read step by step: the reader scrolls the steps while the code stays beside them and each step lights up its lines. For a file that grows (a route, then a second one) or a short piece explained line by line. 2 to 5 steps."
+    },
+    "WalkthroughStep": {
+      "signature": "WalkthroughStep(title: string, text: string, code: string, highlight?: string)",
+      "description": "One step of a CodeWalkthrough: a short title, what it explains in Markdown, the whole code as it stands at this step (not only what changes), and the line numbers it is about (\"4-7\"), left out to light up the lines it adds."
     },
     "Callout": {
       "signature": "Callout(type: \"note\" | \"tip\" | \"important\" | \"warning\" | \"caution\", text: string, title?: string)",
@@ -27,7 +35,7 @@
     },
     "Steps": {
       "signature": "Steps(items: StepItem[])",
-      "description": "Numbered steps for a procedure the reader follows in order."
+      "description": "Numbered steps for a procedure the reader follows in order (install, configure, run). For code that grows step by step, use CodeWalkthrough; for commands and their output, TerminalReplay."
     },
     "StepItem": {
       "signature": "StepItem(title: string, text: string)",
@@ -67,7 +75,7 @@
     },
     "TerminalReplay": {
       "signature": "TerminalReplay(entries: TerminalEntry[], title?: string)",
-      "description": "Commands that are run, played back in a terminal with their output. For a short sequence the reader will type. A single command with no output is a CodeBlock instead."
+      "description": "A terminal session played back: the commands typed, one after another, with their output. For a short sequence the reader will type and what it prints. A single command with no output is a CodeBlock instead."
     },
     "TerminalEntry": {
       "signature": "TerminalEntry(command: string, output?: string, comment?: string)",
@@ -75,7 +83,7 @@
     },
     "AgentReplay": {
       "signature": "AgentReplay(events: (AgentPrompt | AgentStep | AgentAnswer)[])",
-      "description": "A session with an AI agent, played back step by step, with a short note for each moment. The way to show how an agent works, rather than drawing it. One idea per session; say in the text that it is an example."
+      "description": "A session with an AI agent, played back step by step (what it is asked, what it reads and runs, what it answers), with a short note for each moment. The way to show how an agent works, rather than drawing it or describing it. One idea per session; say in the text that it is an example."
     },
     "AgentPrompt": {
       "signature": "AgentPrompt(text: string, note?: string)",
@@ -148,6 +156,12 @@
       },
       "CodeDiff": {
         "$ref": "#/$defs/CodeDiff"
+      },
+      "CodeWalkthrough": {
+        "$ref": "#/$defs/CodeWalkthrough"
+      },
+      "WalkthroughStep": {
+        "$ref": "#/$defs/WalkthroughStep"
       },
       "Callout": {
         "$ref": "#/$defs/Callout"
@@ -237,6 +251,8 @@
       "Text",
       "CodeBlock",
       "CodeDiff",
+      "CodeWalkthrough",
+      "WalkthroughStep",
       "Callout",
       "Steps",
       "StepItem",
@@ -285,6 +301,9 @@
                 },
                 {
                   "$ref": "#/$defs/CodeDiff"
+                },
+                {
+                  "$ref": "#/$defs/CodeWalkthrough"
                 },
                 {
                   "$ref": "#/$defs/Callout"
@@ -390,7 +409,7 @@
           "code"
         ],
         "additionalProperties": false,
-        "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose."
+        "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose. Long code that is only read goes here too, not in a CodeWalkthrough."
       },
       "CodeDiff": {
         "type": "object",
@@ -411,6 +430,49 @@
         ],
         "additionalProperties": false,
         "description": "A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed."
+      },
+      "CodeWalkthrough": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/WalkthroughStep"
+            }
+          },
+          "file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "steps"
+        ],
+        "additionalProperties": false,
+        "description": "Code built or read step by step: the reader scrolls the steps while the code stays beside them and each step lights up its lines. For a file that grows (a route, then a second one) or a short piece explained line by line. 2 to 5 steps."
+      },
+      "WalkthroughStep": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "highlight": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text",
+          "code"
+        ],
+        "additionalProperties": false,
+        "description": "One step of a CodeWalkthrough: a short title, what it explains in Markdown, the whole code as it stands at this step (not only what changes), and the line numbers it is about (\"4-7\"), left out to light up the lines it adds."
       },
       "Callout": {
         "type": "object",
@@ -453,7 +515,7 @@
           "items"
         ],
         "additionalProperties": false,
-        "description": "Numbered steps for a procedure the reader follows in order."
+        "description": "Numbered steps for a procedure the reader follows in order (install, configure, run). For code that grows step by step, use CodeWalkthrough; for commands and their output, TerminalReplay."
       },
       "StepItem": {
         "type": "object",
@@ -638,7 +700,7 @@
           "entries"
         ],
         "additionalProperties": false,
-        "description": "Commands that are run, played back in a terminal with their output. For a short sequence the reader will type. A single command with no output is a CodeBlock instead."
+        "description": "A terminal session played back: the commands typed, one after another, with their output. For a short sequence the reader will type and what it prints. A single command with no output is a CodeBlock instead."
       },
       "TerminalEntry": {
         "type": "object",
@@ -683,7 +745,7 @@
           "events"
         ],
         "additionalProperties": false,
-        "description": "A session with an AI agent, played back step by step, with a short note for each moment. The way to show how an agent works, rather than drawing it. One idea per session; say in the text that it is an example."
+        "description": "A session with an AI agent, played back step by step (what it is asked, what it reads and runs, what it answers), with a short note for each moment. The way to show how an agent works, rather than drawing it or describing it. One idea per session; say in the text that it is an example."
       },
       "AgentPrompt": {
         "type": "object",
