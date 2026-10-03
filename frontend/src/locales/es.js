@@ -44,10 +44,9 @@ export default {
     title: 'Ajustes',
     lead: 'Cómo se comporta la app en este navegador.',
     language: 'Idioma',
+    languageHint: 'Los menús, botones y avisos. Los apuntes se escriben en el idioma de la clase.',
     motion: 'Animaciones',
-    motionHint:
-      'Las animaciones se mantienen aunque el sistema pida reducir el movimiento. Desactívalo para seguir el ajuste del sistema.',
-    forceMotion: 'Mantener las animaciones',
+    motionHint: 'Las transiciones entre páginas y las piezas que se mueven. Apagadas, todo cambia al momento.',
     savedHere: 'Se guarda solo en este navegador.',
   },
 

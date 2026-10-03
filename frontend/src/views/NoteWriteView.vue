@@ -93,8 +93,21 @@ async function load() {
   }
 }
 
-// '' (nothing to say yet), 'saving', 'saved' or 'error'.
+// '' (nothing to say yet), 'saving', 'saved' or 'error'. Saves come every few seconds while
+// writing, so "Saving…" only shows when one takes long enough to notice; a quick one leaves
+// "Saved" still, instead of flickering through "Saving…" each time.
 const status = ref('')
+const SHOW_SAVING_AFTER = 600
+let savingTimer = null
+function startSaving() {
+  clearTimeout(savingTimer)
+  if (status.value === 'error') status.value = 'saving'
+  else savingTimer = setTimeout(() => (status.value = 'saving'), SHOW_SAVING_AFTER)
+}
+function endSaving(result) {
+  clearTimeout(savingTimer)
+  status.value = result
+}
 const statusText = computed(
   () =>
     ({
@@ -122,7 +135,7 @@ function save(keepalive = false) {
   if (content.value === saved.content && hint.value === saved.hint) return
 
   const sent = { content: content.value, hint: hint.value }
-  status.value = 'saving'
+  startSaving()
   inFlight = (async () => {
     try {
       const fields = { content: sent.content, nodeId: hintId.value, keepalive }
@@ -135,10 +148,10 @@ function save(keepalive = false) {
         await api.updateNote({ ...fields, noteId: noteId.value })
       }
       saved = sent
-      status.value = 'saved'
+      endSaving('saved')
     } catch {
       // The text stays on screen; the next change tries again.
-      status.value = 'error'
+      endSaving('error')
     } finally {
       inFlight = null
     }
@@ -170,6 +183,8 @@ onMounted(() => {
   document.addEventListener('visibilitychange', onHide)
   window.addEventListener('pagehide', onHide)
 })
+onBeforeUnmount(() => clearTimeout(savingTimer))
+
 onBeforeUnmount(() => {
   clearTimeout(timer)
   document.removeEventListener('visibilitychange', onHide)

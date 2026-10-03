@@ -47,10 +47,9 @@ export default {
     title: 'Settings',
     lead: 'How the app behaves in this browser.',
     language: 'Language',
+    languageHint: "Menus, buttons and messages. Notes are written in the class's language.",
     motion: 'Animations',
-    motionHint:
-      'Animations stay on even when the system asks for reduced motion. Turn this off to follow the system setting.',
-    forceMotion: 'Keep animations on',
+    motionHint: 'Transitions between pages and the parts that move. Off, everything changes at once.',
     savedHere: 'Saved in this browser only.',
   },
 

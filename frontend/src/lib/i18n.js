@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { defaultLabels } from 'elastic-ui'
 import en from '../locales/en.js'
@@ -34,9 +35,10 @@ export const i18n = createI18n({
   messages: { en, es },
 })
 
-// The labels elastic-ui is installed with. The library reads them when a part is created, so
-// switching the language updates this object and App.vue remounts the tree under its key.
-export const libraryLabels = { ...LIBRARY_LABELS[initial] }
+// The labels elastic-ui is installed with. Reactive, so the parts that read them while they
+// render follow a language switch in place, without remounting the app (which reset the
+// sidebar).
+export const libraryLabels = reactive({ ...LIBRARY_LABELS[initial] })
 
 /** A message outside a component (lib code): the same `t` the templates use. */
 export const t = (...args) => i18n.global.t(...args)

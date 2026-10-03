@@ -6,6 +6,7 @@ import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import { Home, LogOut, NotebookPen, ScrollText, Settings, SlidersHorizontal } from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
+import { libraryLabels } from '../lib/i18n.js'
 import { nodeIcon } from '../lib/icons.js'
 
 // The app's sidebar (elastic-ui "connected" variant): Home, Notes, the
@@ -37,7 +38,7 @@ async function handleSignOut() {
 </script>
 
 <template>
-  <Sidebar variant="connected" label="Kolmi">
+  <Sidebar variant="connected" label="Kolmi" :toggle-label="libraryLabels.toggleSidebar">
     <template #header>
       <RouterLink to="/" class="flex items-center gap-2 px-2.5 text-sm font-semibold text-fg">
         <img src="/logo.svg" alt="" width="18" height="18" />

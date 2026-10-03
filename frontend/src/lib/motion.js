@@ -1,31 +1,29 @@
 import { ref } from 'vue'
 import { setMotionPreference } from 'elastic-ui'
 
-// Whether the app animates even when the system asks for reduced motion (Settings). On by
-// default, so the transitions that explain each change stay; turned off, the app follows the
-// system setting. Kept in this browser and applied where the preference is read:
-// setMotionPreference (the library's JS animations and `data-motion` on <html>, which
-// tokens.css and the `motion-reduce:` variant check) and MotionConfig in App.vue (motion-v).
+// Animations on or off (Settings), whatever the computer's own setting says. On by default, so
+// the transitions that explain each change stay. Kept in this browser and handed to elastic-ui,
+// whose parts, CSS and `motion-reduce:` variant follow it; App.vue's MotionConfig too.
 const KEY = 'kolmi.motion'
 
 function saved() {
   try {
-    // On unless it was turned off by hand ('auto' is stored then).
-    return localStorage.getItem(KEY) !== 'auto'
+    // On unless it was turned off by hand ('none' is stored then; 'auto', from before, is on).
+    return localStorage.getItem(KEY) !== 'none'
   } catch {
     return true
   }
 }
 
-export const forceMotion = ref(saved())
+export const motionOn = ref(saved())
 
-setMotionPreference(forceMotion.value ? 'full' : 'auto')
+setMotionPreference(motionOn.value ? 'full' : 'none')
 
-export function setForceMotion(value) {
-  forceMotion.value = value
-  setMotionPreference(value ? 'full' : 'auto')
+export function setMotionOn(value) {
+  motionOn.value = value
+  setMotionPreference(value ? 'full' : 'none')
   try {
-    localStorage.setItem(KEY, value ? 'full' : 'auto')
+    localStorage.setItem(KEY, value ? 'full' : 'none')
   } catch {
     // Blocked storage: the choice lasts until the tab closes.
   }

@@ -7,7 +7,8 @@ import { PageTransition, ScrollIndicator, SidebarLayout, SidebarLayoutHeader, Th
 import AppBreadcrumbs from './components/AppBreadcrumbs.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import { session } from './lib/auth.js'
-import { forceMotion } from './lib/motion.js'
+import { libraryLabels } from './lib/i18n.js'
+import { motionOn } from './lib/motion.js'
 import { tocShown } from './lib/toc.js'
 import { zen } from './lib/zen.js'
 
@@ -29,7 +30,7 @@ const indicator = ref(null)
 </script>
 
 <template>
-  <MotionConfig :key="locale" :reduced-motion="forceMotion ? 'never' : 'user'">
+  <MotionConfig :reduced-motion="motionOn ? 'never' : 'always'">
     <SidebarLayout v-if="withSidebar" :bare="zen">
       <AppSidebar />
 
@@ -37,7 +38,11 @@ const indicator = ref(null)
         <SidebarLayoutHeader :toggle-label="t('app.openMenu')" class="shadow-none">
           <AppBreadcrumbs />
           <template #end>
-            <ThemeToggle />
+            <!-- It stays through a language switch, and reads a default text only once. -->
+            <ThemeToggle
+              :light-label="libraryLabels.switchToLight"
+              :dark-label="libraryLabels.switchToDark"
+            />
           </template>
         </SidebarLayoutHeader>
 

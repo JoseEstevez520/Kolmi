@@ -33,7 +33,7 @@ Installed from the packed library, `vendor/elastic-ui-<version>.tgz`, under the 
 `elastic-ui`:
 
 ```json
-"elastic-ui": "file:vendor/elastic-ui-0.6.2.tgz"
+"elastic-ui": "file:vendor/elastic-ui-0.6.3.tgz"
 ```
 
 It ships no compiled CSS: `src/style.css` imports its tokens and points Tailwind at its
