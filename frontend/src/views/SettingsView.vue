@@ -1,6 +1,14 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { Separator, Switch, ToggleGroup, ToggleGroupItem } from 'elastic-ui'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  Switch,
+} from 'elastic-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { LOCALES, setLocale } from '../lib/i18n.js'
 import { motionOn, setMotionOn } from '../lib/motion.js'
@@ -20,24 +28,23 @@ const { t, locale } = useI18n()
             <h2 id="language" class="text-label font-medium text-fg">{{ t('settings.language') }}</h2>
             <p class="text-label text-fg-secondary">{{ t('settings.languageHint') }}</p>
           </div>
-          <ToggleGroup
-            :model-value="locale"
-            :aria-label="t('settings.language')"
-            @update:model-value="(value) => value && setLocale(value)"
-          >
-            <ToggleGroupItem v-for="(name, code) in LOCALES" :key="code" :value="code">
-              <span :lang="code">{{ name }}</span>
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <!-- A list, so more languages fit as they come. -->
+          <Select :model-value="locale" class="w-44" @update:model-value="setLocale">
+            <SelectTrigger :aria-label="t('settings.language')">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="(name, code) in LOCALES" :key="code" :value="code">
+                <span :lang="code">{{ name }}</span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </section>
 
         <Separator />
 
         <section class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5">
-          <div class="flex min-w-0 max-w-sm flex-col gap-1">
-            <h2 id="motion" class="text-label font-medium text-fg">{{ t('settings.motion') }}</h2>
-            <p class="text-label text-fg-secondary">{{ t('settings.motionHint') }}</p>
-          </div>
+          <h2 id="motion" class="text-label font-medium text-fg">{{ t('settings.motion') }}</h2>
           <Switch :model-value="motionOn" @update:model-value="setMotionOn">
             <span class="sr-only">{{ t('settings.motion') }}</span>
           </Switch>

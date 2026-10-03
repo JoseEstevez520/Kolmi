@@ -49,7 +49,6 @@ export default {
     language: 'Language',
     languageHint: "Menus, buttons and messages. Notes are written in the class's language.",
     motion: 'Animations',
-    motionHint: 'Transitions between pages and the parts that move. Off, everything changes at once.',
     savedHere: 'Saved in this browser only.',
   },
 

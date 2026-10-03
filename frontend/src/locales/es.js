@@ -46,7 +46,6 @@ export default {
     language: 'Idioma',
     languageHint: 'Los menús, botones y avisos. Los apuntes se escriben en el idioma de la clase.',
     motion: 'Animaciones',
-    motionHint: 'Las transiciones entre páginas y las piezas que se mueven. Apagadas, todo cambia al momento.',
     savedHere: 'Se guarda solo en este navegador.',
   },
 
