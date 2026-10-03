@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ActionButton, DayStrip, StatusText, Switch, WeekPillbox } from 'elastic-ui'
-import AdminSetting from './AdminSetting.vue'
 import { api } from '../lib/api.js'
 
 // When the daily pass runs: on or off, the times and the weekdays, all in Madrid time. Every
@@ -129,41 +128,53 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminSetting :title="t('admin.pass.title')" :description="t('admin.pass.zone')">
-    <template #aside>
-      <StatusText class="mt-4 block text-label text-fg" :text="nextText" />
-      <ActionButton
-        class="mt-4"
-        icon="play"
-        :label="t('admin.pass.runNow')"
-        :done-label="t('admin.pass.started')"
-        :error-label="runFailed || t('common.somethingWrong')"
-        :action="runNow"
-      />
-    </template>
-
+  <section class="flex flex-col gap-8 py-6">
     <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>
-      <Switch :model-value="enabled" :aria-label="t('admin.pass.enabled')" @update:model-value="(on) => save({ passEnabled: on })" />
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h3 class="m-0 text-label text-fg">{{ t('admin.pass.title') }}</h3>
+          <p class="m-0 mt-1 text-meta text-fg-muted">{{ t('admin.pass.zone') }}</p>
+        </div>
+        <Switch :model-value="enabled" :aria-label="t('admin.pass.enabled')" @update:model-value="(on) => save({ passEnabled: on })" />
+      </div>
+
+      <div v-if="enabled" class="grid gap-8 md:grid-cols-2 md:gap-12">
+        <div class="flex min-w-0 flex-col gap-3">
+          <h4 class="m-0 text-label text-fg">{{ t('admin.pass.days') }}</h4>
+          <WeekPillbox
+            :model-value="days"
+            :locale="locale"
+            :label="t('admin.pass.daysLabel')"
+            :words="dayWords"
+            @update:model-value="setDays"
+          />
+        </div>
+        <div class="flex min-w-0 flex-col gap-3">
+          <h4 class="m-0 text-label text-fg">{{ t('admin.pass.times') }}</h4>
+          <DayStrip
+            v-model="times"
+            :label="t('admin.pass.times')"
+            :add-label="t('admin.pass.addTime')"
+            @changed="setTimes"
+          />
+        </div>
+      </div>
+
       <StatusText v-if="saveError" :text="saveError" error />
 
-      <template v-if="enabled">
-        <WeekPillbox
-          :model-value="days"
-          :locale="locale"
-          :label="t('admin.pass.daysLabel')"
-          :words="dayWords"
-          @update:model-value="setDays"
+      <div class="flex items-center justify-between gap-4">
+        <StatusText class="text-label text-fg-secondary" :text="nextText" />
+        <ActionButton
+          icon="play"
+          :label="t('admin.pass.runNow')"
+          :done-label="t('admin.pass.started')"
+          :error-label="runFailed || t('common.somethingWrong')"
+          :action="runNow"
         />
-        <DayStrip
-          v-model="times"
-          :label="t('admin.pass.times')"
-          :add-label="t('admin.pass.addTime')"
-          @changed="setTimes"
-        />
-      </template>
+      </div>
     </template>
-  </AdminSetting>
+  </section>
 </template>
