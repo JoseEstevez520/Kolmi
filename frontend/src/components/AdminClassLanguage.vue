@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Field, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StatusText } from 'elastic-ui'
+import AdminSetting from './AdminSetting.vue'
 import { api } from '../lib/api.js'
 
 // The class language: the one the daily pass writes the shared notes and pages in, whatever
@@ -61,18 +62,14 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="flex flex-col gap-3">
+  <AdminSetting :title="t('admin.classLanguage.label')" :description="t('admin.classLanguage.hint')">
     <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>
-      <Field
-        :label="t('admin.classLanguage.label')"
-        :description="t('admin.classLanguage.hint')"
-        :error="saveError"
-      >
+      <Field :error="saveError" class="w-full">
         <Select :model-value="language" @update:model-value="save">
-          <SelectTrigger>
+          <SelectTrigger :aria-label="t('admin.classLanguage.label')">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -84,5 +81,5 @@ onMounted(load)
       </Field>
       <StatusText v-if="status" :text="status" :working="saving" />
     </template>
-  </section>
+  </AdminSetting>
 </template>
