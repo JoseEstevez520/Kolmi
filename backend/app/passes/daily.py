@@ -99,14 +99,15 @@ def _write_batch(
     index = build_index(store.nodes())
 
     # First the notes: the page's Markdown, its source of truth.
-    markdown = write_markdown(
+    markdown, decisions = write_markdown(
         llm,
         title=page["title"],
         summary=batch.summary,
         existing_md=existing_md,
         language=language,
         index=index,
-    ) or existing_md
+    )
+    markdown = markdown or existing_md
 
     # Then the web from those notes, and its visuals. Once the web model has failed in this
     # pass, the rest goes straight to the main model.
@@ -143,14 +144,15 @@ def _write_batch(
         )
         stats["updated"] += 1
 
-    stats["pages"].append(
-        {
-            "node_id": page["id"],
-            "title": page["title"],
-            "format": written.source,
-            "model": written.model or None,
-        }
-    )
+    entry = {
+        "node_id": page["id"],
+        "title": page["title"],
+        "format": written.source,
+        "model": written.model or None,
+    }
+    if decisions:
+        entry["decisions"] = decisions
+    stats["pages"].append(entry)
 
 
 def _attach_files(

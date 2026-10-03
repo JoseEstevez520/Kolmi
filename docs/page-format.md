@@ -128,6 +128,9 @@ The notes agent writes the page's Markdown first (`content_md`, the source). The
 3. Neither: `content_web` keeps what it had, so a failure never blanks a good page. A new page
    stays without one and shows its Markdown.
 
+The notes agent also ends with a `---decisions---` block saying what it left out or changed and
+why. It isn't part of the page: the pass keeps it in `pages[].decisions`.
+
 Then the main model draws the page's Diagram and Artifact briefs, if it has any, with the
 page's Markdown as their data.
 

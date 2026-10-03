@@ -217,7 +217,8 @@ The answer:
 - The whole page in {{language}}, even when the material or the current page is in another \
 language: translate what you keep. No level-1 heading: the title is shown already.
 - No names or personal data. Do not invent facts.
-- Answer with the Markdown only: no preamble, no code fence around the whole page.
+- Answer with the page in Markdown: no preamble, no code fence around the whole page.
+- After the page, on a line of its own, write `---decisions---` and under it a few short lines: what you left out, merged or changed from the material or the current page, and why. Kolmi keeps them for the class admin, so a decision can be understood later. They are not part of the page.
 """
 
 
