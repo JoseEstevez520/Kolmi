@@ -9,9 +9,7 @@ import {
   Markdown,
   NavTree,
   NavTreeItem,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+  PopoverMorph,
   StatusText,
 } from 'elastic-ui'
 import { ArrowLeft, Folder, Maximize2, Minimize2 } from '@lucide/vue'
@@ -50,8 +48,6 @@ const hintId = computed(() => (hint.value === NOT_SURE ? null : Number(hint.valu
 
 // The hint lives in the top bar as a quiet piece of metadata: a ghost button with the picked
 // place's short path, opening the tree. Picking a place closes it.
-const picking = ref(false)
-watch(hint, () => (picking.value = false))
 
 // Each node's path from the top, to name the picked one by its last two steps.
 const paths = computed(() => {
@@ -205,25 +201,28 @@ onMounted(() => loadNodes().catch(() => {}))
     <div class="mb-10 flex items-center justify-between gap-3">
       <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
       <div v-if="!closed && !error" class="flex min-w-0 items-center gap-2">
-        <Popover v-if="!loading" v-model:open="picking">
-          <PopoverTrigger as-child>
-            <Button
-              variant="ghost"
-              size="sm"
-              :icon="Folder"
-              class="min-w-0 text-fg-muted"
-              :aria-label="hintPath ? `${t('notes.write.hintLabel')} ${hintPath}` : undefined"
-            >
-              <span class="truncate">{{ hintPath || t('notes.write.hintEmpty') }}</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end">
-            <NavTree v-model="hint" :label="t('notes.write.hintLabel')">
+        <PopoverMorph
+          v-if="!loading"
+          variant="ghost"
+          size="sm"
+          align="end"
+          fluid
+          class="min-w-0 text-fg-muted"
+          :label="hintPath ? `${t('notes.write.hintLabel')} ${hintPath}` : t('notes.write.hintLabel')"
+        >
+          <template #trigger>
+            <Folder class="size-4 shrink-0" aria-hidden="true" />
+            <span class="min-w-0 overflow-hidden whitespace-nowrap mask-fade-r">
+              {{ hintPath || t('notes.write.hintEmpty') }}
+            </span>
+          </template>
+          <template #default="{ close }">
+            <NavTree v-model="hint" selectable :label="t('notes.write.hintLabel')" @select="close">
               <NavTreeItem :value="NOT_SURE">{{ t('notes.write.hintNotSure') }}</NavTreeItem>
               <PlaceTree :items="nodes" />
             </NavTree>
-          </PopoverContent>
-        </Popover>
+          </template>
+        </PopoverMorph>
         <StatusText
           v-if="status"
           :class="['text-meta', status !== 'error' && 'text-fg-muted']"

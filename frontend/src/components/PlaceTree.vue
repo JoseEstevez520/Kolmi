@@ -11,8 +11,7 @@ defineProps({
 
 <template>
   <template v-for="item in items" :key="item.id">
-    <!-- `as="button"`: a group's label is selectable only as a link, so it renders as a button. -->
-    <NavTreeGroup v-if="item.children?.length" :label="item.title" :value="String(item.id)" as="button">
+    <NavTreeGroup v-if="item.children?.length" :label="item.title" :value="String(item.id)">
       <PlaceTree :items="item.children" />
     </NavTreeGroup>
     <NavTreeItem v-else :value="String(item.id)">{{ item.title }}</NavTreeItem>
