@@ -114,7 +114,7 @@ Done with notes written from the class repo, two files from the Moodle
   pass's `visuals` list only counts the SVGs and pieces the main model draws afterwards, so a
   diagram made of the library's parts doesn't show there. Figures fade in as they scroll into
   view, so a full-page screenshot shows them as empty boxes. A list term written in backticks
-  shows them as text. One page had an
+  showed them as text; fixed. One page had an
   English heading, two showed backticks in a heading, and the model added examples the notes
   didn't have. The prompts were changed for the first two, and a second run came out clean.
 - **Moodle:** the course's "Theory and examples" labels are empty; the theory is only in zips and
