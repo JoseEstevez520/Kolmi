@@ -23,6 +23,15 @@ LANGUAGES: dict[str, str] = {
 FALLBACK_LANGUAGE = "en"
 SETTINGS_ID = 1
 
+# The pass's schedule, until the admin sets one (and while the columns are not there yet):
+# every day at 03:00, Europe/Madrid. Days are ISO weekdays, 1 Monday to 7 Sunday.
+DEFAULT_PASS = {
+    "pass_enabled": True,
+    "pass_times": ["03:00"],
+    "pass_days": [1, 2, 3, 4, 5, 6, 7],
+}
+PASS_COLUMNS = ", ".join(DEFAULT_PASS)
+
 
 def default_language() -> str:
     """`CLASS_LANGUAGE` from the environment, or English when it is not a supported code."""
@@ -34,16 +43,18 @@ def language_name(code: str) -> str:
     return LANGUAGES.get(code, LANGUAGES[FALLBACK_LANGUAGE])
 
 
+def _select(client, columns: str) -> list[dict[str, Any]]:
+    return (
+        client.table("settings").select(columns).eq("id", SETTINGS_ID).limit(1).execute().data
+    )
+
+
 def _row(client) -> dict[str, Any] | None:
     try:
-        rows = (
-            client.table("settings")
-            .select("class_language, updated_at")
-            .eq("id", SETTINGS_ID)
-            .limit(1)
-            .execute()
-            .data
-        )
+        try:
+            rows = _select(client, f"class_language, updated_at, {PASS_COLUMNS}")
+        except Exception:  # the schedule columns are not there yet
+            rows = _select(client, "class_language, updated_at")
     except Exception as exc:  # the table is not there yet, or Supabase is unreachable
         log.warning("could not read the settings row, using the environment: %s", exc)
         return None
@@ -58,6 +69,8 @@ def read_settings(client) -> dict[str, Any]:
     return {
         "class_language": language,
         "updated_at": (row or {}).get("updated_at"),
+        **{key: (row or {}).get(key, default) for key, default in DEFAULT_PASS.items()},
+        "timezone": "Europe/Madrid",
         "languages": [{"code": code, "name": name} for code, name in LANGUAGES.items()],
     }
 

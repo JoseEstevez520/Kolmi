@@ -151,9 +151,8 @@ def test_an_unsupported_language_is_refused(env_language):
     assert table.rows == []
 
 
-def test_the_language_is_required():
-    with pytest.raises(ValidationError):
-        UpdateSettingsParams.model_validate({})
+def test_every_field_is_optional():
+    assert UpdateSettingsParams.model_validate({}).class_language is None
 
 
 def test_saving_without_the_table_says_what_is_missing(env_language):

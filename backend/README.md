@@ -26,6 +26,15 @@ pasted the same way (each one is safe to run twice).
 Or run them with `psql "$SUPABASE_DB_URL" -f <file>`, where `SUPABASE_DB_URL` is the
 session pooler URI from the project's Connect dialog (the direct host is IPv6-only).
 
+## Files
+
+Files live in a private Storage bucket (`files`) and a `files` table, both created by
+[`../supabase/migrations/20261003130000_files.sql`](../supabase/migrations/20261003130000_files.sql).
+Uploads go through the API (`POST /files/upload`, the file as the request body) and downloads
+are short-lived signed links (`GET /files/download`). The limits and allowed kinds are in
+`app/files.py`; until the migration is applied, the routes answer 503 and pages read as
+without files.
+
 ## Run
 
 ```bash
@@ -70,12 +79,13 @@ live in `app/class_settings.py`.
 
 ## The daily pass
 
-Once a day, a cron wakes a team of agents that turns the pending notes into
+On the schedule the admin sets, a cron wakes a team of agents that turns the pending notes into
 pages:
 
 1. **Gatekeeper**: anonymizes, decides whether each note adds something new to what the
    pages already say, joins notes about the same topic, discards what adds nothing and picks
-   the target page (an existing one or a new one). It works like a coding agent: it gets the
+   the target page (an existing one or a new one, and where the new one goes among its
+   siblings: first, after a page, or last, with the reason in the AI log). It works like a coding agent: it gets the
    tree as an index (id, kind and title of each node) and each note with its hint, the node
    the student picked, if any. It reads the pages it needs with a `read_page` tool before
    deciding. If the model has no tools, or the loop fails, it decides from the index alone.
@@ -94,14 +104,20 @@ Run it by hand:
 ```bash
 python -m app.passes.daily            # run it
 python -m app.passes.daily --dry-run  # only ask the gatekeeper, write nothing
+python -m app.passes.daily --if-due   # run only when the admin's schedule says so
 ```
 
-Or from the admin API with `run_pass()` (runs synchronously).
+Or from the admin API with `run_pass()`: it starts the pass in the background and answers
+`started` or `already_running` at once; the pass shows up in the AI log.
 
-Cron, on the server (see [Deploy](#deploy-docker) for the container version):
+The schedule (on or off, times in Europe/Madrid, weekdays) lives in `settings` and is set in
+the admin. The cron runs every hour with `--if-due`, which runs the pass only when a chosen
+time has passed since the last pass started, and otherwise exits 0 saying why. Plain
+`python -m app.passes.daily` always runs. Cron, on the server (see [Deploy](#deploy-docker)
+for the container version):
 
 ```cron
-0 4 * * * cd /srv/kolmi/backend && .venv/bin/python -m app.passes.daily >> /var/log/kolmi-pass.log 2>&1
+0 * * * * cd /srv/kolmi/backend && .venv/bin/python -m app.passes.daily --if-due >> /var/log/kolmi-pass.log 2>&1
 ```
 
 The pass refuses to start while another one is still running (within the last
@@ -155,10 +171,10 @@ docker compose run --rm pass python -m app.passes.daily --dry-run
 ```
 
 The pass runs as a one-shot container, never as a cron inside the API. A host
-cron wakes it once a day:
+cron wakes it every hour, and `--if-due` decides whether the admin's schedule asks for a pass:
 
 ```cron
-0 4 * * * cd /srv/kolmi && docker compose run --rm pass python -m app.passes.daily >> /var/log/kolmi-pass.log 2>&1
+0 * * * * cd /srv/kolmi && docker compose run --rm pass python -m app.passes.daily --if-due >> /var/log/kolmi-pass.log 2>&1
 ```
 
 The API healthcheck hits `GET /health` every 30s.

@@ -5,6 +5,7 @@ import { Callout, Empty, StatusText } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
 import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
+import AdminPass from '../components/AdminPass.vue'
 import AdminNode from '../components/AdminNode.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
@@ -106,6 +107,9 @@ onMounted(loadTree)
         <h2 id="class">{{ t('admin.classSettings') }}</h2>
         <div class="not-prose my-6">
           <AdminClassLanguage />
+        </div>
+        <div class="not-prose my-6">
+          <AdminPass />
         </div>
       </template>
     </PageLayout>

@@ -27,6 +27,8 @@ services:
   # One-shot batch job. Never starts with `up` (profiles); run it by hand:
   #   docker compose run --rm pass
   #   docker compose run --rm pass python -m app.passes.daily --dry-run
+  # The host cron runs it every hour with --if-due; the admin sets the days and times:
+  #   0 * * * * cd /srv/kolmi && docker compose run --rm pass python -m app.passes.daily --if-due
   pass:
     <<: *backend
     command: python -m app.passes.daily

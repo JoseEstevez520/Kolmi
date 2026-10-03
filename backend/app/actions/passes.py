@@ -1,3 +1,6 @@
+import logging
+import threading
+
 from pydantic import BaseModel
 
 from ..auth import Context
@@ -20,15 +23,33 @@ class ListPassesParams(BaseModel):
     limit: int = 20
 
 
+log = logging.getLogger(__name__)
+
+
+def _run_in_background() -> None:
+    try:
+        run_daily_pass()
+    except Exception:  # the pass records its own failure in ai_passes
+        log.exception("the pass started from the admin failed")
+
+
 @action(
     name="run_pass",
-    description="Run the AI pass now instead of waiting for the night.",
+    description="Start the AI pass now, in the background, instead of waiting for its schedule.",
     path="/pass/run",
     requires_confirmation=True,
     min_role="admin",
 )
 def run_pass(ctx: Context, params: None):
-    return run_daily_pass()
+    from ..passes.daily import STALE_MINUTES
+    from ..store import SupabaseStore
+
+    # It returns at once; the pass shows up in the log. The pass itself refuses to start
+    # while another is fresh, so the check here is only to answer straight away.
+    if SupabaseStore(ctx.client).running_pass(STALE_MINUTES):
+        return {"status": "already_running"}
+    threading.Thread(target=_run_in_background, daemon=True).start()
+    return {"status": "started"}
 
 
 @action(

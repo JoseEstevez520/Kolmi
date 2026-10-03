@@ -96,8 +96,20 @@ export const api = {
   // in. Anyone signed in reads them; only an admin changes them.
   settings: () => request('/settings'),
 
-  updateSettings: ({ classLanguage }) =>
-    request('/settings', { method: 'POST', body: { class_language: classLanguage } }),
+  // Sends only what is given, so one setting can change without the rest.
+  updateSettings: ({ classLanguage, passEnabled, passTimes, passDays }) =>
+    request('/settings', {
+      method: 'POST',
+      body: {
+        class_language: classLanguage,
+        pass_enabled: passEnabled,
+        pass_times: passTimes,
+        pass_days: passDays,
+      },
+    }),
+
+  // Admin: start the pass now. It answers at once, `started` or `already_running`.
+  runPass: () => request('/pass/run', { method: 'POST' }),
 
   // Admin, the tree. The backend stores whatever fields it is given, so a node
   // is created with its icon, colour and home flag from the start.

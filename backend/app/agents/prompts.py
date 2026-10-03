@@ -19,7 +19,8 @@ Rules:
 - Discard what adds nothing (chatter, a repeat of what a page already says, a question with no \
 content), and say in its reason what it repeats or why it adds nothing.
 - Route each batch to a page: reuse an existing page id when the topic fits; otherwise propose a \
-new page under a sensible existing section (parent_id).
+new page under a sensible existing section (parent_id). A new page goes where it belongs among \
+its siblings, including first if the others build on it: say where and why.
 - The summary is all the notes agent gets: everything the notes add to that page (facts, steps, \
 code, numbers, links), faithful to the notes. Do not invent facts.
 - The hint is a hint, not an order: the note usually goes there, but think about it and move it \
@@ -40,14 +41,14 @@ Answer only with JSON in this shape:
       "note_ids": [1, 3],
       "action": "update" | "create",
       "node_id": 12,
-      "new_page": {{"parent_id": 4, "title": "Git basics", "description": ""}},
+      "new_page": {{"parent_id": 4, "title": "Git basics", "description": "", "placement": "first" | "after" | "last", "after_node_id": 7, "placement_reason": "why it goes there"}},
       "summary": "cleaned, merged content, no names",
       "reason": "what it adds to that page"
     }}
   ],
   "discarded": [{{"note_id": 2, "reason": "what it repeats, or why it adds nothing"}}]
 }}
-"node_id" is set when action is "update"; "new_page" when it is "create".
+"node_id" is set when action is "update"; "new_page" when it is "create" ("after_node_id" only when placement is "after").
 """
 
 # The class notes site's writing skill (apuntes-claros), in English and with what only made sense

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.store import place_among
+
 
 class FakeLLM:
     """A model that answers with whatever the test hands it.
@@ -68,6 +70,8 @@ class FakeStore:
         self.versions: list[dict[str, Any]] = []
         self.logs: list[dict[str, Any]] = []
         self.passes: dict[int, dict[str, Any]] = {}
+        self.last_started = None
+        self.settings = {"pass_enabled": True, "pass_times": ["03:00"], "pass_days": list(range(1, 8))}
 
     def class_language(self) -> str:
         return self.language
@@ -82,10 +86,24 @@ class FakeStore:
         return dict(self._pages[node_id]) if node_id in self._pages else None
 
     def create_page(
-        self, *, parent_id: int | None, title: str, description: str
+        self,
+        *,
+        parent_id: int | None,
+        title: str,
+        description: str,
+        placement: str = "last",
+        after_node_id: int | None = None,
     ) -> dict[str, Any]:
         node_id = self._next_id
         self._next_id += 1
+        siblings = [n for n in self._nodes if n.get("parent_id") == parent_id]
+        slot, moves = place_among(siblings, placement, after_node_id)
+        for node in self._nodes:
+            if node["id"] in moves:
+                node["position"] = moves[node["id"]]
+        self._nodes.append(
+            {"id": node_id, "parent_id": parent_id, "kind": "page", "title": title, "position": slot}
+        )
         page = {"id": node_id, "title": title, "content_md": "", "content_web": ""}
         self._pages[node_id] = page
         return dict(page)
@@ -152,3 +170,9 @@ class FakeStore:
             if item["status"] == "running":
                 return item
         return None
+
+    def schedule(self):
+        return self.settings
+
+    def last_pass_started(self):
+        return self.last_started

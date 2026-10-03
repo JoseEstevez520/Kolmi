@@ -9,6 +9,10 @@ class NewPage(BaseModel):
     parent_id: int | None = None
     title: str
     description: str = ""
+    # Where it goes among its siblings: first, after the page `after_node_id`, or last.
+    placement: Literal["first", "after", "last"] = "last"
+    after_node_id: int | None = None
+    placement_reason: str = ""
 
 
 class Batch(BaseModel):

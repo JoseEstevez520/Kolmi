@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper, write_markdown
 from ..agents.gatekeeper import build_index
 from ..agents.schemas import Batch, GatekeeperResult, NewPage
 from ..store import Store, SupabaseStore
+from .schedule import is_due
 
 STALE_MINUTES = 120
 
@@ -63,14 +65,19 @@ def _resolve_target(
 
     new = batch.new_page or NewPage(parent_id=None, title="Untitled")
     created = store.create_page(
-        parent_id=new.parent_id, title=new.title, description=new.description
+        parent_id=new.parent_id,
+        title=new.title,
+        description=new.description,
+        placement=new.placement,
+        after_node_id=new.after_node_id,
     )
+    reason = " ".join(r for r in (batch.reason, new.placement_reason) if r)
     store.log(
         pass_id=pass_id,
         note_id=None,
         node_id=created["id"],
         action="created",
-        reason=batch.reason,
+        reason=reason,
     )
     stats["created"] += 1
     return {"id": created["id"], "title": new.title, "content_md": "", "content_web": ""}
@@ -207,6 +214,7 @@ def run_daily_pass(
     web_llm: LLM | None = None,
     language: str | None = None,
     dry_run: bool = False,
+    if_due: bool = False,
 ) -> dict[str, Any]:
     """One pass: read the pending notes and turn them into pages.
 
@@ -222,6 +230,10 @@ def run_daily_pass(
     `CLASS_LANGUAGE` when there is none).
     """
     store = store or SupabaseStore()
+    if if_due and not is_due(
+        datetime.now(timezone.utc), store.schedule(), store.last_pass_started()
+    ):
+        return {"status": "not-due", "reason": "the schedule does not ask for a pass now"}
     if llm is None:
         llm = get_llm()
         web_llm = web_llm or get_web_llm()
@@ -299,9 +311,14 @@ def main() -> None:
         action="store_true",
         help="Ask the gatekeeper what it would do and write nothing.",
     )
+    parser.add_argument(
+        "--if-due",
+        action="store_true",
+        help="Run only when the schedule set in the admin says so (for an hourly cron).",
+    )
     args = parser.parse_args()
 
-    summary = run_daily_pass(dry_run=args.dry_run)
+    summary = run_daily_pass(dry_run=args.dry_run, if_due=args.if_due)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 

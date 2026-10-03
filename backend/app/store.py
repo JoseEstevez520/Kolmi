@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
-from .class_settings import class_language
+from .class_settings import class_language, read_settings
 from .supabase_client import get_client
 
 NODE_COLUMNS = "id, parent_id, kind, title, description, icon, color, position, on_home"
@@ -29,7 +29,13 @@ class Store(Protocol):
     def page(self, node_id: int) -> dict[str, Any] | None: ...
 
     def create_page(
-        self, *, parent_id: int | None, title: str, description: str
+        self,
+        *,
+        parent_id: int | None,
+        title: str,
+        description: str,
+        placement: str = "last",
+        after_node_id: int | None = None,
     ) -> dict[str, Any]: ...
 
     def save_version(self, node_id: int, content_md: str, content_web: str) -> None: ...
@@ -64,6 +70,37 @@ class Store(Protocol):
     ) -> None: ...
 
     def running_pass(self, stale_minutes: int) -> dict[str, Any] | None: ...
+
+    def schedule(self) -> dict[str, Any]:
+        """The class settings, with the pass's schedule."""
+        ...
+
+    def last_pass_started(self) -> datetime | None:
+        """When the latest pass, finished or not, started."""
+        ...
+
+
+def place_among(
+    siblings: list[dict[str, Any]], placement: str, after_node_id: int | None
+) -> tuple[int, dict[int, int]]:
+    """Where a new node goes among its siblings: its position, and the siblings that move.
+
+    `placement` is "first", "after" (the sibling `after_node_id`) or "last". Anything else, or
+    an id that is not a sibling, means the end. Positions come out contiguous from 0.
+    """
+    order = [s["id"] for s in sorted(siblings, key=lambda s: s.get("position") or 0)]
+    slot = len(order)
+    if placement == "first":
+        slot = 0
+    elif placement == "after" and after_node_id in order:
+        slot = order.index(after_node_id) + 1
+    current = {s["id"]: s.get("position") for s in siblings}
+    moves = {}
+    for i, node_id in enumerate(order):
+        target = i if i < slot else i + 1
+        if current[node_id] != target:
+            moves[node_id] = target
+    return slot, moves
 
 
 class SupabaseStore:
@@ -106,16 +143,22 @@ class SupabaseStore:
         return rows[0] if rows else None
 
     def create_page(
-        self, *, parent_id: int | None, title: str, description: str
+        self,
+        *,
+        parent_id: int | None,
+        title: str,
+        description: str,
+        placement: str = "last",
+        after_node_id: int | None = None,
     ) -> dict[str, Any]:
-        query = (
-            self.client.table("nodes").select("position").order("position", desc=True).limit(1)
-        )
+        query = self.client.table("nodes").select("id, position").order("position")
         query = query.is_("parent_id", "null") if parent_id is None else query.eq(
             "parent_id", parent_id
         )
-        rows = query.execute().data
-        position = rows[0]["position"] + 1 if rows else 0
+        siblings = query.execute().data
+        slot, moves = place_among(siblings, placement, after_node_id)
+        for node_id, position in moves.items():
+            self.client.table("nodes").update({"position": position}).eq("id", node_id).execute()
         return (
             self.client.table("nodes")
             .insert(
@@ -124,7 +167,7 @@ class SupabaseStore:
                     "kind": "page",
                     "title": title,
                     "description": description,
-                    "position": position,
+                    "position": slot,
                 }
             )
             .execute()
@@ -222,3 +265,17 @@ class SupabaseStore:
             .data
         )
         return rows[0] if rows else None
+
+    def schedule(self) -> dict[str, Any]:
+        return read_settings(self.client)
+
+    def last_pass_started(self) -> datetime | None:
+        rows = (
+            self.client.table("ai_passes")
+            .select("started_at")
+            .order("started_at", desc=True)
+            .limit(1)
+            .execute()
+            .data
+        )
+        return datetime.fromisoformat(rows[0]["started_at"]) if rows else None
