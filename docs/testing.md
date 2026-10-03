@@ -122,6 +122,39 @@ Done with notes written from the class repo, two files from the Moodle
   PDFs, so there was little text to write notes from.
 - **App:** no console errors. The sidebar kept an old title after a rename until a reload (fixed in elastic-ui 0.7.2).
 
+## Second round: three simulated nights (2026-10-03)
+
+The real tree (Módulos with DWCS, DIW, DWCC, Despregamento and DASP, plus Extra) and 23 notes made
+from the class repo's own files, in different shapes, over three passes. The notes were cut,
+stripped of formatting, repeated, mixed, given a wrong hint or a false fact, or written in English.
+They made 14 pages.
+
+| Pass | Notes | Time | Result |
+|---|---|---|---|
+| 1 | 8 | 11 min 23 s | 7 pages, 1 note discarded |
+| 2 | 8 | 9 min 02 s | 5 pages, 1 page updated, 2 notes discarded |
+| 3 | 5 | 5 min 56 s | 2 pages, 2 updated |
+
+- **Gatekeeper:** every call was right. The wrong hint went to DIW, the English note became a
+  Spanish page, a repeat was discarded quoting the page, a false fact (singleton and prototype
+  swapped) was discarded saying so, a note on two modules was split between two pages, an addition
+  went into the right page, and the pages came out in a sensible order (Spring, then scopes, then
+  controllers, then services, then templates).
+- **Content:** the pages keep almost all the code and terms of their notes (a few loose ones were
+  missing) in about half the words. Figures appeared on 8 of 14 pages. The ones that looked right
+  were a request flow, a session and an agent's harness.
+- **Links:** a note's "To explore" links were dropped on three long notes and kept on two others.
+  The gatekeeper's summary keeps them, so it happens in the notes agent, and not always. The
+  agent now explains its decisions (see below), which should show why.
+- **Time:** about 1.5 minutes per new page, so a night with 30 notes is a pass of half an hour or
+  more. Fine for a cron, but not for "Run now" with a class waiting.
+
+### Why did it do that?
+
+The notes agent ends its answer with `---decisions---` and a few lines on what it left out, merged
+or changed from the material and why. Kolmi cuts them off the page and keeps them in the pass's
+stats (`pages[].decisions`). When a page isn't what you expected, read them first.
+
 ## What to decide after testing
 
 - Whether the gatekeeper's judgement is good enough, or its prompt needs a line.

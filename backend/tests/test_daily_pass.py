@@ -62,6 +62,31 @@ def test_creates_a_page_from_a_new_note():
     assert [entry["action"] for entry in store.logs] == ["created"]
 
 
+def test_the_notes_agent_decisions_stay_out_of_the_page_and_in_the_stats():
+    store = FakeStore(notes=[_note()], nodes=[_section()])
+    llm = FakeLLM(
+        json_response={
+            "batches": [
+                {
+                    "note_ids": [1],
+                    "action": "create",
+                    "new_page": {"parent_id": 10, "title": "Git", "description": ""},
+                    "summary": "How to amend the last commit.",
+                    "reason": "new topic",
+                }
+            ],
+            "discarded": [],
+        },
+        text_response="# Git\n\nUse `git commit --amend`.\n---decisions---\nLeft out the link: it was a duplicate.",
+    )
+
+    summary = run_daily_pass(store=store, llm=llm)
+
+    page = next(iter(store._pages.values()))
+    assert page["content_md"] == "# Git\n\nUse `git commit --amend`."
+    assert summary["pages"][0]["decisions"] == "Left out the link: it was a duplicate."
+
+
 def test_updates_a_page_and_saves_the_previous_version():
     store = FakeStore(
         notes=[_note()],
