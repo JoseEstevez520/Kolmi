@@ -30,10 +30,12 @@ const STATUS_TONES = {
 const title = computed(() => (profile.value?.name ? t('notes.greeting', { name: profile.value.name }) : t('notes.title')))
 
 // A card shows a note's title and its words; a plain-text note is all words.
+// A note of only files shows their names.
 function preview(note) {
-  if (note.format !== 'markdown') return { title: '', text: note.content }
+  const names = (note.files ?? []).map((file) => file.name).join(', ')
+  if (note.format !== 'markdown') return { title: '', text: note.content || names }
   const parts = splitNote(note.content)
-  return { title: parts.title, text: plainText(parts.body) }
+  return { title: parts.title, text: plainText(parts.body) || names }
 }
 
 async function load() {

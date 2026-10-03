@@ -31,8 +31,19 @@ class _Query:
     def limit(self, _n: int) -> _Query:
         return self
 
+    def order(self, _column: str, desc: bool = False) -> _Query:
+        return self
+
+    def in_(self, column: str, values: list[Any]) -> _Query:
+        self.members = (column, values)
+        return self
+
     def _matches(self) -> list[dict[str, Any]]:
-        return [r for r in self.table.rows if all(r.get(c) == v for c, v in self.filters)]
+        found = [r for r in self.table.rows if all(r.get(c) == v for c, v in self.filters)]
+        if getattr(self, "members", None):
+            column, values = self.members
+            found = [r for r in found if r.get(column) in values]
+        return found
 
     def execute(self) -> Any:
         if self.op == "insert":
@@ -69,9 +80,10 @@ class _Client:
         self.notes = _Table()
         self.nodes = _Table()
         self.nodes.rows = [{"id": 20}, {"id": 31}]
+        self.files = _Table()
 
     def table(self, name: str) -> _Table:
-        assert name in ("notes", "nodes")
+        assert name in ("notes", "nodes", "files")
         return getattr(self, name)
 
 
@@ -159,3 +171,42 @@ def test_the_hint_can_change_while_the_note_is_pending():
         update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content="x", node_id=99))
     assert error.value.status_code == 422
     assert client.notes.rows[0]["node_id"] is None
+
+
+def test_a_note_with_nothing_in_it_is_not_created():
+    client = _Client()
+    for content in ("", "  \n "):
+        with pytest.raises(HTTPException) as error:
+            create_note(_ctx(client), CreateNoteParams(content=content))
+        assert error.value.status_code == 422
+    assert client.notes.rows == []
+
+
+def test_a_note_can_be_created_empty_for_its_files():
+    client = _Client()
+    note = create_note(_ctx(client), CreateNoteParams(for_files=True))
+    assert note["content"] == ""
+    assert len(client.notes.rows) == 1
+
+
+def test_a_note_cannot_be_emptied_unless_it_has_files():
+    client = _Client()
+    note_id = _pending_note(client)
+    with pytest.raises(HTTPException) as error:
+        update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content=" "))
+    assert error.value.status_code == 422
+    assert client.notes.rows[0]["content"] == "first draft"
+
+    client.files.rows.append({"id": 1, "note_id": note_id})
+    note = update_note(_ctx(client), UpdateNoteParams(note_id=note_id, content=""))
+    assert note["content"] == ""
+
+
+def test_my_notes_carry_their_file_names():
+    from app.actions.notes import MyNotesParams, my_notes
+
+    client = _Client()
+    note = create_note(_ctx(client), CreateNoteParams(for_files=True))
+    client.files.rows.append({"id": 7, "note_id": note["id"], "name": "slides.pdf", "size": 10})
+    notes = my_notes(_ctx(client), MyNotesParams())
+    assert notes[0]["files"] == [{"id": 7, "name": "slides.pdf", "size": 10}]

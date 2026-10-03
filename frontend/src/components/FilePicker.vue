@@ -11,11 +11,16 @@ import { ACCEPT, MAX_FILE_BYTES, MAX_FILES_PER_NOTE } from '../lib/files.js'
 const props = defineProps({
   noteId: { type: Number, default: null },
   nodeId: { type: Number, default: null },
-  // Until what the files hang from exists (a note not saved yet), the picker waits.
+  // Until what the files hang from exists, the picker waits...
   disabled: { type: Boolean, default: false },
   dropLabel: { type: String, default: '' },
+  // ...or, given this, a file asks for it: it creates the note the first file hangs from.
+  ensureNote: { type: Function, default: null },
+  // The small action, for a panel, in place of the big drop zone.
+  compact: { type: Boolean, default: false },
 })
-const emit = defineEmits(['change'])
+// `count`: how many files there are, for a button that says so.
+const emit = defineEmits(['change', 'count'])
 const { t } = useI18n()
 
 const rows = ref([])
@@ -44,13 +49,28 @@ async function load() {
   }
 }
 onMounted(load)
-watch(() => [props.noteId, props.nodeId], load)
+
+// A note created for the first file takes its id here while that file goes up: reloading then
+// would empty the list under it.
+let createdId = null
+watch(
+  () => [props.noteId, props.nodeId],
+  () => {
+    if (props.noteId != null && props.noteId === createdId) return
+    load()
+  },
+)
 
 async function upload(file, onProgress) {
   error.value = ''
+  let noteId = props.noteId
+  if (noteId == null && props.nodeId == null && props.ensureNote) {
+    noteId = await props.ensureNote()
+    createdId = noteId
+  }
   const saved = await api.uploadFile({
     file,
-    noteId: props.noteId,
+    noteId,
     nodeId: props.nodeId,
     onProgress,
   })
@@ -77,9 +97,22 @@ watch(rows, async (now) => {
   }
 })
 
-const full = computed(
-  () => props.noteId != null && rows.value.filter((r) => r.status !== 'error').length >= MAX_FILES_PER_NOTE,
-)
+const count = computed(() => rows.value.filter((r) => r.status !== 'error').length)
+watch(count, (n) => emit('count', n), { immediate: true })
+
+const upper = ref(null)
+// Files that come from elsewhere (dropped over the page, pasted): as many as still fit.
+function add(files) {
+  const room = MAX_FILES_PER_NOTE - count.value
+  if (props.noteId != null || props.ensureNote) {
+    if (room <= 0 || files.length > room) error.value = t('files.full', { n: MAX_FILES_PER_NOTE })
+    files = files.slice(0, Math.max(room, 0))
+  }
+  upper.value?.add(files)
+}
+defineExpose({ add })
+
+const full = computed(() => (props.noteId != null || !!props.ensureNote) && count.value >= MAX_FILES_PER_NOTE)
 const label = computed(() => {
   if (props.disabled) return props.dropLabel || t('files.attach')
   return full.value ? t('files.full', { n: MAX_FILES_PER_NOTE }) : props.dropLabel || t('files.attach')
@@ -89,11 +122,14 @@ const label = computed(() => {
 <template>
   <div class="flex flex-col gap-2">
     <FileUpload
+      ref="upper"
       v-model="rows"
+      :compact="compact"
       :accept="ACCEPT"
       :max-size="MAX_FILE_BYTES"
       :upload="upload"
       :drop-label="label"
+      :choose-label="full ? t('files.full', { n: MAX_FILES_PER_NOTE }) : undefined"
       :disabled="disabled || full"
     />
     <p v-if="error" class="text-meta text-[color:var(--color-danger)]" role="alert">{{ error }}</p>

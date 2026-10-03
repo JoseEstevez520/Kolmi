@@ -35,6 +35,10 @@ are short-lived signed links (`GET /files/download`). The limits and allowed kin
 `app/files.py`; until the migration is applied, the routes answer 503 and pages read as
 without files.
 
+A note needs some text or a file. A note is created empty only for its first file
+(`for_files`), and cleared only while it has files; the daily pass skips a note with neither,
+and a note of only files has its files judged without writing the page.
+
 ## Run
 
 ```bash

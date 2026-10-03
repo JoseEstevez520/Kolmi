@@ -84,8 +84,12 @@ export const api = {
 
   register: ({ code, name }) => request('/register', { method: 'POST', body: { code, name } }),
 
-  createNote: ({ content, format = 'text', nodeId = null, keepalive }) =>
-    request('/notes', { method: 'POST', body: { content, format, node_id: nodeId }, keepalive }),
+  createNote: ({ content, format = 'text', nodeId = null, forFiles = false, keepalive }) =>
+    request('/notes', {
+      method: 'POST',
+      body: { content, format, node_id: nodeId, for_files: forFiles },
+      keepalive,
+    }),
 
   updateNote: ({ noteId, content, format = 'markdown', nodeId = null, keepalive }) =>
     request('/notes/update', {

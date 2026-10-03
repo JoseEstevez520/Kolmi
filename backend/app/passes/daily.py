@@ -192,7 +192,9 @@ def _apply(
         page = _resolve_target(store, pass_id, batch, stats)
         if page is None:
             continue
-        _write_batch(store, llm, web_llm, pass_id, batch, page, stats, language)
+        # A batch of only files has nothing to write: its files go to the page as they are.
+        if batch.summary.strip():
+            _write_batch(store, llm, web_llm, pass_id, batch, page, stats, language)
         _attach_files(store, pass_id, batch, page, files, stats)
         for note_id in batch.note_ids:
             if note_id in note_ids:
@@ -281,7 +283,8 @@ def run_daily_pass(
     if running:
         return {"status": "skipped", "reason": f"pass {running['id']} is still running"}
 
-    notes = store.pending_notes()
+    # A note with neither text nor files (its only file was taken off) has nothing to review.
+    notes = [n for n in store.pending_notes() if n["content"].strip() or n.get("files")]
     if not notes:
         return {"status": "empty", "notes": 0}
 

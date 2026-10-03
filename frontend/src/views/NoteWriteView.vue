@@ -5,15 +5,17 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import {
   Button,
   Callout,
+  FileDropZone,
   Input,
   Markdown,
   NavTree,
   NavTreeItem,
   PopoverMorph,
   StatusText,
+  TextMorph,
   TruncatedText,
 } from 'elastic-ui'
-import { ArrowLeft, Folder, Maximize2, Minimize2 } from '@lucide/vue'
+import { ArrowLeft, Folder, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import PlaceTree from '../components/PlaceTree.vue'
 import { api } from '../lib/api.js'
@@ -41,6 +43,9 @@ const error = ref('')
 // A note the pass already took: shown, no longer editable.
 const closed = ref(null)
 const editor = ref(null)
+// The files on the note, kept by the picker inside the panel; the button says how many.
+const picker = ref(null)
+const fileCount = ref(0)
 
 // Where the student thinks the note goes, as a hint for the daily pass; "Not sure" leaves it
 // empty. The tree's items need a non-empty value, so that one travels under a sentinel.
@@ -119,12 +124,36 @@ const statusText = computed(
 )
 
 // One save at a time. A change made while one is in flight is saved right after it, so the
-// latest text wins and a new note is created only once. An empty note is never sent: a new one
-// isn't created, and a cleared one keeps its last text.
+// latest text wins and a new note is created only once. A note with neither text nor files is
+// never sent: a new one isn't created, and a cleared one keeps its last text. A file may make a
+// note before any text is written, so a note may hold only files.
 let timer = null
 let inFlight = null
 let again = false
 let leaving = false
+
+// The note, made at the first thing that needs it: the text's first save, or a file's first
+// upload (even with nothing written). Asked twice at once, it is made once.
+let creation = null
+function ensureNote(keepalive = false) {
+  if (noteId.value != null) return Promise.resolve(noteId.value)
+  creation ??= (async () => {
+    const sent = { content: content.value, hint: hint.value }
+    const note = await api.createNote({
+      content: sent.content,
+      nodeId: hintId.value,
+      format: 'markdown',
+      forFiles: !sent.content.trim(),
+      keepalive,
+    })
+    noteId.value = note.id
+    saved = sent
+    // The URL becomes the note's own, so going back and reopening finds it.
+    if (!leaving) router.replace({ name: 'note', params: { id: note.id } })
+    return note.id
+  })().finally(() => (creation = null))
+  return creation
+}
 
 function save(keepalive = false) {
   clearTimeout(timer)
@@ -132,20 +161,17 @@ function save(keepalive = false) {
     again = true
     return inFlight
   }
-  if (loading.value || closed.value || error.value || !content.value) return
-  if (content.value === saved.content && hint.value === saved.hint) return
+  if (loading.value || closed.value || error.value || (!content.value && !fileCount.value)) return
+  if (noteId.value != null && content.value === saved.content && hint.value === saved.hint) return
 
   const sent = { content: content.value, hint: hint.value }
   startSaving()
   inFlight = (async () => {
     try {
       const fields = { content: sent.content, nodeId: hintId.value, keepalive }
-      if (noteId.value == null) {
-        const note = await api.createNote({ ...fields, format: 'markdown' })
-        noteId.value = note.id
-        // The URL becomes the note's own, so going back and reopening finds it.
-        if (!leaving) router.replace({ name: 'note', params: { id: note.id } })
-      } else {
+      // Made with what was written at that moment; what changed since is sent as an update.
+      await ensureNote(keepalive)
+      if (sent.content !== saved.content || sent.hint !== saved.hint) {
         await api.updateNote({ ...fields, noteId: noteId.value })
       }
       saved = sent
@@ -214,7 +240,13 @@ onMounted(() => loadNodes().catch(() => {}))
 </script>
 
 <template>
-  <div class="article">
+  <!-- Files dropped anywhere over the page, or pasted, go to the note. -->
+  <FileDropZone
+    class="article min-h-[calc(100dvh-6rem)]"
+    paste
+    :disabled="loading || !!closed || !!error"
+    @add="picker?.add($event)"
+  >
     <div class="mb-10 flex items-center justify-between gap-3">
       <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
       <div v-if="!closed && !error" class="flex min-w-0 items-center gap-2">
@@ -237,6 +269,29 @@ onMounted(() => loadNodes().catch(() => {}))
               <PlaceTree :items="nodes" />
             </NavTree>
           </template>
+        </PopoverMorph>
+        <!-- Attaching works before anything is written: the first file makes the note. -->
+        <PopoverMorph
+          v-if="!loading"
+          variant="ghost"
+          size="sm"
+          align="end"
+          fluid
+          class="text-fg-muted"
+          :label="t('files.label')"
+        >
+          <template #trigger>
+            <Paperclip class="size-4 shrink-0" aria-hidden="true" />
+            <!-- On a phone the bar has no room for the words: the paperclip stands for them. -->
+            <TextMorph
+              class="max-sm:sr-only"
+              :text="fileCount ? t('files.count', fileCount) : t('files.attachButton')"
+            />
+          </template>
+          <div class="flex flex-col gap-3">
+            <p class="text-meta text-fg-muted">{{ t('files.hint') }}</p>
+            <FilePicker ref="picker" compact :note-id="noteId" :ensure-note="ensureNote" @count="fileCount = $event" />
+          </div>
         </PopoverMorph>
         <StatusText
           v-if="status"
@@ -282,13 +337,6 @@ onMounted(() => loadNodes().catch(() => {}))
         :label="t('notes.field')"
         :placeholder="t('notes.write.bodyPlaceholder')"
       />
-      <!-- Files save as they go up, so they need the note to exist: it does after the first save. -->
-      <FilePicker
-        class="mt-10"
-        :note-id="noteId"
-        :disabled="noteId == null"
-        :drop-label="noteId == null ? t('files.attachWait') : ''"
-      />
     </template>
-  </div>
+  </FileDropZone>
 </template>

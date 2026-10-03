@@ -273,3 +273,40 @@ def test_marks_the_pass_failed_when_the_model_breaks():
 
     assert store.passes[1]["status"] == "failed"
     assert store.passes[1]["error"] == "boom"
+
+
+def _file(file_id: int = 5) -> dict:
+    return {"id": file_id, "note_id": 1, "name": "slides.pdf", "size": 1000, "kind": "pdf"}
+
+
+def test_a_note_of_only_files_attaches_them_without_writing_the_page():
+    note = {**_note(), "content": "", "files": [_file()]}
+    store = FakeStore(notes=[note], nodes=[_section()])
+    llm = FakeLLM(
+        json_response={
+            "batches": [
+                {
+                    "note_ids": [1],
+                    "action": "create",
+                    "new_page": {"parent_id": 10, "title": "Slides", "description": ""},
+                    "summary": "",
+                    "file_ids": [5],
+                }
+            ],
+            "discarded": [],
+        },
+        text_response="should never be asked for",
+    )
+
+    summary = run_daily_pass(store=store, llm=llm)
+
+    assert summary["status"] == "done"
+    assert store.attached == [{"file_id": 5, "node_id": 1}]
+    assert next(iter(store._pages.values()))["content_md"] == ""
+    assert store.pending_notes() == []
+
+
+def test_a_note_with_neither_text_nor_files_is_left_out_of_the_pass():
+    store = FakeStore(notes=[{**_note(), "content": "  \n"}], nodes=[_section()])
+
+    assert run_daily_pass(store=store, llm=FakeLLM())["status"] == "empty"

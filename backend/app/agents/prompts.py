@@ -32,7 +32,9 @@ summary, title and description in {{language}}.
 You get the tree as an index (id, kind and title, indented under its section) and the pending \
 notes (id, content, hint: the node the student thinks it goes in, or null, and files, if any: id, \
 name, kind, size and a peek at the start or a zip's entries). A file that adds something goes in \
-its batch's "file_ids"; one that adds nothing, in "discarded_files" with its reason. Call read_page \
+its batch's "file_ids"; one that adds nothing, in "discarded_files" with its reason. A note may have no text, \
+only files: judge its files, and leave its batch's "summary" empty when the batch has nothing to \
+say beyond them. Call read_page \
 with an id to read a page's whole Markdown, or to see what a section holds: usually the hinted \
 page, and any other in the index that may already cover the note.
 

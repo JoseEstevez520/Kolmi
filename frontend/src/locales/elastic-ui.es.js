@@ -82,6 +82,8 @@ export default {
   increase: 'Subir',
   dropFiles: 'Suelta aquí los archivos o búscalos',
   dropToAdd: 'Suéltalos para añadirlos',
+  chooseFiles: 'Elegir archivos',
+  dropToAttach: 'Suelta para adjuntar',
   tooLarge: 'Pesa más de {size}',
   notAccepted: 'Este tipo de archivo no vale',
   uploadFailed: 'No se ha podido subir',

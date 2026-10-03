@@ -33,7 +33,7 @@ Installed from the packed library, `vendor/elastic-ui-<version>.tgz`, under the 
 `elastic-ui`:
 
 ```json
-"elastic-ui": "file:vendor/elastic-ui-0.6.4.tgz"
+"elastic-ui": "file:vendor/elastic-ui-0.7.1.tgz"
 ```
 
 It ships no compiled CSS: `src/style.css` imports its tokens and points Tailwind at its
@@ -65,8 +65,11 @@ appear in phase 1.
   when it has none.
 - **Files**: a page ends with a "Downloads" section, drawn by the app (never by the AI): a
   card per file, with its icon, name and size. An admin adds them from the page's Edit dialog;
-  a student attaches them to a note in the editor, below the text. Both use elastic-ui's
-  `FileUpload`.
+  a student attaches them to a note from a quiet "Attach" button in the editor's top bar, which
+  opens a panel (`PopoverMorph`) with a `FileUpload compact`; dragging a file anywhere over the
+  editor (`FileDropZone`) or pasting one does the same. Attaching works before anything is
+  written: the first file creates the note, so a note may hold only files. The admin dialog uses
+  the default `FileUpload`.
 - **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
   move, reorder) and deleted with a confirmation, with a section or a page added at any
   level. Below it, the class language: a `Select` in a `Field`, saved as soon as
