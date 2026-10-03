@@ -35,7 +35,9 @@ const NONE = '__none__'
 const GREY = '__grey__'
 
 const open = ref(false)
-const kind = ref('page')
+// At the top level only a section makes sense (the sidebar lists them); inside one, a page.
+const defaultKind = () => (props.parentId == null ? 'section' : 'page')
+const kind = ref(defaultKind())
 const title = ref('')
 const icon = ref(NONE)
 const color = ref(GREY)
@@ -52,7 +54,7 @@ const colorOptions = computed(() =>
 )
 
 function reset() {
-  kind.value = 'page'
+  kind.value = defaultKind()
   title.value = ''
   icon.value = NONE
   color.value = GREY

@@ -3,7 +3,16 @@ import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
-import { Home, LogOut, NotebookPen, ScrollText, Settings, SlidersHorizontal } from '@lucide/vue'
+import {
+  FileText,
+  Folder,
+  Home,
+  LogOut,
+  NotebookPen,
+  ScrollText,
+  Settings,
+  SlidersHorizontal,
+} from '@lucide/vue'
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
 import { libraryLabels } from '../lib/i18n.js'
@@ -26,6 +35,12 @@ const active = computed(() => {
   }
   return route.path
 })
+
+// A node without an icon of its own gets a folder (section) or a sheet (page), so
+// the rows keep their text aligned with Home and Notes.
+function iconFor(node) {
+  return nodeIcon(node) || (node.kind === 'section' ? Folder : FileText)
+}
 
 onMounted(() => {
   loadNodes().catch(() => {})
@@ -55,7 +70,7 @@ async function handleSignOut() {
         :key="node.id"
         :value="`/node/${node.id}`"
         :to="`/node/${node.id}`"
-        :icon="nodeIcon(node)"
+        :icon="iconFor(node)"
         @pointerenter="prefetchNode(node.id)"
       >
         {{ node.title }}
