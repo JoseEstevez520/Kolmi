@@ -214,10 +214,9 @@ export default {
       names: { en: 'English', es: 'Spanish' },
     },
     pass: {
-      title: 'Daily pass',
-      zone: 'Madrid time',
+      title: 'Automatic',
       enabled: 'Run the pass on schedule',
-      times: 'Times',
+      times: 'Times (Madrid)',
       addTime: 'Add a time',
       days: 'Days',
       daysLabel: 'Days the pass runs',

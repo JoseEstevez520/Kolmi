@@ -211,10 +211,9 @@ export default {
       names: { en: 'Inglés', es: 'Español' },
     },
     pass: {
-      title: 'Pase diario',
-      zone: 'Hora de Madrid',
+      title: 'Automático',
       enabled: 'Ejecutar la pasada según el horario',
-      times: 'Horas',
+      times: 'Horas (Madrid)',
       addTime: 'Añadir una hora',
       days: 'Días',
       daysLabel: 'Días en que se ejecuta la pasada',

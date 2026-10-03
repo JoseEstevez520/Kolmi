@@ -134,10 +134,7 @@ onMounted(load)
 
     <template v-else>
       <div class="flex items-center justify-between gap-4">
-        <div>
-          <h3 class="m-0 text-label text-fg">{{ t('admin.pass.title') }}</h3>
-          <p class="m-0 mt-1 text-meta text-fg-muted">{{ t('admin.pass.zone') }}</p>
-        </div>
+        <h3 class="m-0 text-label text-fg">{{ t('admin.pass.title') }}</h3>
         <Switch :model-value="enabled" :aria-label="t('admin.pass.enabled')" @update:model-value="(on) => save({ passEnabled: on })" />
       </div>
 
