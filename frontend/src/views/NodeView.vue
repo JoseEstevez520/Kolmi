@@ -2,11 +2,12 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Callout, Empty, Markdown, StatusText } from 'elastic-ui'
-import { FileText, Layers } from '@lucide/vue'
+import { Button, Callout, Empty, Markdown, StatusText } from 'elastic-ui'
+import { FileQuestion, FileText, Layers } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
+import PageNav from '../components/PageNav.vue'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode } from '../lib/content.js'
 import { iconByName } from '../lib/icons.js'
 import { loadPageRenderer } from '../lib/openui/load.js'
@@ -20,6 +21,8 @@ const { t } = useI18n()
 const id = computed(() => Number(route.params.id))
 
 const error = ref('')
+// The node is not there (deleted, or a link to one that never was).
+const missing = ref(false)
 
 const cached = computed(() => flatten(nodes.value).find((node) => node.id === id.value) || null)
 const node = computed(() => pages.value[id.value] ?? cached.value)
@@ -35,7 +38,10 @@ const openui = shallowRef(null)
 const openuiFailed = ref(false)
 const showWeb = computed(() => Boolean(openui.value?.canRender(web.value)))
 const waitingRenderer = computed(() => Boolean(web.value) && !openui.value && !openuiFailed.value)
-const title = computed(() => node.value?.title || (isPage.value ? t('node.page') : t('node.section')))
+const title = computed(() => {
+  if (missing.value) return t('node.missing')
+  return node.value?.title || (isPage.value ? t('node.page') : t('node.section'))
+})
 const loadingContent = computed(() => isPage.value && !(id.value in pages.value))
 
 const lead = computed(() => {
@@ -66,10 +72,12 @@ watch(
 
 async function load() {
   error.value = ''
+  missing.value = false
   try {
     await loadNode(id.value)
   } catch (e) {
-    error.value = e.message || t('node.error')
+    if (e.status === 404 || e.status === 422) missing.value = true
+    else error.value = e.message || t('node.error')
   }
 }
 
@@ -82,9 +90,20 @@ watch(id, load)
 
 <template>
   <main class="py-16">
-    <PageLayout :title="title" :lead="lead">
+    <PageLayout :title="title" :lead="lead" :toc="isPage">
+      <Empty
+        v-if="missing"
+        :title="t('node.missingTitle')"
+        :description="t('node.missingLong')"
+        :icon="FileQuestion"
+      >
+        <template #actions>
+          <Button variant="ghost" to="/">{{ t('node.backHome') }}</Button>
+        </template>
+      </Empty>
+
       <Callout
-        v-if="error"
+        v-else-if="error"
         type="caution"
         :title="isPage ? t('node.pageError') : t('node.sectionError')"
       >
@@ -113,6 +132,7 @@ watch(id, load)
           :description="t('node.pageEmpty')"
           :icon="FileText"
         />
+        <PageNav :id="id" />
       </template>
 
       <template v-else>

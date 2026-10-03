@@ -38,6 +38,7 @@ export default {
     settings: 'Ajustes',
     signOut: 'Cerrar sesión',
     signOutAs: 'Cerrar sesión ({name})',
+    toggleSection: 'Mostrar u ocultar lo que hay en {name}',
   },
 
   settings: {
@@ -152,6 +153,14 @@ export default {
     sectionError: 'No se ha podido cargar esta sección',
     pageEmpty: 'Esta página aún está vacía. La colmena la irá llenando.',
     sectionEmpty: 'Esta sección aún no tiene páginas ni secciones. Se añaden desde Administración.',
+    missing: 'No encontrada',
+    missingTitle: 'Esta página no está',
+    missingLong: 'Puede que se haya movido o borrado. Búscala en la barra lateral.',
+    backHome: 'Volver al inicio',
+    previousNext: 'Anterior y siguiente',
+    previous: 'Anterior',
+    next: 'Siguiente',
+    position: '{n} de {total}',
   },
 
   admin: {

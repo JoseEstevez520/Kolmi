@@ -69,7 +69,10 @@ appear in phase 1.
   it's picked.
 
 The content is one tree of nodes: a **section** groups, a **page** holds the content. The
-sidebar lists only the top-level nodes; the rest is reached from a section.
+sidebar shows the whole tree, each section a group that folds its nodes, and the header's
+breadcrumbs give the path to the node, each chevron opening the nodes at that level. A page
+ends with the previous and next nodes of its section ("2 of 5"), and on wide screens shows a
+table of contents of its headings; a link to `/node/<id>` in its text stays inside the app.
 
 Login and Register sit in one `AuthLayout`: a card centred on the viewport, the Kolmi logo
 above the wordmark "Kolmi" and the slogan "Learn as a hive.", the theme toggle in a corner.
@@ -80,8 +83,10 @@ toggle, and only the content changing between pages.
 
 | Piece | For |
 |---|---|
-| `AppSidebar` | Home, Notes, the top-level nodes with their icon and colour, the admin entry for admins and sign out, in elastic-ui's connected sidebar |
+| `AppSidebar` + `NavNode` | Home, Notes, the whole tree (sections as `NavTreeGroup`s, the top level with its icon), the admin entry for admins and sign out, in elastic-ui's connected sidebar |
+| `AppBreadcrumbs` | the header's `Breadcrumbs`, from the tree, with each level's siblings |
+| `PageNav` | a page's previous and next in its section, as linked `Card`s |
 | `AuthLayout` | the centred card of Login and Register, with the mark and the theme toggle |
-| `PageLayout` | one article at a single width, with its title and lead line |
+| `PageLayout` | one article at a single width, with its title and lead line; with `toc`, a `TableOfContents` of its headings at 2xl |
 | `CardGrid` + `PageCard` | a grid of cards, one per node or note: a title and a text, and a footer with a date and a status label; a note's text is clamped with a fading end |
 | `AdminNode` + `AdminRow` + the two dialogs | the recursive tree: one row (rename, move up/down, delete) and the dialogs that add a node or edit its description, icon, colour and `on_home` |

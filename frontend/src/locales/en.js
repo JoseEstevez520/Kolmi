@@ -41,6 +41,7 @@ export default {
     settings: 'Settings',
     signOut: 'Sign out',
     signOutAs: 'Sign out ({name})',
+    toggleSection: 'Show or hide what {name} holds',
   },
 
   settings: {
@@ -155,6 +156,14 @@ export default {
     sectionError: 'Could not load this section',
     pageEmpty: 'This page has no content. The hive will fill it in.',
     sectionEmpty: 'This section has no pages or sections. An admin can add them.',
+    missing: 'Not found',
+    missingTitle: 'This page isn’t here',
+    missingLong: 'It may have been moved or deleted. Look for it in the sidebar.',
+    backHome: 'Back to Home',
+    previousNext: 'Previous and next',
+    previous: 'Previous',
+    next: 'Next',
+    position: '{n} of {total}',
   },
 
   admin: {

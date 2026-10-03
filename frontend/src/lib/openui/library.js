@@ -84,8 +84,10 @@ const layoutOf = (value) => (value === 'row' || value === 'column' || value === 
 
 // -- cards -----------------------------------------------------------------------------------
 
+// A link to a page of the notes (`/node/12`) goes through the router, so it never reloads the app.
 function card({ title = '', text, href, image }) {
-  return h(Card, { size: 'sm', href: href || undefined, class: 'h-full' }, () => [
+  const link = href?.startsWith('/') ? { to: href } : { href: href || undefined }
+  return h(Card, { size: 'sm', ...link, class: 'h-full' }, () => [
     image ? h(CardImage, { src: image, alt: title, fade: true, class: 'aspect-video' }) : null,
     h(CardHeader, { class: 'gap-1' }, () => [
       h(CardTitle, { as: 'h3' }, () => title),
