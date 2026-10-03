@@ -45,26 +45,38 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Now
 
-- [ ] **First real pass** — run the daily pass on the class's own notes and check the pages
-  it writes, on screen. Sample pages from DeepSeek already parse with no errors.
-- [ ] **Router and model choice** — a planner picks the model and catalog vs escape. Compare
-  DeepSeek against other models on the same briefs (the Gateway's `google/gemini-3.7-flash`,
-  if its account is back); keep the winner as default and the other as fallback.
+- [ ] **Seed the tree** — the class's modules (DWCS, DIW, DWCC, Deployment, DASP) and Extra as
+  sections, each with a description, so the gatekeeper knows where things go.
+- [ ] **Import the existing notes** — the class repo's notes as pages: their Markdown as it is,
+  and the web page made from it. Kolmi starts with real content, and it tests the web agent on
+  about 40 real notes.
+- [ ] **First real pass** — notes written in the app, the daily pass run on them, and the pages
+  it writes checked on screen.
+- [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
 
 ## Next
 
-- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page.
+- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page. It runs on the
+  main model, and each page's Markdown is its source.
+- [ ] **Downloadable files** — a page can carry files to download: zips, PDFs, code. Students
+  can leave them with a note too, and they end up on the page they belong to.
+- [ ] **Status part** — a quieter way to show a note's or a pass's state (built in elastic-ui;
+  see its roadmap), in place of the coloured badges.
 - [ ] **Forums** — doubts and answers, not just notes.
 
 ## Later
 
 - [ ] Moderation and reporting tools.
-- [ ] More contribution types (links, files, images).
+- [ ] More contribution types (links, images).
 - [ ] Notifications (weekly digest, "the hive worked").
 - [ ] More languages beyond English and Spanish.
+- [ ] Better interactive pieces, if pages turn out to need them.
+- [ ] The OpenUI Gateway as the web model again, once its account has credit (only the key
+  changes).
 
 ## Ideas, not committed
 
 - A teacher dashboard (what the hive did this week).
 - Export the notes to Markdown/PDF.
 - An MCP connection so an agent can read the class notes.
+- Link a topic to NotebookLM, so a section's notes can be studied there too.
