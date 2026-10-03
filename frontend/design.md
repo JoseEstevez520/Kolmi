@@ -20,9 +20,9 @@ here: no hand-styled stand-ins, no overriding its classes. The steps:
 5. Restart the dev server: a reload keeps the old version.
 
 **A fading edge only when the text runs past.** `mask-fade-r` always fades a line's end,
-whether it fits or not, so a short label loses its last letters. Use it only behind
-elastic-ui's `useTruncated` (`:class="truncated && 'mask-fade-r'"`, as `AdminRow` does), never as
-a plain class.
+whether it fits or not, so a short label loses its last letters. Put a line that may not fit in
+elastic-ui's `TruncatedText`, which fades only while it runs past (`AdminRow`, the admin log's
+tables). Never use the bare class on text.
 
 The page catalogue (`src/lib/openui/`) follows the same rule. Each component the AI may write
 maps to a library part, and its renderer only passes the props on.
@@ -33,7 +33,7 @@ Installed from the packed library, `vendor/elastic-ui-<version>.tgz`, under the 
 `elastic-ui`:
 
 ```json
-"elastic-ui": "file:vendor/elastic-ui-0.4.1.tgz"
+"elastic-ui": "file:vendor/elastic-ui-0.4.2.tgz"
 ```
 
 It ships no compiled CSS: `src/style.css` imports its tokens and points Tailwind at its

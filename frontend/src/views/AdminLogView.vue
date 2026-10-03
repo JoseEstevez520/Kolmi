@@ -13,6 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TruncatedText,
 } from 'elastic-ui'
 import { Bot, History, NotebookPen } from '@lucide/vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -163,9 +164,7 @@ onMounted(load)
                 </TableCell>
                 <TableCell class="whitespace-nowrap text-fg-muted">{{ passWhen(pass) }}</TableCell>
                 <TableCell :class="pass.error ? 'text-danger' : 'text-fg-secondary'">
-                  <div class="max-w-xs overflow-hidden whitespace-nowrap mask-fade-r">
-                    {{ passResult(pass) || '—' }}
-                  </div>
+                  <TruncatedText as="div" class="max-w-xs">{{ passResult(pass) || '—' }}</TruncatedText>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -196,12 +195,7 @@ onMounted(load)
                 </TableCell>
                 <TableCell>
                   <span class="block text-fg">{{ entryTarget(entry) }}</span>
-                  <span
-                    v-if="entry.reason"
-                    class="block max-w-md overflow-hidden whitespace-nowrap text-xs text-fg-muted mask-fade-r"
-                  >
-                    {{ entry.reason }}
-                  </span>
+                  <TruncatedText v-if="entry.reason" class="max-w-md text-xs text-fg-muted">{{ entry.reason }}</TruncatedText>
                 </TableCell>
                 <TableCell class="whitespace-nowrap text-fg-muted">
                   {{ formatShortDate(entry.created_at) || '—' }}
@@ -231,9 +225,7 @@ onMounted(load)
             <TableBody>
               <TableRow v-for="note in notes" :key="note.id">
                 <TableCell>
-                  <span class="block max-w-md overflow-hidden whitespace-nowrap text-fg-secondary mask-fade-r">
-                    {{ note.content || '—' }}
-                  </span>
+                  <TruncatedText class="max-w-md text-fg-secondary">{{ note.content || '—' }}</TruncatedText>
                   <span class="block text-xs text-fg-muted">
                     {{ authorOf(note) }}<template v-if="note.node_id != null"> · {{ nodeTitle(note.node_id) }}</template>
                   </span>

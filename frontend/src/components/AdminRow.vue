@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, ConfirmButton, Input, useTruncated } from 'elastic-ui'
+import { Button, ConfirmButton, Input, TruncatedText } from 'elastic-ui'
 import { ArrowDown, ArrowUp, Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
 import { nodeIcon } from '../lib/icons.js'
 
@@ -26,10 +26,6 @@ const chosen = computed(() => nodeIcon(props.node))
 const fallback = computed(() =>
   props.node.kind === 'section' ? (props.open ? FolderOpen : Folder) : FileText,
 )
-
-// The title fades at its end only when it runs past its room.
-const titleEl = ref(null)
-const truncated = useTruncated(titleEl, () => props.node.title)
 
 const editing = ref(false)
 const draft = ref('')
@@ -81,9 +77,7 @@ function call(fn) {
 
     <template v-else>
       <Button variant="link" class="min-w-0 flex-1 justify-start text-fg" @click="start">
-        <span ref="titleEl" class="min-w-0 overflow-hidden whitespace-nowrap" :class="truncated && 'mask-fade-r'">
-          {{ node.title }}
-        </span>
+        <TruncatedText class="min-w-0">{{ node.title }}</TruncatedText>
       </Button>
 
       <div class="flex shrink-0 items-center gap-1">
