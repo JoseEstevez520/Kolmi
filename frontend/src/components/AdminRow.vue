@@ -8,11 +8,16 @@ import { nodeIcon } from '../lib/icons.js'
 // One row of the admin tree, read like a file explorer: a section is a folder
 // (open or closed), a page is a file. It shows the node's own icon when it has
 // one, otherwise the folder/file default, with the title editable in place. At rest
-// it is only that; the grip and the row's actions (add inside, edit, delete) come in
-// when the row is pointed at or focused, and stay on a screen with no hover.
+// it is only that: an icon (which folds a section) and the title. The row's actions (add
+// inside, edit, delete) come in when it is pointed at or focused, and stay on a screen
+// with no hover. The rows themselves are moved by dragging them (TreeDrag).
+const emit = defineEmits(['toggle'])
 const props = defineProps({
   node: { type: Object, required: true },
   open: { type: Boolean, default: true },
+  // A section with rows under it folds: its icon is the button for that.
+  foldable: { type: Boolean, default: false },
+  count: { type: Number, default: 0 },
   rename: { type: Function, required: true },
   remove: { type: Function, required: true },
 })
@@ -54,16 +59,21 @@ async function save() {
 </script>
 
 <template>
-  <div class="flex min-w-0 items-center gap-1.5 px-1.5 py-1">
-    <div :class="[reveal, 'flex items-center']"><slot name="handle" /></div>
-    <slot name="toggle" />
-
-    <component
-      :is="chosen || fallback"
-      class="size-4 shrink-0"
-      :class="!chosen && 'text-fg-muted'"
-      :stroke-width="1.5"
-    />
+  <div class="flex min-w-0 items-center gap-2 px-1.5 py-1">
+    <Button
+      v-if="foldable"
+      variant="ghost"
+      size="icon"
+      class="size-6"
+      :aria-label="t(open ? 'admin.collapse' : 'admin.expand', { title: node.title })"
+      :aria-expanded="open"
+      @click="emit('toggle')"
+    >
+      <component :is="chosen || fallback" class="size-4" :class="!chosen && 'text-fg-muted'" :stroke-width="1.5" />
+    </Button>
+    <span v-else class="grid size-6 shrink-0 place-items-center">
+      <component :is="chosen || fallback" class="size-4" :class="!chosen && 'text-fg-muted'" :stroke-width="1.5" />
+    </span>
 
     <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-1" @submit.prevent="save">
       <Input v-model="draft" :aria-label="t('admin.rename')" autofocus />
@@ -72,9 +82,11 @@ async function save() {
     </form>
 
     <template v-else>
-      <Button variant="link" class="min-w-0 flex-1 justify-start text-fg" @click="start">
+      <!-- The button may shrink (a Button is shrink-0 by default), so a long title fades at its edge. -->
+      <Button variant="link" class="min-w-0 flex-1 shrink justify-start text-fg" @click="start">
         <TruncatedText class="min-w-0">{{ node.title }}</TruncatedText>
       </Button>
+      <span v-if="foldable && !open" class="text-meta tabular-nums text-fg-faint">{{ count }}</span>
 
       <div :class="[reveal, 'flex shrink-0 items-center gap-1']">
         <slot name="actions" />
