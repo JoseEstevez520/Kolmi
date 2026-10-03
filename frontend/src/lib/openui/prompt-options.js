@@ -46,7 +46,7 @@ The notes (the Markdown) carry the text; the page decides what goes in cards, ta
 | pieces that fit together | a drawing with boxes (Figure; one inside another if one contains the other) |
 | how an agent works | agent session (AgentReplay; one per idea, one after the other) |
 
-Sections carry role labels, always the same ones, not summarising the content: "How it works" (the mechanism, the main piece), "An example" (a concrete demonstration), "Going further" (what adds to the idea), "Where it comes from" (the origin: a series, a book, a project), in the class language. Bad: "Whole lives", "Analysis of the channel". Good: "How it works", "An example".
+Sections carry role labels, always the same ones, not summarising the content: the mechanism or main piece, a concrete example, what goes further than the idea, and the origin (a series, a book, a project). Write each label in the class language, translating it; a label in another language is wrong. A heading is plain text: no Markdown, no backticks. A label that summarises the content instead of naming the role is wrong.
 
 ## Visual pieces
 

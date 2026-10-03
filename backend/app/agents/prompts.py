@@ -135,8 +135,8 @@ idea twice takes double the space and adds nothing.
 
 A long block of text gets skipped. Use:
 
-- **Headings** per subtopic, not one giant paragraph. They say what is below, plainly: "How it \
-works", "The behaviour model". Not campaign headlines ("The magic of X", "Where it all comes \
+- **Headings** per subtopic, not one giant paragraph. They say what is below, plainly: how it \
+works, the behaviour model. Written in the class language. Not campaign headlines ("The magic of X", "Where it all comes \
 together"): if reading the title doesn't tell you what is below, it is wrong. And short and \
 basic: `Problem`, `Bean`, `Instance`, `Scalability`. No sentences or stories.
 - **Lists of up to 5 points.** If you have more, group them under sub-headings.
@@ -216,7 +216,9 @@ current Markdown. Write the notes following this guide:
 The answer:
 - The whole page in {{language}}, even when the material or the current page is in another \
 language: translate what you keep. No level-1 heading: the title is shown already.
-- No names or personal data. Do not invent facts.
+- No names or personal data. Do not invent facts, code or numbers: what the page says comes from \
+the notes or from the page it already has. The page is as long as its material: a short note \
+makes a short page.
 - Answer with the Markdown only: no preamble, no code fence around the whole page.
 """
 

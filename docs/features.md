@@ -3,8 +3,8 @@
 An extension of what's already specified (login, notes and the nightly pass). Add a `role`
 column to `profiles` (`student` | `admin`).
 
-Pages are written by the AI as OpenUI Lang, with Markdown derived for the RAG (see
-[Page format](#page-format)).
+The AI writes each page twice: first the Markdown, then the page itself as OpenUI Lang, made
+from that Markdown (see [Page format](#page-format)).
 
 ## Content structure
 
@@ -21,8 +21,10 @@ declarative format where every line is `id = Component(args)`. It can hold catal
 *and* a sandboxed escape-hatch component, so a page can carry a brand-new diagram or an
 interactive widget. It's data, not compiled code, so the chat can reuse it too.
 
-The **Markdown is derived** from the page (text flattened, components dropped) for the RAG and
-GitHub. It's a view, not the source.
+The **Markdown is the source**. The notes agent writes it first, and the web agent makes the
+page from it. New notes are merged into the Markdown and the page is made again, which is
+easier than editing OpenUI Lang. If the web model fails, the page keeps its last good version
+or shows its Markdown. The RAG and the page versions read the Markdown too.
 
 - The catalog comes from elastic-ui (`Prose`, `CodeBlock`, `Callout`, `Diagram`…), and the
   system prompt is generated from it with `@openuidev/cli`.
