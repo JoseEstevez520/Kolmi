@@ -79,8 +79,7 @@ What we're building and what's next. Open to whatever the class needs.
   classmate's photos, and then cleaned up. The gatekeeper did what the plan expects in every case
   (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
   The plan and the results are in [docs/testing.md](docs/testing.md).
-- [ ] **Better pages** — what the test showed: the model adds code examples the note didn't
-  have (the notes guide asks for examples, the prompt says not to invent: pick one); pages come
+- [ ] **Better pages** — what the test showed: pages come
   out with no visuals and no "To explore" section; the pass can't read a PDF, a zip or a photo,
   so a file only gets judged by its name. Decide whether the Gateway's web model is worth
   bringing back.
