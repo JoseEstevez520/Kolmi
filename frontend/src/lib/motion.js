@@ -19,9 +19,16 @@ export const motionOn = ref(saved())
 
 setMotionPreference(motionOn.value ? 'full' : 'none')
 
+// Turning animations off waits for the switch that does it to finish its own slide, which
+// would otherwise jump: the preference stops every transition at once, that one included.
+const SWITCH_SLIDE = 320
+let pending = null
+
 export function setMotionOn(value) {
   motionOn.value = value
-  setMotionPreference(value ? 'full' : 'none')
+  clearTimeout(pending)
+  if (value) setMotionPreference('full')
+  else pending = setTimeout(() => setMotionPreference('none'), SWITCH_SLIDE)
   try {
     localStorage.setItem(KEY, value ? 'full' : 'none')
   } catch {
