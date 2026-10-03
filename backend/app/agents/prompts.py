@@ -229,6 +229,17 @@ def notes_system(language: str = FALLBACK_LANGUAGE) -> str:
     return _fill(_NOTES, language)
 
 
+# What the notes and web agents get with the tree's index, so a page can point to another.
+LINKS_LINE = "You may link to another page as [title](/node/<id>) when it helps the reader."
+
+
+def tree_lines(index: str) -> list[str]:
+    """The tree's index and the line on links, for an agent's brief (none without an index)."""
+    if not index.strip():
+        return []
+    return ["", "The class notes, as an index (id, kind, title):", index, LINKS_LINE]
+
+
 def language_line(language: str = FALLBACK_LANGUAGE) -> str:
     """The line that tells the web agent which language to write the page in."""
     name = language_name(language)

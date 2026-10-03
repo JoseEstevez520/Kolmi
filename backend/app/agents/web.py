@@ -9,7 +9,7 @@ from typing import Any
 from ..class_settings import FALLBACK_LANGUAGE
 from . import openui
 from .client import LLM
-from .prompts import language_line, visual_system
+from .prompts import language_line, tree_lines, visual_system
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Page:
     visuals: list[dict[str, Any]] = field(default_factory=list)
 
 
-def _brief(*, title: str, markdown: str, existing_web: str, language: str) -> str:
+def _brief(*, title: str, markdown: str, existing_web: str, language: str, index: str = "") -> str:
     # The language goes in the brief: through the Gateway the system prompt is its own.
     parts = [
         language_line(language),
@@ -44,6 +44,7 @@ def _brief(*, title: str, markdown: str, existing_web: str, language: str) -> st
     ]
     if existing_web.strip():
         parts += ["", "Current page, in OpenUI Lang (keep what still holds):", existing_web]
+    parts += tree_lines(index)
     return "\n".join(parts)
 
 
@@ -54,12 +55,15 @@ def write_web(
     markdown: str,
     existing_web: str = "",
     language: str = FALLBACK_LANGUAGE,
+    index: str = "",
 ) -> Page:
     """Ask a model to turn the page's notes (`markdown`) into the page in OpenUI Lang.
 
     Raises when the call fails or the answer is not a page.
     """
-    brief = _brief(title=title, markdown=markdown, existing_web=existing_web, language=language)
+    brief = _brief(
+        title=title, markdown=markdown, existing_web=existing_web, language=language, index=index
+    )
     # The Gateway expands its short config block; any other model gets the whole catalogue.
     system = openui.gateway_prompt() if getattr(web_llm, "gateway", False) else openui.full_prompt()
     raw = web_llm.complete_text(system, brief)
@@ -313,11 +317,12 @@ def build_page(
     markdown: str,
     existing_web: str = "",
     language: str = FALLBACK_LANGUAGE,
+    index: str = "",
 ) -> Page:
     """Turn the page's notes (`markdown`) into its web, in the class `language`.
 
     The web model, when there is one, writes it as OpenUI Lang; if it fails, the main model
-    `llm` writes the same OpenUI Lang. Then the main model draws the page's Diagram and Artifact
+    `llm` writes the same OpenUI Lang; `index` is the tree's, for links to other pages. Then the main model draws the page's Diagram and Artifact
     briefs (`draw_visuals`), with the notes as context. If neither writes a page, the page keeps
     `existing_web` (empty for a new page, which then shows its Markdown).
     """
@@ -334,6 +339,7 @@ def build_page(
                 markdown=markdown,
                 existing_web=existing_web,
                 language=language,
+                index=index,
             )
         except Exception as exc:  # any failure moves on to the next model; the pass goes on
             reasons.append(f"{_name(writer)} failed: {exc}")

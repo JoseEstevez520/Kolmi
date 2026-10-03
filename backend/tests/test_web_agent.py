@@ -5,7 +5,7 @@ import json
 import pytest
 
 from app.agents import openui
-from app.agents.prompts import notes_system, visual_system
+from app.agents.prompts import LINKS_LINE, notes_system, visual_system
 from app.agents.web import _problem, draw_visuals, write_web
 from app.passes.daily import run_daily_pass
 from tests.fakes import FakeLLM, FakeStore
@@ -144,6 +144,22 @@ def test_writes_the_notes_then_the_page_from_them():
     # A plain model (DeepSeek) is sent the whole catalogue.
     assert web.calls[0][1] == openui.full_prompt()
     assert [entry["action"] for entry in store.logs] == ["created"]
+
+
+def test_the_notes_and_web_agents_get_the_tree_to_link_to():
+    nodes = [
+        {"id": 10, "kind": "section", "title": "Tools", "parent_id": None, "position": 0},
+        {"id": 11, "kind": "page", "title": "Branches", "parent_id": 10, "position": 0},
+    ]
+    store = FakeStore(notes=[_note()], nodes=nodes)
+    llm = FakeLLM(json_response=_create_plan(), text_response=[MD])
+    web = FakeLLM(text_response=PAGE)
+
+    run_daily_pass(store=store, llm=llm, web_llm=web)
+
+    for brief in (llm.calls[1][2], web.calls[0][2]):
+        assert "[10] section: Tools\n  [11] page: Branches" in brief
+        assert LINKS_LINE in brief
 
 
 def test_updates_a_web_page_and_keeps_the_previous_version():

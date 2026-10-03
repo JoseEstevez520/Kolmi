@@ -5,6 +5,7 @@ import json
 from typing import Any
 
 from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper, write_markdown
+from ..agents.gatekeeper import build_index
 from ..agents.schemas import Batch, GatekeeperResult, NewPage
 from ..store import Store, SupabaseStore
 
@@ -87,6 +88,8 @@ def _write_batch(
 ) -> None:
     existing_md = page.get("content_md") or ""
     existing_web = page.get("content_web") or ""
+    # The tree as it is now (a page made in this pass included), so a page can link to another.
+    index = build_index(store.nodes())
 
     # First the notes: the page's Markdown, its source of truth.
     markdown = write_markdown(
@@ -95,6 +98,7 @@ def _write_batch(
         summary=batch.summary,
         existing_md=existing_md,
         language=language,
+        index=index,
     ) or existing_md
 
     # Then the web from those notes, and its visuals. Once the web model has failed in this
@@ -106,6 +110,7 @@ def _write_batch(
         markdown=markdown,
         existing_web=existing_web,
         language=language,
+        index=index,
     )
 
     if existing_md.strip() or existing_web.strip():
