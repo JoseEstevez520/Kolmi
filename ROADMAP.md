@@ -80,7 +80,9 @@ What we're building and what's next. Open to whatever the class needs.
   (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
   The plan and the results are in [docs/testing.md](docs/testing.md).
 - [ ] **Better pages** — what the test showed: pages come
-  out with no visuals and no "To explore" section; the pass can't read a PDF, a zip or a photo,
+  out with no "To explore" section and, for some notes that would suit a drawing, no drawing
+  (a flow got a diagram, three beans sharing an instance did not); backticks show as text in a
+  list term; the pass can't read a PDF, a zip or a photo,
   so a file only gets judged by its name. Decide whether the Gateway's web model is worth
   bringing back.
 - [ ] **Gatekeeper judgement** — it isn't deterministic (the same notes were split into two pages

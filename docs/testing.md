@@ -109,7 +109,13 @@ Done with notes written from the class repo, two files from the Moodle
   can't read images. It isn't deterministic: the same notes were one page in the dry run and two
   in the real pass.
 - **Pages:** tables, code, callouts, steps, links between pages and previous/next all read well in
-  light and dark and on a phone. No page had a visual or a "To explore" section. One page had an
+  light and dark and on a phone. No page had a "To explore" section. A note that described a flow (controller,
+  service, repository, database) came out with a diagram of coloured boxes and arrows; a note
+  that described three beans sharing one instance came out with a list and code, no drawing. The
+  pass's `visuals` list only counts the SVGs and pieces the main model draws afterwards, so a
+  diagram made of the library's parts doesn't show there. Figures fade in as they scroll into
+  view, so a full-page screenshot shows them as empty boxes. A list term written in backticks
+  shows them as text. One page had an
   English heading, two showed backticks in a heading, and the model added examples the notes
   didn't have. The prompts were changed for the first two, and a second run came out clean.
 - **Moodle:** the course's "Theory and examples" labels are empty; the theory is only in zips and
