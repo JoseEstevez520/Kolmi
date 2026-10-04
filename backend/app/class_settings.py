@@ -32,6 +32,18 @@ DEFAULT_PASS = {
 }
 PASS_COLUMNS = ", ".join(DEFAULT_PASS)
 
+# The class's own weekly timetable (not the pass's), until the admin sets one.
+DEFAULT_SCHEDULE = {
+    "schedule_enabled": False,
+    "schedule_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    "schedule_start": "08:10",
+    "schedule_end": "15:20",
+    "schedule_breaks": [],
+    # A real session's length in minutes: dragging a slot in Admin snaps to a multiple of it.
+    "schedule_session_minutes": 50,
+}
+SCHEDULE_COLUMNS = ", ".join(DEFAULT_SCHEDULE)
+
 
 def default_language() -> str:
     """`CLASS_LANGUAGE` from the environment, or English when it is not a supported code."""
@@ -52,9 +64,14 @@ def _select(client, columns: str) -> list[dict[str, Any]]:
 def _row(client) -> dict[str, Any] | None:
     try:
         try:
-            rows = _select(client, f"class_language, updated_at, {PASS_COLUMNS}")
-        except Exception:  # the schedule columns are not there yet
-            rows = _select(client, "class_language, updated_at")
+            rows = _select(
+                client, f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}"
+            )
+        except Exception:  # the pass or timetable columns are not there yet
+            try:
+                rows = _select(client, f"class_language, updated_at, {PASS_COLUMNS}")
+            except Exception:
+                rows = _select(client, "class_language, updated_at")
     except Exception as exc:  # the table is not there yet, or Supabase is unreachable
         log.warning("could not read the settings row, using the environment: %s", exc)
         return None
@@ -70,6 +87,7 @@ def read_settings(client) -> dict[str, Any]:
         "class_language": language,
         "updated_at": (row or {}).get("updated_at"),
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_PASS.items()},
+        **{key: (row or {}).get(key, default) for key, default in DEFAULT_SCHEDULE.items()},
         "timezone": "Europe/Madrid",
         "languages": [{"code": code, "name": name} for code, name in LANGUAGES.items()],
     }

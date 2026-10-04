@@ -48,6 +48,7 @@ export default {
   sidebar: {
     home: 'Home',
     notes: 'Notes',
+    schedule: 'Timetable',
     admin: 'Admin',
     aiLog: 'AI log',
     account: 'Account',
@@ -109,6 +110,12 @@ export default {
   home: {
     lead: 'Learn as a hive. Everything the class shares, in one place.',
     empty: 'An admin can put a section or a page on the home.',
+  },
+
+  schedule: {
+    title: 'Timetable',
+    lead: "The class's weekly timetable.",
+    empty: 'An admin can set up the timetable in Admin.',
   },
 
   notes: {
@@ -242,6 +249,31 @@ export default {
       runNow: 'Run now',
       started: 'Started',
       alreadyRunning: 'Already running',
+    },
+    schedule: {
+      title: 'Timetable',
+      enabled: 'Show the class timetable',
+      shape: 'The week',
+      start: 'Starts',
+      end: 'Ends',
+      days: 'Days',
+      addDay: 'Add a day',
+      removeDay: 'Remove {day}',
+      breaks: 'Breaks',
+      addBreak: 'Add a break',
+      removeBreak: 'Remove this break',
+      breakLabel: 'Name, such as "Break"',
+      sessionMinutes: 'A session, in minutes',
+      slots: 'Slots',
+      slotsHint: 'Drag an empty cell to lay a class down; drag a block to move it, or its edge to lengthen or shorten it.',
+      untitled: 'Untitled',
+      removeSlot: 'Remove this slot',
+      slotPage: 'Page',
+      slotPagePlaceholder: 'Which page?',
+      slotPageNone: 'No page',
+      slotTitle: 'Title, if it has no page',
+      slotDetail: 'A second line, such as the teacher',
+      saveError: 'Could not save the timetable',
     },
   },
 

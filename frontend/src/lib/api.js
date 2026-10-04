@@ -127,11 +127,24 @@ export const api = {
   },
 
   // The class settings: the class language, the one the AI writes the shared notes and pages
-  // in. Anyone signed in reads them; only an admin changes them.
+  // in, the pass's schedule and the timetable's shape (days, hours, breaks). Anyone signed in
+  // reads them; only an admin changes them.
   settings: () => request('/settings'),
 
-  // Sends only what is given, so one setting can change without the rest.
-  updateSettings: ({ classLanguage, passEnabled, passTimes, passDays }) =>
+  // Sends only what is given (JSON drops `undefined` keys), so one setting can change
+  // without the rest.
+  updateSettings: ({
+    classLanguage,
+    passEnabled,
+    passTimes,
+    passDays,
+    scheduleEnabled,
+    scheduleDays,
+    scheduleStart,
+    scheduleEnd,
+    scheduleBreaks,
+    scheduleSessionMinutes,
+  }) =>
     request('/settings', {
       method: 'POST',
       body: {
@@ -139,11 +152,46 @@ export const api = {
         pass_enabled: passEnabled,
         pass_times: passTimes,
         pass_days: passDays,
+        schedule_enabled: scheduleEnabled,
+        schedule_days: scheduleDays,
+        schedule_start: scheduleStart,
+        schedule_end: scheduleEnd,
+        schedule_breaks: scheduleBreaks,
+        schedule_session_minutes: scheduleSessionMinutes,
       },
     }),
 
   // Admin: start the pass now. It answers at once, `started` or `already_running`.
   runPass: () => request('/pass/run', { method: 'POST' }),
+
+  // The timetable's slots. Anyone signed in reads them; only an admin writes them.
+  scheduleEvents: () => request('/schedule/events'),
+
+  createScheduleEvent: ({ nodeId, day, startTime, endTime, title, detail, color }) => {
+    const body = { node_id: nodeId, day, start_time: startTime, end_time: endTime }
+    if (title !== undefined) body.title = title
+    if (detail !== undefined) body.detail = detail
+    if (color !== undefined) body.color = color
+    return request('/schedule/events', { method: 'POST', body })
+  },
+
+  updateScheduleEvent: ({ eventId, ...patch }) =>
+    request('/schedule/events/update', {
+      method: 'POST',
+      body: {
+        event_id: eventId,
+        node_id: patch.nodeId,
+        day: patch.day,
+        start_time: patch.startTime,
+        end_time: patch.endTime,
+        title: patch.title,
+        detail: patch.detail,
+        color: patch.color,
+      },
+    }),
+
+  deleteScheduleEvent: ({ eventId }) =>
+    request('/schedule/events/delete', { method: 'POST', body: { event_id: eventId } }),
 
   // Admin, the tree. The backend stores whatever fields it is given, so a node
   // is created with its icon, colour and home flag from the start.

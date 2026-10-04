@@ -12,16 +12,28 @@ from .registry import action
 TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 
+class ScheduleBreak(BaseModel):
+    start: str
+    end: str
+    label: str
+
+
 class UpdateSettingsParams(BaseModel):
     class_language: str | None = None
     pass_enabled: bool | None = None
     pass_times: list[str] | None = None
     pass_days: list[int] | None = None
+    schedule_enabled: bool | None = None
+    schedule_days: list[str] | None = None
+    schedule_start: str | None = None
+    schedule_end: str | None = None
+    schedule_breaks: list[ScheduleBreak] | None = None
+    schedule_session_minutes: int | None = None
 
 
 @action(
     name="get_settings",
-    description="The class settings: the AI's language and when its daily pass runs.",
+    description="The class settings: the AI's language, when its daily pass runs, and the class timetable.",
     method="GET",
     path="/settings",
 )
@@ -31,7 +43,7 @@ def get_settings(ctx: Context, params: None):
 
 @action(
     name="update_settings",
-    description="Set the class language and the daily pass's schedule (on or off, times, weekdays).",
+    description="Set the class language, the daily pass's schedule, and the class timetable's shape (days, hours, breaks).",
     params=UpdateSettingsParams,
     path="/settings",
     min_role="admin",
@@ -70,6 +82,30 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
         or not row.get("pass_days", current["pass_days"])
     ):
         raise HTTPException(422, "Pick at least one time and one day, or turn the pass off")
+
+    if params.schedule_days is not None:
+        if not params.schedule_days:
+            raise HTTPException(422, "Name at least one day")
+        row["schedule_days"] = params.schedule_days
+    if params.schedule_start is not None:
+        if not TIME.match(params.schedule_start):
+            raise HTTPException(422, "schedule_start must be HH:MM")
+        row["schedule_start"] = params.schedule_start
+    if params.schedule_end is not None:
+        if not TIME.match(params.schedule_end):
+            raise HTTPException(422, "schedule_end must be HH:MM")
+        row["schedule_end"] = params.schedule_end
+    if params.schedule_breaks is not None:
+        for b in params.schedule_breaks:
+            if not TIME.match(b.start) or not TIME.match(b.end):
+                raise HTTPException(422, "A break's times must be HH:MM")
+        row["schedule_breaks"] = [b.model_dump() for b in params.schedule_breaks]
+    if params.schedule_session_minutes is not None:
+        if params.schedule_session_minutes <= 0:
+            raise HTTPException(422, "schedule_session_minutes must be a positive number")
+        row["schedule_session_minutes"] = params.schedule_session_minutes
+    if params.schedule_enabled is not None:
+        row["schedule_enabled"] = params.schedule_enabled
 
     row["updated_at"] = datetime.now(timezone.utc).isoformat()
     try:

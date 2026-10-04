@@ -45,6 +45,7 @@ export default {
   sidebar: {
     home: 'Inicio',
     notes: 'Notas',
+    schedule: 'Horario',
     admin: 'Administración',
     aiLog: 'Registro de la IA',
     account: 'Cuenta',
@@ -106,6 +107,12 @@ export default {
   home: {
     lead: 'Aprende en colmena. Todo lo que comparte la clase, en un solo sitio.',
     empty: 'Desde Administración se pueden poner aquí secciones y páginas.',
+  },
+
+  schedule: {
+    title: 'Horario',
+    lead: 'El horario semanal de la clase.',
+    empty: 'Desde Administración se puede configurar el horario.',
   },
 
   notes: {
@@ -239,6 +246,31 @@ export default {
       runNow: 'Ejecutar ahora',
       started: 'En marcha',
       alreadyRunning: 'Ya se está ejecutando',
+    },
+    schedule: {
+      title: 'Horario',
+      enabled: 'Mostrar el horario de la clase',
+      shape: 'La semana',
+      start: 'Empieza',
+      end: 'Termina',
+      days: 'Días',
+      addDay: 'Añadir un día',
+      removeDay: 'Quitar {day}',
+      breaks: 'Descansos',
+      addBreak: 'Añadir un descanso',
+      removeBreak: 'Quitar este descanso',
+      breakLabel: 'Nombre, como "Recreo"',
+      sessionMinutes: 'Una clase, en minutos',
+      slots: 'Franjas',
+      slotsHint: 'Arrastra una celda vacía para meter una clase; arrastra un bloque para moverlo, o su borde para alargarlo o acortarlo.',
+      untitled: 'Sin título',
+      removeSlot: 'Quitar esta franja',
+      slotPage: 'Página',
+      slotPagePlaceholder: '¿Qué página?',
+      slotPageNone: 'Sin página',
+      slotTitle: 'Título, si no tiene página',
+      slotDetail: 'Una segunda línea, como el profesor',
+      saveError: 'No se pudo guardar el horario',
     },
   },
 

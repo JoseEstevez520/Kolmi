@@ -2,24 +2,12 @@
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
-import {
-  Button,
-  Callout,
-  FileDropZone,
-  Input,
-  Markdown,
-  NavTree,
-  NavTreeItem,
-  PopoverMorph,
-  StatusText,
-  TextMorph,
-  TruncatedText,
-} from 'elastic-ui'
-import { ArrowLeft, Folder, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
+import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusText, TextMorph } from 'elastic-ui'
+import { ArrowLeft, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
-import PlaceTree from '../components/PlaceTree.vue'
+import NodePicker from '../components/NodePicker.vue'
 import { api } from '../lib/api.js'
-import { loadNodes, nodes } from '../lib/content.js'
+import { loadNodes } from '../lib/content.js'
 import { joinNote, splitNote } from '../lib/notes.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
@@ -47,34 +35,15 @@ const editor = ref(null)
 const picker = ref(null)
 const fileCount = ref(0)
 
-// Where the student thinks the note goes, as a hint for the daily pass; "Not sure" leaves it
-// empty. The tree's items need a non-empty value, so that one travels under a sentinel.
-const NOT_SURE = '__none__'
-const hint = ref(NOT_SURE)
-const hintId = computed(() => (hint.value === NOT_SURE ? null : Number(hint.value)))
-
-// The hint lives in the top bar as a quiet piece of metadata: a ghost button with the picked
-// place's short path, opening the tree. Picking a place closes it.
-
-// Each node's path from the top, to name the picked one by its last two steps.
-const paths = computed(() => {
-  const out = new Map()
-  const walk = (items, trail) => {
-    for (const item of items) {
-      const path = [...trail, item.title]
-      out.set(String(item.id), path)
-      if (item.children?.length) walk(item.children, path)
-    }
-  }
-  walk(nodes.value, [])
-  return out
-})
-const hintPath = computed(() => paths.value.get(hint.value)?.slice(-2).join(' / ') ?? '')
+// Where the student thinks the note goes, as a hint for the daily pass; null leaves it empty.
+// Lives in the top bar as a quiet NodePicker, a ghost button with the picked place's short
+// path, opening the tree. Picking a place closes it.
+const hintId = ref(null)
 
 const content = computed(() => joinNote(title.value, body.value))
 
 // What the server has, to save only a change from it.
-let saved = { content: '', hint: NOT_SURE }
+let saved = { content: '', hintId: null }
 
 async function load() {
   if (noteId.value == null) return
@@ -89,8 +58,8 @@ async function load() {
       const parts = splitNote(note.content)
       title.value = parts.title
       body.value = parts.body
-      hint.value = note.node_id == null ? NOT_SURE : String(note.node_id)
-      saved = { content: content.value, hint: hint.value }
+      hintId.value = note.node_id
+      saved = { content: content.value, hintId: hintId.value }
     }
   } catch (e) {
     error.value = e.message || t('notes.errorLong')
@@ -138,10 +107,10 @@ let creation = null
 function ensureNote(keepalive = false) {
   if (noteId.value != null) return Promise.resolve(noteId.value)
   creation ??= (async () => {
-    const sent = { content: content.value, hint: hint.value }
+    const sent = { content: content.value, hintId: hintId.value }
     const note = await api.createNote({
       content: sent.content,
-      nodeId: hintId.value,
+      nodeId: sent.hintId,
       format: 'markdown',
       forFiles: !sent.content.trim(),
       keepalive,
@@ -162,16 +131,16 @@ function save(keepalive = false) {
     return inFlight
   }
   if (loading.value || closed.value || error.value || (!content.value && !fileCount.value)) return
-  if (noteId.value != null && content.value === saved.content && hint.value === saved.hint) return
+  if (noteId.value != null && content.value === saved.content && hintId.value === saved.hintId) return
 
-  const sent = { content: content.value, hint: hint.value }
+  const sent = { content: content.value, hintId: hintId.value }
   startSaving()
   inFlight = (async () => {
     try {
-      const fields = { content: sent.content, nodeId: hintId.value, keepalive }
+      const fields = { content: sent.content, nodeId: sent.hintId, keepalive }
       // Made with what was written at that moment; what changed since is sent as an update.
       await ensureNote(keepalive)
-      if (sent.content !== saved.content || sent.hint !== saved.hint) {
+      if (sent.content !== saved.content || sent.hintId !== saved.hintId) {
         await api.updateNote({ ...fields, noteId: noteId.value })
       }
       saved = sent
@@ -191,7 +160,7 @@ function save(keepalive = false) {
 }
 
 // Saved a moment after the last key, not on every one.
-watch([title, body, hint], () => {
+watch([title, body, hintId], () => {
   if (loading.value || closed.value) return
   clearTimeout(timer)
   timer = setTimeout(save, 1200)
@@ -250,26 +219,13 @@ onMounted(() => loadNodes().catch(() => {}))
     <div class="mb-10 flex items-center justify-between gap-3">
       <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
       <div v-if="!closed && !error" class="flex min-w-0 items-center gap-2">
-        <PopoverMorph
+        <NodePicker
           v-if="!loading"
-          variant="ghost"
-          size="sm"
-          align="end"
-          fluid
-          class="min-w-0 text-fg-muted"
-          :label="hintPath ? `${t('notes.write.hintLabel')} ${hintPath}` : t('notes.write.hintLabel')"
-        >
-          <template #trigger>
-            <Folder class="size-4 shrink-0" aria-hidden="true" />
-            <TruncatedText class="min-w-0">{{ hintPath || t('notes.write.hintEmpty') }}</TruncatedText>
-          </template>
-          <template #default="{ close }">
-            <NavTree v-model="hint" selectable :label="t('notes.write.hintLabel')" @select="close">
-              <NavTreeItem :value="NOT_SURE">{{ t('notes.write.hintNotSure') }}</NavTreeItem>
-              <PlaceTree :items="nodes" />
-            </NavTree>
-          </template>
-        </PopoverMorph>
+          v-model="hintId"
+          :placeholder="t('notes.write.hintEmpty')"
+          :none-label="t('notes.write.hintNotSure')"
+          :label="t('notes.write.hintLabel')"
+        />
         <!-- Attaching works before anything is written: the first file makes the note. -->
         <PopoverMorph
           v-if="!loading"
