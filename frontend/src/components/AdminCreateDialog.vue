@@ -7,8 +7,6 @@ import {
   DialogMorphClose,
   DialogMorphTitle,
   Field,
-  FileIcon,
-  FolderIcon,
   IconPicker,
   Input,
   Switch,
@@ -92,14 +90,8 @@ async function create(close) {
       <div class="flex flex-col gap-4">
         <Field :label="t('admin.kind')">
           <ToggleGroup type="single" :model-value="kind" :aria-label="t('admin.kind')" @update:model-value="(v) => v && (kind = v)">
-            <ToggleGroupItem value="section">
-              <FolderIcon size="xs" :open="kind === 'section'" />
-              {{ t('admin.section') }}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="page">
-              <FileIcon name="" size="xs" />
-              {{ t('admin.page') }}
-            </ToggleGroupItem>
+            <ToggleGroupItem value="section">{{ t('admin.section') }}</ToggleGroupItem>
+            <ToggleGroupItem value="page">{{ t('admin.page') }}</ToggleGroupItem>
           </ToggleGroup>
         </Field>
 
