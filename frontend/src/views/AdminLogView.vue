@@ -1,15 +1,26 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Empty, Status, StatusText, TruncatedText } from 'elastic-ui'
-import { History } from '@lucide/vue'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Button,
+  Callout,
+  Empty,
+  Status,
+  StatusText,
+  TruncatedText,
+} from 'elastic-ui'
+import { CircleMinus, FilePen, FilePlus, Flag, History, NotebookPen } from '@lucide/vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { flatten, loadNodes } from '../lib/content.js'
 import { formatDuration, formatShortDate } from '../lib/format.js'
 
-// The AI log, for admins: the recent passes down the left, and what the chosen one did down the
-// right. Read-only: it only shows what the backend already keeps. What needs a look (a pass that
+// The AI log, for admins: the recent passes one under another, each opening in its place to show
+// what it did. Read-only: it only shows what the backend already keeps. What needs a look (a pass that
 // failed, a note the pass flagged) sits on top and narrows the list when pressed.
 const { t, te } = useI18n()
 
@@ -49,46 +60,55 @@ const shown = computed(() => {
   return passes.value
 })
 
-const selectedId = ref(null)
-const selected = computed(() => passes.value.find((pass) => pass.id === selectedId.value) ?? null)
-// The chosen pass follows the list as it narrows.
-// A pass still running has nothing to show yet, so the newest one that has finished comes first.
-const firstOf = (list) => (list.find((pass) => pass.status !== 'running') ?? list[0])?.id ?? null
+// The pass that is open (one at a time): the newest that has finished until another is opened.
+// A pass still running has nothing to show yet.
+const openId = ref('')
+const firstOf = (list) => String((list.find((pass) => pass.status !== 'running') ?? list[0])?.id ?? '')
 watch(shown, (list) => {
-  if (!list.some((pass) => pass.id === selectedId.value)) selectedId.value = firstOf(list)
+  if (openId.value && !list.some((pass) => String(pass.id) === openId.value)) openId.value = firstOf(list)
 })
 
-// What each pass did, asked for when it is chosen and kept.
+// What each pass did, asked for when it is opened and kept.
 const entries = ref({})
-const entriesLoading = ref(false)
-const entriesError = ref('')
-watch(selectedId, async (id) => {
-  entriesError.value = ''
-  if (id == null || entries.value[id]) return
-  entriesLoading.value = true
-  try {
-    const log = await api.adminAiLog({ passId: id })
-    entries.value = { ...entries.value, [id]: Array.isArray(log) ? log : [] }
-  } catch (e) {
-    entriesError.value = e.message || t('aiLog.errorLong')
-  } finally {
-    entriesLoading.value = false
-  }
-})
-const chosenEntries = computed(() => entries.value[selectedId.value] ?? [])
-const visibleEntries = computed(() =>
-  focus.value === 'flagged' ? chosenEntries.value.filter((entry) => entry.action === 'flagged') : chosenEntries.value,
+const loadingId = ref('')
+const failedId = ref('')
+const errorText = ref('')
+watch(
+  openId,
+  async (id) => {
+    if (!id || entries.value[id]) return
+    loadingId.value = id
+    failedId.value = ''
+    try {
+      const log = await api.adminAiLog({ passId: id })
+      entries.value = { ...entries.value, [id]: Array.isArray(log) ? log : [] }
+    } catch (e) {
+      failedId.value = id
+      errorText.value = e.message || t('aiLog.errorLong')
+    } finally {
+      loadingId.value = ''
+    }
+  },
+  { immediate: true },
 )
+const entriesOf = (pass) => {
+  const list = entries.value[String(pass.id)] ?? []
+  return focus.value === 'flagged' ? list.filter((entry) => entry.action === 'flagged') : list
+}
 
-// A pass's counts as one short line: "4 notes · 2 created · 1 updated".
-function passResult(pass) {
-  const stats = pass.stats ?? {}
-  const parts = []
-  for (const key of ['notes', 'created', 'updated', 'discarded', 'flagged']) {
-    const n = count(stats[key])
-    if (n > 0) parts.push(t(`aiLog.stats.${key}`, { n }, n))
-  }
-  return parts.join(' · ')
+// A pass's counts, each with its icon: what it read, and what it did. Only what is above zero.
+const COUNTS = [
+  { key: 'notes', icon: NotebookPen },
+  { key: 'created', icon: FilePlus },
+  { key: 'updated', icon: FilePen },
+  { key: 'discarded', icon: CircleMinus },
+  { key: 'flagged', icon: Flag },
+]
+function countsOf(pass) {
+  return COUNTS.map(({ key, icon }) => {
+    const n = count(pass.stats?.[key])
+    return { key, icon, n, text: t(`aiLog.stats.${key}`, { n }, n) }
+  }).filter((item) => item.n > 0)
 }
 
 // When a pass ran, in one line: its start and how long it took, or that it is still going.
@@ -122,7 +142,7 @@ async function load() {
     passes.value = Array.isArray(passList) ? passList : []
     notes.value = Array.isArray(noteList) ? noteList : []
     tree.value = Array.isArray(content) ? content : []
-    selectedId.value = firstOf(passes.value)
+    openId.value = firstOf(passes.value)
   } catch (e) {
     error.value = e.message || t('aiLog.errorLong')
   } finally {
@@ -174,62 +194,61 @@ onMounted(load)
           </Button>
         </div>
 
-        <div class="grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
-          <ul class="flex flex-col gap-0.5" :aria-label="t('aiLog.passes')">
-            <li v-for="pass in shown" :key="pass.id">
-              <Button
-                variant="ghost"
-                :aria-current="pass.id === selectedId || undefined"
-                :class="[
-                  'h-auto w-full flex-col items-start gap-1 px-3 py-2 text-left font-normal',
-                  pass.id === selectedId && 'bg-bg-muted text-fg',
-                ]"
-                @click="selectedId = pass.id"
-              >
-                <span class="flex w-full items-center justify-between gap-2">
-                  <span class="text-label tabular-nums text-fg">#{{ pass.id }}</span>
-                  <Status :state="PASS_STATES[pass.status] ?? 'idle'" :label="label('passStatus', pass.status)" />
+        <Accordion v-model="openId" type="single" collapsible>
+          <AccordionItem v-for="pass in shown" :key="pass.id" :value="String(pass.id)">
+            <AccordionTrigger>
+              <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 pr-2">
+                <span class="text-label tabular-nums text-fg">#{{ pass.id }}</span>
+                <Status :state="PASS_STATES[pass.status] ?? 'idle'" :label="label('passStatus', pass.status)" />
+                <span class="text-meta font-normal text-fg-muted">
+                  {{ passWhen(pass) }}<template v-if="pass.model"> · {{ pass.model }}</template>
                 </span>
-                <span class="text-meta text-fg-muted">{{ passWhen(pass) }}</span>
-              </Button>
-            </li>
-          </ul>
+                <span v-if="countsOf(pass).length" class="ml-auto flex items-center gap-4">
+                  <span
+                    v-for="item in countsOf(pass)"
+                    :key="item.key"
+                    :title="item.text"
+                    :class="['inline-flex items-center gap-1.5 text-label font-normal tabular-nums', item.key === 'flagged' ? 'text-warning' : 'text-fg-secondary']"
+                  >
+                    <component :is="item.icon" class="size-4" :stroke-width="1.5" aria-hidden="true" />
+                    <span aria-hidden="true">{{ item.n }}</span>
+                    <span class="sr-only">{{ item.text }}</span>
+                  </span>
+                </span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div class="flex flex-col gap-3 pb-2">
+                <Callout v-if="pass.error" type="caution" :title="label('passStatus', 'failed')">
+                  {{ pass.error }}
+                </Callout>
 
-          <section v-if="selected" class="flex min-w-0 flex-col gap-5" :aria-label="`#${selected.id}`">
-            <header class="flex flex-col gap-1">
-              <h2 class="m-0 text-title text-fg">#{{ selected.id }}</h2>
-              <p v-if="passResult(selected)" class="m-0 text-label text-fg-secondary">{{ passResult(selected) }}</p>
-              <p v-if="selected.model" class="m-0 text-meta text-fg-muted">{{ selected.model }}</p>
-            </header>
+                <StatusText v-if="loadingId === String(pass.id)" :delay="300" :text="t('aiLog.loading')" working />
+                <StatusText v-else-if="failedId === String(pass.id)" :text="errorText" error />
+                <StatusText v-else-if="pass.status === 'running'" :text="label('passStatus', 'running')" working />
+                <p v-else-if="entriesOf(pass).length === 0 && !pass.error" class="m-0 text-label text-fg-muted">{{ t('aiLog.quiet') }}</p>
 
-            <Callout v-if="selected.error" type="caution" :title="label('passStatus', 'failed')">
-              {{ selected.error }}
-            </Callout>
-
-            <StatusText v-if="entriesLoading" :delay="300" :text="t('aiLog.loading')" working />
-            <StatusText v-else-if="entriesError" :text="entriesError" error />
-            <StatusText v-else-if="selected.status === 'running'" :text="label('passStatus', 'running')" working />
-            <p v-else-if="visibleEntries.length === 0 && !selected.error" class="m-0 text-label text-fg-muted">{{ t('aiLog.quiet') }}</p>
-
-            <ul v-else class="flex flex-col divide-y divide-border">
-              <li v-for="entry in visibleEntries" :key="entry.id" class="flex items-start gap-4 py-3">
-                <Status
-                  class="w-32 shrink-0 pt-px"
-                  :state="ACTION_STATES[entry.action] ?? 'idle'"
-                  :label="label('actions', entry.action)"
-                />
-                <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <RouterLink v-if="targetOf(entry).to" :to="targetOf(entry).to" class="text-label text-fg hover:underline">
-                    {{ targetOf(entry).title }}
-                  </RouterLink>
-                  <span v-else class="text-label text-fg">{{ targetOf(entry).title }}</span>
-                  <TruncatedText v-if="entry.reason" class="text-meta text-fg-muted">{{ entry.reason }}</TruncatedText>
-                  <TruncatedText v-if="noteOf(entry)" class="text-meta text-fg-faint">{{ noteOf(entry) }}</TruncatedText>
-                </div>
-              </li>
-            </ul>
-          </section>
-        </div>
+                <ul v-else class="m-0 flex list-none flex-col divide-y divide-border p-0">
+                  <li v-for="entry in entriesOf(pass)" :key="entry.id" class="flex items-start gap-4 py-3">
+                    <Status
+                      class="w-32 shrink-0 pt-px"
+                      :state="ACTION_STATES[entry.action] ?? 'idle'"
+                      :label="label('actions', entry.action)"
+                    />
+                    <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <RouterLink v-if="targetOf(entry).to" :to="targetOf(entry).to" class="text-label text-fg hover:underline">
+                        {{ targetOf(entry).title }}
+                      </RouterLink>
+                      <span v-else class="text-label text-fg">{{ targetOf(entry).title }}</span>
+                      <TruncatedText v-if="entry.reason" class="text-meta text-fg-muted">{{ entry.reason }}</TruncatedText>
+                      <TruncatedText v-if="noteOf(entry)" class="text-meta text-fg-faint">{{ noteOf(entry) }}</TruncatedText>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </PageLayout>
   </main>
