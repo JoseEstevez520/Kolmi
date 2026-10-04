@@ -1,5 +1,6 @@
 # Builds the static site, served by a plain nginx. VITE_* vars are baked in at build
-# time, so Dokploy must set them as build args, not as runtime env vars.
+# time, so whatever builds this image must set them as build args (docker-compose.yml
+# does), not as runtime env vars: a static build has no environment to read at runtime.
 FROM node:22-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
