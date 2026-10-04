@@ -116,10 +116,11 @@ alter table settings add column if not exists pass_times text[] not null default
 alter table settings add column if not exists pass_days smallint[] not null default '{1,2,3,4,5,6,7}';
 
 -- The class's weekly timetable, for everyone to see (not the pass's own schedule above). On
--- or off, the days' names, when the week starts and ends, and the breaks that run across
--- every day. Also in migrations/20261004100000_schedule.sql.
+-- or off, its days (ISO weekdays, 1 Monday to 7 Sunday, same shape as pass_days), when the
+-- week starts and ends, and the breaks that run across every day. Also in
+-- migrations/20261004100000_schedule.sql and 20261004110000_schedule_days_as_weekdays.sql.
 alter table settings add column if not exists schedule_enabled boolean not null default false;
-alter table settings add column if not exists schedule_days text[] not null default '{Monday,Tuesday,Wednesday,Thursday,Friday}';
+alter table settings add column if not exists schedule_days smallint[] not null default '{1,2,3,4,5}';
 alter table settings add column if not exists schedule_start text not null default '08:10';
 alter table settings add column if not exists schedule_end text not null default '15:20';
 alter table settings add column if not exists schedule_breaks jsonb not null default '[]';

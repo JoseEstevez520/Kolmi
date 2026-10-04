@@ -35,7 +35,8 @@ PASS_COLUMNS = ", ".join(DEFAULT_PASS)
 # The class's own weekly timetable (not the pass's), until the admin sets one.
 DEFAULT_SCHEDULE = {
     "schedule_enabled": False,
-    "schedule_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    # ISO weekdays, 1 Monday to 7 Sunday, the same shape as pass_days.
+    "schedule_days": [1, 2, 3, 4, 5],
     "schedule_start": "08:10",
     "schedule_end": "15:20",
     "schedule_breaks": [],

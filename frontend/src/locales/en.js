@@ -257,8 +257,6 @@ export default {
       start: 'Starts',
       end: 'Ends',
       days: 'Days',
-      addDay: 'Add a day',
-      removeDay: 'Remove {day}',
       breaks: 'Breaks',
       addBreak: 'Add a break',
       removeBreak: 'Remove this break',

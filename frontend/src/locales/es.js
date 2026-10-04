@@ -254,8 +254,6 @@ export default {
       start: 'Empieza',
       end: 'Termina',
       days: 'Días',
-      addDay: 'Añadir un día',
-      removeDay: 'Quitar {day}',
       breaks: 'Descansos',
       addBreak: 'Añadir un descanso',
       removeBreak: 'Quitar este descanso',

@@ -24,7 +24,7 @@ class UpdateSettingsParams(BaseModel):
     pass_times: list[str] | None = None
     pass_days: list[int] | None = None
     schedule_enabled: bool | None = None
-    schedule_days: list[str] | None = None
+    schedule_days: list[int] | None = None
     schedule_start: str | None = None
     schedule_end: str | None = None
     schedule_breaks: list[ScheduleBreak] | None = None
@@ -85,8 +85,10 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
 
     if params.schedule_days is not None:
         if not params.schedule_days:
-            raise HTTPException(422, "Name at least one day")
-        row["schedule_days"] = params.schedule_days
+            raise HTTPException(422, "Pick at least one day")
+        if any(d < 1 or d > 7 for d in params.schedule_days):
+            raise HTTPException(422, "Days must be 1 (Monday) to 7 (Sunday)")
+        row["schedule_days"] = sorted(set(params.schedule_days))
     if params.schedule_start is not None:
         if not TIME.match(params.schedule_start):
             raise HTTPException(422, "schedule_start must be HH:MM")

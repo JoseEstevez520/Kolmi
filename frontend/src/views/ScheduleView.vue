@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Empty, Field, Input, StatusText, Switch, Timetable } from 'elastic-ui'
+import { Button, Callout, Empty, Field, Input, StatusText, Switch, Timetable, WeekPillbox } from 'elastic-ui'
 import { CalendarDays, Plus, X } from '@lucide/vue'
 import NodePicker from '../components/NodePicker.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -13,10 +13,12 @@ import { profile } from '../lib/auth.js'
 // an empty cell to lay a class down, drag a block to move it, drag its edge to lengthen or
 // shorten it (snapped to a whole session), click to select it and fill its title, detail or page
 // in the panel below. A gesture only tells what it would change; this is what calls the backend.
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const enabled = ref(false)
+// ISO weekdays (1 Monday to 7 Sunday), the same shape as the pass's own days, picked the same
+// way with WeekPillbox. Their display names (for Timetable's `days`) come from the locale.
 const days = ref([])
 const start = ref('08:10')
 const end = ref('15:20')
@@ -74,18 +76,26 @@ async function save(patch) {
   }
 }
 
-function addDay() {
-  days.value = [...days.value, '']
-  save({ scheduleDays: days.value })
+function setDays(list) {
+  days.value = list
+  save({ scheduleDays: list })
 }
-function setDay(i, value) {
-  days.value = days.value.map((d, idx) => (idx === i ? value : d))
-  save({ scheduleDays: days.value })
-}
-function removeDay(i) {
-  days.value = days.value.filter((_, idx) => idx !== i)
-  save({ scheduleDays: days.value })
-}
+
+// The week's line, in the class's words (reused from the pass's own, the same four phrases).
+const dayWords = computed(() => ({
+  everyDay: t('admin.pass.words.everyDay'),
+  weekdays: t('admin.pass.words.weekdays'),
+  weekends: t('admin.pass.words.weekends'),
+  none: t('admin.pass.words.none'),
+}))
+
+// Timetable wants the days as names, Monday first; a weekday's own name comes from the
+// locale, read off a known Monday-starting week (2026-01-05), never typed by hand.
+const dayNames = computed(() =>
+  [...days.value]
+    .sort((a, b) => a - b)
+    .map((iso) => new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(new Date(2026, 0, 4 + iso))),
+)
 
 function addBreak() {
   breaks.value = [...breaks.value, { start: '11:30', end: '12:00', label: '' }]
@@ -207,15 +217,16 @@ onMounted(load)
                 </Field>
               </div>
 
-              <Field :label="t('admin.schedule.days')">
-                <div class="flex flex-col gap-2">
-                  <div v-for="(day, i) in days" :key="i" class="flex items-center gap-2">
-                    <Input :model-value="day" class="flex-1" @change="(e) => setDay(i, e.target.value)" />
-                    <Button variant="ghost" size="icon" :icon="X" :aria-label="t('admin.schedule.removeDay', { day })" @click="removeDay(i)" />
-                  </div>
-                  <Button variant="ghost" size="sm" :icon="Plus" @click="addDay">{{ t('admin.schedule.addDay') }}</Button>
-                </div>
-              </Field>
+              <div class="flex flex-col gap-3">
+                <h4 class="m-0 text-label text-fg">{{ t('admin.schedule.days') }}</h4>
+                <WeekPillbox
+                  :model-value="days"
+                  :locale="locale"
+                  :label="t('admin.schedule.days')"
+                  :words="dayWords"
+                  @update:model-value="setDays"
+                />
+              </div>
             </div>
 
             <div class="flex flex-col gap-3">
@@ -233,7 +244,7 @@ onMounted(load)
           </template>
 
           <Timetable
-            :days="days"
+            :days="dayNames"
             :start="start"
             :end="end"
             :events="timetableEvents"
