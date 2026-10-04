@@ -96,11 +96,19 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page. It runs on the
-  main model, and each page's Markdown is its source. One class, one key: José pays for his own
-  class's usage, so it needs a hard ceiling that doesn't need live cost metering — a daily
-  message count per student plus a global daily cap, on a cheap model, cut off with a clear
-  message rather than a silent error. A plain request-response first; a loop or tool use (looking
+- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page, each page's
+  Markdown its source. Two ways in, and a student's own key always wins:
+  1. **The class's own key**, set by the admin in Settings (on/off, plus a daily message limit).
+     Held server-side, since a shared limit can only be enforced there: a row per student per
+     day, counted, blocked past the limit — the same shape as `ai_log`/`ai_passes`. No live cost
+     metering, just a message count.
+  2. **A student's own key**, kept only in their browser (as the language or animation setting
+     already are) and called straight from there to the provider: it never touches the backend,
+     so nothing to encrypt or hold. Any OpenAI-compatible endpoint, the same assumption the web
+     model already makes (`docs/page-format.md`).
+  A student's own key is used whenever they have one set, whatever the admin's key is doing
+  (off, or its limit spent) — otherwise the class's, if the admin turned it on; otherwise the
+  chat says it isn't available here. A plain request-response first; a loop or tool use (looking
   things up, not just the page it's asked about) is a LangGraph job (`AGENTS.md`), not the plain
   OpenAI SDK.
 - [ ] **Report an issue, watched by an agent** — a "Report something" button anyone can use,
