@@ -51,9 +51,11 @@ const shown = computed(() => {
 
 const selectedId = ref(null)
 const selected = computed(() => passes.value.find((pass) => pass.id === selectedId.value) ?? null)
-// The chosen pass is the newest in view until one is picked, and follows the list as it narrows.
+// The chosen pass follows the list as it narrows.
+// A pass still running has nothing to show yet, so the newest one that has finished comes first.
+const firstOf = (list) => (list.find((pass) => pass.status !== 'running') ?? list[0])?.id ?? null
 watch(shown, (list) => {
-  if (!list.some((pass) => pass.id === selectedId.value)) selectedId.value = list[0]?.id ?? null
+  if (!list.some((pass) => pass.id === selectedId.value)) selectedId.value = firstOf(list)
 })
 
 // What each pass did, asked for when it is chosen and kept.
@@ -84,7 +86,7 @@ function passResult(pass) {
   const parts = []
   for (const key of ['notes', 'created', 'updated', 'discarded', 'flagged']) {
     const n = count(stats[key])
-    if (stats[key] != null) parts.push(t(`aiLog.stats.${key}`, { n }, n))
+    if (n > 0) parts.push(t(`aiLog.stats.${key}`, { n }, n))
   }
   return parts.join(' · ')
 }
@@ -120,7 +122,7 @@ async function load() {
     passes.value = Array.isArray(passList) ? passList : []
     notes.value = Array.isArray(noteList) ? noteList : []
     tree.value = Array.isArray(content) ? content : []
-    selectedId.value = passes.value[0]?.id ?? null
+    selectedId.value = firstOf(passes.value)
   } catch (e) {
     error.value = e.message || t('aiLog.errorLong')
   } finally {
@@ -206,6 +208,7 @@ onMounted(load)
 
             <StatusText v-if="entriesLoading" :delay="300" :text="t('aiLog.loading')" working />
             <StatusText v-else-if="entriesError" :text="entriesError" error />
+            <StatusText v-else-if="selected.status === 'running'" :text="label('passStatus', 'running')" working />
             <p v-else-if="visibleEntries.length === 0 && !selected.error" class="m-0 text-label text-fg-muted">{{ t('aiLog.quiet') }}</p>
 
             <ul v-else class="flex flex-col divide-y divide-border">
