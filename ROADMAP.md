@@ -110,16 +110,27 @@ What we're building and what's next. Open to whatever the class needs.
   (off, or its limit spent) — otherwise the class's, if the admin turned it on; otherwise the
   chat says it isn't available here. A plain request-response first; a loop or tool use (looking
   things up, not just the page it's asked about) is a LangGraph job (`AGENTS.md`), not the plain
-  OpenAI SDK.
-- [ ] **Report an issue, watched by an agent** — a "Report something" button anyone can use,
-  logged, that an agent judges before it becomes a real GitHub issue: genuine or a troll,
-  a duplicate, how serious. The same shape as the gatekeeper's pass (a row, an agent's verdict,
-  the reason kept) — a discarded report is `Status` "discarded" in grey, not an error. The backend
-  holds the GitHub token (issues-write only, scoped to this repo); it never reaches the browser.
-  Open: does a report also let its author see where it ended up, or is it fire-and-forget.
-- [ ] **Forums** — doubts and answers, not just notes. Open: what gap it fills that notes and
-  the chat don't (students answering each other before something becomes a note, or something
-  more separate) — decide when it's picked up.
+  OpenAI SDK. Needs no room of its own: elastic-ui's `ChatMorph` is an orb mounted once in the
+  app shell (beside `AppSidebar`), floating over every screen, open on any page without leaving
+  it — `ChatThread` + `ChatComposer` + `ChatSources` for the citations, parts the library already
+  has.
+- [ ] **A content or course request, to the teacher** — not a bug in the app: a student wanting
+  something changed about the class itself. No screen of its own: the note editor with a second
+  kind ("note" / "request"), and the admin sees requests apart from notes, a filter or a tab
+  where notes already show.
+- [ ] **Report a bug in the app, watched by an agent** — for the app itself, to this repo's
+  maintainer, not the teacher: a quiet link in Settings (not the sidebar — this is rare and
+  technical), logged, judged by an agent before it becomes a real GitHub issue: genuine or a
+  troll, how serious (no duplicate check against open issues yet, that needs read access and more
+  context; skip it for a first cut). The same shape as the gatekeeper's pass (a row, an agent's
+  verdict, the reason kept) — a discarded report is `Status` "discarded" in grey, not an error.
+  Runs on the instance's own model key (the gatekeeper's), not the optional chat key, so it needs
+  the same kind of daily cap per student the chat does, to keep spam cheap to shrug off. The
+  backend holds the GitHub token (issues-write only, scoped to this repo); it never reaches the
+  browser. Open: does a report also let its author see where it ended up, or is it fire-and-forget.
+- [ ] **Forums** — doubts and answers, not just notes. Open, including where it would even live
+  (per page, so a question sits by what it's about; or a place of its own) and what gap it fills
+  that notes and the chat don't — undecided, picked up later.
 
 ## Later
 
