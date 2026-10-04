@@ -11,11 +11,12 @@ import {
   NavTree,
   NavTreeItem,
   PopoverMorph,
+  FolderIcon,
   StatusText,
   TextMorph,
   TruncatedText,
 } from 'elastic-ui'
-import { ArrowLeft, Folder, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import PlaceTree from '../components/PlaceTree.vue'
 import { api } from '../lib/api.js'
@@ -260,7 +261,7 @@ onMounted(() => loadNodes().catch(() => {}))
           :label="hintPath ? `${t('notes.write.hintLabel')} ${hintPath}` : t('notes.write.hintLabel')"
         >
           <template #trigger>
-            <Folder class="size-4 shrink-0" aria-hidden="true" />
+            <FolderIcon size="xs" />
             <TruncatedText class="min-w-0">{{ hintPath || t('notes.write.hintEmpty') }}</TruncatedText>
           </template>
           <template #default="{ close }">

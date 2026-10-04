@@ -153,6 +153,7 @@ watch(id, load)
               :title="child.title"
               :description="child.description"
               :icon="iconByName(child.icon)"
+              :kind="child.kind"
               :color="child.color || 'var(--color-fg)'"
               :to="`/node/${child.id}`"
               @pointerenter="prefetchNode(child.id)"

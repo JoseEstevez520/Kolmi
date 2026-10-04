@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, Status } from 'elastic-ui'
+import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, FileIcon, FolderIcon, Status } from 'elastic-ui'
 import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 
 // A card for one item (a node, a note): an optional icon, a title and its text,
@@ -17,6 +17,8 @@ const props = defineProps({
   title: { type: String, default: '' },
   icon: { type: [Object, Function], default: null },
   color: { type: String, default: 'var(--color-fg)' },
+  // With no icon, a node's card shows what it is: a folder (section) or a page.
+  kind: { type: String, default: '' },
   description: { type: String, default: '' },
   meta: { type: String, default: '' },
   status: { type: String, default: '' },
@@ -25,6 +27,9 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+
+// The neutral grey unless the node has a colour of its own.
+const markColor = computed(() => (props.color === 'var(--color-fg)' ? undefined : props.color))
 
 const linked = computed(() => Boolean(props.to || props.href))
 const external = computed(() => /^https?:/.test(props.href))
@@ -68,8 +73,10 @@ watch(expanded, (open) => {
       :class="linked && 'transition-colors duration-150 group-hover:border-border-strong'"
     >
       <CardHeader class="h-full gap-3">
-        <div v-if="icon" class="flex items-start justify-between">
-          <component :is="icon" class="size-5 shrink-0" :stroke-width="1.5" :style="{ color }" />
+        <div v-if="icon || kind" class="flex items-start justify-between" :class="!icon && 'h-10 items-center'">
+          <component :is="icon" v-if="icon" class="size-5 shrink-0" :stroke-width="1.5" :style="{ color }" />
+          <FolderIcon v-else-if="kind === 'section'" :color="markColor" />
+          <FileIcon v-else name="" :color="markColor" />
         </div>
         <div class="flex flex-1 flex-col gap-1">
           <CardTitle v-if="title" size="sm" class="flex items-center justify-between gap-2">
