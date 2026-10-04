@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import {
+  FileText,
+  Folder,
   Home,
   LogOut,
   NotebookPen,
@@ -14,7 +16,7 @@ import {
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
 import { libraryLabels } from '../lib/i18n.js'
-import { defaultMark, nodeIcon } from '../lib/icons.js'
+import { nodeIcon } from '../lib/icons.js'
 
 // The app's sidebar (elastic-ui "connected" variant): Home, Notes, the
 // top-level nodes with their icon and colour (never the whole tree; the pages
@@ -34,10 +36,10 @@ const active = computed(() => {
   return route.path
 })
 
-// A node without an icon of its own gets a folder (section) or a page, tinted in its colour,
-// so the rows keep their text aligned with Home and Notes.
+// A node without an icon of its own gets a folder (section) or a sheet (page), so
+// the rows keep their text aligned with Home and Notes.
 function iconFor(node) {
-  return nodeIcon(node) || defaultMark(node.kind, node.color)
+  return nodeIcon(node) || (node.kind === 'section' ? Folder : FileText)
 }
 
 onMounted(() => {

@@ -39,7 +39,6 @@ onMounted(() => {
           :title="node.title"
           :description="node.description"
           :icon="iconByName(node.icon)"
-          :kind="node.kind"
           :color="node.color || 'var(--color-fg)'"
           :to="`/node/${node.id}`"
           @pointerenter="prefetchNode(node.id)"
