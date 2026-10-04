@@ -69,8 +69,11 @@ export default {
 
   tour: {
     home: { title: 'This is your class', body: 'Every section the class shares is here.' },
+    notesTab: { title: 'Notes', body: 'This tab takes you there.' },
     notes: { title: 'Leave a note', body: 'Write whatever you want the hive to know; it saves itself as you go.' },
+    adminTab: { title: 'Admin', body: 'This tab takes you there.' },
     admin: { title: 'Admin', body: 'Only you see this: the whole tree, and the class settings.' },
+    settingsTab: { title: 'Settings', body: 'This tab takes you there.' },
     settings: { title: 'Settings', body: 'Your language and animations, kept in this browser.' },
   },
 

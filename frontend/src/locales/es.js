@@ -66,8 +66,11 @@ export default {
 
   tour: {
     home: { title: 'Esta es tu clase', body: 'Aquí está cada sección que comparte la clase.' },
+    notesTab: { title: 'Notas', body: 'Esta pestaña te lleva allí.' },
     notes: { title: 'Deja una nota', body: 'Escribe lo que quieras que sepa la colmena; se guarda sola mientras escribes.' },
+    adminTab: { title: 'Administración', body: 'Esta pestaña te lleva allí.' },
     admin: { title: 'Administración', body: 'Solo tú ves esto: todo el árbol, y los ajustes de la clase.' },
+    settingsTab: { title: 'Ajustes', body: 'Esta pestaña te lleva allí.' },
     settings: { title: 'Ajustes', body: 'Tu idioma y las animaciones, guardados en este navegador.' },
   },
 

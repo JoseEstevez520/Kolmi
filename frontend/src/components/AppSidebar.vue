@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import {
+  CalendarDays,
   FileText,
   Folder,
   Home,
@@ -13,6 +14,7 @@ import {
   Settings,
   SlidersHorizontal,
 } from '@lucide/vue'
+import { api } from '../lib/api.js'
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
 import { libraryLabels } from '../lib/i18n.js'
@@ -42,8 +44,16 @@ function iconFor(node) {
   return nodeIcon(node) || (node.kind === 'section' ? Folder : FileText)
 }
 
+// Shown only once an admin has turned the timetable on; off by default so a fresh
+// instance's sidebar stays as it was before this existed.
+const scheduleEnabled = ref(false)
+
 onMounted(() => {
   loadNodes().catch(() => {})
+  api
+    .settings()
+    .then((settings) => (scheduleEnabled.value = settings.schedule_enabled))
+    .catch(() => {})
 })
 
 async function handleSignOut() {
@@ -63,7 +73,10 @@ async function handleSignOut() {
 
     <NavTree :model-value="active">
       <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
-      <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen">{{ t('sidebar.notes') }}</NavTreeItem>
+      <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen" data-tour="nav-notes">{{ t('sidebar.notes') }}</NavTreeItem>
+      <NavTreeItem v-if="scheduleEnabled" value="/schedule" to="/schedule" :icon="CalendarDays">
+        {{ t('sidebar.schedule') }}
+      </NavTreeItem>
 
       <NavTreeItem
         v-for="node in nodes"
@@ -76,7 +89,7 @@ async function handleSignOut() {
         {{ node.title }}
       </NavTreeItem>
 
-      <NavTreeItem v-if="profile?.role === 'admin'" value="/admin" to="/admin" :icon="Settings">
+      <NavTreeItem v-if="profile?.role === 'admin'" value="/admin" to="/admin" :icon="Settings" data-tour="nav-admin">
         {{ t('sidebar.admin') }}
       </NavTreeItem>
 
@@ -92,7 +105,7 @@ async function handleSignOut() {
 
     <template #footer>
       <NavTree :model-value="active" :label="t('sidebar.account')">
-        <NavTreeItem value="/settings" to="/settings" :icon="SlidersHorizontal">
+        <NavTreeItem value="/settings" to="/settings" :icon="SlidersHorizontal" data-tour="nav-settings">
           {{ t('sidebar.settings') }}
         </NavTreeItem>
         <NavTreeItem value="/signout" :icon="LogOut" @click="handleSignOut">

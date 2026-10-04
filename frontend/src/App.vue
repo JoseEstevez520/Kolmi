@@ -71,13 +71,21 @@ const indicator = ref(null)
     </RouterView>
 
     <!-- Walks the real screens, not just their sidebar links: a new account sees it once
-         (HomeView's offerTour), kept in this browser as the other settings are. -->
+         (HomeView's offerTour), kept in this browser as the other settings are. Each page is
+         two steps, its tab then what's on it, so the jump reads as "follow this" rather than a
+         sudden change of screen. -->
     <Tour v-if="withSidebar" v-model:open="tourOpen" :before-step="goToStep" @finish="closeTour">
       <TourStep target="home" to="/" :title="t('tour.home.title')">{{ t('tour.home.body') }}</TourStep>
+
+      <TourStep target="nav-notes" :title="t('tour.notesTab.title')">{{ t('tour.notesTab.body') }}</TourStep>
       <TourStep target="new-note" to="/notes" :title="t('tour.notes.title')">{{ t('tour.notes.body') }}</TourStep>
-      <TourStep v-if="profile?.role === 'admin'" target="admin" to="/admin" :title="t('tour.admin.title')">
-        {{ t('tour.admin.body') }}
-      </TourStep>
+
+      <template v-if="profile?.role === 'admin'">
+        <TourStep target="nav-admin" :title="t('tour.adminTab.title')">{{ t('tour.adminTab.body') }}</TourStep>
+        <TourStep target="admin" to="/admin" :title="t('tour.admin.title')">{{ t('tour.admin.body') }}</TourStep>
+      </template>
+
+      <TourStep target="nav-settings" :title="t('tour.settingsTab.title')">{{ t('tour.settingsTab.body') }}</TourStep>
       <TourStep target="settings" to="/settings" :title="t('tour.settings.title')">{{ t('tour.settings.body') }}</TourStep>
     </Tour>
 
