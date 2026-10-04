@@ -20,3 +20,7 @@ dist/
 
 # Local, personal (never in git)
 LOCAL.md
+
+# Per-host deploy overrides (a port already taken, a bind address): docker-compose.yml
+# stays generic, a host's own docker-compose.override.yml picks up automatically.
+docker-compose.override.yml
