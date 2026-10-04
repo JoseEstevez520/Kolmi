@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, ConfirmButton, Input, TruncatedText } from 'elastic-ui'
-import { Check, FileText, Folder, FolderOpen, X } from '@lucide/vue'
-import { nodeIcon } from '../lib/icons.js'
+import { Check, X } from '@lucide/vue'
+import NodeMark from './NodeMark.vue'
 
 // One row of the admin tree, read like a file explorer: a section is a folder
 // (open or closed), a page is a file. It shows the node's own icon when it has
@@ -28,10 +28,6 @@ const { t } = useI18n()
 const reveal =
   'transition-opacity duration-150 opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100 [@media(pointer:coarse)]:opacity-100'
 
-const chosen = computed(() => nodeIcon(props.node))
-const fallback = computed(() =>
-  props.node.kind === 'section' ? (props.open ? FolderOpen : Folder) : FileText,
-)
 
 const editing = ref(false)
 const draft = ref('')
@@ -69,10 +65,10 @@ async function save() {
       :aria-expanded="open"
       @click="emit('toggle')"
     >
-      <component :is="chosen || fallback" class="size-4" :class="!chosen && 'text-fg-muted'" :stroke-width="1.5" />
+      <NodeMark :node="node" :open="open" />
     </Button>
     <span v-else class="grid size-6 shrink-0 place-items-center">
-      <component :is="chosen || fallback" class="size-4" :class="!chosen && 'text-fg-muted'" :stroke-width="1.5" />
+      <NodeMark :node="node" :open="open" />
     </span>
 
     <form v-if="editing" class="flex min-w-0 flex-1 items-center gap-1" @submit.prevent="save">

@@ -1,4 +1,5 @@
 import { defineComponent, h, markRaw } from 'vue'
+import { FileIcon, FolderIcon } from 'elastic-ui'
 import {
   Atom,
   Award,
@@ -220,4 +221,26 @@ export function nodeIcon(node) {
   const icon = iconByName(node?.icon)
   if (!icon) return null
   return coloredIcon(icon, node?.color || 'var(--color-fg)')
+}
+
+// A node with no icon of its own: a folder (section) or a page, tinted in its colour. As a
+// component to hand to `:icon`, cached by kind and colour so the same one is given every time.
+const defaults = {}
+export function defaultMark(kind, color) {
+  const key = `${kind}|${color || ''}`
+  if (!defaults[key]) {
+    defaults[key] = markRaw(
+      defineComponent({
+        name: 'DefaultMark',
+        inheritAttrs: false,
+        setup:
+          (_, { attrs }) =>
+          () =>
+            kind === 'section'
+              ? h(FolderIcon, { ...attrs, color: color || undefined, size: 'xs' })
+              : h(FileIcon, { ...attrs, name: '', color: color || undefined, size: 'xs' }),
+      }),
+    )
+  }
+  return defaults[key]
 }
