@@ -3,7 +3,10 @@
 # does), not as runtime env vars: a static build has no environment to read at runtime.
 FROM node:22-slim AS build
 WORKDIR /app
+# vendor/ comes along with package.json: elastic-ui is a local tarball dependency
+# (package.json's "elastic-ui": "file:vendor/..."), so npm ci needs it present already.
 COPY package.json package-lock.json ./
+COPY vendor/ ./vendor/
 RUN npm ci
 COPY . .
 ARG VITE_SUPABASE_URL
