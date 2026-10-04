@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Field, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StatusText } from 'elastic-ui'
 import AdminSetting from './AdminSetting.vue'
+import FlagIcon from './FlagIcon.vue'
 import { api } from '../lib/api.js'
 
 // The class language: the one the daily pass writes the shared notes and pages in, whatever
@@ -67,11 +68,17 @@ onMounted(load)
       <Field :error="saveError" class="w-full">
         <Select :model-value="language" @update:model-value="save">
           <SelectTrigger :aria-label="t('admin.classLanguage.label')">
-            <SelectValue />
+            <span class="flex items-center gap-2.5">
+              <FlagIcon :code="language" />
+              <SelectValue />
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="option in languages" :key="option.code" :value="option.code">
-              {{ languageName(option) }}
+              <span class="flex items-center gap-2.5">
+                <FlagIcon :code="option.code" />
+                {{ languageName(option) }}
+              </span>
             </SelectItem>
           </SelectContent>
         </Select>

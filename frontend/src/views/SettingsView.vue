@@ -9,6 +9,7 @@ import {
   Separator,
   Switch,
 } from 'elastic-ui'
+import FlagIcon from '../components/FlagIcon.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { LOCALES, setLocale } from '../lib/i18n.js'
 import { motionOn, setMotionOn } from '../lib/motion.js'
@@ -31,11 +32,17 @@ const { t, locale } = useI18n()
           <!-- A list, so more languages fit as they come. -->
           <Select :model-value="locale" class="w-44" @update:model-value="setLocale">
             <SelectTrigger :aria-label="t('settings.language')">
-              <SelectValue />
+              <span class="flex items-center gap-2.5">
+                <FlagIcon :code="locale" />
+                <SelectValue />
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="(name, code) in LOCALES" :key="code" :value="code">
-                <span :lang="code">{{ name }}</span>
+                <span class="flex items-center gap-2.5">
+                  <FlagIcon :code="code" />
+                  <span :lang="code">{{ name }}</span>
+                </span>
               </SelectItem>
             </SelectContent>
           </Select>
