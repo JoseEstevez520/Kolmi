@@ -7,16 +7,16 @@ import {
   DialogMorphClose,
   DialogMorphTitle,
   Field,
+  FileIcon,
+  FolderIcon,
+  IconPicker,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Switch,
+  ToggleGroup,
+  ToggleGroupItem,
 } from 'elastic-ui'
 import { Plus } from '@lucide/vue'
-import { ICONS, ICON_NAMES, NODE_COLORS } from '../lib/icons.js'
+import { ICONS, NODE_COLORS } from '../lib/icons.js'
 
 // Add a section or a page at any level: at the top level, or inside the node
 // whose row opened it. A section is a folder, so it can be given its icon, its
@@ -31,33 +31,29 @@ const props = defineProps({
 const admin = inject('adminTree')
 const { t } = useI18n()
 
-const NONE = '__none__'
-const GREY = '__grey__'
-
 const open = ref(false)
 // At the top level only a section makes sense (the sidebar lists them); inside one, a page.
 const defaultKind = () => (props.parentId == null ? 'section' : 'page')
 const kind = ref(defaultKind())
 const title = ref('')
-const icon = ref(NONE)
-const color = ref(GREY)
+const icon = ref(null)
+const color = ref(null)
 const onHome = ref(false)
 
 const heading = computed(() =>
   props.parentId == null ? t('admin.addTop') : t('admin.addInsideOf', { title: props.parentTitle }),
 )
 
-// The grey option carries no colour; a Select item needs a non-empty value, so
-// it travels under a sentinel and is turned back into null on save.
+// The colours on offer, named in the UI's language; grey is the neutral one (no colour).
 const colorOptions = computed(() =>
-  NODE_COLORS.map((option) => ({ ...option, value: option.value || GREY })),
+  NODE_COLORS.map((option) => ({ value: option.value || null, label: t(`colors.${option.key}`) })),
 )
 
 function reset() {
   kind.value = defaultKind()
   title.value = ''
-  icon.value = NONE
-  color.value = GREY
+  icon.value = null
+  color.value = null
   onHome.value = false
 }
 
@@ -70,8 +66,8 @@ async function create(close) {
   if (!name) return
   const payload = { kind: kind.value, title: name }
   if (kind.value === 'section') {
-    payload.icon = icon.value === NONE ? null : icon.value
-    payload.color = color.value === GREY ? null : color.value
+    payload.icon = icon.value
+    payload.color = color.value
     payload.onHome = onHome.value
   }
   await admin.create(props.parentId, payload)
@@ -94,16 +90,17 @@ async function create(close) {
       <DialogMorphTitle>{{ heading }}</DialogMorphTitle>
 
       <div class="flex flex-col gap-4">
-        <Field :label="t('admin.kind')" :description="t('admin.kindHint')">
-          <Select v-model="kind">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="section">{{ t('admin.section') }}</SelectItem>
-              <SelectItem value="page">{{ t('admin.page') }}</SelectItem>
-            </SelectContent>
-          </Select>
+        <Field :label="t('admin.kind')">
+          <ToggleGroup type="single" :model-value="kind" :aria-label="t('admin.kind')" @update:model-value="(v) => v && (kind = v)">
+            <ToggleGroupItem value="section">
+              <FolderIcon size="xs" :open="kind === 'section'" />
+              {{ t('admin.section') }}
+            </ToggleGroupItem>
+            <ToggleGroupItem value="page">
+              <FileIcon name="" size="xs" />
+              {{ t('admin.page') }}
+            </ToggleGroupItem>
+          </ToggleGroup>
         </Field>
 
         <Field :label="t('admin.fieldTitle')">
@@ -111,40 +108,15 @@ async function create(close) {
         </Field>
 
         <template v-if="kind === 'section'">
-          <Field :label="t('admin.icon')" :description="t('admin.iconHint')">
-            <Select v-model="icon">
-              <SelectTrigger>
-                <SelectValue :placeholder="t('admin.noIcon')" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem :value="NONE">{{ t('admin.noIcon') }}</SelectItem>
-                <SelectItem v-for="name in ICON_NAMES" :key="name" :value="name">
-                  <span class="flex items-center gap-2">
-                    <component :is="ICONS[name]" class="size-4" :stroke-width="1.5" />
-                    {{ name }}
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field :label="t('admin.color')" :description="t('admin.colorHint')">
-            <Select v-model="color">
-              <SelectTrigger>
-                <SelectValue :placeholder="t('colors.grey')" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="option in colorOptions" :key="option.key" :value="option.value">
-                  <span class="flex items-center gap-2">
-                    <span
-                      class="size-3 shrink-0 rounded-full"
-                      :style="{ background: option.value === GREY ? 'var(--color-fg)' : option.value }"
-                    />
-                    {{ t(`colors.${option.key}`) }}
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <Field :label="t('admin.iconAndColor')">
+            <IconPicker
+              v-model:icon="icon"
+              v-model:color="color"
+              :icons="ICONS"
+              :colors="colorOptions"
+              :label="t('admin.icon')"
+              :none-label="t('admin.noIcon')"
+            />
           </Field>
 
           <Switch v-model="onHome">{{ t('admin.onHome') }}</Switch>
