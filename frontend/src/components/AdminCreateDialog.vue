@@ -9,11 +9,14 @@ import {
   Field,
   IconPicker,
   Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Switch,
-  ToggleGroup,
-  ToggleGroupItem,
 } from 'elastic-ui'
-import { Plus } from '@lucide/vue'
+import { FileText, Folder, Plus } from '@lucide/vue'
 import { ICONS, NODE_COLORS } from '../lib/icons.js'
 
 // Add a section or a page at any level: at the top level, or inside the node
@@ -89,10 +92,25 @@ async function create(close) {
 
       <div class="flex flex-col gap-4">
         <Field :label="t('admin.kind')">
-          <ToggleGroup type="single" :model-value="kind" :aria-label="t('admin.kind')" @update:model-value="(v) => v && (kind = v)">
-            <ToggleGroupItem value="section">{{ t('admin.section') }}</ToggleGroupItem>
-            <ToggleGroupItem value="page">{{ t('admin.page') }}</ToggleGroupItem>
-          </ToggleGroup>
+          <Select v-model="kind">
+            <SelectTrigger :aria-label="t('admin.kind')">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="section">
+                <span class="flex items-center gap-2">
+                  <Folder class="size-4 text-fg-muted" :stroke-width="1.5" aria-hidden="true" />
+                  {{ t('admin.section') }}
+                </span>
+              </SelectItem>
+              <SelectItem value="page">
+                <span class="flex items-center gap-2">
+                  <FileText class="size-4 text-fg-muted" :stroke-width="1.5" aria-hidden="true" />
+                  {{ t('admin.page') }}
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
 
         <Field :label="t('admin.fieldTitle')">
