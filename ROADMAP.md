@@ -114,10 +114,6 @@ What we're building and what's next. Open to whatever the class needs.
   app shell (beside `AppSidebar`), floating over every screen, open on any page without leaving
   it — `ChatThread` + `ChatComposer` + `ChatSources` for the citations, parts the library already
   has.
-- [ ] **A content or course request, to the teacher** — not a bug in the app: a student wanting
-  something changed about the class itself. No screen of its own: the note editor with a second
-  kind ("note" / "request"), and the admin sees requests apart from notes, a filter or a tab
-  where notes already show.
 - [ ] **Report a bug in the app, watched by an agent** — for the app itself, to this repo's
   maintainer, not the teacher: a quiet link in Settings (not the sidebar — this is rare and
   technical), logged, judged by an agent before it becomes a real GitHub issue: genuine or a
@@ -128,9 +124,16 @@ What we're building and what's next. Open to whatever the class needs.
   the same kind of daily cap per student the chat does, to keep spam cheap to shrug off. The
   backend holds the GitHub token (issues-write only, scoped to this repo); it never reaches the
   browser. Open: does a report also let its author see where it ended up, or is it fire-and-forget.
-- [ ] **Forums** — doubts and answers, not just notes. Open, including where it would even live
-  (per page, so a question sits by what it's about; or a place of its own) and what gap it fills
-  that notes and the chat don't — undecided, picked up later.
+- [ ] **A forum** — one shared space for the class (not per page: a class is small, scattered
+  threads get no traffic), for doubts and requests alike, not just notes. Kolmi is a participant
+  in it, not a separate bolted-on checker: a role ("you are Kolmi, you help this class"), given
+  the thread to read, free to judge for itself whether to step in (on being asked, or if no one
+  human answers for a while) and, when it judges a thread genuinely reveals a content gap, free
+  to call the same page-creation flow the gatekeeper already uses — no category gate, no vote
+  count standing in front of its judgment (see the new rule in `AGENTS.md`). This is real
+  tool-calling with a judgment call of its own, not a plain request-response, so it's LangGraph
+  from the start (`AGENTS.md`), unlike the plain Q&A chat above. A thread it turns into a page
+  shows that in place with `Status`, so whoever asked sees it was worth something.
 
 ## Later
 

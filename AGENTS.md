@@ -21,6 +21,12 @@ in its own repo.
   packed version in `frontend/vendor/` is bumped. The same goes for a missing variant or a bug.
   See [frontend/design.md](frontend/design.md).
 - **Agents use the OpenAI SDK.** Move to LangGraph only when loops or approval are needed.
+- **Give an agent real context, and trust its judgment over a mechanical gate.** A tight rule
+  bolted on from outside (a category, a vote count, a keyword) is more likely to be wrong than a
+  well-informed model: hand the agent what it needs to read (the tree, the pages it touches,
+  related notes) and let it decide, the way the gatekeeper already reads a page before judging a
+  note. The cost is real (more context, less predictable) and worth watching per pass, but it's
+  not a reason to withhold the context or the judgment.
 - **Everything in this repo is in English** (code, comments, docs, commits).
 - **Personal setup is local.** This developer's own server, Supabase and deploy details live
   in `LOCAL.md` (gitignored). If it exists, read it for the instance-specific context.
