@@ -69,6 +69,11 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **Status part** — a small tinted icon in a ring, the label staying grey, for a note's, a
   pass's or an action's state, in place of the coloured badges; discarded is grey, not the danger
   colour. Built in elastic-ui (`Status`), used in Notes and the AI log.
+- [x] **The class timetable** — everyone sees the week's shape, colours and all; an admin edits it
+  right on the grid (elastic-ui's `Timetable`, made editable): drag an empty cell to lay a class
+  down, drag a block to move it or its edge to resize it, snapped to a whole session; click to set
+  its title, detail or linked page. Days are picked with `WeekPillbox`, the same part the daily
+  pass's own schedule uses.
 
 ## Now
 
@@ -99,24 +104,43 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Next
 
-- [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page, each page's
-  Markdown its source. Two ways in, and a student's own key always wins:
-  1. **The class's own key**, set by the admin in Settings (on/off, plus a daily message limit).
-     Held server-side, since a shared limit can only be enforced there: a row per student per
-     day, counted, blocked past the limit — the same shape as `ai_log`/`ai_passes`. No live cost
-     metering, just a message count.
-  2. **A student's own key**, kept only in their browser (as the language or animation setting
-     already are) and called straight from there to the provider: it never touches the backend,
-     so nothing to encrypt or hold. Any OpenAI-compatible endpoint, the same assumption the web
-     model already makes (`docs/page-format.md`).
-  A student's own key is used whenever they have one set, whatever the admin's key is doing
-  (off, or its limit spent) — otherwise the class's, if the admin turned it on; otherwise the
-  chat says it isn't available here. A plain request-response first; a loop or tool use (looking
-  things up, not just the page it's asked about) is a LangGraph job (`AGENTS.md`), not the plain
-  OpenAI SDK. Needs no room of its own: elastic-ui's `ChatMorph` is an orb mounted once in the
-  app shell (beside `AppSidebar`), floating over every screen, open on any page without leaving
-  it — `ChatThread` + `ChatComposer` + `ChatSources` for the citations, parts the library already
-  has.
+- [ ] **Chat with the notes (RAG), in two passes** — ask the hive; it answers citing the page,
+  each page's Markdown its source. Needs no room of its own: elastic-ui's `ChatMorph` is an orb
+  mounted once in the app shell (beside `AppSidebar`), floating over every screen, open on any
+  page without leaving it — `ChatThread` + `ChatComposer` + `ChatSources` for the citations,
+  parts the library already has.
+  1. **Plain text first.** A plain request-response (not a loop or tool use yet, so the plain
+     OpenAI SDK, not LangGraph — `AGENTS.md`). The chat's message shows through its own small
+     component from the start, not Markdown scattered inline, so swapping its insides for pass 2
+     later touches one place. Two ways in, and a student's own key always wins:
+     - **The class's own key**, set by the admin in Settings (on/off, plus a daily message
+       limit). Held server-side, since a shared limit can only be enforced there: a row per
+       student per day, counted, blocked past the limit — the same shape as
+       `ai_log`/`ai_passes`. No live cost metering, just a message count.
+     - **A student's own key**, kept only in their browser (as the language or animation setting
+       already are) and called straight from there to the provider: it never touches the
+       backend, so nothing to encrypt or hold. Any OpenAI-compatible endpoint, the same
+       assumption the web model already makes (`docs/page-format.md`).
+     A student's own key is used whenever they have one set, whatever the admin's key is doing
+     (off, or its limit spent) — otherwise the class's, if the admin turned it on; otherwise the
+     chat says it isn't available here.
+  2. **Interactive, once pass 1 is proven with real use.** Not a chat that only answers in text:
+     an answer can be the page catalogue's own parts (`frontend/src/lib/openui`,
+     `docs/page-format.md`), the same `Chart`/`Table`/`Cards`/`Steps`/`Callout` pages already
+     use, not a separate one invented for chat. `@openuidev/vue-lang`'s `<Renderer
+     :is-streaming>` already paints OpenUI Lang as it streams in, in place of streaming
+     Markdown. Two things it adds that the page pipeline never needed:
+     - A `toolProvider` of real Kolmi reads (a student's own pending notes, a search over the
+       content) that the model's answer calls as `Query()`s, so a table or a count in an answer
+       is a real read of the class's data, not the model's guess.
+     - `onAction`, so a button the model puts in its answer (make a note of this, open this
+       page) does something real in the app.
+     Leave `Diagram` and `Artifact` out at first: both need a second, slower model call to draw
+     (`draw_visuals`, `backend/app/agents/web.py`), fine once a night, too slow for an answer
+     someone is waiting on. Open, to settle with a small test before relying on it: whether
+     `Query()` is resolved client-side after the model has already written its answer (in which
+     case this still needs no LangGraph, OpenUI's own parser carries the round trip) or the
+     model has to see the result and reason on from there (in which case it does).
 - [ ] **Report a bug in the app, watched by an agent** — for the app itself, to this repo's
   maintainer, not the teacher: a quiet link in Settings (not the sidebar — this is rare and
   technical), logged, judged by an agent before it becomes a real GitHub issue: genuine or a
