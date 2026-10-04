@@ -44,9 +44,10 @@ function iconFor(node) {
   return nodeIcon(node) || (node.kind === 'section' ? Folder : FileText)
 }
 
-// Shown only once an admin has turned the timetable on; off by default so a fresh
-// instance's sidebar stays as it was before this existed.
+// Shown once an admin has turned the timetable on; an admin sees it regardless, since that
+// page is also where it gets turned on in the first place.
 const scheduleEnabled = ref(false)
+const showSchedule = computed(() => scheduleEnabled.value || profile.value?.role === 'admin')
 
 onMounted(() => {
   loadNodes().catch(() => {})
@@ -74,7 +75,7 @@ async function handleSignOut() {
     <NavTree :model-value="active">
       <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
       <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen" data-tour="nav-notes">{{ t('sidebar.notes') }}</NavTreeItem>
-      <NavTreeItem v-if="scheduleEnabled" value="/schedule" to="/schedule" :icon="CalendarDays">
+      <NavTreeItem v-if="showSchedule" value="/schedule" to="/schedule" :icon="CalendarDays">
         {{ t('sidebar.schedule') }}
       </NavTreeItem>
 

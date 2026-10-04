@@ -6,7 +6,6 @@ import { Layers, Plus } from '@lucide/vue'
 import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminPass from '../components/AdminPass.vue'
-import AdminSchedule from '../components/AdminSchedule.vue'
 import AdminNode from '../components/AdminNode.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
@@ -132,7 +131,6 @@ onMounted(loadTree)
             <div class="mt-2 flex flex-col divide-y divide-border border-y border-border">
               <AdminClassLanguage />
               <AdminPass />
-              <AdminSchedule />
             </div>
           </CollapsibleContent>
         </Collapsible>

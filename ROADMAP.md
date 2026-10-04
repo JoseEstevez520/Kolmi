@@ -93,6 +93,9 @@ What we're building and what's next. Open to whatever the class needs.
 - [ ] **Measure a pass** — time is known (about 1.5 to 5.5 minutes for 2 to 8 notes); the cost per
   night is not. Needed to set the schedule and the model.
 - [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
+- [ ] **Timetable: dragging onto an occupied slot** — today a dropped block just lands where it's
+  let go, even over another one. The usual calendar feel is for what's already there to shift
+  aside (or refuse the drop); decide which, and build it.
 
 ## Next
 
