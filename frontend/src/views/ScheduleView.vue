@@ -249,6 +249,7 @@ onMounted(load)
 
           <div v-if="isAdmin && selected" class="flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] bg-surface-sunk p-3">
             <NodePicker
+              class="max-w-56"
               :model-value="selected.node_id"
               :placeholder="t('admin.schedule.slotPagePlaceholder')"
               :none-label="t('admin.schedule.slotPageNone')"
