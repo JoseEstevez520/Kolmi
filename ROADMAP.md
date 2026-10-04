@@ -66,6 +66,9 @@ What we're building and what's next. Open to whatever the class needs.
   can leave them with a note too: the gatekeeper looks at each one and either attaches it to the
   page it belongs to or discards it, with its reason in the log. Up to 20 MB a file and 5 a
   note; no executables.
+- [x] **Status part** — a small tinted icon in a ring, the label staying grey, for a note's, a
+  pass's or an action's state, in place of the coloured badges; discarded is grey, not the danger
+  colour. Built in elastic-ui (`Status`), used in Notes and the AI log.
 
 ## Now
 
@@ -94,10 +97,21 @@ What we're building and what's next. Open to whatever the class needs.
 ## Next
 
 - [ ] **Chat with the notes (RAG)** — ask the hive; it answers citing the page. It runs on the
-  main model, and each page's Markdown is its source.
-- [ ] **Status part** — a quieter way to show a note's or a pass's state (built in elastic-ui;
-  see its roadmap), in place of the coloured badges.
-- [ ] **Forums** — doubts and answers, not just notes.
+  main model, and each page's Markdown is its source. One class, one key: José pays for his own
+  class's usage, so it needs a hard ceiling that doesn't need live cost metering — a daily
+  message count per student plus a global daily cap, on a cheap model, cut off with a clear
+  message rather than a silent error. A plain request-response first; a loop or tool use (looking
+  things up, not just the page it's asked about) is a LangGraph job (`AGENTS.md`), not the plain
+  OpenAI SDK.
+- [ ] **Report an issue, watched by an agent** — a "Report something" button anyone can use,
+  logged, that an agent judges before it becomes a real GitHub issue: genuine or a troll,
+  a duplicate, how serious. The same shape as the gatekeeper's pass (a row, an agent's verdict,
+  the reason kept) — a discarded report is `Status` "discarded" in grey, not an error. The backend
+  holds the GitHub token (issues-write only, scoped to this repo); it never reaches the browser.
+  Open: does a report also let its author see where it ended up, or is it fire-and-forget.
+- [ ] **Forums** — doubts and answers, not just notes. Open: what gap it fills that notes and
+  the chat don't (students answering each other before something becomes a note, or something
+  more separate) — decide when it's picked up.
 
 ## Later
 
