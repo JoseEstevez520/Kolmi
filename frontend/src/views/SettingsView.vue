@@ -32,16 +32,13 @@ const { t, locale } = useI18n()
           <!-- A list, so more languages fit as they come. -->
           <Select :model-value="locale" class="w-44" @update:model-value="setLocale">
             <SelectTrigger :aria-label="t('settings.language')">
-              <span class="flex items-center gap-2.5">
-                <FlagIcon :code="locale" />
-                <SelectValue />
-              </span>
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="(name, code) in LOCALES" :key="code" :value="code">
-                <span class="flex items-center gap-2.5">
+                <span :lang="code" class="flex items-center gap-2.5">
                   <FlagIcon :code="code" />
-                  <span :lang="code">{{ name }}</span>
+                  {{ name }}
                 </span>
               </SelectItem>
             </SelectContent>

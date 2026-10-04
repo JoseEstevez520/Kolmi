@@ -68,10 +68,7 @@ onMounted(load)
       <Field :error="saveError" class="w-full">
         <Select :model-value="language" @update:model-value="save">
           <SelectTrigger :aria-label="t('admin.classLanguage.label')">
-            <span class="flex items-center gap-2.5">
-              <FlagIcon :code="language" />
-              <SelectValue />
-            </span>
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="option in languages" :key="option.code" :value="option.code">
