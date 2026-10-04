@@ -7,19 +7,15 @@ import {
   DialogMorphClose,
   DialogMorphTitle,
   Field,
+  IconPicker,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Switch,
   Textarea,
 } from 'elastic-ui'
 import { Settings2 } from '@lucide/vue'
 import FilePicker from './FilePicker.vue'
 import { forgetNode } from '../lib/content.js'
-import { ICONS, ICON_NAMES, NODE_COLORS } from '../lib/icons.js'
+import { ICONS, NODE_COLORS } from '../lib/icons.js'
 
 // Edit one node: its title, description, icon, colour and whether it is on the
 // home. Where it sits is changed by dragging its row. Opened from the row's button.
@@ -30,31 +26,24 @@ const props = defineProps({
 const admin = inject('adminTree')
 const { t } = useI18n()
 
-const NONE = '__none__'
-const GREY = '__grey__'
 
 const title = ref(props.node.title)
 const description = ref(props.node.description ?? '')
-const icon = ref(props.node.icon || NONE)
-const color = ref(props.node.color || GREY)
+const icon = ref(props.node.icon || null)
+const color = ref(props.node.color || null)
 const onHome = ref(Boolean(props.node.on_home))
 
-const iconOptions = computed(() =>
-  props.node.icon && !ICONS[props.node.icon] ? [props.node.icon, ...ICON_NAMES] : ICON_NAMES,
-)
-
-// The grey option carries no colour; a Select item needs a non-empty value, so
-// it travels under a sentinel and is turned back into null on save.
+// The colours on offer, named in the UI's language; grey is the neutral one (no colour).
 const colorOptions = computed(() =>
-  NODE_COLORS.map((option) => ({ ...option, value: option.value || GREY })),
+  NODE_COLORS.map((option) => ({ value: option.value || null, label: t(`colors.${option.key}`) })),
 )
 
 async function save(close) {
   await admin.update(props.node.id, {
     title: title.value.trim() || props.node.title,
     description: description.value.trim(),
-    icon: icon.value === NONE ? null : icon.value,
-    color: color.value === GREY ? null : color.value,
+    icon: icon.value,
+    color: color.value,
     on_home: onHome.value,
   })
   close()
@@ -80,45 +69,15 @@ async function save(close) {
           <Textarea v-model="description" rows="2" />
         </Field>
 
-        <Field :label="t('admin.icon')">
-          <Select v-model="icon">
-            <SelectTrigger>
-              <SelectValue :placeholder="t('admin.noIcon')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem :value="NONE">{{ t('admin.noIcon') }}</SelectItem>
-              <SelectItem v-for="name in iconOptions" :key="name" :value="name">
-                <span class="flex items-center gap-2">
-                  <component
-                    :is="ICONS[name]"
-                    v-if="ICONS[name]"
-                    class="size-4"
-                    :stroke-width="1.5"
-                  />
-                  {{ name }}
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field :label="t('admin.color')" :description="t('admin.colorHint')">
-          <Select v-model="color">
-            <SelectTrigger>
-              <SelectValue :placeholder="t('colors.grey')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="option in colorOptions" :key="option.key" :value="option.value">
-                <span class="flex items-center gap-2">
-                  <span
-                    class="size-3 shrink-0 rounded-full"
-                    :style="{ background: option.value === GREY ? 'var(--color-fg)' : option.value }"
-                  />
-                  {{ t(`colors.${option.key}`) }}
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+        <Field :label="t('admin.iconAndColor')">
+          <IconPicker
+            v-model:icon="icon"
+            v-model:color="color"
+            :icons="ICONS"
+            :colors="colorOptions"
+            :label="t('admin.icon')"
+            :none-label="t('admin.noIcon')"
+          />
         </Field>
 
         <Switch v-model="onHome">{{ t('admin.onHome') }}</Switch>
