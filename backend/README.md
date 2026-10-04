@@ -159,15 +159,18 @@ Every route takes `Authorization: Bearer <Supabase access token>`.
 
 ## Deploy (Docker)
 
-The image is built from this folder. The compose file lives at the repo root and
-reads secrets from `backend/.env`, so keep that file on the server.
+The images are built from `backend/` (the API and the pass) and `frontend/` (the static
+site, served by nginx, which also reverse-proxies `/api/` to the API — see
+`frontend/nginx.conf`). The compose file lives at the repo root. `backend/.env` holds the
+API's secrets; the repo root's own `.env` holds the frontend's build-time `VITE_*` vars
+(public ones: Supabase's URL and anon key). Keep both out of git.
 
 ```bash
-# Build the image
+# Build the images
 docker compose build
 
-# Start the API (restarts on crash)
-docker compose up -d api
+# Start the API and the frontend (each restarts on crash)
+docker compose up -d api web
 
 # Run the daily pass by hand
 docker compose run --rm pass
@@ -182,3 +185,27 @@ cron wakes it every hour, and `--if-due` decides whether the admin's schedule as
 ```
 
 The API healthcheck hits `GET /health` every 30s.
+
+### Going public
+
+`web` is the only container with a published port, bound to `127.0.0.1` by default (see
+`docker-compose.yml`): safe with no setup, reachable only from the host itself. `api` has
+no host port at all; `web`'s nginx reaches it on the compose network (`http://api:8000`) and
+proxies `/api/` to it, so the browser only ever talks to one origin — no CORS, no second
+port to open, whatever fronts that one port. Pick whichever of these fits your server:
+
+- **A domain and a reverse proxy** (Traefik, Dokploy, nginx, Caddy…) in front of `web`'s
+  port, with its own TLS certificate (Let's Encrypt or similar). The usual way when the
+  server already has a public IP and you're fine giving it a subdomain.
+- **A tunnel**, when the server has no public IP or you'd rather not open a port: a
+  Cloudflare Tunnel (needs a domain added to Cloudflare) or
+  [Tailscale Funnel](https://tailscale.com/kb/1223/funnel) (no domain at all, a
+  `https://<machine>.<tailnet>.ts.net` address; only serves ports 443, 8443 or 10000, so
+  pick a free one and change `web`'s published port in `docker-compose.yml` to match).
+- **Nothing**, for a class on one LAN or reached only over Tailscale/a VPN: `web`'s default
+  `127.0.0.1` binding already covers that once you bind it to the right address instead
+  (`0.0.0.0` for the LAN, or leave it as is behind Tailscale with `tailscale serve`).
+
+Whichever you pick, set `CORS_ORIGINS` in `backend/.env` only if something ever calls the
+API directly from a different origin than `web`'s; the app itself never needs it, since
+`/api/` is same-origin.

@@ -1,18 +1,27 @@
 name: kolmi
 
+# Low limits on purpose: this runs on a small host shared with other services. The API is
+# a plain FastAPI process (no worker pool) and the pass is a short-lived batch job.
 x-backend: &backend
   build:
     context: ./backend
   image: kolmi-backend:latest
   env_file:
     - ./backend/.env
+  deploy:
+    resources:
+      limits:
+        memory: 384M
+        cpus: "0.5"
 
 services:
   api:
     <<: *backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    # No host port: web (nginx) reaches it on the compose network as http://api:8000,
+    # under /api/. The host and the internet never see it directly.
+    expose:
+      - "8000"
     healthcheck:
       test:
         - CMD
@@ -35,3 +44,30 @@ services:
     restart: "no"
     profiles:
       - pass
+
+  # The built static site behind nginx, reverse-proxying /api/ to the api container
+  # (frontend/nginx.conf): one origin, no CORS, one port for the whole app, whatever
+  # fronts it (a domain and a reverse proxy, a tunnel, or nothing for local use).
+  # VITE_* vars are build args (frontend/Dockerfile), not env vars here: a static build
+  # has no runtime environment to read them from.
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        # A relative path: same origin as the page, so no domain is baked into the build.
+        VITE_API_URL: /api
+    image: kolmi-web:latest
+    restart: unless-stopped
+    depends_on:
+      - api
+    # Bound to localhost by default: safe with no setup. Change the published port or
+    # bind address for your own deploy (see "Going public" in backend/README.md).
+    ports:
+      - "127.0.0.1:8080:80"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: "0.2"
