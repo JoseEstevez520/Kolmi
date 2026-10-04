@@ -253,25 +253,11 @@ export default {
     passes: 'Últimos repasos',
     passesEmptyTitle: 'Aún no hay repasos',
     passesEmpty: 'El primer repaso nocturno aparecerá aquí.',
-    passesCaption: 'Los últimos repasos de la IA, del más reciente al más antiguo.',
-    pass: 'Repaso',
-    when: 'Cuándo',
-    result: 'Resultado',
+    failedPasses: '1 repaso fallido | {n} repasos fallidos',
+    quiet: 'Este repaso no ha tocado nada.',
     running: 'en curso',
 
-    activity: 'Actividad de la IA',
-    activityEmptyTitle: 'Aún no hay nada registrado',
-    activityEmpty: 'Aquí saldrá cada nota y página que toque el repaso.',
-    activityCaption: 'Cada nota y página que ha tocado el repaso, de la más reciente a la más antigua.',
-    action: 'Acción',
-    target: 'Página o nota',
 
-    notes: 'Notas recibidas',
-    notesEmptyTitle: 'Aún no hay notas',
-    notesEmpty: 'Las notas que deje el alumnado saldrán aquí con su estado.',
-    notesCaption: 'Las notas del alumnado, de la más reciente a la más antigua.',
-    noteColumn: 'Nota',
-    status: 'Estado',
 
     passStatus: {
       running: 'En curso',

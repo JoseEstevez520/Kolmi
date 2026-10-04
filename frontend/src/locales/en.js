@@ -256,25 +256,11 @@ export default {
     passes: 'Recent passes',
     passesEmptyTitle: 'No passes yet',
     passesEmpty: 'The first nightly pass will show up here.',
-    passesCaption: 'Recent AI passes, newest first.',
-    pass: 'Pass',
-    when: 'When',
-    result: 'Result',
+    failedPasses: '1 failed pass | {n} failed passes',
+    quiet: 'This pass touched nothing.',
     running: 'running',
 
-    activity: 'AI activity',
-    activityEmptyTitle: 'Nothing logged yet',
-    activityEmpty: 'Every note and page the pass touches will be listed here.',
-    activityCaption: 'Every note and page the pass touched, newest first.',
-    action: 'Action',
-    target: 'Page or note',
 
-    notes: 'Received notes',
-    notesEmptyTitle: 'No notes yet',
-    notesEmpty: 'Notes students leave will appear here with their status.',
-    notesCaption: 'The notes students left, newest first.',
-    noteColumn: 'Note',
-    status: 'Status',
 
     passStatus: {
       running: 'Running',

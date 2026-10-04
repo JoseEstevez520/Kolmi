@@ -1,33 +1,19 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  Callout,
-  Empty,
-  Status,
-  StatusText,
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TruncatedText,
-} from 'elastic-ui'
-import { Bot, History, NotebookPen } from '@lucide/vue'
+import { Button, Callout, Empty, Status, StatusText, TruncatedText } from 'elastic-ui'
+import { History } from '@lucide/vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { flatten, loadNodes } from '../lib/content.js'
-import { formatDuration, formatShortDate, noteStatusLabel } from '../lib/format.js'
+import { formatDuration, formatShortDate } from '../lib/format.js'
 
-// The AI log, for admins: the recent passes, what the pass did with each note
-// or page, and the notes it worked from. Read like a record: quiet tables, and
-// colour only where it says an outcome (elastic-ui USAGE 8).
+// The AI log, for admins: the recent passes down the left, and what the chosen one did down the
+// right. Read-only: it only shows what the backend already keeps. What needs a look (a pass that
+// failed, a note the pass flagged) sits on top and narrows the list when pressed.
 const { t, te } = useI18n()
 
 const passes = ref([])
-const entries = ref([])
 const notes = ref([])
 const tree = ref([])
 const loading = ref(true)
@@ -35,24 +21,8 @@ const error = ref('')
 
 // Each value the backend sends, as the library's Status state. Discarded is a normal
 // decision, so it is grey and not the danger colour; only a failure is red.
-const PASS_STATES = {
-  running: 'working',
-  done: 'done',
-  failed: 'error',
-}
-
-const ACTION_STATES = {
-  created: 'done',
-  updated: 'done',
-  discarded: 'discarded',
-  flagged: 'flagged',
-}
-
-const NOTE_STATES = {
-  pending: 'idle',
-  processed: 'done',
-  discarded: 'discarded',
-}
+const PASS_STATES = { running: 'working', done: 'done', failed: 'error' }
+const ACTION_STATES = { created: 'done', updated: 'done', discarded: 'discarded', flagged: 'flagged' }
 
 // A label looked up by a value from the backend; an unknown value shows as it came.
 function label(group, value) {
@@ -60,42 +30,66 @@ function label(group, value) {
   return value && te(key) ? t(key) : value
 }
 
-const nodeTitles = computed(() => {
-  const titles = new Map()
-  for (const node of flatten(tree.value)) titles.set(node.id, node.title)
-  return titles
+const nodeTitles = computed(() => new Map(flatten(tree.value).map((node) => [node.id, node.title])))
+const noteById = computed(() => new Map(notes.value.map((note) => [note.id, note])))
+
+// A stat is a count, or a list of what was counted (flagged notes, say).
+const count = (value) => (Array.isArray(value) ? value.length : (value ?? 0))
+const flaggedIn = (pass) => count(pass.stats?.flagged)
+
+const failedCount = computed(() => passes.value.filter((pass) => pass.status === 'failed').length)
+const flaggedCount = computed(() => passes.value.reduce((sum, pass) => sum + flaggedIn(pass), 0))
+
+// What the list is narrowed to: nothing, the passes that failed, or those that flagged a note.
+const focus = ref(null)
+const toggle = (what) => (focus.value = focus.value === what ? null : what)
+const shown = computed(() => {
+  if (focus.value === 'failed') return passes.value.filter((pass) => pass.status === 'failed')
+  if (focus.value === 'flagged') return passes.value.filter((pass) => flaggedIn(pass) > 0)
+  return passes.value
 })
 
-function nodeTitle(id) {
-  if (id == null) return ''
-  return nodeTitles.value.get(id) || t('aiLog.node', { id })
-}
+const selectedId = ref(null)
+const selected = computed(() => passes.value.find((pass) => pass.id === selectedId.value) ?? null)
+// The chosen pass is the newest in view until one is picked, and follows the list as it narrows.
+watch(shown, (list) => {
+  if (!list.some((pass) => pass.id === selectedId.value)) selectedId.value = list[0]?.id ?? null
+})
 
-function entryTarget(entry) {
-  if (entry.node_id != null) return nodeTitle(entry.node_id)
-  if (entry.note_id != null) return t('aiLog.note', { id: entry.note_id })
-  return '—'
-}
+// What each pass did, asked for when it is chosen and kept.
+const entries = ref({})
+const entriesLoading = ref(false)
+const entriesError = ref('')
+watch(selectedId, async (id) => {
+  entriesError.value = ''
+  if (id == null || entries.value[id]) return
+  entriesLoading.value = true
+  try {
+    const log = await api.adminAiLog({ passId: id })
+    entries.value = { ...entries.value, [id]: Array.isArray(log) ? log : [] }
+  } catch (e) {
+    entriesError.value = e.message || t('aiLog.errorLong')
+  } finally {
+    entriesLoading.value = false
+  }
+})
+const chosenEntries = computed(() => entries.value[selectedId.value] ?? [])
+const visibleEntries = computed(() =>
+  focus.value === 'flagged' ? chosenEntries.value.filter((entry) => entry.action === 'flagged') : chosenEntries.value,
+)
 
-function authorOf(note) {
-  const profile = Array.isArray(note.profiles) ? note.profiles[0] : note.profiles
-  return profile?.name || '—'
-}
-
-// A pass's stats as one short line: the counts that say what it did.
+// A pass's counts as one short line: "4 notes · 2 created · 1 updated".
 function passResult(pass) {
-  if (pass.error) return pass.error
   const stats = pass.stats ?? {}
   const parts = []
   for (const key of ['notes', 'created', 'updated', 'discarded', 'flagged']) {
-    // Some stats are counts and some are lists of what was counted (flagged notes, say).
-    const n = Array.isArray(stats[key]) ? stats[key].length : stats[key]
-    if (n != null) parts.push(t(`aiLog.stats.${key}`, { n }, n))
+    const n = count(stats[key])
+    if (stats[key] != null) parts.push(t(`aiLog.stats.${key}`, { n }, n))
   }
   return parts.join(' · ')
 }
 
-// When a pass ran, in one cell: its start and how long it took, or that it is still going.
+// When a pass ran, in one line: its start and how long it took, or that it is still going.
 function passWhen(pass) {
   const start = formatShortDate(pass.started_at)
   if (!start) return '—'
@@ -103,20 +97,30 @@ function passWhen(pass) {
   return length ? `${start} · ${length}` : start
 }
 
+function targetOf(entry) {
+  if (entry.node_id != null) return { title: nodeTitles.value.get(entry.node_id) || t('aiLog.node', { id: entry.node_id }), to: nodeTitles.value.has(entry.node_id) ? `/node/${entry.node_id}` : '' }
+  if (entry.note_id != null) return { title: t('aiLog.note', { id: entry.note_id }), to: '' }
+  return { title: '—', to: '' }
+}
+
+// The note an entry came from, in a few words, with who left it.
+function noteOf(entry) {
+  const note = noteById.value.get(entry.note_id)
+  if (!note) return ''
+  const profile = Array.isArray(note.profiles) ? note.profiles[0] : note.profiles
+  const who = profile?.name ? `${profile.name} · ` : ''
+  return `${who}${(note.content || '').replace(/\s+/g, ' ').trim()}`
+}
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [passList, log, noteList, content] = await Promise.all([
-      api.adminPasses(),
-      api.adminAiLog(),
-      api.adminNotes(),
-      loadNodes(),
-    ])
+    const [passList, noteList, content] = await Promise.all([api.adminPasses(), api.adminNotes(), loadNodes()])
     passes.value = Array.isArray(passList) ? passList : []
-    entries.value = Array.isArray(log) ? log : []
     notes.value = Array.isArray(noteList) ? noteList : []
     tree.value = Array.isArray(content) ? content : []
+    selectedId.value = passes.value[0]?.id ?? null
   } catch (e) {
     error.value = e.message || t('aiLog.errorLong')
   } finally {
@@ -136,113 +140,94 @@ onMounted(load)
         {{ error }}
       </Callout>
 
-      <template v-else>
-        <h2 id="passes">{{ t('aiLog.passes') }}</h2>
-        <Empty
-          v-if="passes.length === 0"
-          :title="t('aiLog.passesEmptyTitle')"
-          :description="t('aiLog.passesEmpty')"
-          :icon="History"
-        />
-        <div v-else class="not-prose">
-          <Table>
-            <TableCaption>{{ t('aiLog.passesCaption') }}</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{{ t('aiLog.pass') }}</TableHead>
-                <TableHead>{{ t('aiLog.status') }}</TableHead>
-                <TableHead>{{ t('aiLog.when') }}</TableHead>
-                <TableHead class="w-1/3">{{ t('aiLog.result') }}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="pass in passes" :key="pass.id">
-                <TableCell>
-                  <span class="block tabular-nums text-fg">#{{ pass.id }}</span>
-                  <span v-if="pass.model" class="block text-xs text-fg-muted">{{ pass.model }}</span>
-                </TableCell>
-                <TableCell>
+      <Empty
+        v-else-if="passes.length === 0"
+        :title="t('aiLog.passesEmptyTitle')"
+        :description="t('aiLog.passesEmpty')"
+        :icon="History"
+      />
+
+      <div v-else class="not-prose flex flex-col gap-6">
+        <!-- What needs a look. Nothing here when nothing does. -->
+        <div v-if="failedCount || flaggedCount" class="flex flex-wrap items-center gap-2">
+          <Button
+            v-if="failedCount"
+            variant="ghost"
+            size="sm"
+            :aria-pressed="focus === 'failed'"
+            :class="focus === 'failed' && 'bg-bg-muted text-fg'"
+            @click="toggle('failed')"
+          >
+            <Status state="error" :label="t('aiLog.failedPasses', { n: failedCount }, failedCount)" />
+          </Button>
+          <Button
+            v-if="flaggedCount"
+            variant="ghost"
+            size="sm"
+            :aria-pressed="focus === 'flagged'"
+            :class="focus === 'flagged' && 'bg-bg-muted text-fg'"
+            @click="toggle('flagged')"
+          >
+            <Status state="flagged" :label="t('aiLog.stats.flagged', { n: flaggedCount }, flaggedCount)" />
+          </Button>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
+          <ul class="flex flex-col gap-0.5" :aria-label="t('aiLog.passes')">
+            <li v-for="pass in shown" :key="pass.id">
+              <Button
+                variant="ghost"
+                :aria-current="pass.id === selectedId || undefined"
+                :class="[
+                  'h-auto w-full flex-col items-start gap-1 px-3 py-2 text-left font-normal',
+                  pass.id === selectedId && 'bg-bg-muted text-fg',
+                ]"
+                @click="selectedId = pass.id"
+              >
+                <span class="flex w-full items-center justify-between gap-2">
+                  <span class="text-label tabular-nums text-fg">#{{ pass.id }}</span>
                   <Status :state="PASS_STATES[pass.status] ?? 'idle'" :label="label('passStatus', pass.status)" />
-                </TableCell>
-                <TableCell class="whitespace-nowrap text-fg-muted">{{ passWhen(pass) }}</TableCell>
-                <TableCell :class="pass.error ? 'text-danger' : 'text-fg-secondary'">
-                  <TruncatedText as="div" class="max-w-xs">{{ passResult(pass) || '—' }}</TruncatedText>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+                </span>
+                <span class="text-meta text-fg-muted">{{ passWhen(pass) }}</span>
+              </Button>
+            </li>
+          </ul>
 
-        <h2 id="activity" class="mt-10">{{ t('aiLog.activity') }}</h2>
-        <Empty
-          v-if="entries.length === 0"
-          :title="t('aiLog.activityEmptyTitle')"
-          :description="t('aiLog.activityEmpty')"
-          :icon="Bot"
-        />
-        <div v-else class="not-prose">
-          <Table>
-            <TableCaption>{{ t('aiLog.activityCaption') }}</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{{ t('aiLog.action') }}</TableHead>
-                <TableHead>{{ t('aiLog.target') }}</TableHead>
-                <TableHead>{{ t('aiLog.when') }}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="entry in entries" :key="entry.id">
-                <TableCell>
-                  <Status :state="ACTION_STATES[entry.action] ?? 'idle'" :label="label('actions', entry.action)" />
-                </TableCell>
-                <TableCell>
-                  <span class="block text-fg">{{ entryTarget(entry) }}</span>
-                  <TruncatedText v-if="entry.reason" class="max-w-md text-xs text-fg-muted">{{ entry.reason }}</TruncatedText>
-                </TableCell>
-                <TableCell class="whitespace-nowrap text-fg-muted">
-                  {{ formatShortDate(entry.created_at) || '—' }}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+          <section v-if="selected" class="flex min-w-0 flex-col gap-5" :aria-label="`#${selected.id}`">
+            <header class="flex flex-col gap-1">
+              <h2 class="m-0 text-title text-fg">#{{ selected.id }}</h2>
+              <p v-if="passResult(selected)" class="m-0 text-label text-fg-secondary">{{ passResult(selected) }}</p>
+              <p v-if="selected.model" class="m-0 text-meta text-fg-muted">{{ selected.model }}</p>
+            </header>
 
-        <h2 id="notes" class="mt-10">{{ t('aiLog.notes') }}</h2>
-        <Empty
-          v-if="notes.length === 0"
-          :title="t('aiLog.notesEmptyTitle')"
-          :description="t('aiLog.notesEmpty')"
-          :icon="NotebookPen"
-        />
-        <div v-else class="not-prose">
-          <Table>
-            <TableCaption>{{ t('aiLog.notesCaption') }}</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{{ t('aiLog.noteColumn') }}</TableHead>
-                <TableHead>{{ t('aiLog.status') }}</TableHead>
-                <TableHead>{{ t('aiLog.when') }}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="note in notes" :key="note.id">
-                <TableCell>
-                  <TruncatedText class="max-w-md text-fg-secondary">{{ note.content || '—' }}</TruncatedText>
-                  <span class="block text-xs text-fg-muted">
-                    {{ authorOf(note) }}<template v-if="note.node_id != null"> · {{ nodeTitle(note.node_id) }}</template>
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Status :state="NOTE_STATES[note.status] ?? 'idle'" :label="noteStatusLabel(note.status)" />
-                </TableCell>
-                <TableCell class="whitespace-nowrap text-fg-muted">
-                  {{ formatShortDate(note.created_at) || '—' }}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+            <Callout v-if="selected.error" type="caution" :title="label('passStatus', 'failed')">
+              {{ selected.error }}
+            </Callout>
+
+            <StatusText v-if="entriesLoading" :delay="300" :text="t('aiLog.loading')" working />
+            <StatusText v-else-if="entriesError" :text="entriesError" error />
+            <p v-else-if="visibleEntries.length === 0 && !selected.error" class="m-0 text-label text-fg-muted">{{ t('aiLog.quiet') }}</p>
+
+            <ul v-else class="flex flex-col divide-y divide-border">
+              <li v-for="entry in visibleEntries" :key="entry.id" class="flex items-start gap-4 py-3">
+                <Status
+                  class="w-32 shrink-0 pt-px"
+                  :state="ACTION_STATES[entry.action] ?? 'idle'"
+                  :label="label('actions', entry.action)"
+                />
+                <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <RouterLink v-if="targetOf(entry).to" :to="targetOf(entry).to" class="text-label text-fg hover:underline">
+                    {{ targetOf(entry).title }}
+                  </RouterLink>
+                  <span v-else class="text-label text-fg">{{ targetOf(entry).title }}</span>
+                  <TruncatedText v-if="entry.reason" class="text-meta text-fg-muted">{{ entry.reason }}</TruncatedText>
+                  <TruncatedText v-if="noteOf(entry)" class="text-meta text-fg-faint">{{ noteOf(entry) }}</TruncatedText>
+                </div>
+              </li>
+            </ul>
+          </section>
         </div>
-      </template>
+      </div>
     </PageLayout>
   </main>
 </template>
