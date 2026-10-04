@@ -7,6 +7,7 @@ import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { homeNodes, loadNodes, nodesError, nodesLoading, prefetchNode } from '../lib/content.js'
+import { offerTour } from '../lib/tour.js'
 import { iconByName } from '../lib/icons.js'
 
 const { t } = useI18n()
@@ -16,12 +17,13 @@ const waiting = computed(() => nodesLoading.value && homeNodes.value.length === 
 
 onMounted(() => {
   loadNodes().catch(() => {})
+  offerTour()
 })
 </script>
 
 <template>
   <main class="py-16">
-    <PageLayout title="Kolmi" :lead="t('home.lead')">
+    <PageLayout data-tour="home" title="Kolmi" :lead="t('home.lead')">
       <StatusText v-if="waiting" :delay="300" :text="t('common.loadingContent')" working />
       <Callout v-else-if="nodesError" type="caution" :title="t('common.contentError')">
         {{ nodesError }}

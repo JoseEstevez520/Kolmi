@@ -59,7 +59,16 @@ export default {
     language: 'Idioma',
     languageHint: 'Los menús, botones y avisos. Los apuntes se escriben en el idioma de la clase.',
     motion: 'Animaciones',
+    tour: 'Visita guiada',
+    replayTour: 'Volver a verla',
     savedHere: 'Se guarda solo en este navegador.',
+  },
+
+  tour: {
+    home: { title: 'Esta es tu clase', body: 'Aquí está cada sección que comparte la clase.' },
+    notes: { title: 'Deja una nota', body: 'Escribe lo que quieras que sepa la colmena; se guarda sola mientras escribes.' },
+    admin: { title: 'Administración', body: 'Solo tú ves esto: todo el árbol, y los ajustes de la clase.' },
+    settings: { title: 'Ajustes', body: 'Tu idioma y las animaciones, guardados en este navegador.' },
   },
 
   login: {

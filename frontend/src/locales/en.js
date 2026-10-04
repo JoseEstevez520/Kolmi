@@ -62,7 +62,16 @@ export default {
     language: 'Language',
     languageHint: "Menus, buttons and messages. Notes are written in the class's language.",
     motion: 'Animations',
+    tour: 'Guided tour',
+    replayTour: 'Show it again',
     savedHere: 'Saved in this browser only.',
+  },
+
+  tour: {
+    home: { title: 'This is your class', body: 'Every section the class shares is here.' },
+    notes: { title: 'Leave a note', body: 'Write whatever you want the hive to know; it saves itself as you go.' },
+    admin: { title: 'Admin', body: 'Only you see this: the whole tree, and the class settings.' },
+    settings: { title: 'Settings', body: 'Your language and animations, kept in this browser.' },
   },
 
   login: {

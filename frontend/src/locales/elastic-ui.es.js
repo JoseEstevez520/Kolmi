@@ -21,6 +21,8 @@ export default {
   stop: 'Parar',
   somethingWentWrong: 'Algo ha fallado',
   next: 'Siguiente',
+  tour: 'Visita guiada',
+  skip: 'Saltar',
   menu: 'Menú',
   mainNav: 'Principal',
   sections: 'Secciones',

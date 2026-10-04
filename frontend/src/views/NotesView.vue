@@ -56,7 +56,7 @@ onMounted(load)
   <main class="py-16">
     <PageLayout :title="title" :lead="t('notes.lead')">
       <div class="not-prose">
-        <Button :icon="Plus" to="/notes/new">{{ t('notes.new') }}</Button>
+        <Button :icon="Plus" to="/notes/new" data-tour="new-note">{{ t('notes.new') }}</Button>
       </div>
 
       <h2 id="my-notes" class="mt-10">{{ t('notes.mine') }}</h2>

@@ -83,6 +83,14 @@ chevron opening the nodes at that level. A page ends with the previous and next 
 its section ("2 of 5"), and on wide screens shows a table of contents of its headings; a
 link to `/node/<id>` in its text stays inside the app.
 
+## Guided tour
+
+A new account sees a short tour once (`HomeView`'s `offerTour`, kept in this browser as the
+other settings are; a row in Settings brings it back). It is elastic-ui's `Tour`: a ring and a
+card that travel between the real screens, not just their sidebar links — Home, Notes' "New
+note", Admin (admins only) and Settings, each `TourStep`'s `to` sending the app there first
+(`App.vue`'s `goToStep`) before it is measured.
+
 Login and Register sit in one `AuthLayout`: a card centred on the viewport, the Kolmi logo
 above the wordmark "Kolmi" and the slogan "Learn as a hive.", the theme toggle in a corner.
 Everything else lives inside the app shell: the sidebar, the page's own header with the theme

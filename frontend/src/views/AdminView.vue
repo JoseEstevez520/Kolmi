@@ -80,7 +80,7 @@ onMounted(loadTree)
 
 <template>
   <main class="py-16">
-    <PageLayout :title="t('admin.title')" :lead="t('admin.lead')">
+    <PageLayout data-tour="admin" :title="t('admin.title')" :lead="t('admin.lead')">
       <StatusText v-if="loading" :delay="300" :text="t('common.loadingContent')" working />
 
       <template v-else>
