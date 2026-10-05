@@ -45,6 +45,7 @@ const next = computed(() => level.value[at.value + 1])
             <ArrowRight class="size-3.5" aria-hidden="true" />
           </CardDescription>
           <CardTitle>{{ next.title }}</CardTitle>
+          <CardDescription v-if="next.description">{{ next.description }}</CardDescription>
         </CardHeader>
       </Card>
     </div>
