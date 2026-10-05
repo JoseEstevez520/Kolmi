@@ -120,6 +120,7 @@ and the cron for the pass are in [backend/README.md](backend/README.md).
 - [Data and privacy](docs/privacy.md): what is stored, who sees it and what leaves the instance.
 - [Brand tone](docs/brand-tone.md): how Kolmi sounds.
 - [Brand visuals](docs/brand-visuals.md): how to make an image that looks like Kolmi.
+- [Landing](landing/README.md): the project's public page. A class doesn't need it to run Kolmi.
 
 ## Ecosystem
 

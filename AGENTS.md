@@ -7,6 +7,8 @@ in its own repo.
 
 - `backend/` — Python + FastAPI API.
 - `frontend/` — Vue 3 + Vite web.
+- `landing/` — the project's public page, static, built with the same library. Not part of a
+  class's instance: see [landing/README.md](landing/README.md).
 - `docs/` — the idea, specs and brand tone.
 
 ## Rules
