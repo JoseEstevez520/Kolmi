@@ -67,6 +67,8 @@ Raw notes never go out. Only the summary does.
   next page.
 - **Check the class timetable.**
 - **Take a short tour** the first time you sign in.
+- **Take the notebook with you**: download all the pages, or one section, as Markdown files, to keep
+  or to upload to NotebookLM.
 
 **As an admin**
 

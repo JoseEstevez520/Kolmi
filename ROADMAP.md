@@ -159,22 +159,23 @@ What we're building and what's next. Open to whatever the class needs.
   tool-calling with a judgment call of its own, not a plain request-response, so it's LangGraph
   from the start (`AGENTS.md`), unlike the plain Q&A chat above. A thread it turns into a page
   shows that in place with `Status`, so whoever asked sees it was worth something.
-- [ ] **Take the notebook with you: export as Markdown.** The class's shared pages as plain
-  files, one `.md` per page, the same units as the web. An export is the whole tree or any one
-  section (a topic), as a zip whose folders mirror the tree. A section's zip is what a student
-  uploads to a NotebookLM notebook for that topic: the free plan takes 50 sources per notebook,
-  and a topic has far fewer pages than that. The same files in two flavours: with the page's
-  data on top (title, description, order, date), which an import can read back and the class
-  repo can keep; and a clean one for AI tools, with the title as a heading and where the page
-  sits as plain text under it. A button on each section and one in Settings, for any signed-in
-  member. The same exporter runs from the command line after the nightly pass, to keep a plain
-  copy in the class repo, which should be a private one because the class repo is public. It
-  exports each page's Markdown, the source the notes agent writes, so nothing is lost but the
-  layout: diagrams, charts and interactive pieces come out as the text they were drawn from.
-  Only shared pages ever go out, never raw notes, and attachments stay out unless asked for.
-  What a student does with the files afterwards is theirs to decide (NotebookLM sends them to
-  Google), and `docs/privacy.md` should say so. Open: whether students can also download their
-  own raw notes, and whether an admin can switch the export off.
+- [x] **Take the notebook with you: export as Markdown** — any member downloads the class's
+  shared pages as a zip, one `.md` per page, folders mirroring the tree and numbered in the
+  admin's order (`GET /export`, optionally `?node_id=` for one section; `backend/app/export.py`).
+  A "Download all" in Settings and a "Download this section" under each section's cards; a
+  section's zip is what goes into a NotebookLM notebook for that topic (the free plan takes 50
+  sources per notebook). Each file is the title, where the page sits and the page's Markdown, the
+  source the notes agent writes, so only the layout is lost. Links to another page in the export
+  are rewritten to its file; links and images that only meant something beside the class repo's
+  files become plain text, so no file points at nothing. Only shared pages go out, never raw
+  notes or attachments. Cost: nothing, no model is involved.
+- [ ] **Export, the rest** — the same files with the page's data on top (title, description,
+  order, date), so an import can read them back and the class repo can keep them; that import
+  (which is also the "Import the existing notes" item above); a nightly copy into a private repo
+  after the pass (the class repo is public); students downloading their own raw notes; an admin
+  switch to turn the export off. And fix at the source what the export has to patch: the notes
+  agent copies links written for the class repo's files (60 of them across 24 pages, 19 matching
+  another page by title), though it is told to link as `/node/<id>`.
 
 ## Later
 

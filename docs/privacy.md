@@ -32,6 +32,13 @@ Where those providers process the data, and under what terms, depends on the pro
 the class is in the EU, check it before choosing, and sign the provider's data processing terms if it
 has them.
 
+## What a student can take
+
+Anyone in the class can download the shared pages as Markdown files (Settings, or a section's
+page). Those are the pages the pass wrote, without names; raw notes and attachments are not in
+the export. What a student does with the files after that is theirs to decide: uploading them to
+a service like NotebookLM sends them to that service, under its own terms.
+
 ## If you host an instance
 
 - Tell your class what is above before they sign up: what is stored, who sees it and that notes go
