@@ -13,8 +13,7 @@ the landing shows the real thing, built from the app's own parts:
 |---|---|
 | `before-after` | the two notes as cards with their status, and the page the pass wrote from them, with its diagram |
 | How it works | an `AgentReplay` of that night's pass (made up and shortened, and it says so), then the table |
-| What you can do today | the lists, and the admin's schedule controls (`WeekPillbox`, `DayStrip`) to try |
-| `diagram`, `chart`, `page` | a `Diagram`, a `Chart` and a `CodeBlock` with its `Callout`, with the class pages' content |
+| `diagram`, `chart` | a `Diagram` and a `Chart`, with the class pages' content |
 
 The texts live in `src/locales/en.js` and `es.js`, taken from `README.md` and `README.es.md`.
 When the README changes, the landing changes in the same commit, in both languages.

@@ -151,13 +151,6 @@ export default {
         '**Set the class’s timetable and language**, Spanish or English.',
       ],
     },
-    schedule: {
-      lead: 'The pass runs when the admin says. Try it: these are the controls from the app.',
-      days: 'Days the pass runs',
-      times: 'Times the pass runs',
-      addTime: 'Add a time',
-      words: { everyDay: 'Every day', weekdays: 'Weekdays', weekends: 'Weekends', none: 'Never' },
-    },
   },
 
   pages: {
@@ -192,13 +185,6 @@ export default {
       series: 'Models',
       caption: 'Data: AgentMarketCap, April 2026, as the class page shows it.',
       conclusion: 'Paying more doesn’t always buy more quality.',
-    },
-    code: {
-      title: 'Code you can copy, and a warning where it matters',
-      lead: 'The pipeline is a YAML file in `.github/workflows`:',
-      after: '`needs: test` makes the build job wait for the test job. If the tests fail, the build job does not run and nothing is deployed.',
-      warning:
-        'Use a different tag for each version, for example `app:v1`, `app:v2`. Don’t overwrite the only tag with the new build if you want to be able to roll back.',
     },
   },
 

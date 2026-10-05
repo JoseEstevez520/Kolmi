@@ -149,13 +149,6 @@ export default {
         '**Fijar el horario y el idioma de la clase**, español o inglés.',
       ],
     },
-    schedule: {
-      lead: 'La pasada corre cuando dice el admin. Pruébalo: son los mismos controles de la app.',
-      days: 'Días en que corre la pasada',
-      times: 'Horas a las que corre la pasada',
-      addTime: 'Añadir una hora',
-      words: { everyDay: 'Todos los días', weekdays: 'Entre semana', weekends: 'Fines de semana', none: 'Nunca' },
-    },
   },
 
   pages: {
@@ -190,13 +183,6 @@ export default {
       series: 'Modelos',
       caption: 'Datos: AgentMarketCap, abril de 2026, como los muestra la página de la clase.',
       conclusion: 'Pagar más no siempre compra más calidad.',
-    },
-    code: {
-      title: 'Código para copiar, y un aviso donde importa',
-      lead: 'El pipeline es un archivo YAML en `.github/workflows`:',
-      after: '`needs: test` hace que el job de build espere al de test. Si los tests fallan, el build no corre y no se despliega nada.',
-      warning:
-        'Usa una etiqueta distinta para cada versión, por ejemplo `app:v1`, `app:v2`. No sobrescribas la única etiqueta con el build nuevo si quieres poder volver atrás.',
     },
   },
 

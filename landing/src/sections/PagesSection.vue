@@ -1,9 +1,7 @@
 <script setup>
 import { Brain, Check, CircleHelp, X } from '@lucide/vue'
 import {
-  Callout,
   Chart,
-  CodeBlock,
   Diagram,
   DiagramArea,
   DiagramChip,
@@ -11,7 +9,6 @@ import {
   DiagramItem,
 } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
-import RichText from '../components/RichText.vue'
 import { copy } from '../i18n.js'
 
 // What a page can hold, in place of the README's screenshots: the same pieces, live. Each one
@@ -43,24 +40,6 @@ const MODELS = [
   { x: 17, y: 80.6, label: 'GPT-5.4' },
   { x: 74, y: 80.8, label: 'Claude Opus 4.6' },
 ]
-
-const WORKFLOW = `on: push
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: <test command>
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: docker build -t <registry>/<image>:<tag> .
-      - run: docker push <registry>/<image>:<tag>
-`
 </script>
 
 <template>
@@ -103,11 +82,5 @@ jobs:
       :caption="copy.pages.chart.caption"
     />
     <p class="font-semibold text-fg">{{ copy.pages.chart.conclusion }}</p>
-
-    <h3 class="pt-4 text-lg font-semibold text-fg">{{ copy.pages.code.title }}</h3>
-    <p class="leading-relaxed text-fg-secondary"><RichText :text="copy.pages.code.lead" /></p>
-    <CodeBlock :code="WORKFLOW" title=".github/workflows/ci-cd.yml" />
-    <p class="leading-relaxed text-fg-secondary"><RichText :text="copy.pages.code.after" /></p>
-    <Callout type="warning"><RichText :text="copy.pages.code.warning" /></Callout>
   </LandingSection>
 </template>
