@@ -11,10 +11,10 @@ answer) and the AI turns it into shared notes. No one has to learn git or a fram
 take part.
 
 <p align="center">
-  <img src="docs/screenshots/page.png" alt="A page written by the daily pass: a short definition, a table and a diagram" width="860">
+  <img src="docs/screenshots/diagram.png" alt="A page written by the daily pass, with a diagram of four agent roles and what each one may do" width="860">
 </p>
 
-<p align="center"><sub>A page the hive wrote from the class's notes. The diagram is part of the page.</sub></p>
+<p align="center"><sub>A page the hive wrote. The diagram is part of the page, not an image. This instance writes in Spanish.</sub></p>
 
 ## The thesis
 
@@ -45,22 +45,27 @@ See [ROADMAP.md](ROADMAP.md).
 
 ## Screenshots
 
+A page can hold more than text: diagrams, charts, terminal sessions and agent replays that
+you step through.
+
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/page-dark.png" alt="A page in dark mode"></td>
-    <td width="50%"><img src="docs/screenshots/admin.png" alt="The admin panel with the content tree"></td>
+    <td width="50%"><img src="docs/screenshots/replay.png" alt="An agent session replayed step by step: the request, the files it read and edited, and its answer"></td>
+    <td width="50%"><img src="docs/screenshots/chart.png" alt="A scatter chart of quality against cost per task, on a logarithmic axis"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Light and dark, picked per person.</sub></td>
-    <td align="center"><sub>The admin panel: the tree the pass writes into.</sub></td>
+    <td align="center"><sub>An agent session you can play or step through.</sub></td>
+    <td align="center"><sub>A chart with real axes, drawn from the data in the page.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/diagram-dark.png" alt="The same diagram in dark mode"></td>
+    <td width="50%" align="center"><img src="docs/screenshots/mobile.png" alt="The same diagram on a phone, stacked in one column" width="260"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Dark mode.</sub></td>
+    <td align="center"><sub>On a phone the diagram stacks into one column.</sub></td>
   </tr>
 </table>
-
-<p align="center">
-  <img src="docs/screenshots/mobile.png" alt="The same page on a phone" width="300">
-</p>
-
-<p align="center"><sub>It reads fine on a phone.</sub></p>
 
 ## Self-hosting
 
