@@ -66,6 +66,12 @@ Raw notes never go out. Only the summary does.
 - **Edit the tree** by hand in Admin: create, rename, move, reorder and delete.
 - **Set the class's timetable and language**, Spanish or English.
 
+<p align="center">
+  <img src="assets/readme/diagram.png" alt="A page written by Kolmi, with a diagram of four agent roles and what each one may do" width="100%">
+</p>
+
+<p align="center"><sub>A page can hold more than text. The diagram is part of the page.</sub></p>
+
 ## Run it locally
 
 You need Python 3, Node 20 or higher, a Supabase project and an API key for a model.

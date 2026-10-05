@@ -65,6 +65,12 @@ Las notas en bruto no salen nunca. Solo sale el resumen.
 - **Editar el árbol** a mano en Admin: crear, renombrar, mover, reordenar y borrar.
 - **Fijar el horario y el idioma de la clase**, español o inglés.
 
+<p align="center">
+  <img src="assets/readme/diagram.png" alt="Una página escrita por Kolmi, con un diagrama de cuatro roles de agente y lo que puede hacer cada uno" width="100%">
+</p>
+
+<p align="center"><sub>Una página puede llevar más que texto. El diagrama es parte de la página.</sub></p>
+
 ## En local
 
 Necesitas Python 3, Node 20 o superior, un proyecto de Supabase y una clave de API de un modelo.
