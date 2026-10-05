@@ -56,7 +56,11 @@ onBeforeUnmount(() => {
 <template>
   <div class="relative">
     <article ref="article" class="prose article">
-      <h1>{{ title }}</h1>
+      <div v-if="$slots.actions" class="flex items-start justify-between gap-4">
+        <h1>{{ title }}</h1>
+        <div class="shrink-0 pt-1"><slot name="actions" /></div>
+      </div>
+      <h1 v-else>{{ title }}</h1>
       <p v-if="lead" class="text-lg">{{ lead }}</p>
       <slot />
     </article>

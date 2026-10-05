@@ -107,6 +107,17 @@ watch(id, load)
 <template>
   <main class="py-16">
     <PageLayout :title="title" :lead="lead" :toc="isPage">
+      <template v-if="node && !isPage && children.length > 0" #actions>
+        <ActionButton
+          variant="ghost"
+          icon="arrowDown"
+          :label="t('export.section')"
+          :done-label="t('export.done')"
+          :error-label="t('export.error')"
+          :action="() => downloadExport(id)"
+        />
+      </template>
+
       <Empty
         v-if="missing"
         :title="t('node.missingTitle')"
@@ -176,15 +187,6 @@ watch(id, load)
               @focusin="prefetchNode(child.id)"
             />
           </CardGrid>
-          <ActionButton
-            v-if="children.length > 0"
-            class="mt-10"
-            icon="arrowDown"
-            :label="t('export.section')"
-            :done-label="t('export.done')"
-            :error-label="t('export.error')"
-            :action="() => downloadExport(id)"
-          />
         </template>
       </template>
     </PageLayout>

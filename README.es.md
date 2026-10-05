@@ -67,7 +67,7 @@ Las notas en bruto no salen nunca. Solo sale el resumen.
   y a la siguiente.
 - **Consultar el horario de la clase.**
 - **Hacer un recorrido corto** la primera vez que entras.
-- **Llevarte el cuaderno**: descargar todas las páginas, o una sección, como archivos Markdown, para
+- **Llevarte el cuaderno**: descargar las páginas de una sección como archivos Markdown, para
   guardarlas o subirlas a NotebookLM.
 
 **Como admin**
