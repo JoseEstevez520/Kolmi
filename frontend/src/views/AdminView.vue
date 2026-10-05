@@ -3,6 +3,7 @@ import { computed, onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Callout, Collapsible, CollapsibleContent, CollapsibleTrigger, Empty, StatusText, TreeDrag } from 'elastic-ui'
 import { Layers, Plus } from '@lucide/vue'
+import AdminChat from '../components/AdminChat.vue'
 import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminPass from '../components/AdminPass.vue'
@@ -131,6 +132,7 @@ onMounted(loadTree)
             <div class="mt-2 flex flex-col divide-y divide-border border-y border-border">
               <AdminClassLanguage />
               <AdminPass />
+              <AdminChat />
             </div>
           </CollapsibleContent>
         </Collapsible>

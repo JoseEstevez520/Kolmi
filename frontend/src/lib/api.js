@@ -144,6 +144,8 @@ export const api = {
     scheduleEnd,
     scheduleBreaks,
     scheduleSessionMinutes,
+    chatEnabled,
+    chatDailyLimit,
   }) =>
     request('/settings', {
       method: 'POST',
@@ -158,11 +160,16 @@ export const api = {
         schedule_end: scheduleEnd,
         schedule_breaks: scheduleBreaks,
         schedule_session_minutes: scheduleSessionMinutes,
+        chat_enabled: chatEnabled,
+        chat_daily_limit: chatDailyLimit,
       },
     }),
 
   // Admin: start the pass now. It answers at once, `started` or `already_running`.
   runPass: () => request('/pass/run', { method: 'POST' }),
+
+  // Ask the hive a question; it answers from the class's own content, with the pages it used.
+  askChat: (question) => request('/chat', { method: 'POST', body: { question } }),
 
   // The timetable's slots. Anyone signed in reads them; only an admin writes them.
   scheduleEvents: () => request('/schedule/events'),

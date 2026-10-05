@@ -78,6 +78,16 @@ export default {
     settings: { title: 'Settings', body: 'Your language and animations, kept in this browser.' },
   },
 
+  chat: {
+    label: 'Ask the hive',
+    title: 'Kolmi',
+    placeholder: 'Ask something about the class…',
+    thinking: 'Thinking…',
+    error: "Couldn't answer",
+    sources: 'From: {pages}',
+    greeting: "I'm Kolmi. Ask me anything about the class.",
+  },
+
   login: {
     google: 'Sign in with Google',
     or: 'or',
@@ -226,6 +236,12 @@ export default {
     classLanguage: {
       label: 'Class language',
       names: { en: 'English', es: 'Spanish' },
+    },
+    chat: {
+      title: 'Chat',
+      hint: "Reads only the class's own content; off until you turn it on.",
+      enabled: 'Let students ask the hive',
+      dailyLimit: 'Daily messages, per student',
     },
     pass: {
       title: 'Automatic',

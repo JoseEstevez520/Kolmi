@@ -75,6 +75,16 @@ export default {
     settings: { title: 'Ajustes', body: 'Tu idioma y las animaciones, guardados en este navegador.' },
   },
 
+  chat: {
+    label: 'Pregunta a la colmena',
+    title: 'Kolmi',
+    placeholder: 'Pregunta algo sobre la clase…',
+    thinking: 'Pensando…',
+    error: 'No se pudo responder',
+    sources: 'De: {pages}',
+    greeting: 'Soy Kolmi. Pregúntame lo que quieras sobre la clase.',
+  },
+
   login: {
     google: 'Entrar con Google',
     or: 'o',
@@ -223,6 +233,12 @@ export default {
     classLanguage: {
       label: 'Idioma de la clase',
       names: { en: 'Inglés', es: 'Español' },
+    },
+    chat: {
+      title: 'Chat',
+      hint: 'Solo lee el contenido de la clase; está apagado hasta que lo actives.',
+      enabled: 'Dejar que los alumnos pregunten a la colmena',
+      dailyLimit: 'Mensajes al día, por alumno',
     },
     pass: {
       title: 'Automático',
