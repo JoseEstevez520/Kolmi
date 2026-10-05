@@ -122,6 +122,7 @@ La documentación está en inglés.
 - [Datos y privacidad](docs/privacy.md): qué se guarda, quién lo ve y qué sale de la instancia.
 - [Tono de marca](docs/brand-tone.md): cómo suena Kolmi.
 - [Imágenes de marca](docs/brand-visuals.md): cómo hacer una imagen que parezca de Kolmi.
+- [Landing](landing/README.md): la página pública del proyecto. Una clase no la necesita para usar Kolmi.
 
 ## Ecosistema
 
