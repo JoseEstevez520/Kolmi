@@ -66,7 +66,7 @@ export default {
   },
 
   export: {
-    section: 'Descargar esta sección',
+    section: 'Descargar',
     done: 'Descargado',
     error: 'No se ha podido descargar',
   },

@@ -69,7 +69,7 @@ export default {
   },
 
   export: {
-    section: 'Download this section',
+    section: 'Download',
     done: 'Downloaded',
     error: 'Could not download',
   },
