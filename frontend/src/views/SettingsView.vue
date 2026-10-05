@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
+  ActionButton,
   Button,
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
 } from 'elastic-ui'
 import FlagIcon from '../components/FlagIcon.vue'
 import PageLayout from '../components/PageLayout.vue'
+import { downloadExport } from '../lib/export.js'
 import { LOCALES, setLocale } from '../lib/i18n.js'
 import { motionOn, setMotionOn } from '../lib/motion.js'
 import { replayTour } from '../lib/tour.js'
@@ -73,6 +75,22 @@ function showTourAgain() {
         <Separator />
 
         <p class="mt-5 text-label text-fg-muted">{{ t('settings.savedHere') }}</p>
+
+        <Separator class="mt-5" />
+
+        <section class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5">
+          <div class="flex min-w-0 max-w-sm flex-col gap-1">
+            <h2 id="notebook" class="text-label font-medium text-fg">{{ t('settings.notebook') }}</h2>
+            <p class="text-label text-fg-secondary">{{ t('settings.notebookHint') }}</p>
+          </div>
+          <ActionButton
+            icon="arrowDown"
+            :label="t('export.all')"
+            :done-label="t('export.done')"
+            :error-label="t('export.error')"
+            :action="() => downloadExport()"
+          />
+        </section>
       </div>
     </PageLayout>
   </main>

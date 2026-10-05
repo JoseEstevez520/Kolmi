@@ -49,6 +49,28 @@ async function request(path, { method = 'GET', body, keepalive = false } = {}) {
   return data
 }
 
+// A file comes back as the response's body: the same session header, the bytes kept as they are.
+async function fetchFile(path) {
+  const token = accessToken()
+  let response
+  try {
+    response = await fetch(`${BASE_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+  } catch {
+    throw new ApiError(0, t('api.unreachable'))
+  }
+  if (!response.ok) {
+    let detail = ''
+    try {
+      detail = (await response.json()).detail
+    } catch {
+      /* not JSON: the status text will do */
+    }
+    throw new ApiError(response.status, detail || response.statusText || t('api.failed'))
+  }
+  const named = /filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '')
+  return { blob: await response.blob(), name: named ? named[1] : 'kolmi.zip' }
+}
+
 // A file goes up as the request's body, with its progress reported as it goes (fetch has none).
 function upload({ file, noteId = null, nodeId = null, onProgress }) {
   const query = new URLSearchParams({ name: file.name })
@@ -231,4 +253,7 @@ export const api = {
   deleteFile: (fileId) => request('/files/delete', { method: 'POST', body: { file_id: fileId } }),
 
   fileLink: (fileId) => request(`/files/download?file_id=${encodeURIComponent(fileId)}`),
+
+  // The shared pages as a zip of Markdown files: all of them, or the ones under a section.
+  exportPages: (nodeId = null) => fetchFile(nodeId == null ? '/export' : `/export?node_id=${encodeURIComponent(nodeId)}`),
 }

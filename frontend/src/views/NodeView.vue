@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Empty, Markdown, StatusText } from 'elastic-ui'
+import { ActionButton, Button, Callout, Empty, Markdown, StatusText } from 'elastic-ui'
 import { FileQuestion, FileText, Layers } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
@@ -10,6 +10,7 @@ import PageLayout from '../components/PageLayout.vue'
 import PageFiles from '../components/PageFiles.vue'
 import PageNav from '../components/PageNav.vue'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode, trailTo } from '../lib/content.js'
+import { downloadExport } from '../lib/export.js'
 import { iconByName } from '../lib/icons.js'
 import { loadPageRenderer } from '../lib/openui/load.js'
 
@@ -175,6 +176,15 @@ watch(id, load)
               @focusin="prefetchNode(child.id)"
             />
           </CardGrid>
+          <ActionButton
+            v-if="children.length > 0"
+            class="mt-10"
+            icon="arrowDown"
+            :label="t('export.section')"
+            :done-label="t('export.done')"
+            :error-label="t('export.error')"
+            :action="() => downloadExport(id)"
+          />
         </template>
       </template>
     </PageLayout>
