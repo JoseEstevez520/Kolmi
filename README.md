@@ -6,9 +6,15 @@
 
 <p align="center"><strong>Learn as a hive.</strong></p>
 
-Kolmi is a collaboration app for a class. Everyone contributes a little — a note, a doubt, an
-answer — and the AI turns it into shared notes. No one has to learn git or a framework to
+Kolmi is a collaboration app for a class. Everyone contributes a little (a note, a doubt, an
+answer) and the AI turns it into shared notes. No one has to learn git or a framework to
 take part.
+
+<p align="center">
+  <img src="docs/screenshots/page.png" alt="A page written by the daily pass: a short definition, a table and a diagram" width="860">
+</p>
+
+<p align="center"><sub>A page the hive wrote from the class's notes. The diagram is part of the page.</sub></p>
 
 ## The thesis
 
@@ -18,15 +24,43 @@ is a hive for that.
 
 > Everyone adds a drop; the class ends up with honeycomb.
 
-## What it does today
+## How it works
 
-- Students log in and leave raw notes.
-- The hive works at night: once a day, a team of agents reads the new notes, groups them by
-  topic, strips names and private data, and turns them into shared notes and pages.
-- Raw notes stay private. Only the summary goes out.
+```
+raw notes  ->  nightly pass  ->  shared pages
+(private)      (agents)          (the whole class)
+```
 
-More ways to contribute are coming — a chat with the notes, forums, whatever the class needs.
+1. Students log in and leave raw notes, with files if they have them.
+2. Once a day a team of agents reads the new notes, groups them by topic and strips names
+   and private data.
+3. They write the result into the content tree as shared notes and pages, in the class's
+   language.
+
+Raw notes stay private. Only the summary goes out. An admin can read what each pass did in
+the AI log.
+
+More ways to contribute are coming: a chat with the notes, forums, whatever the class needs.
 See [ROADMAP.md](ROADMAP.md).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/page-dark.png" alt="A page in dark mode"></td>
+    <td width="50%"><img src="docs/screenshots/admin.png" alt="The admin panel with the content tree"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Light and dark, picked per person.</sub></td>
+    <td align="center"><sub>The admin panel: the tree the pass writes into.</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/mobile.png" alt="The same page on a phone" width="300">
+</p>
+
+<p align="center"><sub>It reads fine on a phone.</sub></p>
 
 ## Self-hosting
 
@@ -34,10 +68,32 @@ Kolmi is self-hostable: each class runs its own instance (a small server and a S
 project). Nothing is shared between classes. The backend ships as a Docker image; build, run
 and the cron that runs the pass are in [backend/README.md](backend/README.md).
 
+To try it locally you need Python 3, Node 20 or higher, a Supabase project and an API key for
+a model:
+
+```bash
+# backend, on :8000
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.example .env    # Supabase, CLASS_CODE and the model keys
+uvicorn app.main:app --reload
+
+# frontend, on :5173
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Create the tables first with [supabase/schema.sql](supabase/schema.sql). The `.env` files stay
+out of git.
+
 ## Status
 
-In development. Login, notes, the content tree, the admin panel with the AI log, and the
-pass all work. DeepSeek writes the pages in OpenUI Lang, in the class's language.
+In development. Login, notes with files, the content tree, the admin panel with the AI log,
+the class timetable and the pass all work. DeepSeek writes the pages in OpenUI Lang, in the
+class's language (Spanish and English for now).
 
 ## Docs
 
