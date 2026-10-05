@@ -3,7 +3,7 @@
 // `|` are special, so they are not used as plain characters here.
 export default {
   app: {
-    title: 'Kolmi · Learn as a hive',
+    title: 'Kolmi',
     slogan: 'Learn as a hive.',
     openMenu: 'Open the menu',
   },

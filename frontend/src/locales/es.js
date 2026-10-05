@@ -2,7 +2,7 @@
 // class, not translated word for word.
 export default {
   app: {
-    title: 'Kolmi · Aprende en colmena',
+    title: 'Kolmi',
     slogan: 'Aprende en colmena.',
     openMenu: 'Abrir el menú',
   },
