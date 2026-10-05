@@ -128,6 +128,11 @@ alter table settings add column if not exists schedule_breaks jsonb not null def
 -- session (one, or two back to back), never an odd length.
 alter table settings add column if not exists schedule_session_minutes smallint not null default 50;
 
+-- The chat: off until an admin turns it on, with a daily message cap per student once it is.
+-- Also in migrations/20261004140000_chat.sql.
+alter table settings add column if not exists chat_enabled boolean not null default false;
+alter table settings add column if not exists chat_daily_limit smallint not null default 20;
+
 -- One slot in the week: a class, a shift, a meeting. `node_id` links it to a page or section
 -- (its title and colour are used when the slot has none of its own); null for a slot with no
 -- page, such as a subject the class notes don't cover.
@@ -142,6 +147,20 @@ create table if not exists schedule_events (
   color text,
   created_at timestamptz not null default now()
 );
+
+-- One question asked and its answer, so the daily cap can be counted; a student's own history
+-- too, though nothing reads it back yet.
+create table if not exists chat_messages (
+  id bigserial primary key,
+  user_id uuid not null references profiles(id) on delete cascade,
+  question text not null,
+  answer text not null default '',
+  sources bigint[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists chat_messages_user_id_created_at_idx
+  on chat_messages (user_id, created_at);
 
 -- No seed row: until the admin first saves, the backend uses CLASS_LANGUAGE.
 
@@ -169,6 +188,7 @@ alter table ai_log enable row level security;
 alter table settings enable row level security;
 alter table files enable row level security;
 alter table schedule_events enable row level security;
+alter table chat_messages enable row level security;
 
 -- settings is the one exception: everyone signed in reads it, only admins write it. The
 -- backend still goes through the service role.

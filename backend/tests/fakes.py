@@ -29,6 +29,7 @@ class FakeLLM:
         self.tool_error = tool_error
         self.tool_results: list[str] = []
         self.calls: list[tuple[str, str, str]] = []
+        self.offered_tools: list[list[str]] = []
 
     def complete_json(self, system: str, user: str) -> dict[str, Any]:
         self.calls.append(("json", system, user))
@@ -36,6 +37,7 @@ class FakeLLM:
 
     def complete_with_tools(self, system, user, tools, run_tool) -> dict[str, Any]:
         self.calls.append(("tools", system, user))
+        self.offered_tools.append([t["function"]["name"] for t in tools])
         if self.tool_error:
             raise self.tool_error
         for round_ in self.tool_rounds:

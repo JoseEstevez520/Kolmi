@@ -29,11 +29,13 @@ class UpdateSettingsParams(BaseModel):
     schedule_end: str | None = None
     schedule_breaks: list[ScheduleBreak] | None = None
     schedule_session_minutes: int | None = None
+    chat_enabled: bool | None = None
+    chat_daily_limit: int | None = None
 
 
 @action(
     name="get_settings",
-    description="The class settings: the AI's language, when its daily pass runs, and the class timetable.",
+    description="The class settings: the AI's language, when its daily pass runs, the class timetable, and the chat.",
     method="GET",
     path="/settings",
 )
@@ -43,7 +45,7 @@ def get_settings(ctx: Context, params: None):
 
 @action(
     name="update_settings",
-    description="Set the class language, the daily pass's schedule, and the class timetable's shape (days, hours, breaks).",
+    description="Set the class language, the daily pass's schedule, the class timetable's shape (days, hours, breaks), and whether the chat is on and its daily message cap.",
     params=UpdateSettingsParams,
     path="/settings",
     min_role="admin",
@@ -108,6 +110,13 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
         row["schedule_session_minutes"] = params.schedule_session_minutes
     if params.schedule_enabled is not None:
         row["schedule_enabled"] = params.schedule_enabled
+
+    if params.chat_daily_limit is not None:
+        if params.chat_daily_limit <= 0:
+            raise HTTPException(422, "chat_daily_limit must be a positive number")
+        row["chat_daily_limit"] = params.chat_daily_limit
+    if params.chat_enabled is not None:
+        row["chat_enabled"] = params.chat_enabled
 
     row["updated_at"] = datetime.now(timezone.utc).isoformat()
     try:

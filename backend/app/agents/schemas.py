@@ -44,3 +44,9 @@ class GatekeeperResult(BaseModel):
     discarded_files: list[DiscardedFile] = Field(default_factory=list)
     # The nodes it read before deciding; filled in by the gatekeeper, not by the model.
     reads: list[int] = Field(default_factory=list, exclude=True)
+
+
+class ChatAnswer(BaseModel):
+    answer: str
+    # The pages the answer actually rests on, so the app can show them as its sources.
+    sources: list[int] = Field(default_factory=list)

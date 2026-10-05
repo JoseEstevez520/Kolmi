@@ -45,6 +45,14 @@ DEFAULT_SCHEDULE = {
 }
 SCHEDULE_COLUMNS = ", ".join(DEFAULT_SCHEDULE)
 
+# The chat, until the admin turns it on: off by default, a daily message cap per student once
+# it's on. Runs on the instance's own model key (get_llm()), not a separate one.
+DEFAULT_CHAT = {
+    "chat_enabled": False,
+    "chat_daily_limit": 20,
+}
+CHAT_COLUMNS = ", ".join(DEFAULT_CHAT)
+
 
 def default_language() -> str:
     """`CLASS_LANGUAGE` from the environment, or English when it is not a supported code."""
@@ -66,13 +74,19 @@ def _row(client) -> dict[str, Any] | None:
     try:
         try:
             rows = _select(
-                client, f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}"
+                client,
+                f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}",
             )
-        except Exception:  # the pass or timetable columns are not there yet
+        except Exception:  # the chat columns are not there yet
             try:
-                rows = _select(client, f"class_language, updated_at, {PASS_COLUMNS}")
-            except Exception:
-                rows = _select(client, "class_language, updated_at")
+                rows = _select(
+                    client, f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}"
+                )
+            except Exception:  # the pass or timetable columns are not there yet
+                try:
+                    rows = _select(client, f"class_language, updated_at, {PASS_COLUMNS}")
+                except Exception:
+                    rows = _select(client, "class_language, updated_at")
     except Exception as exc:  # the table is not there yet, or Supabase is unreachable
         log.warning("could not read the settings row, using the environment: %s", exc)
         return None
@@ -89,6 +103,7 @@ def read_settings(client) -> dict[str, Any]:
         "updated_at": (row or {}).get("updated_at"),
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_PASS.items()},
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_SCHEDULE.items()},
+        **{key: (row or {}).get(key, default) for key, default in DEFAULT_CHAT.items()},
         "timezone": "Europe/Madrid",
         "languages": [{"code": code, "name": name} for code, name in LANGUAGES.items()],
     }
