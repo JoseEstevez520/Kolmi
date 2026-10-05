@@ -107,6 +107,7 @@ and the cron for the pass are in [backend/README.md](backend/README.md).
 - [Testing with real cases](docs/testing.md): the plan for trying it before the class does.
 - [Data and privacy](docs/privacy.md): what is stored, who sees it and what leaves the instance.
 - [Brand tone](docs/brand-tone.md): how Kolmi sounds.
+- [Brand visuals](docs/brand-visuals.md): how to make an image that looks like Kolmi.
 
 ## Ecosystem
 

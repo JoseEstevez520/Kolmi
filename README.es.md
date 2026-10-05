@@ -109,6 +109,7 @@ La documentación está en inglés.
 - [Pruebas con casos reales](docs/testing.md): el plan para probarlo antes de que lo use la clase.
 - [Datos y privacidad](docs/privacy.md): qué se guarda, quién lo ve y qué sale de la instancia.
 - [Tono de marca](docs/brand-tone.md): cómo suena Kolmi.
+- [Imágenes de marca](docs/brand-visuals.md): cómo hacer una imagen que parezca de Kolmi.
 
 ## Ecosistema
 

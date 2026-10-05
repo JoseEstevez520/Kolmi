@@ -107,3 +107,11 @@ toggle, and only the content changing between pages.
 | `PageLayout` | one article at a single width, with its title and lead line; with `toc`, a `TableOfContents` of its headings at 2xl |
 | `CardGrid` + `PageCard` | a grid of cards, one per node or note: a title and a text, and a footer with a date and a status; a note's text is clamped with a fading end |
 | `AdminNode` + `AdminRow` + `NodeMark` + the two dialogs | the recursive tree inside a `TreeDrag`: one row, quiet at rest (a mark, which folds a section, and the title), with its add, edit and delete coming in when it is pointed at or focused; rows are moved by dragging them (the others make room) or with Alt and the arrows. The dialogs add a node or edit its description, icon and colour (one `IconPicker` field) and `on_home`. A node without an icon of its own shows elastic-ui's `FolderIcon` or `FileIcon`, tinted in its colour (`NodeMark` where a section's open state matters, `defaultMark` elsewhere, such as the sidebar) |
+
+## Images and handouts
+
+An image made for Kolmi (a poster, a handout, a card for the class chat) is built from the same
+library, the same tokens and the app's own texts, with the Aurora as its one decoration. The
+recipe, with the class invitation as the example, is in
+[docs/brand-visuals.md](../docs/brand-visuals.md).
+
