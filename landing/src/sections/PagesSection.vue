@@ -1,86 +1,40 @@
 <script setup>
-import { Brain, Check, CircleHelp, X } from '@lucide/vue'
 import {
-  Chart,
-  Diagram,
-  DiagramArea,
-  DiagramChip,
-  DiagramGroup,
-  DiagramItem,
-} from 'elastic-ui'
+  ChartColumn,
+  Clapperboard,
+  Code,
+  LayoutTemplate,
+  ListTree,
+  MousePointerClick,
+  NotebookPen,
+  Table,
+  Workflow,
+} from '@lucide/vue'
+import { Diagram, DiagramArea, DiagramArrow, DiagramChip, DiagramGroup } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
 import { copy } from '../i18n.js'
 
-// What a page can hold, in place of the README's screenshots: the same pieces, live. Each one
-// after the sentence that calls for it and before the line that says what it showed (USAGE 9).
-// The content is the class's own pages', the ones the screenshots were taken from.
-const MODEL = '#7c3aed'
-const AGENT = '#0891b2'
-const OUTCOME = {
-  yes: { icon: Check, color: 'var(--color-success)' },
-  asks: { icon: CircleHelp, color: 'var(--color-warning)' },
-  no: { icon: X, color: 'var(--color-danger)' },
-}
-
-// Who may do what, as the class page draws it.
-const AGENTS = [
-  { name: 'builder', can: [['edits', 'yes'], ['runs', 'yes']] },
-  { name: 'planner', can: [['edits', 'asks'], ['runs', 'asks']] },
-  { name: 'tutor', can: [['edits', 'no'], ['runs', 'no']] },
-  { name: 'explorer', can: [['reads', 'yes'], ['edits', 'no']] },
-]
-
-// Read off the class page's chart (AgentMarketCap, April 2026): cost per solved task in US
-// dollars, and the SWE-bench Verified score.
-const MODELS = [
-  { x: 0.2, y: 79.3, label: 'DeepSeek V4 Pro' },
-  { x: 0.45, y: 80.2, label: 'Qwen3.5' },
-  { x: 1.4, y: 80.6, label: 'MiniMax M2.5' },
-  { x: 11, y: 80.8, label: 'Gemini 3.1 Pro' },
-  { x: 17, y: 80.6, label: 'GPT-5.4' },
-  { x: 74, y: 80.8, label: 'Claude Opus 4.6' },
-]
+// What a page can hold, told as one small diagram rather than a sample of each piece: loose
+// notes go in, the web agent lays them out, and the page comes out organized, with the pieces it
+// may use. The pieces' icons follow their order in the locales.
+const PAGE = '#d97706'
+const PIECES = [ListTree, Workflow, ChartColumn, Table, Code, Clapperboard, MousePointerClick]
 </script>
 
 <template>
   <LandingSection id="pages" :title="copy.pages.title">
     <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.pages.lead }}</p>
-
-    <h3 class="pt-4 text-lg font-semibold text-fg">{{ copy.pages.diagram.title }}</h3>
-    <Diagram :label="copy.pages.diagram.label">
-      <DiagramGroup layout="column">
-        <DiagramChip :icon="Brain" :color="MODEL">{{ copy.pages.diagram.model }}</DiagramChip>
-        <DiagramGroup layout="grid">
-          <DiagramArea
-            v-for="agent in AGENTS"
-            :key="agent.name"
-            :title="copy.pages.diagram[agent.name]"
-            :note="copy.pages.diagram[`${agent.name}Note`]"
-            :color="AGENT"
-          >
-            <DiagramItem
-              v-for="[action, answer] in agent.can"
-              :key="action"
-              :icon="OUTCOME[answer].icon"
-              :color="OUTCOME[answer].color"
-            >
-              {{ copy.pages.diagram[action] }}: {{ copy.pages.diagram[answer] }}
-            </DiagramItem>
-          </DiagramArea>
-        </DiagramGroup>
+    <Diagram :label="copy.pages.label">
+      <DiagramGroup>
+        <DiagramChip :icon="NotebookPen">{{ copy.pages.notes }}</DiagramChip>
+        <DiagramArrow :label="copy.pages.agent" />
+        <DiagramArea :title="copy.pages.page" :icon="LayoutTemplate" :color="PAGE" layout="row">
+          <DiagramChip v-for="(piece, i) in copy.pages.pieces" :key="piece" :icon="PIECES[i]" :color="PAGE">
+            {{ piece }}
+          </DiagramChip>
+        </DiagramArea>
       </DiagramGroup>
     </Diagram>
-    <p class="font-semibold text-fg">{{ copy.pages.diagram.conclusion }}</p>
-
-    <h3 class="pt-4 text-lg font-semibold text-fg">{{ copy.pages.chart.title }}</h3>
-    <Chart
-      variant="points"
-      :series="[{ name: copy.pages.chart.series, points: MODELS }]"
-      :x="{ title: copy.pages.chart.x, unit: 'USD', scale: 'log' }"
-      :y="{ title: copy.pages.chart.y, unit: '%', min: 79, max: 81 }"
-      :label="copy.pages.chart.label"
-      :caption="copy.pages.chart.caption"
-    />
-    <p class="font-semibold text-fg">{{ copy.pages.chart.conclusion }}</p>
+    <p class="text-lg font-semibold text-fg">{{ copy.pages.conclusion }}</p>
   </LandingSection>
 </template>
