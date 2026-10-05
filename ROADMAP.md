@@ -160,18 +160,21 @@ What we're building and what's next. Open to whatever the class needs.
   from the start (`AGENTS.md`), unlike the plain Q&A chat above. A thread it turns into a page
   shows that in place with `Status`, so whoever asked sees it was worth something.
 - [ ] **Take the notebook with you: export as Markdown.** The class's shared pages as plain
-  files, from one exporter with three uses. A **download** for a member of the class: a folder
-  that mirrors the tree, one `.md` per page with its title, section and date on top. A **bundle
-  for NotebookLM** (or any tool that caps its sources): one `.md` per section instead of per
-  page, since NotebookLM's free plan takes 50 sources per notebook and a class has more pages
-  than that. And a **nightly mirror** into the class repo, so the repo keeps a plain copy of
-  what Kolmi holds; to a private repo, because the class repo is public. It exports each page's
-  Markdown, the text-first version the notes agent already writes, so diagrams, charts and
-  interactive pieces come out as their text only, and the download should say so. Only shared
-  pages ever go out, never raw notes, and only to someone signed in to the class. What a
-  student does with the files afterwards is theirs to decide (NotebookLM sends them to Google),
-  and `docs/privacy.md` should say it. Open: whether any student can download or only the
-  admins, and whether attachments travel inside the zip.
+  files, one `.md` per page, the same units as the web. An export is the whole tree or any one
+  section (a topic), as a zip whose folders mirror the tree. A section's zip is what a student
+  uploads to a NotebookLM notebook for that topic: the free plan takes 50 sources per notebook,
+  and a topic has far fewer pages than that. The same files in two flavours: with the page's
+  data on top (title, description, order, date), which an import can read back and the class
+  repo can keep; and a clean one for AI tools, with the title as a heading and where the page
+  sits as plain text under it. A button on each section and one in Settings, for any signed-in
+  member. The same exporter runs from the command line after the nightly pass, to keep a plain
+  copy in the class repo, which should be a private one because the class repo is public. It
+  exports each page's Markdown, the source the notes agent writes, so nothing is lost but the
+  layout: diagrams, charts and interactive pieces come out as the text they were drawn from.
+  Only shared pages ever go out, never raw notes, and attachments stay out unless asked for.
+  What a student does with the files afterwards is theirs to decide (NotebookLM sends them to
+  Google), and `docs/privacy.md` should say so. Open: whether students can also download their
+  own raw notes, and whether an admin can switch the export off.
 
 ## Later
 
