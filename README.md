@@ -23,8 +23,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/diagram.png" alt="A page written by Kolmi, with a diagram of four agent roles and what each one may do" width="100%">
+  <img src="assets/readme/before-after.png" alt="Two loose notes about Docker on the left, and on the right the shared page Kolmi wrote from them, ordered into sections with code blocks" width="100%">
 </p>
+
+<p align="center"><sub>Two loose notes in, one page out. This one is a real run of the nightly pass.</sub></p>
 
 ## What is Kolmi?
 

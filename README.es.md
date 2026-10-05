@@ -23,8 +23,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/diagram.png" alt="Una página escrita por Kolmi, con un diagrama de cuatro roles de agente y lo que puede hacer cada uno" width="100%">
+  <img src="assets/readme/before-after.png" alt="Dos notas sueltas sobre Docker a la izquierda y, a la derecha, la página compartida que Kolmi escribió con ellas, ordenada en secciones con bloques de código" width="100%">
 </p>
+
+<p align="center"><sub>Dos notas sueltas entran, una página sale. Es una pasada nocturna real.</sub></p>
 
 ## ¿Qué es Kolmi?
 
