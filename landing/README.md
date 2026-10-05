@@ -1,6 +1,6 @@
 # Landing
 
-Kolmi's public page: what it is, how it works and how to run it, for whoever is thinking of
+Kolmi's public page: what it is, how it works and where its code is, for whoever is thinking of
 bringing it to their class. It is not part of a class's instance. `docker-compose.yml` never
 builds it, and a class that deploys Kolmi doesn't need it.
 

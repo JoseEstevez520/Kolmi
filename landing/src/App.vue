@@ -6,7 +6,6 @@ import LandingFooter from './sections/LandingFooter.vue'
 import LandingHeader from './sections/LandingHeader.vue'
 import LinksSection from './sections/LinksSection.vue'
 import PagesSection from './sections/PagesSection.vue'
-import RunSection from './sections/RunSection.vue'
 import TodaySection from './sections/TodaySection.vue'
 import WhatSection from './sections/WhatSection.vue'
 
@@ -24,7 +23,6 @@ import WhatSection from './sections/WhatSection.vue'
       <HowSection />
       <TodaySection />
       <PagesSection />
-      <RunSection />
       <LinksSection />
     </main>
     <LandingFooter />

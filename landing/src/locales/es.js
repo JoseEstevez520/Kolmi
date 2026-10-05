@@ -14,7 +14,6 @@ export default {
     label: 'Secciones',
     how: 'Cómo funciona',
     pages: 'Páginas',
-    run: 'Instalar',
     code: 'Código',
     switchLocale: 'Read in English',
   },
@@ -24,7 +23,6 @@ export default {
     lead: 'Un cuaderno que escribe toda la clase entre todos. Cada uno deja sus apuntes y, de noche, la IA los convierte en páginas ordenadas, con diagramas, gráficas y piezas interactivas.',
     scope: 'Para una clase, en su propio servidor.',
     primary: 'Móntalo en tu clase',
-    secondary: 'Mira cómo funciona',
   },
 
   demo: {
@@ -186,32 +184,6 @@ export default {
     },
   },
 
-  run: {
-    title: 'En local',
-    lead: 'Necesitas Python 3, Node 20 o superior, un proyecto de Supabase y una clave de API de un modelo.',
-    commands: [
-      '# backend, en :8000',
-      'cd backend',
-      'python3 -m venv .venv && source .venv/bin/activate',
-      'pip install -r requirements-dev.txt',
-      'cp .env.example .env    # Supabase, CLASS_CODE y las claves del modelo',
-      'uvicorn app.main:app --reload',
-      '',
-      '# frontend, en :5173',
-      'cd frontend',
-      'npm install',
-      'cp .env.example .env',
-      'npm run dev',
-    ].join('\n'),
-    after:
-      'Crea antes las tablas con `supabase/schema.sql`. Los `.env` se quedan fuera de git. Cada clase lleva su propia instancia, y el backend se distribuye como imagen de Docker: cómo construirla, arrancarla y programar la pasada está en el README del backend.',
-    backendReadme: 'README del backend',
-    status: {
-      title: 'En desarrollo',
-      body: 'Lo siguiente es “Pregunta a la colmena”, un chat con los apuntes, y foros.',
-      roadmap: 'Ver la hoja de ruta (en inglés)',
-    },
-  },
 
   docs: {
     title: 'Documentación',
@@ -235,6 +207,7 @@ export default {
   },
 
   footer: {
+    contact: '¿Dudas, o lo quieres en tu clase? Escríbeme.',
     cta: 'Lleva la colmena a tu clase.',
     primary: 'Ver el código',
     license: 'Código abierto con licencia MIT.',
@@ -243,8 +216,7 @@ export default {
 
   links: {
     repo,
-    backendReadme: `${blob}/backend/README.md`,
-    roadmap: `${blob}/ROADMAP.md`,
+    linkedin: 'https://www.linkedin.com/in/jose-est%C3%A9vez-b9b761388',
     license: `${blob}/LICENSE`,
     security: `${blob}/SECURITY.md`,
   },

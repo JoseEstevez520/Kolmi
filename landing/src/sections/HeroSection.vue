@@ -1,5 +1,6 @@
 <script setup>
-import { Aurora, Button } from 'elastic-ui'
+import { Aurora, Button, Logo } from 'elastic-ui'
+import { siGithub } from 'simple-icons'
 import { copy } from '../i18n.js'
 
 // The first screen, laid out as the class invitation (docs/brand-visuals.md): the honey aurora
@@ -21,10 +22,10 @@ import { copy } from '../i18n.js'
       <p class="text-lg leading-relaxed text-pretty text-fg sm:text-xl">{{ copy.hero.lead }}</p>
 
       <div class="flex flex-col items-center gap-4">
-        <div class="flex flex-wrap justify-center gap-3">
-          <Button size="lg" href="#run">{{ copy.hero.primary }}</Button>
-          <Button size="lg" variant="outline" href="#how">{{ copy.hero.secondary }}</Button>
-        </div>
+        <Button size="lg" :href="copy.links.repo">
+          <Logo :icon="siGithub" mono alt="" />
+          {{ copy.hero.primary }}
+        </Button>
         <p class="text-sm text-fg-secondary">{{ copy.hero.scope }}</p>
       </div>
     </div>

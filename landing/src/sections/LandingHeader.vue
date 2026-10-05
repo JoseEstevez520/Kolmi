@@ -20,7 +20,6 @@ import { copy } from '../i18n.js'
 
     <Button variant="ghost" size="sm" href="#how">{{ copy.nav.how }}</Button>
     <Button variant="ghost" size="sm" href="#pages">{{ copy.nav.pages }}</Button>
-    <Button variant="ghost" size="sm" href="#run">{{ copy.nav.run }}</Button>
 
     <template #actions>
       <LocaleToggle />

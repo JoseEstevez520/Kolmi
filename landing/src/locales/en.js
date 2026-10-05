@@ -16,7 +16,6 @@ export default {
     label: 'Sections',
     how: 'How it works',
     pages: 'Pages',
-    run: 'Run it',
     code: 'Code',
     switchLocale: 'Leer en español',
   },
@@ -26,7 +25,6 @@ export default {
     lead: 'A notebook a whole class writes together. Everyone drops their notes, and at night an AI turns them into organized pages with diagrams, charts and interactive pieces.',
     scope: 'For one class, self-hosted.',
     primary: 'Run it for your class',
-    secondary: 'See how it works',
   },
 
   demo: {
@@ -188,32 +186,6 @@ export default {
     },
   },
 
-  run: {
-    title: 'Run it locally',
-    lead: 'You need Python 3, Node 20 or higher, a Supabase project and an API key for a model.',
-    commands: [
-      '# backend, on :8000',
-      'cd backend',
-      'python3 -m venv .venv && source .venv/bin/activate',
-      'pip install -r requirements-dev.txt',
-      'cp .env.example .env    # Supabase, CLASS_CODE and the model keys',
-      'uvicorn app.main:app --reload',
-      '',
-      '# frontend, on :5173',
-      'cd frontend',
-      'npm install',
-      'cp .env.example .env',
-      'npm run dev',
-    ].join('\n'),
-    after:
-      'Create the tables first with `supabase/schema.sql`. The `.env` files stay out of git. Each class runs its own instance, and the backend ships as a Docker image: build, run and the cron for the pass are in the backend’s README.',
-    backendReadme: 'Backend README',
-    status: {
-      title: 'In development',
-      body: 'Next come “Ask the hive”, a chat with the notes, and forums.',
-      roadmap: 'See the roadmap',
-    },
-  },
 
   docs: {
     title: 'Documentation',
@@ -237,6 +209,7 @@ export default {
   },
 
   footer: {
+    contact: 'Questions, or want it in your class? Write to me.',
     cta: 'Bring the hive to your class.',
     primary: 'Get the code',
     license: 'Open source under the MIT license.',
@@ -245,8 +218,7 @@ export default {
 
   links: {
     repo,
-    backendReadme: `${blob}/backend/README.md`,
-    roadmap: `${blob}/ROADMAP.md`,
+    linkedin: 'https://www.linkedin.com/in/jose-est%C3%A9vez-b9b761388',
     license: `${blob}/LICENSE`,
     security: `${blob}/SECURITY.md`,
   },
