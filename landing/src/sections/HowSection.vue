@@ -16,8 +16,7 @@ import { copy } from '../i18n.js'
 
 // How the pass works, shown as a session rather than boxes and arrows (USAGE 9): a made-up,
 // shortened replay of the night that turned the two notes above into the page. AgentReplay
-// brings its own aurora, the one that follows the work. Then the README's table, and its
-// conclusion in bold.
+// brings its own aurora, the one that follows the work. Then the README's table.
 const ICONS = { gatekeeper: ShieldCheck, notes: NotebookPen, web: LayoutTemplate }
 
 const events = computed(() =>
@@ -47,6 +46,5 @@ const events = computed(() =>
       </TableBody>
     </Table>
 
-    <p class="text-lg font-semibold text-fg">{{ copy.how.conclusion }}</p>
   </LandingSection>
 </template>

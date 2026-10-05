@@ -122,7 +122,6 @@ export default {
         ['Nombres y datos privados', 'lo que hayas escrito', 'eliminados'],
       ],
     },
-    conclusion: 'Las notas en bruto no salen nunca. Solo sale el resumen.',
   },
 
   today: {

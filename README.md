@@ -54,8 +54,6 @@ what the gatekeeper lets through, and the web agent lays it out as a page.
 | What it looks like | free text and files | organized, with diagrams, tables, charts and interactive pieces |
 | Names and private data | whatever you wrote | stripped |
 
-Raw notes never go out. Only the summary does.
-
 ## What you can do today
 
 **As a student**

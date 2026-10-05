@@ -124,7 +124,6 @@ export default {
         ['Names and private data', 'whatever you wrote', 'stripped'],
       ],
     },
-    conclusion: 'Raw notes never go out. Only the summary does.',
   },
 
   today: {

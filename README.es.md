@@ -54,8 +54,6 @@ que el portero deja pasar, y el agente web la maqueta como página.
 | Cómo es | texto libre y archivos | organizada, con diagramas, tablas, gráficas y piezas interactivas |
 | Nombres y datos privados | lo que hayas escrito | eliminados |
 
-Las notas en bruto no salen nunca. Solo sale el resumen.
-
 ## Qué puedes hacer hoy
 
 **Como estudiante**
