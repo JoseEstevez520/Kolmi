@@ -247,7 +247,6 @@ export default {
     title: 'Ecosystem',
     items: [
       { title: 'elastic-ui', text: 'The component library the web is built with.', href: 'https://github.com/JoseEstevez520/elastic-ui' },
-      { title: 'ies-teis-daw2', text: 'The class repository, with its tools and the material the first pages grew from.', href: 'https://github.com/JoseEstevez520/ies-teis-daw2' },
     ],
   },
 

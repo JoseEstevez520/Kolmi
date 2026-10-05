@@ -9,7 +9,7 @@ defineProps({
 
 <template>
   <section :id="id" class="scroll-mt-20 py-12 sm:py-16" :aria-labelledby="id && title ? `${id}-title` : undefined">
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 sm:px-6">
+    <div class="mx-auto flex w-[min(100%-2rem,var(--sticky-header-max-width,64rem))] flex-col gap-6">
       <h2 v-if="title" :id="id ? `${id}-title` : undefined" class="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
         {{ title }}
       </h2>
