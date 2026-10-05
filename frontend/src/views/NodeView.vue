@@ -118,23 +118,25 @@ watch(id, load)
           :text="t('common.loading')"
           working
         />
-        <component
-          :is="openui.Renderer"
-          v-else-if="showWeb"
-          :key="id"
-          :response="web"
-          :library="openui.pageLibrary"
-          :on-error="onRenderErrors"
-        />
-        <Markdown v-else-if="content" :source="content" />
-        <Empty
-          v-else
-          :title="t('common.nothingHere')"
-          :description="t('node.pageEmpty')"
-          :icon="FileText"
-        />
-        <PageFiles :files="node?.files ?? []" />
-        <PageNav :id="id" />
+        <template v-else>
+          <component
+            :is="openui.Renderer"
+            v-if="showWeb"
+            :key="id"
+            :response="web"
+            :library="openui.pageLibrary"
+            :on-error="onRenderErrors"
+          />
+          <Markdown v-else-if="content" :source="content" />
+          <Empty
+            v-else
+            :title="t('common.nothingHere')"
+            :description="t('node.pageEmpty')"
+            :icon="FileText"
+          />
+          <PageFiles :files="node?.files ?? []" />
+          <PageNav :id="id" />
+        </template>
       </template>
 
       <template v-else>
