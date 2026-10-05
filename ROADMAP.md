@@ -47,8 +47,8 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **The gatekeeper looks before it decides** — it gets the tree as an index (with each
   node's description) and reads the pages it needs with a tool. A note can carry a hint of where
   it goes, from a quiet picker in the editor; it's a hint, not an order.
-- [x] **Notes first, then the page** — the notes agent writes the Markdown with the class repo's
-  apuntes-claros skill; the web agent makes the page from it with apuntes-web; the main model
+- [x] **Notes first, then the page** — the notes agent writes the Markdown with a writing guide
+  (apuntes-claros); the web agent makes the page from it with a page guide (apuntes-web); the main model
   draws the visuals.
 - [x] **A richer page catalogue** — elastic-ui's own parts: charts, composed diagrams, tables,
   glossaries, diffs, code walkthroughs, terminal and agent replays, cards, logos, and pieces built
@@ -77,14 +77,14 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Now
 
-- [ ] **Seed the tree** — the class's modules (DWCS, DIW, DWCC, Deployment, DASP) and Extra as
-  sections, each with a description, so the gatekeeper knows where things go. The database is
-  empty on purpose while the app is built: the real tree comes when it's ready for the class.
-- [ ] **Import the existing notes** — the class repo's notes as pages: their Markdown as it is,
-  and the web page made from it. Nothing is imported yet; it waits until the app is ready for
-  the class.
-- [x] **First real pass** — tried on 2026-10-03 with notes from the class repo, the Moodle and a
-  classmate's photos, and then cleaned up. The gatekeeper did what the plan expects in every case
+- [ ] **Seed the tree** — the class's sections, each with a description, so the gatekeeper knows
+  where things go. The database is empty on purpose while the app is built: the real tree comes
+  when it's ready for the class.
+- [ ] **Import the existing notes** — a class's notes that already exist as pages: their
+  Markdown as it is, and the web page made from it. Nothing is imported yet; it waits until the
+  app is ready for the class.
+- [x] **First real pass** — tried in October 2026 with real notes, a course's files and photos of
+  handwritten notes, and then cleaned up. The gatekeeper did what the plan expects in every case
   (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
   The plan and the results are in [docs/testing.md](docs/testing.md).
 - [ ] **Better pages** — what the test showed: pages come
@@ -167,16 +167,16 @@ What we're building and what's next. Open to whatever the class needs.
   NotebookLM notebook for that topic (the free plan takes 50
   sources per notebook). Each file is the title, where the page sits and the page's Markdown, the
   source the notes agent writes, so only the layout is lost. Links to another page in the export
-  are rewritten to its file; links and images that only meant something beside the class repo's
+  are rewritten to its file; links and images that only meant something beside the notes' original
   files become plain text, so no file points at nothing. Only shared pages go out, never raw
   notes or attachments. Cost: nothing, no model is involved.
 - [ ] **Export, the rest** — the same files with the page's data on top (title, description,
-  order, date), so an import can read them back and the class repo can keep them; that import
+  order, date), so an import can read them back and a notes repo can keep them; that import
   (which is also the "Import the existing notes" item above); a nightly copy into a private repo
-  after the pass (the class repo is public); students downloading their own raw notes; an admin
-  switch to turn the export off. And fix at the source what the export has to patch: the notes
-  agent copies links written for the class repo's files (60 of them across 24 pages, 19 matching
-  another page by title), though it is told to link as `/node/<id>`.
+  after the pass; students downloading their own raw notes; an admin switch to turn the export
+  off. And fix at the source what the export has to patch: the notes agent copies links written
+  for the notes' original files (60 of them across 24 pages in the test, 19 matching another page
+  by title), though it is told to link as `/node/<id>`.
 
 ## Later
 

@@ -126,8 +126,6 @@ La documentación está en inglés.
 
 - [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) es la librería de componentes con
   la que está hecha la web.
-- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) es el repositorio de la
-  clase, con sus herramientas y el material de donde salieron las primeras páginas.
 
 ## Licencia
 

@@ -34,13 +34,13 @@ PLAN = {
 
 def test_the_index_carries_each_description():
     nodes = [
-        {"id": 1, "parent_id": None, "kind": "section", "title": "DWCS", "position": 0,
+        {"id": 1, "parent_id": None, "kind": "section", "title": "Backend", "position": 0,
          "description": "Server-side web development: Spring, Thymeleaf"},
         {"id": 2, "parent_id": 1, "kind": "page", "title": "Scopes", "position": 0},
     ]
 
     assert build_index(nodes) == (
-        "[1] section: DWCS — Server-side web development: Spring, Thymeleaf\n"
+        "[1] section: Backend — Server-side web development: Spring, Thymeleaf\n"
         "  [2] page: Scopes"
     )
 

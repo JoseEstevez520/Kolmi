@@ -134,7 +134,7 @@ why. It isn't part of the page: the pass keeps it in `pages[].decisions`.
 Then the main model draws the page's Diagram and Artifact briefs, if it has any, with the
 page's Markdown as their data.
 
-The web prompt's preamble is the class notes site's page guide (apuntes-web), in English; the
+The web prompt's preamble is a notes site's page guide (apuntes-web), in English; the
 notes agent's prompt is its writing guide (apuntes-claros). Both live in this repo, ported by
 hand.
 

@@ -1,9 +1,9 @@
 // How the web agent should write a page. Its only import (the icon names) has none of its own,
 // so scripts/page-prompt.mjs can read it in plain Node, next to the spec the CLI writes. The
-// preamble is the class notes site's page skill (apuntes-web), in English, with only its parts
-// about a page and its pieces; the rules are what OpenUI Lang and Kolmi need on top. The brief
-// names the class language and hands over the page's notes in Markdown, already written in the
-// site's writing style (apuntes-claros).
+// preamble is a notes site's page skill (apuntes-web), in English, with only its parts about a
+// page and its pieces; the rules are what OpenUI Lang and Kolmi need on top. The brief names the
+// class language and hands over the page's notes in Markdown, already written in the writing
+// style (apuntes-claros).
 import { ICON_NAMES } from './icon-names.js'
 
 const WEB_NOTES = `You turn the page's notes, in Markdown, into one page of Kolmi, a shared class notebook, in OpenUI Lang. Follow this guide.

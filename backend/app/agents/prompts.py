@@ -57,8 +57,8 @@ Answer only with JSON in this shape:
 "node_id" is set when action is "update"; "new_page" when it is "create" ("after_node_id" only when placement is "after").
 """
 
-# The class notes site's writing skill (apuntes-claros), in English and with what only made sense
-# in that repo taken out, plus Kolmi's own paragraph and the answer's format.
+# A notes site's writing skill (apuntes-claros), in English and with what only made sense in its
+# repo taken out, plus Kolmi's own paragraph and the answer's format.
 _CLEAR_NOTES = """\
 # Clear notes
 

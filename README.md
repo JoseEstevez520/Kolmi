@@ -124,8 +124,6 @@ and the cron for the pass are in [backend/README.md](backend/README.md).
 
 - [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) is the component library the web
   is built with.
-- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) is the class repository,
-  with its tools and the material the first pages grew from.
 
 ## License
 

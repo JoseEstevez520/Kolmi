@@ -7,7 +7,7 @@ from app.export import build, plan, rewrite, slugify, to_zip
 
 NODES = [
     {"id": 1, "parent_id": None, "kind": "section", "title": "Módulos", "position": 0},
-    {"id": 2, "parent_id": 1, "kind": "section", "title": "DWCS", "position": 0},
+    {"id": 2, "parent_id": 1, "kind": "section", "title": "Backend", "position": 0},
     {"id": 3, "parent_id": 2, "kind": "page", "title": "Servicios e inyección", "position": 1,
      "content_md": "# Servicios e inyección\n\nVer [Scopes y estado](scopes-y-estado.md) y [otra](/node/5).\n"},
     {"id": 4, "parent_id": 2, "kind": "page", "title": "Scopes y estado", "position": 0,
@@ -27,8 +27,8 @@ def test_slugify_strips_accents_and_symbols():
 def test_plan_mirrors_the_tree_in_the_admins_order_and_skips_empty():
     layout = {i: path for i, (path, _) in plan(NODES).items()}
     assert layout == {
-        4: "01-modulos/01-dwcs/01-scopes-y-estado.md",
-        3: "01-modulos/01-dwcs/02-servicios-e-inyeccion.md",
+        4: "01-modulos/01-backend/01-scopes-y-estado.md",
+        3: "01-modulos/01-backend/02-servicios-e-inyeccion.md",
         5: "01-modulos/02-suelta.md",
     }
 
@@ -36,7 +36,7 @@ def test_plan_mirrors_the_tree_in_the_admins_order_and_skips_empty():
 def test_plan_scope_starts_at_the_section_and_keeps_the_trail():
     layout = plan(NODES, 2)
     assert layout[4] == ("01-scopes-y-estado.md", [])
-    assert plan(NODES)[4][1] == ["Módulos", "DWCS"]
+    assert plan(NODES)[4][1] == ["Módulos", "Backend"]
 
 
 def test_plan_unknown_scope():
@@ -46,10 +46,10 @@ def test_plan_unknown_scope():
 
 def test_links_to_pages_in_the_export_become_relative_files():
     files = build(NODES)
-    text = files["01-modulos/01-dwcs/02-servicios-e-inyeccion.md"]
+    text = files["01-modulos/01-backend/02-servicios-e-inyeccion.md"]
     assert "[Scopes y estado](01-scopes-y-estado.md)" in text  # matched by its title
     assert "[otra](../02-suelta.md)" in text  # /node/5
-    assert files["01-modulos/01-dwcs/01-scopes-y-estado.md"].count("[Servicios](02-servicios-e-inyeccion.md)") == 1
+    assert files["01-modulos/01-backend/01-scopes-y-estado.md"].count("[Servicios](02-servicios-e-inyeccion.md)") == 1
 
 
 def test_links_that_lead_nowhere_become_plain_text():
@@ -69,8 +69,8 @@ def test_code_blocks_are_left_as_written():
 
 
 def test_page_starts_with_title_and_where_it_sits_without_repeating_the_heading():
-    text = build(NODES)["01-modulos/01-dwcs/02-servicios-e-inyeccion.md"]
-    assert text.startswith("# Servicios e inyección\n\nMódulos > DWCS\n\n")
+    text = build(NODES)["01-modulos/01-backend/02-servicios-e-inyeccion.md"]
+    assert text.startswith("# Servicios e inyección\n\nMódulos > Backend\n\n")
     assert text.count("# Servicios e inyección") == 1
 
 
@@ -122,7 +122,7 @@ def test_route_returns_a_zip_for_a_member():
 
 def test_route_scoped_to_a_section_is_named_after_it():
     r = _as().get("/export", params={"node_id": 2})
-    assert r.headers["content-disposition"] == 'attachment; filename="kolmi-dwcs.zip"'
+    assert r.headers["content-disposition"] == 'attachment; filename="kolmi-backend.zip"'
     assert len(zipfile.ZipFile(io.BytesIO(r.content)).namelist()) == 2
 
 

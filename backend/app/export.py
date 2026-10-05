@@ -3,8 +3,8 @@
 The Markdown is the page's source (`content_md`, what the notes agent writes); the web page is
 drawn from it afterwards. So an export reads what is stored and packs it: no model, no cost.
 
-Links and images in that Markdown were often written for the class repo's files (`../modelos/`,
-`scopes-y-estado.md`) and mean nothing here. The export keeps what still works (external links,
+Links and images in that Markdown were often written for the notes' original files
+(`../modelos/`, `scopes-y-estado.md`) and mean nothing here. The export keeps what still works (external links,
 anchors, links to another page that is in the export, rewritten to its file) and turns the rest
 into plain text, so no file points at nothing.
 """
