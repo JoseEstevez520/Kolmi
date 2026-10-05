@@ -5,7 +5,7 @@
 <h1 align="center">Kolmi</h1>
 
 <p align="center">
-  <strong>Kolmi convierte los apuntes sueltos de cada estudiante en páginas compartidas, ordenadas y visuales, sin que nadie toque git.</strong>
+  <strong>Kolmi es un cuaderno que escribe toda la clase entre todos: cada uno deja sus apuntes y la IA los convierte en páginas ordenadas, con diagramas, gráficas y piezas interactivas.</strong>
 </p>
 
 <p align="center">
@@ -30,39 +30,49 @@
 
 ## ¿Qué es Kolmi?
 
-Una clase sabe mucho, y casi todo se queda en el cuaderno de cada uno. Compartirlo a mano exige
-saber git y un framework, así que casi nadie lo hace, aunque tenga algo que contar.
+En una clase cada uno toma sus propios apuntes y nadie tiene el cuaderno entero. Kolmi lo hace
+entre todos.
 
-Kolmi quita ese paso. Cada persona deja sus apuntes en texto libre, sin formato. Una vez al día
-la app lee los nuevos, junta los que tratan del mismo tema y escribe las páginas compartidas que
-lee toda la clase, con diagramas, tablas y gráficas en vez de un montón de texto.
+Cada persona deja lo que tiene, con sus palabras y sin formato. De noche trabaja la colmena: una
+IA lee lo nuevo, junta lo que va unido y escribe las páginas de la clase. Cada página se organiza
+como una buena guía de estudio, con un diagrama donde una idea tiene partes, una gráfica donde
+importan los números y piezas interactivas para probar cosas.
 
 > Cada uno pone una gota; la clase se queda con un panal.
+
+Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos.
 
 ## Cómo funciona
 
 Un equipo de agentes trabaja una vez al día. El portero lee cada nota nueva, quita nombres y
 datos privados, descarta lo que no aporta y decide a qué página va. El agente de notas escribe lo
-que el portero deja pasar, y el agente web lo convierte en una página.
+que el portero deja pasar, y el agente web la maqueta como página.
 
 | | Nota en bruto | Página compartida |
 |---|---|---|
 | Quién la ve | su autor y los admins, hasta que la pasada la recoge | toda la clase |
-| Cómo es | texto libre y archivos | ordenada, con diagramas, tablas y gráficas |
+| Cómo es | texto libre y archivos | organizada, con diagramas, tablas, gráficas y piezas interactivas |
 | Nombres y datos privados | lo que hayas escrito | eliminados |
 
 Las notas en bruto no salen nunca. Solo sale el resumen.
 
 ## Qué puedes hacer hoy
 
-- **Dejar notas** en texto libre, con archivos adjuntos.
-- **Leer las páginas compartidas**, que pueden llevar diagramas, tablas, gráficas y
-  reproducciones de sesiones de agentes.
-- **Recorrer el árbol de contenido de la clase**, con migas de pan, tabla de contenidos y
-  enlaces a la página anterior y a la siguiente.
-- **Lanzar la pasada nocturna** con un horario, o cuando quieras con "Run now" en Admin.
+**Como estudiante**
+
+- **Dejar una nota** en texto libre, con archivos adjuntos, cuando tengas algo que aportar.
+- **Leer las páginas de la clase**: diagramas, gráficas, tablas, reproducciones paso a paso de
+  sesiones de agentes y piezas interactivas.
+- **Moverte** con el árbol de contenido, una tabla de contenidos y enlaces a la página anterior
+  y a la siguiente.
+- **Consultar el horario de la clase.**
+- **Hacer un recorrido corto** la primera vez que entras.
+
+**Como admin**
+
+- **Lanzar la pasada nocturna** con un horario, o cuando quieras con "Run now".
 - **Revisar qué hizo la IA** en el registro: qué leyó, qué cambió y de qué notas partió.
-- **Editar el árbol** a mano en Admin: crear, renombrar, mover, reordenar y borrar.
+- **Organizar el árbol** a mano: crear, renombrar, mover, reordenar y borrar.
 - **Fijar el horario y el idioma de la clase**, español o inglés.
 
 <p align="center">
@@ -95,8 +105,8 @@ de git. Cada clase lleva su propia instancia, y el backend se publica como image
 cómo construirla, ejecutarla y programar la pasada está en [backend/README.md](backend/README.md)
 (en inglés).
 
-> **Estado: en desarrollo.** Lo siguiente es un chat con los apuntes y foros. Mira
-> [ROADMAP.md](ROADMAP.md) (en inglés).
+> **Estado: en desarrollo.** Lo siguiente es "Pregunta a la colmena", un chat con los apuntes, y
+> foros. Mira [ROADMAP.md](ROADMAP.md) (en inglés).
 
 ## Documentación
 
@@ -115,8 +125,8 @@ La documentación está en inglés.
 
 - [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) es la librería de componentes con
   la que está hecha la web.
-- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) guarda el material propio de
-  la clase. Kolmi no lo necesita para funcionar.
+- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) es el repositorio de la
+  clase, con sus herramientas y el material de donde salieron las primeras páginas.
 
 ## Licencia
 

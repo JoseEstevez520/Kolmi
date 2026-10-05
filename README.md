@@ -5,7 +5,7 @@
 <h1 align="center">Kolmi</h1>
 
 <p align="center">
-  <strong>Kolmi turns each student's loose notes into shared pages, ordered and visual, without anyone touching git.</strong>
+  <strong>Kolmi is a notebook a whole class writes together: everyone drops their notes, and an AI turns them into organized pages with diagrams, charts and interactive pieces.</strong>
 </p>
 
 <p align="center">
@@ -30,40 +30,50 @@
 
 ## What is Kolmi?
 
-A class knows a lot, and most of it stays in each person's notebook. Sharing it by hand means
-knowing git and a framework, so most people don't, even when they have something to say.
+In a class, everyone takes their own notes, and nobody has the whole notebook. Kolmi makes one,
+together.
 
-Kolmi removes that step. Everyone leaves their notes in free text, with no format. Once a day
-the app reads the new ones, joins those about the same topic and writes the shared pages the
-whole class reads, with diagrams, tables and charts instead of a pile of text.
+Everyone drops what they have, in their own words and in no particular format. At night the hive
+works: an AI reads what is new, joins what belongs together and writes the class's pages. Each
+page is laid out like a good study guide, with a diagram where an idea has parts, a chart where
+numbers matter and small interactive pieces to try things out.
 
 > Everyone adds a drop; the class ends up with honeycomb.
+
+Kolmi is for one class. Each class runs its own copy, with its own data.
 
 ## How it works
 
 A team of agents runs once a day. The gatekeeper reads each new note, strips names and private
 data, discards what adds nothing and decides which page it belongs to. The notes agent writes
-what the gatekeeper lets through, and the web agent turns it into a page.
+what the gatekeeper lets through, and the web agent lays it out as a page.
 
 | | Raw note | Shared page |
 |---|---|---|
 | Who sees it | its author and the admins, until the pass takes it | the whole class |
-| What it looks like | free text and files | ordered, with diagrams, tables and charts |
+| What it looks like | free text and files | organized, with diagrams, tables, charts and interactive pieces |
 | Names and private data | whatever you wrote | stripped |
 
 Raw notes never go out. Only the summary does.
 
 ## What you can do today
 
-- **Leave notes** in free text, with files attached.
-- **Read the shared pages**, which can hold diagrams, tables, charts and replays of agent
-  sessions.
-- **Browse the class's content tree**, with breadcrumbs, a table of contents and links to the
-  previous and next page.
-- **Run the nightly pass** on a schedule, or on demand with "Run now" in Admin.
+**As a student**
+
+- **Drop a note** in free text, with files attached, whenever you have something to add.
+- **Read the class's pages**: diagrams, charts, tables, step-by-step replays of agent sessions
+  and interactive pieces.
+- **Find your way** with the content tree, a table of contents and links to the previous and
+  next page.
+- **Check the class timetable.**
+- **Take a short tour** the first time you sign in.
+
+**As an admin**
+
+- **Run the nightly pass** on a schedule, or on demand with "Run now".
 - **Check what the AI did** in the AI log: what it read, what it changed and the notes it worked
   from.
-- **Edit the tree** by hand in Admin: create, rename, move, reorder and delete.
+- **Organize the tree** by hand: create, rename, move, reorder and delete.
 - **Set the class's timetable and language**, Spanish or English.
 
 <p align="center">
@@ -95,7 +105,7 @@ Create the tables first with [supabase/schema.sql](supabase/schema.sql). The `.e
 out of git. Each class runs its own instance, and the backend ships as a Docker image: build, run
 and the cron for the pass are in [backend/README.md](backend/README.md).
 
-> **Status: in development.** Next come a chat with the notes and forums. See
+> **Status: in development.** Next come "Ask the hive", a chat with the notes, and forums. See
 > [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
@@ -113,8 +123,8 @@ and the cron for the pass are in [backend/README.md](backend/README.md).
 
 - [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) is the component library the web
   is built with.
-- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) holds the class's own
-  material. Kolmi doesn't need it to run.
+- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) is the class repository,
+  with its tools and the material the first pages grew from.
 
 ## License
 
