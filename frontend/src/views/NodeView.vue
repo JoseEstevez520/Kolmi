@@ -9,7 +9,7 @@ import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import PageFiles from '../components/PageFiles.vue'
 import PageNav from '../components/PageNav.vue'
-import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode } from '../lib/content.js'
+import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode, trailTo } from '../lib/content.js'
 import { iconByName } from '../lib/icons.js'
 import { loadPageRenderer } from '../lib/openui/load.js'
 
@@ -71,11 +71,25 @@ watch(
   { immediate: true },
 )
 
+// Once a page is open, the others in its section are read in the background, a moment later so
+// the page itself goes first. Over a real network each one waits on a round trip, which shows as
+// "Loading…" at every step; read ahead, going to the next page finds it already here.
+let readAheadTimer
+function readAhead() {
+  clearTimeout(readAheadTimer)
+  readAheadTimer = setTimeout(() => {
+    const level = trailTo(id.value, nodes.value).at(-1)?.level ?? []
+    for (const sibling of level) if (sibling.id !== id.value) prefetchNode(sibling.id)
+  }, 400)
+}
+
 async function load() {
   error.value = ''
   missing.value = false
   try {
     await loadNode(id.value)
+    await loadNodes().catch(() => {})
+    readAhead()
   } catch (e) {
     if (e.status === 404 || e.status === 422) missing.value = true
     else error.value = e.message || t('node.error')
