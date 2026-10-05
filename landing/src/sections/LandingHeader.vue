@@ -1,4 +1,5 @@
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Button, IconLink, IconLinks, StickyHeader, ThemeToggle } from 'elastic-ui'
 import { siGithub } from 'simple-icons'
 import LocaleToggle from '../components/LocaleToggle.vue'
@@ -6,10 +7,19 @@ import { copy } from '../i18n.js'
 
 // The landing's bar: a page without a sidebar that wants a quiet bar (USAGE 15), held at the
 // top over a blur. The links fold away on a phone; the language, the code and the theme stay.
+// At the top it is clear, the hero's honey right through it; once the page moves it takes the
+// library's own veil of the page's colour, as its hairline comes in (the same 1px threshold).
+const scrolled = ref(false)
+const update = () => (scrolled.value = window.scrollY > 1)
+onMounted(() => {
+  update()
+  window.addEventListener('scroll', update, { passive: true })
+})
+onBeforeUnmount(() => window.removeEventListener('scroll', update))
 </script>
 
 <template>
-  <StickyHeader :label="copy.nav.label">
+  <StickyHeader :label="copy.nav.label" :style="scrolled ? undefined : { '--sticky-header-bg': 'transparent' }">
     <template #logo>
       <a href="#top" class="flex items-center gap-2 rounded-md text-fg">
         <img src="/logo.svg" alt="" width="24" height="24" class="size-6" />

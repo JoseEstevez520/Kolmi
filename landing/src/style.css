@@ -18,9 +18,6 @@
   --aurora-2: light-dark(oklch(0.68 0.16 50 / 0.7), oklch(0.56 0.17 50 / 0.65));
   --aurora-3: light-dark(oklch(0.86 0.1 90 / 0.75), oklch(0.68 0.12 90 / 0.5));
   --aurora-4: light-dark(oklch(0.82 0.14 85 / 0.6), oklch(0.64 0.15 85 / 0.5));
-
-  /* The header is glass: a light veil of the page over its blur, so the hero's honey shows. */
-  --sticky-header-bg: color-mix(in srgb, var(--color-bg) 30%, transparent);
 }
 
 html {
