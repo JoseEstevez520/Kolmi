@@ -27,6 +27,8 @@ in its own repo.
   related notes) and let it decide, the way the gatekeeper already reads a page before judging a
   note. The cost is real (more context, less predictable) and worth watching per pass, but it's
   not a reason to withhold the context or the judgment.
-- **Everything in this repo is in English** (code, comments, docs, commits).
+- **Everything in this repo is in English** (code, comments, docs, commits), except
+  `README.es.md`, the Spanish translation of the README. The README always ships in both
+  languages: edit one and the other in the same commit.
 - **Personal setup is local.** This developer's own server, Supabase and deploy details live
   in `LOCAL.md` (gitignored). If it exists, read it for the instance-specific context.

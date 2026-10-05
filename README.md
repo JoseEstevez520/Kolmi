@@ -1,59 +1,72 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="Kolmi" width="120">
+  <img src="assets/logo.svg" alt="Kolmi" width="104">
 </p>
 
 <h1 align="center">Kolmi</h1>
 
-<p align="center"><strong>Learn as a hive.</strong></p>
-
-Kolmi is a collaboration app for a class. Everyone takes their own notes, and Kolmi turns them
-into pages the whole class can read: well ordered, with diagrams and tables, not a pile of text.
-Nobody has to learn git or a framework to take part.
-
 <p align="center">
-  <img src="docs/screenshots/diagram.png" alt="A page written by Kolmi, with a diagram of four agent roles and what each one may do" width="860">
+  <strong>Kolmi turns each student's loose notes into shared pages, ordered and visual, without anyone touching git.</strong>
 </p>
 
-<p align="center"><sub>A page the hive wrote from the class's notes. The diagram is part of the page.</sub></p>
+<p align="center">
+  For one class, self-hosted.
+</p>
 
-## How it works
+<p align="center">
+  <a href="docs/idea.md"><img src="https://img.shields.io/badge/Docs-Read-2563eb?style=flat-square&logo=readthedocs&logoColor=white" alt="Kolmi documentation"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square&logo=opensourceinitiative&logoColor=white" alt="MIT license"></a>
+</p>
 
-1. **You leave a note.** Free text, whenever you have something to add: a note, a doubt, an
-   answer.
-2. **Kolmi works at night.** Once a day a team of agents reads the new notes, joins the ones
-   about the same topic and strips names and private data.
-3. **The class reads the result.** The notes become shared pages, in the class's language.
+<p align="center">
+  <a href="#run-it-locally">Run locally</a> ·
+  <a href="README.es.md">Español</a>
+</p>
 
-Raw notes stay private. Only the summary goes out.
+<p align="center">
+  <img src="assets/readme/diagram.png" alt="A page written by Kolmi, with a diagram of four agent roles and what each one may do" width="100%">
+</p>
+
+## What is Kolmi?
+
+A class knows a lot, and most of it stays in each person's notebook. Sharing it by hand means
+knowing git and a framework, so most people don't, even when they have something to say.
+
+Kolmi removes that step. Everyone leaves their notes in free text, with no format. Once a day
+the app reads the new ones, joins those about the same topic and writes the shared pages the
+whole class reads, with diagrams, tables and charts instead of a pile of text.
 
 > Everyone adds a drop; the class ends up with honeycomb.
 
-## What a page can hold
+## How it works
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/replay.png" alt="An agent session replayed step by step: the request, the files it read and edited, and its answer"></td>
-    <td width="50%"><img src="docs/screenshots/chart.png" alt="A scatter chart of quality against cost per task, on a logarithmic axis"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>A session you can play or step through.</sub></td>
-    <td align="center"><sub>A chart with real axes.</sub></td>
-  </tr>
-</table>
+A team of agents runs once a day. The gatekeeper reads each new note, strips names and private
+data, discards what adds nothing and decides which page it belongs to. The notes agent writes
+what the gatekeeper lets through, and the web agent turns it into a page.
 
-## Where it's going
+| | Raw note | Shared page |
+|---|---|---|
+| Who sees it | its author and the admins, until the pass takes it | the whole class |
+| What it looks like | free text and files | ordered, with diagrams, tables and charts |
+| Names and private data | whatever you wrote | stripped |
 
-Notes are the first way to contribute. Next come a chat with the notes, forums and whatever
-else the class needs. See [ROADMAP.md](ROADMAP.md).
+Raw notes never go out. Only the summary does.
 
-## Self-hosting
+## What you can do today
 
-Each class runs its own instance: a small server and a Supabase project. Nothing is shared
-between classes. The backend ships as a Docker image; build, run and the cron that runs the
-pass are in [backend/README.md](backend/README.md).
+- **Leave notes** in free text, with files attached.
+- **Read the shared pages**, which can hold diagrams, tables, charts and replays of agent
+  sessions.
+- **Browse the class's content tree**, with breadcrumbs, a table of contents and links to the
+  previous and next page.
+- **Run the nightly pass** on a schedule, or on demand with "Run now" in Admin.
+- **Check what the AI did** in the AI log: what it read, what it changed and the notes it worked
+  from.
+- **Edit the tree** by hand in Admin: create, rename, move, reorder and delete.
+- **Set the class's timetable and language**, Spanish or English.
 
-To try it locally you need Python 3, Node 20 or higher, a Supabase project and an API key for
-a model:
+## Run it locally
+
+You need Python 3, Node 20 or higher, a Supabase project and an API key for a model.
 
 ```bash
 # backend, on :8000
@@ -71,32 +84,30 @@ npm run dev
 ```
 
 Create the tables first with [supabase/schema.sql](supabase/schema.sql). The `.env` files stay
-out of git.
+out of git. Each class runs its own instance, and the backend ships as a Docker image: build, run
+and the cron for the pass are in [backend/README.md](backend/README.md).
 
-## Status
+> **Status: in development.** Next come a chat with the notes and forums. See
+> [ROADMAP.md](ROADMAP.md).
 
-In development. Login, notes with files, the content tree, the admin panel with the AI log, the
-class timetable and the nightly pass all work.
+## Documentation
 
-## Docs
+- [The idea](docs/idea.md): the problem, the team of agents and why raw notes stay private.
+- [Authentication and users](docs/authentication.md): accounts, roles and the class code.
+- [Features and actions](docs/features.md): what the app does and how each action is built.
+- [Page format](docs/page-format.md): how a page goes from the pass to the screen.
+- [Testing with real cases](docs/testing.md): the plan for trying it before the class does.
+- [Data and privacy](docs/privacy.md): what is stored, who sees it and what leaves the instance.
+- [Brand tone](docs/brand-tone.md): how Kolmi sounds.
 
-- [The idea](docs/idea.md)
-- [Authentication and users](docs/authentication.md)
-- [Features and actions](docs/features.md)
-- [Page format](docs/page-format.md)
-- [Testing with real cases](docs/testing.md)
-- [Data and privacy](docs/privacy.md)
-- [Brand tone](docs/brand-tone.md)
+## Ecosystem
 
-## Structure
-
-```
-backend/   - Python + FastAPI API
-frontend/  - Vue 3 + Vite web
-docs/      - the idea, specs and brand tone
-assets/    - logo and other resources
-```
+- [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) is the component library the web
+  is built with.
+- [ies-teis-daw2](https://github.com/JoseEstevez520/ies-teis-daw2) holds the class's own
+  material. Kolmi doesn't need it to run.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Kolmi is open source under the [MIT license](LICENSE). Security issues should follow
+[SECURITY.md](SECURITY.md), never a public issue.
