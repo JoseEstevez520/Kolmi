@@ -161,6 +161,19 @@ What we're building and what's next. Open to whatever the class needs.
   tool-calling with a judgment call of its own, not a plain request-response, so it's LangGraph
   from the start (`AGENTS.md`), unlike the plain Q&A chat above. A thread it turns into a page
   shows that in place with `Status`, so whoever asked sees it was worth something.
+- [ ] **Take the notebook with you: export as Markdown.** The class's shared pages as plain
+  files, from one exporter with three uses. A **download** for a member of the class: a folder
+  that mirrors the tree, one `.md` per page with its title, section and date on top. A **bundle
+  for NotebookLM** (or any tool that caps its sources): one `.md` per section instead of per
+  page, since NotebookLM's free plan takes 50 sources per notebook and a class has more pages
+  than that. And a **nightly mirror** into the class repo, so the repo keeps a plain copy of
+  what Kolmi holds; to a private repo, because the class repo is public. It exports each page's
+  Markdown, the text-first version the notes agent already writes, so diagrams, charts and
+  interactive pieces come out as their text only, and the download should say so. Only shared
+  pages ever go out, never raw notes, and only to someone signed in to the class. What a
+  student does with the files afterwards is theirs to decide (NotebookLM sends them to Google),
+  and `docs/privacy.md` should say it. Open: whether any student can download or only the
+  admins, and whether attachments travel inside the zip.
 
 ## Later
 
