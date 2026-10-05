@@ -34,8 +34,8 @@ has them.
 
 ## What a student can take
 
-Anyone in the class can download the shared pages as Markdown files (Settings, or a section's
-page). Those are the pages the pass wrote, without names; raw notes and attachments are not in
+Anyone in the class can download a section's shared pages as Markdown files, from the
+section's page. Those are the pages the pass wrote, without names; raw notes and attachments are not in
 the export. What a student does with the files after that is theirs to decide: uploading them to
 a service like NotebookLM sends them to that service, under its own terms.
 

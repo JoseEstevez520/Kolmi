@@ -3,7 +3,7 @@
 // `|` are special, so they are not used as plain characters here.
 export default {
   app: {
-    title: 'Kolmi · Learn as a hive',
+    title: 'Kolmi',
     slogan: 'Learn as a hive.',
     openMenu: 'Open the menu',
   },
@@ -66,13 +66,10 @@ export default {
     tour: 'Guided tour',
     replayTour: 'Show it again',
     savedHere: 'Saved in this browser only.',
-    notebook: 'The notebook',
-    notebookHint: "All the class's pages as Markdown files, one per page, to keep or to upload to NotebookLM.",
   },
 
   export: {
-    all: 'Download all',
-    section: 'Download this section',
+    section: 'Download',
     done: 'Downloaded',
     error: 'Could not download',
   },

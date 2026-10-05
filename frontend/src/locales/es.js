@@ -2,7 +2,7 @@
 // class, not translated word for word.
 export default {
   app: {
-    title: 'Kolmi · Aprende en colmena',
+    title: 'Kolmi',
     slogan: 'Aprende en colmena.',
     openMenu: 'Abrir el menú',
   },
@@ -63,13 +63,10 @@ export default {
     tour: 'Visita guiada',
     replayTour: 'Volver a verla',
     savedHere: 'Se guarda solo en este navegador.',
-    notebook: 'El cuaderno',
-    notebookHint: 'Todas las páginas de la clase en archivos Markdown, uno por página, para guardarlas o subirlas a NotebookLM.',
   },
 
   export: {
-    all: 'Descargar todo',
-    section: 'Descargar esta sección',
+    section: 'Descargar',
     done: 'Descargado',
     error: 'No se ha podido descargar',
   },

@@ -162,8 +162,9 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **Take the notebook with you: export as Markdown** — any member downloads the class's
   shared pages as a zip, one `.md` per page, folders mirroring the tree and numbered in the
   admin's order (`GET /export`, optionally `?node_id=` for one section; `backend/app/export.py`).
-  A "Download all" in Settings and a "Download this section" under each section's cards; a
-  section's zip is what goes into a NotebookLM notebook for that topic (the free plan takes 50
+  A quiet "Download this section" beside each section's title (the route also takes no section,
+  for the whole notebook, which the nightly copy will use); a section's zip is what goes into a
+  NotebookLM notebook for that topic (the free plan takes 50
   sources per notebook). Each file is the title, where the page sits and the page's Markdown, the
   source the notes agent writes, so only the layout is lost. Links to another page in the export
   are rewritten to its file; links and images that only meant something beside the class repo's
