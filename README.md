@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/before-after.png" alt="Two loose notes about Docker on the left, and on the right the shared page Kolmi wrote from them, ordered into sections with code blocks" width="100%">
+  <img src="assets/readme/before-after.en.png" alt="Two loose notes about CI/CD on the left, and on the right the shared page Kolmi wrote from them, with a flow diagram and sections" width="100%">
 </p>
 
 <p align="center"><sub>Two loose notes in, one page out. This one is a real run of the nightly pass.</sub></p>
@@ -67,10 +67,10 @@ Raw notes never go out. Only the summary does.
 - **Set the class's timetable and language**, Spanish or English.
 
 <p align="center">
-  <img src="assets/readme/diagram.png" alt="A page written by Kolmi, with a diagram of four agent roles and what each one may do" width="100%">
+  <img src="assets/readme/page.en.png" alt="Part of a page written by Kolmi: a short explanation, a YAML file in a code block and a note on what it does" width="720">
 </p>
 
-<p align="center"><sub>A page can hold more than text. The diagram is part of the page.</sub></p>
+<p align="center"><sub>A page can hold more than text: diagrams, code you can copy, numbered steps.</sub></p>
 
 ## Run it locally
 

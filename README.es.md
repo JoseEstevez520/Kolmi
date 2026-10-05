@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/before-after.png" alt="Dos notas sueltas sobre Docker a la izquierda y, a la derecha, la página compartida que Kolmi escribió con ellas, ordenada en secciones con bloques de código" width="100%">
+  <img src="assets/readme/before-after.es.png" alt="Dos notas sueltas sobre CI/CD a la izquierda y, a la derecha, la página compartida que Kolmi escribió con ellas, con un diagrama de flujo y secciones" width="100%">
 </p>
 
 <p align="center"><sub>Dos notas sueltas entran, una página sale. Es una pasada nocturna real.</sub></p>
