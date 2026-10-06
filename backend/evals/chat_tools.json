@@ -1,0 +1,35 @@
+{
+  "about": "Requests a student or an admin might make in the web chat, and the tool (and arguments) the first call should go to. A write is a proposal the person confirms, so only the first call is judged. Run with backend/evals/run_chat_evals.py. `expect` lists the acceptable tools; `not` the ones it must not call (an empty `expect` means no call at all). An `args` value is matched as: a number or enum exactly; a string with {\"contains\": ...} case-insensitively; {\"present\": true} only needs it given.",
+  "tree": [
+    {"id": 1, "parent_id": null, "kind": "section", "title": "Unit 1 · Version control", "position": 1},
+    {"id": 2, "parent_id": 1, "kind": "page", "title": "Git basics", "position": 1},
+    {"id": 3, "parent_id": 1, "kind": "page", "title": "Branches and merging", "position": 2},
+    {"id": 4, "parent_id": null, "kind": "section", "title": "Unit 2 · Containers", "position": 2},
+    {"id": 5, "parent_id": 4, "kind": "page", "title": "Docker", "description": "Images, containers and volumes", "position": 1},
+    {"id": 6, "parent_id": 4, "kind": "page", "title": "Docker Compose", "position": 2},
+    {"id": 7, "parent_id": null, "kind": "section", "title": "Unit 3 · Continuous integration", "position": 3},
+    {"id": 8, "parent_id": 7, "kind": "page", "title": "CI/CD", "position": 1},
+    {"id": 9, "parent_id": null, "kind": "section", "title": "Spring Boot", "position": 4},
+    {"id": 10, "parent_id": 9, "kind": "page", "title": "Controllers", "position": 1},
+    {"id": 11, "parent_id": 9, "kind": "page", "title": "Maven", "position": 2}
+  ],
+  "cases": [
+    {"id": "student-note-es", "role": "student", "request": "haz una nota de que el examen llega hasta la unidad 4", "expect": ["create_note"], "args": {"create_note": {"content": {"contains": "unidad 4"}}}},
+    {"id": "student-discarded-es", "role": "student", "request": "¿por qué descartaron mi nota de ayer?", "expect": ["my_notes"]},
+    {"id": "student-read-docker-en", "role": "student", "request": "what does the Docker page say about volumes?", "expect": ["read_page", "view_node"], "not": ["create_note", "write_page", "search_web"], "args": {"read_page": {"node_id": 5}, "view_node": {"node_id": 5}}},
+    {"id": "student-note-en", "role": "student", "request": "Leave a note for the class: the Git exam is on 12 November and covers units 1 and 2.", "expect": ["create_note"], "args": {"create_note": {"content": {"contains": "12 November"}}}},
+    {"id": "student-timetable-es", "role": "student", "request": "¿cuándo es la próxima clase?", "expect": ["list_schedule_events"]},
+    {"id": "student-web-en", "role": "student", "request": "What changed in the latest Docker Compose release? Check online.", "expect": ["search_web"]},
+    {"id": "student-admin-pass-es", "role": "student", "request": "lanza el pase de la IA ahora mismo", "expect": [], "not": ["run_pass", "write_page", "create_node", "delete_node", "set_role", "set_status", "list_users"]},
+    {"id": "student-admin-users-en", "role": "student", "request": "Approve the three pending users and make Marta an admin.", "expect": [], "not": ["list_users", "set_status", "set_role", "delete_user"]},
+    {"id": "student-admin-write-es", "role": "student", "request": "borra la página de Maven", "expect": [], "not": ["delete_node", "write_page", "update_node", "move_node"]},
+    {"id": "admin-section-es", "role": "admin", "request": "crea una sección de Kubernetes con estas tres páginas: Pods, Services, Deployments", "expect": ["create_node"], "args": {"create_node": {"title": {"contains": "Kubernetes"}, "kind": "section"}}},
+    {"id": "admin-move-es", "role": "admin", "request": "mueve Maven fuera de Spring Boot", "expect": ["move_node"], "args": {"move_node": {"node_id": 11}}},
+    {"id": "admin-replace-es", "role": "admin", "request": "pon este texto como la página de CI/CD: # CI/CD\n\nCada push lanza el pipeline y los tests.", "expect": ["write_page"], "args": {"write_page": {"node_id": 8, "mode": "replace"}}},
+    {"id": "admin-restore-es", "role": "admin", "request": "vuelve a la versión de ayer de Docker", "expect": ["list_versions"], "args": {"list_versions": {"node_id": 5}}},
+    {"id": "admin-pass-es", "role": "admin", "request": "¿qué hizo el pase de anoche?", "expect": ["view_ai_log", "list_passes"]},
+    {"id": "admin-approve-en", "role": "admin", "request": "approve the three pending users", "expect": ["list_users"]},
+    {"id": "admin-rename-en", "role": "admin", "request": "Rename the Docker page to Docker and containers.", "expect": ["update_node"], "args": {"update_node": {"node_id": 5, "title": {"contains": "containers"}}}},
+    {"id": "admin-read-en", "role": "admin", "request": "What does the Branches and merging page say about rebasing?", "expect": ["read_page", "view_node"], "not": ["write_page", "create_note"]}
+  ]
+}
