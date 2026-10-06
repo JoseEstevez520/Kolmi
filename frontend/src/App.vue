@@ -20,7 +20,7 @@ import {
 } from 'elastic-ui'
 import AppBreadcrumbs from './components/AppBreadcrumbs.vue'
 import AppSidebar from './components/AppSidebar.vue'
-import { profile, session } from './lib/auth.js'
+import { isWaiting, profile, session } from './lib/auth.js'
 import {
   activity,
   chatEnabled,
@@ -49,8 +49,13 @@ const route = useRoute()
 const router = useRouter()
 const withSidebar = computed(() => route.meta.layout === 'app' && Boolean(session.value))
 
-// Whether the admin turned the chat on is read once, as soon as there's a session.
-watch(session, (value) => value && chatEnabled.value === null && loadChatEnabled(), { immediate: true })
+// Whether the admin turned the chat on is read once, as soon as someone who has been let in is
+// signed in: a person still waiting (or blocked) would only get a 403 from the settings.
+watch(
+  () => Boolean(session.value && profile.value && !isWaiting(profile.value)),
+  (letIn) => letIn && chatEnabled.value === null && loadChatEnabled(),
+  { immediate: true },
+)
 
 // A step on another page sends the tour there first, and `beforeStep` waits for the route to
 // settle before the new target is measured. Tour calls this for its current step as soon as it

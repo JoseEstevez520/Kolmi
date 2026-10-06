@@ -30,6 +30,12 @@ supabase.auth.onAuthStateChange((_event, next) => {
   if (!next) profile.value = null
 })
 
+// Whether the signed-in person has been let in. A profile with no status (an older backend)
+// counts as active, so only a clear "pending" or "blocked" keeps someone out.
+export function isWaiting(current) {
+  return Boolean(current?.status) && current.status !== 'active'
+}
+
 export function accessToken() {
   return session.value?.access_token ?? null
 }

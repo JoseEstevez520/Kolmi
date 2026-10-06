@@ -123,6 +123,22 @@ export default {
     back: 'Back to sign in',
   },
 
+  waiting: {
+    pendingTitle: 'Waiting to be let in',
+    pending: 'An admin of the class has to let you in. You can close this and come back later.',
+    blockedTitle: 'Your account is blocked',
+    blocked: 'An admin of the class has blocked your account. Ask one of them to let you back in.',
+    checkAgain: 'Check again',
+    stillPending: 'Not yet: still waiting for an admin.',
+    stillBlocked: 'Your account is still blocked.',
+    signOut: 'Sign out',
+    deleteTitle: 'Delete my account',
+    deleteHint: 'Removes your account for good.',
+    delete: 'Delete my account',
+    confirm: 'Delete',
+    error: 'Could not check your account.',
+  },
+
   home: {
     lead: 'Learn as a hive. Everything the class shares, in one place.',
     empty: 'An admin can put a section or a page on the home.',

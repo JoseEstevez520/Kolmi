@@ -120,6 +120,22 @@ export default {
     back: 'Volver a entrar',
   },
 
+  waiting: {
+    pendingTitle: 'Esperando a que te dejen entrar',
+    pending: 'Un admin de la clase tiene que dejarte entrar. Puedes cerrar esto y volver más tarde.',
+    blockedTitle: 'Tu cuenta está bloqueada',
+    blocked: 'Un admin de la clase ha bloqueado tu cuenta. Pídele a alguno que te deje volver a entrar.',
+    checkAgain: 'Comprobar de nuevo',
+    stillPending: 'Todavía no: sigues esperando a un admin.',
+    stillBlocked: 'Tu cuenta sigue bloqueada.',
+    signOut: 'Cerrar sesión',
+    deleteTitle: 'Borrar mi cuenta',
+    deleteHint: 'Elimina tu cuenta para siempre.',
+    delete: 'Borrar mi cuenta',
+    confirm: 'Borrar',
+    error: 'No se pudo comprobar tu cuenta.',
+  },
+
   home: {
     lead: 'Aprende en colmena. Todo lo que comparte la clase, en un solo sitio.',
     empty: 'Desde Administración se pueden poner aquí secciones y páginas.',

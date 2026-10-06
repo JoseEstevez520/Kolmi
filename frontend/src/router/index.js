@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authReady, loadProfile, session } from '../lib/auth.js'
+import { authReady, isWaiting, loadProfile, session } from '../lib/auth.js'
 import AdminLogView from '../views/AdminLogView.vue'
 import AdminView from '../views/AdminView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -10,6 +10,7 @@ import NoteWriteView from '../views/NoteWriteView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ScheduleView from '../views/ScheduleView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import WaitingView from '../views/WaitingView.vue'
 
 // After signing in, ask the backend for the profile: a 404 sends the user to
 // Register, anything else to the home.
@@ -17,6 +18,9 @@ const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { layout: 'app' } },
   { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/register', name: 'register', component: RegisterView, meta: { public: true } },
+  // Signed in but not let in (pending or blocked): the only screen such a person gets. It needs a
+  // session, so it is not public, and it has no sidebar.
+  { path: '/waiting', name: 'waiting', component: WaitingView },
   { path: '/notes', name: 'notes', component: NotesView, meta: { layout: 'app' } },
   // Writing one: a new note (`new`), or one of yours until the daily pass takes it. One route,
   // kept as one page (`meta.page`), so a new note taking its id in the URL doesn't reload it.
@@ -74,7 +78,11 @@ router.beforeEach(async (to) => {
   if (!current) {
     return to.name === 'register' ? true : { name: 'register' }
   }
-  if (to.name === 'login' || to.name === 'register') {
+  // Someone waiting or blocked reaches nothing but the waiting screen and login.
+  if (isWaiting(current)) {
+    return to.name === 'waiting' || to.name === 'login' ? true : { name: 'waiting' }
+  }
+  if (to.name === 'waiting' || to.name === 'login' || to.name === 'register') {
     return { name: 'home' }
   }
   if (to.meta.admin && current.role !== 'admin') {
