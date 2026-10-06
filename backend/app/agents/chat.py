@@ -56,7 +56,7 @@ def run_chat(
     `passages` are the chunks a search by meaning found closest to the question ({node_id, heading,
     content}), put before it; with them the index can be shortened, since they carry the content.
     """
-    system = chat_system(language) + (f"\n\n{CHAT_ACTIONS}" if actions else "")
+    system = chat_system(language)
     when = f"\n\nToday: {today}" if today else ""
     timetable = f"\n\nTimetable:\n{schedule}" if schedule else ""
     index = build_index(nodes)
@@ -81,6 +81,9 @@ def run_chat(
         found = "\n\nPassages:\n\n" + "\n\n".join(parts)
     user = f"Tree:\n{index}{when}{timetable}{found}\n\nQuestion: {question}"
 
+    # The actions are told about only to the loop that can offer them: the answer from the index
+    # alone has none, and would claim to have proposed what it can't.
+    loop_system = system + (f"\n\n{CHAT_ACTIONS}" if actions else "")
     with_tools = getattr(llm, "complete_with_tools", None)
     if with_tools is not None and read_page is not None:
         reads: list[int] = []
@@ -90,7 +93,7 @@ def run_chat(
         run_search = search_tool(search, queries) if search is not None else None
         run_tool = _combined_tool(read_page_tool(nodes, read_page, reads), run_search, run_action)
         try:
-            raw = with_tools(system, user, tools, run_tool)
+            raw = with_tools(loop_system, user, tools, run_tool)
             return ChatAnswer.model_validate(raw)
         except Exception as exc:  # answer from the index alone rather than fail the question
             log.warning("chat tool loop failed, answering from the index: %s", exc)

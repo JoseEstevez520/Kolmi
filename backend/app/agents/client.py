@@ -32,6 +32,20 @@ class LLM(Protocol):
 # the model is asked to answer with what it has.
 MAX_TOOL_ROUNDS = 50
 STOP_TOOLS = "No more tool calls. Answer now with the JSON, with what you have."
+MAX_EMPTY_ANSWERS = 2
+EMPTY_ANSWER = (
+    "Your last message had no answer in it. Call a tool if you still need one, or answer now "
+    "with the JSON object."
+)
+
+
+def _json_object(content: str | None) -> dict[str, Any] | None:
+    """The model's reply as a JSON object, or None when it is blank or isn't one."""
+    try:
+        value = json.loads(content or "")
+    except ValueError:
+        return None
+    return value if isinstance(value, dict) else None
 
 
 class OpenAILLM:
@@ -72,6 +86,7 @@ class OpenAILLM:
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ]
+        empty_answers = 0
         for _ in range(MAX_TOOL_ROUNDS):
             response = self._client.chat.completions.create(
                 model=self.model,
@@ -82,7 +97,16 @@ class OpenAILLM:
             )
             message = response.choices[0].message
             if not message.tool_calls:
-                return json.loads(message.content or "{}")
+                answer = _json_object(message.content)
+                if answer is not None:
+                    return answer
+                # JSON mode sometimes answers with nothing but blanks after a tool's result: ask
+                # again, a couple of times, before giving up.
+                empty_answers += 1
+                if empty_answers > MAX_EMPTY_ANSWERS:
+                    raise ValueError("the model answered without a JSON object")
+                messages.append({"role": "user", "content": EMPTY_ANSWER})
+                continue
             messages.append(message.model_dump(exclude_none=True))
             for call in message.tool_calls:
                 try:

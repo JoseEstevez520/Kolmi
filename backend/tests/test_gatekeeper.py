@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
 from app.agents import client as client_module
 from app.agents.client import OpenAILLM
 from app.agents.gatekeeper import build_index, run_gatekeeper
@@ -149,3 +151,44 @@ def test_a_loop_that_never_ends_is_cut_and_still_answers(monkeypatch):
     assert len(ran) == 5
     assert len(completions.requests) == 6 and "tools" not in completions.requests[-1]
     assert completions.requests[-1]["messages"][-1]["content"] == client_module.STOP_TOOLS
+
+
+class _Blank:
+    """An endpoint whose first replies are only blanks, as JSON mode sometimes does."""
+
+    def __init__(self, blanks: int) -> None:
+        self.blanks = blanks
+        self.requests: list[dict] = []
+
+    def create(self, **kwargs):
+        self.requests.append(kwargs)
+        if len(self.requests) <= self.blanks:
+            message = _message(content="      ")
+        else:
+            message = _message(content='{"answer": "ok", "sources": []}')
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+
+def _llm(completions) -> OpenAILLM:
+    llm = OpenAILLM.__new__(OpenAILLM)
+    llm.model = "fake"
+    llm._client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+    return llm
+
+
+def test_a_blank_reply_is_asked_again():
+    completions = _Blank(blanks=2)
+
+    answer = _llm(completions).complete_with_tools("sys", "user", [], lambda name, args: "ok")
+
+    assert answer == {"answer": "ok", "sources": []}
+    assert completions.requests[-1]["messages"][-1]["content"] == client_module.EMPTY_ANSWER
+
+
+def test_blank_replies_past_a_few_give_up():
+    completions = _Blank(blanks=10)
+
+    with pytest.raises(ValueError):
+        _llm(completions).complete_with_tools("sys", "user", [], lambda name, args: "ok")
+
+    assert len(completions.requests) == client_module.MAX_EMPTY_ANSWERS + 1

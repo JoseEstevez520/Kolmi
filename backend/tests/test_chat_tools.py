@@ -447,3 +447,22 @@ def test_the_chat_proposes_at_most_a_few_changes_on_one_answer():
         run("create_note", {"content": f"note {i}"})
 
     assert len(proposals) == MAX_PROPOSALS
+
+
+def test_the_answer_from_the_index_is_not_told_it_can_propose():
+    """When the loop fails the model answers from the index; it must not claim a proposal."""
+    from app.agents.prompts import CHAT_ACTIONS
+
+    llm = FakeLLM(json_response=ANSWER, tool_rounds=None)
+    llm.complete_with_tools = lambda *a, **k: (_ for _ in ()).throw(ValueError("loop failed"))
+    systems: list[str] = []
+    original = llm.complete_json
+    llm.complete_json = lambda system, user: (systems.append(system), original(system, user))[1]
+
+    from app.agents.chat import run_chat
+
+    answer = run_chat(
+        llm, "make a note", [], read_page=lambda i: None, actions=[{"type": "function"}], run_action=lambda n, a: ""
+    )
+
+    assert answer.from_index and systems and CHAT_ACTIONS not in systems[0]
