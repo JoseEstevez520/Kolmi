@@ -211,6 +211,17 @@ export default {
     position: '{n} of {total}',
   },
 
+  history: {
+    button: 'History',
+    label: 'Earlier versions of this page',
+    loading: 'Loading the versions…',
+    error: 'Could not load the versions.',
+    none: 'No earlier versions yet. Each time the page is rewritten, the one before is kept here.',
+    untitled: 'An empty page',
+    restore: 'Restore the version from {date}',
+    confirm: 'Restore',
+  },
+
   admin: {
     title: 'Admin',
     lead: 'Create, rename, edit, move, reorder and delete the content tree.',

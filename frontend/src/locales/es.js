@@ -208,6 +208,17 @@ export default {
     position: '{n} de {total}',
   },
 
+  history: {
+    button: 'Historial',
+    label: 'Versiones anteriores de esta página',
+    loading: 'Cargando las versiones…',
+    error: 'No se pudieron cargar las versiones.',
+    none: 'Aún no hay versiones anteriores. Cada vez que se reescribe la página, la de antes se guarda aquí.',
+    untitled: 'Una página vacía',
+    restore: 'Restaurar la versión del {date}',
+    confirm: 'Restaurar',
+  },
+
   admin: {
     title: 'Administración',
     lead: 'Crea, renombra, edita, mueve, ordena y borra el árbol de contenido.',

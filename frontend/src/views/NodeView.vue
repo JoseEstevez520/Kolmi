@@ -8,7 +8,9 @@ import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import PageFiles from '../components/PageFiles.vue'
+import PageHistory from '../components/PageHistory.vue'
 import PageNav from '../components/PageNav.vue'
+import { profile } from '../lib/auth.js'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode, trailTo } from '../lib/content.js'
 import { downloadExport } from '../lib/export.js'
 import { iconByName } from '../lib/icons.js'
@@ -30,6 +32,7 @@ const cached = computed(() => flatten(nodes.value).find((node) => node.id === id
 const node = computed(() => pages.value[id.value] ?? cached.value)
 
 const isPage = computed(() => node.value?.kind === 'page')
+const isAdmin = computed(() => profile.value?.role === 'admin')
 const children = computed(() => node.value?.children ?? [])
 const content = computed(() => node.value?.content_md?.trim() ?? '')
 // The page's source is OpenUI Lang (see docs/page-format.md). When there is none, or it does
@@ -116,6 +119,10 @@ watch(id, load)
           :error-label="t('export.error')"
           :action="() => downloadExport(id)"
         />
+      </template>
+      <!-- An admin sees a page's earlier versions, and puts one back. -->
+      <template v-else-if="node && isPage && isAdmin" #actions>
+        <PageHistory :node-id="id" />
       </template>
 
       <Empty

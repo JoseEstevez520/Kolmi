@@ -99,11 +99,12 @@ a GitHub repo and writes the class's notes in Kolmi.
   where notes and the AI log came from. Nothing calls the tools yet: the MCP and the chat come
   next. See [docs/tools.md](docs/tools.md). Apply
   `supabase/migrations/20261006120000_sources.sql` in the Supabase SQL editor before deploying it.
-- [ ] **Pages from outside the pass** — admin only. Done in the backend: `write_page(node_id,
-  markdown, mode, source_url?)` (`replace` as it is, `merge` through the notes agent, which strips
-  names and private data), `rebuild_page(node_id)`, `list_versions(node_id)` and
-  `restore_version(version_id)` (confirmed). They run in the background, keep the version before
-  and log who and from where. Left: a version history with a restore button in the UI.
+- [x] **Pages from outside the pass** — admin only: `write_page(node_id, markdown, mode,
+  source_url?)` (`replace` as it is, `merge` through the notes agent, which strips names and
+  private data), `rebuild_page(node_id)`, `list_versions(node_id)` and `restore_version(version_id)`
+  (confirmed). They run in the background, keep the version before and log who and from where.
+  In the app, an admin opens a page's History in its top bar: its earlier versions, newest first,
+  each restored after asking.
 - [x] **An admin tool to edit a page's web** — `write_page_web` (admin, confirmed) sets a page's
   OpenUI Lang as written, with no web agent: checked against the catalogue first (each problem
   with its line and what to change), never leaving a page blank, the version before kept, logged

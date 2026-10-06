@@ -77,7 +77,9 @@ Moodle, a repo or a forum. It runs in the background: the action answers `queued
 `view_ai_log` shows the outcome (`updated`, or `flagged` with the error), with who asked and from
 where. `rebuild_page` makes the web again from the page's Markdown. Every rewrite keeps the
 previous content in `node_versions`; `list_versions` lists them (a preview, never the web) and
-`restore_version` (confirmed) brings one back, saving the current content first.
+`restore_version` (confirmed) brings one back, saving the current content first. In the app,
+an admin sees the same list as a page's History (`PageHistory.vue`, in the page's top bar), and
+restores from it through the same two actions.
 
 ## A page's web as written
 

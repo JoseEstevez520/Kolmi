@@ -244,6 +244,12 @@ export const api = {
   deleteNode: ({ nodeId }) =>
     request('/node/delete', { method: 'POST', body: { node_id: nodeId } }),
 
+  // A page's earlier versions (admin): a preview of each, newest first, and putting one back.
+  pageVersions: (nodeId) => request(`/page/versions?node_id=${encodeURIComponent(nodeId)}`),
+
+  restoreVersion: (versionId) =>
+    request('/page/versions/restore', { method: 'POST', body: { version_id: versionId } }),
+
   // Files: on a page (admin) or on a note (its author). Upload and delete change them; a
   // download is a short-lived link, asked for at the click.
   uploadFile: upload,
