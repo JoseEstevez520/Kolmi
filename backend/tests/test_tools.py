@@ -59,3 +59,14 @@ def test_schemas_are_functions_named_after_what_is_offered():
     found = schemas(_ctx("admin"), "chat")  # type: ignore[arg-type]
     assert {s["function"]["name"] for s in found} == names
     assert all(s["type"] == "function" for s in found)
+
+
+def test_every_tool_is_described_for_a_model():
+    for action in get_registry().values():
+        if not action.tool:
+            continue
+        assert len(action.description) > 40, action.name
+        if action.params is None:
+            continue
+        for field, schema in action.params.model_json_schema()["properties"].items():
+            assert schema.get("description"), f"{action.name}.{field}"

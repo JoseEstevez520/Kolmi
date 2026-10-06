@@ -1,7 +1,7 @@
 from typing import Literal
 
 from fastapi import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..auth import Context
 from ..files import node_files
@@ -10,37 +10,37 @@ from .registry import action
 
 
 class ViewNodeParams(BaseModel):
-    node_id: int
+    node_id: int = Field(..., description="The node's id, from list_nodes.")
 
 
 class CreateNodeParams(BaseModel):
-    parent_id: int | None = None
-    kind: Literal["section", "page"]
-    title: str
-    description: str | None = None
-    icon: str | None = None
-    color: str | None = None
-    on_home: bool | None = None
+    parent_id: int | None = Field(None, description="The section it goes in; null for the top level.")
+    kind: Literal["section", "page"] = Field(..., description="section groups other nodes; page holds content.")
+    title: str = Field(..., description="Short, as the sidebar shows it.")
+    description: str | None = Field(None, description="One line on what it covers. The AI reads it to decide where notes go.")
+    icon: str | None = Field(None, description="A Lucide icon name, such as BookOpen; null for none.")
+    color: str | None = Field(None, description="Its colour: \"\" for the app's grey, or one of #2563eb (blue), #0d9488 (teal), #7c3aed (violet), #d97706 (amber), #c026d3 (fuchsia), #65a30d (lime), #e11d48 (rose).")
+    on_home: bool | None = Field(None, description="Whether it shows on the home screen.")
 
 
 class UpdateNodeParams(BaseModel):
-    node_id: int
-    title: str | None = None
-    description: str | None = None
-    icon: str | None = None
-    color: str | None = None
-    on_home: bool | None = None
-    content_md: str | None = None
-    content_web: str | None = None
+    node_id: int = Field(..., description="The node to change, from list_nodes.")
+    title: str | None = Field(None, description="New title, as the sidebar shows it.")
+    description: str | None = Field(None, description="New one-line description. The AI reads it to decide where notes go.")
+    icon: str | None = Field(None, description="A Lucide icon name, such as BookOpen.")
+    color: str | None = Field(None, description="Its colour: \"\" for the app's grey, or one of #2563eb (blue), #0d9488 (teal), #7c3aed (violet), #d97706 (amber), #c026d3 (fuchsia), #65a30d (lime), #e11d48 (rose).")
+    on_home: bool | None = Field(None, description="Whether it shows on the home screen.")
+    content_md: str | None = Field(None, description="A page's Markdown. Normally written by the daily pass, not by hand.")
+    content_web: str | None = Field(None, description="A page's web content. Normally written by the daily pass, not by hand.")
 
 
 class MoveNodeParams(BaseModel):
-    node_id: int
-    parent_id: int | None = None
+    node_id: int = Field(..., description="The node to move, from list_nodes.")
+    parent_id: int | None = Field(None, description="Its parent after the move; null for the top level. Give the current one to only reorder.")
     # Where among the new siblings. Left out, only the parent changes (the web moves, then
     # reorders).
-    placement: Literal["first", "after", "last"] | None = None
-    after_node_id: int | None = None
+    placement: Literal["first", "after", "last"] | None = Field(None, description="Where among its new siblings: first, after (with after_node_id) or last.")
+    after_node_id: int | None = Field(None, description="With placement after: the sibling it goes right after.")
 
 
 class ReorderNodesParams(BaseModel):
@@ -48,7 +48,7 @@ class ReorderNodesParams(BaseModel):
 
 
 class NodeIdParams(BaseModel):
-    node_id: int
+    node_id: int = Field(..., description="The node to delete, from list_nodes.")
 
 
 LIST_COLUMNS = "id, parent_id, kind, title, description, icon, color, position, on_home"
@@ -85,7 +85,7 @@ def _tree(rows: list[dict]) -> list[dict]:
     read_only=True,
     tool=True,
     mcp=True,
-    description="List the whole content tree, nodes nested with their children.",
+    description="The class's content tree: every section and page with its id, title and description, nested. Start here to find a page's id or where something belongs. It has no page content: use view_node for that.",
     method="GET",
     path="/nodes",
 )
@@ -105,7 +105,7 @@ def list_nodes(ctx: Context, params: None):
     read_only=True,
     tool=True,
     mcp=True,
-    description="Get a node with its children and, for pages, its content.",
+    description="One section or page by id: its fields, its children and, for a page, its Markdown and files. Use it to read a page before answering about it or changing it. For the whole tree, list_nodes.",
     params=ViewNodeParams,
     method="GET",
     path="/node",
@@ -121,7 +121,7 @@ def view_node(ctx: Context, params: ViewNodeParams):
         .data
     )
     if not rows:
-        raise HTTPException(404, "Node not found")
+        raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
     node = rows[0]
 
     if node["kind"] != "page":
@@ -145,7 +145,7 @@ def view_node(ctx: Context, params: ViewNodeParams):
     name="create_node",
     tool=True,
     mcp=True,
-    description="Create a node at the end of its siblings.",
+    description="Add a section (it groups other nodes) or a page (it holds content) at the end of its parent's children. Admin only. A page starts empty: its content comes from the notes, not from here. To place it elsewhere, follow with move_node.",
     params=CreateNodeParams,
     path="/node",
     min_role="admin",
@@ -160,7 +160,7 @@ def create_node(ctx: Context, params: CreateNodeParams):
     name="update_node",
     tool=True,
     mcp=True,
-    description="Update the fields of a node that are given.",
+    description="Change a node's title, description, icon, colour or whether it is on the home screen. Only the fields given change. Admin only. It doesn't change a page's content, nor where it sits: that is move_node.",
     params=UpdateNodeParams,
     path="/node/update",
     min_role="admin",
@@ -179,7 +179,7 @@ def update_node(ctx: Context, params: UpdateNodeParams):
             .data
         )
         if not rows:
-            raise HTTPException(404, "Node not found")
+            raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
         return rows[0]
 
     rows = (
@@ -190,7 +190,7 @@ def update_node(ctx: Context, params: UpdateNodeParams):
         .data
     )
     if not rows:
-        raise HTTPException(404, "Node not found")
+        raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
     return rows[0]
 
 
@@ -198,7 +198,7 @@ def update_node(ctx: Context, params: UpdateNodeParams):
     name="move_node",
     tool=True,
     mcp=True,
-    description="Change the parent of a node.",
+    description="Move a node under another parent, or to another place among its siblings: first, right after one of them, or last. Admin only. Everything under it moves with it.",
     params=MoveNodeParams,
     path="/node/move",
     min_role="admin",
@@ -207,9 +207,9 @@ def move_node(ctx: Context, params: MoveNodeParams):
     nodes = ctx.client.table("nodes").select("id, parent_id, position").execute().data
     by_id = {n["id"]: n for n in nodes}
     if params.node_id not in by_id:
-        raise HTTPException(404, "Node not found")
+        raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
     if params.parent_id is not None and params.parent_id not in by_id:
-        raise HTTPException(404, "Node not found")
+        raise HTTPException(404, f"There is no node {params.parent_id}; list_nodes shows the tree")
 
     # Walking up from the new parent must not reach the node: it would end up inside itself.
     cursor = params.parent_id
@@ -237,7 +237,7 @@ def move_node(ctx: Context, params: MoveNodeParams):
 
     rows = ctx.client.table("nodes").update(data).eq("id", params.node_id).execute().data
     if not rows:
-        raise HTTPException(404, "Node not found")
+        raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
     return rows[0]
 
 
@@ -260,7 +260,7 @@ def reorder_nodes(ctx: Context, params: ReorderNodesParams):
     name="delete_node",
     tool=True,
     mcp=True,
-    description="Delete a node and everything under it.",
+    description="Delete a node and everything under it: its sections and pages, their content and their files. Admin only, confirmed, and it can't be undone. To only get it out of the way, move it.",
     params=NodeIdParams,
     path="/node/delete",
     requires_confirmation=True,
@@ -269,5 +269,5 @@ def reorder_nodes(ctx: Context, params: ReorderNodesParams):
 def delete_node(ctx: Context, params: NodeIdParams):
     rows = ctx.client.table("nodes").delete().eq("id", params.node_id).execute().data
     if not rows:
-        raise HTTPException(404, "Node not found")
+        raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
     return {"ok": True}

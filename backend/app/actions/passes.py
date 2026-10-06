@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..auth import Context
 from ..passes import run_daily_pass
@@ -9,18 +9,18 @@ from .registry import action
 
 
 class ViewAiLogParams(BaseModel):
-    pass_id: int | None = None
-    since: str | None = None
-    limit: int = 100
+    pass_id: int | None = Field(None, description="Only the entries of this pass, from list_passes.")
+    since: str | None = Field(None, description="Only entries created after this ISO date or time.")
+    limit: int = Field(100, description="The most entries to return.")
 
 
 class ListNotesParams(BaseModel):
-    status: str | None = None
-    node_id: int | None = None
+    status: str | None = Field(None, description="Only the notes with this status: pending, processed or discarded.")
+    node_id: int | None = Field(None, description="Only the notes that seemed to belong to this node, from list_nodes.")
 
 
 class ListPassesParams(BaseModel):
-    limit: int = 20
+    limit: int = Field(20, description="The most passes to return.")
 
 
 log = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def _run_in_background() -> None:
     name="run_pass",
     tool=True,
     mcp=True,
-    description="Start the AI pass now, in the background, instead of waiting for its schedule.",
+    description="Start the daily AI pass now instead of waiting for its schedule: it reads the pending notes and writes them into pages. Admin only, confirmed. It runs in the background and answers at once; list_passes shows how it went.",
     path="/pass/run",
     requires_confirmation=True,
     min_role="admin",
@@ -59,7 +59,7 @@ def run_pass(ctx: Context, params: None):
     read_only=True,
     tool=True,
     mcp=True,
-    description="The recent AI passes, with their status and stats, newest first.",
+    description="The recent AI passes, newest first: status, model, counts and error. Admin only. For what a pass did with each note, view_ai_log.",
     params=ListPassesParams,
     method="GET",
     path="/passes",
@@ -82,7 +82,7 @@ def list_passes(ctx: Context, params: ListPassesParams | None):
     read_only=True,
     tool=True,
     mcp=True,
-    description="What the AI did: which notes it processed, which pages it changed or flagged.",
+    description="What the AI did, one entry per note or page: created, updated, discarded or flagged, each with its reason, newest first. Admin only. Use it to answer why a note was discarded or what changed a page.",
     params=ViewAiLogParams,
     method="GET",
     path="/ai-log",
@@ -103,7 +103,7 @@ def view_ai_log(ctx: Context, params: ViewAiLogParams | None):
     read_only=True,
     tool=True,
     mcp=True,
-    description="List the notes students have left, with their status.",
+    description="The notes students have left, newest first, with their status, author's name and where they seemed to go. Admin only. For your own, my_notes.",
     params=ListNotesParams,
     method="GET",
     path="/notes",

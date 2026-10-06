@@ -37,7 +37,7 @@ class UpdateSettingsParams(BaseModel):
     name="get_settings",
     read_only=True,
     tool=True,
-    description="The class settings: the AI's language, when its daily pass runs, the class timetable, and the chat.",
+    description="The class settings: the AI's language, when its daily pass runs, the class timetable's days, hours and breaks (schedule_days is what a slot's day indexes), and the chat's switch and daily cap.",
     method="GET",
     path="/settings",
 )
