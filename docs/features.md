@@ -55,6 +55,8 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
   changed, which notes it discarded (and why), and which pages the reviewer flagged as
   doubtful.
 - A list of received notes.
+- The class's people: approve a pending sign-up, make someone an admin or a student, block,
+  unblock or delete them; and whether new sign-ups need approval.
 - The class language: the one the AI writes the shared notes and pages in. Notes in other
   languages still count, and their content ends up written in this one. It's separate from
   each person's UI language.
@@ -93,6 +95,7 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 - `update_note(note_id, content, format?, node_id?)` — only your own note, while it is pending.
   Left out, the hint stays; `null` clears it.
 - `my_notes(status?)`
+- `update_my_name(name)`, `delete_my_account()`\*
 
 ### Admin only
 
@@ -102,7 +105,9 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 - `list_notes(status?, module_id?)`
 - `view_ai_log(pass_id?, since?)`
 - `run_pass()`: runs the AI pass without waiting for the night
-- `deactivate_user(user_id)`\*
+- `list_users()`, `set_role(user_id, role)`, `set_status(user_id, status)`,
+  `delete_user(user_id)`\*: never over the MCP, and never leaving the class without an active
+  admin.
 
 (\*) requires confirmation.
 

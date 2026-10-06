@@ -112,23 +112,16 @@ a GitHub repo and writes the class's notes in Kolmi.
   member's AI reads a page's web with `view_node`'s `include_web`. See
   [docs/tools.md](docs/tools.md). If a piece is missing, it goes into
   elastic-ui and the catalogue first.
-- [ ] **Users from the admin panel** — today there is no user management at all: the first admin
-  is set by hand in Supabase and `approved` only stops notes, files and the export.
-  - Two roles, `student` and `admin`, and a status apart from the role: `active` | `pending` |
-    `blocked`, in place of `approved`. Blocked stops everything (reading, the chat, tokens),
-    checked once in `invoke`.
-  - Admin actions: `list_users` (name, email, role, status, joined, notes), `set_role` and
-    `delete_user` (confirmed), `set_status`. A user's own: change their name, delete their account.
-  - A class setting, "new sign-ups need approval", for when the class code leaks: a pending user
-    sees a waiting screen and shows up in the admin's list.
-  - The first admin from `ADMIN_EMAILS` in `.env`.
-  - Never leave the class without an admin: the last one can't be demoted, blocked or deleted.
-    Demoting or blocking someone revokes their tokens and clears their cached profile (it's kept
-    for 30 seconds today).
-  - Deleting cleanly: `files.user_id` goes from `cascade` to `set null`, so the files on shared
-    pages stay; pending notes, chat sessions, tokens and Storage objects go; the account goes from
-    `auth.users` too, through Supabase's admin API. Processed notes stay in the pages.
-  - A "Users" tab in `/admin`. `privacy.md`: the admin sees each user's email, never their chats.
+- [x] **Users from the admin panel** — two roles, `student` and `admin`, and a status apart from
+  the role (`active`, `pending`, `blocked`) in place of `approved`, checked once in `invoke` (and
+  in the upload and export routes). An admin's Users block in `/admin` (`list_users`, `set_role`,
+  `set_status`, `delete_user`) and the class setting "New sign-ups need approval", with a waiting
+  screen for whoever is pending or blocked; anyone changes their name and deletes their account in
+  Settings. The first admin from `ADMIN_EMAILS`; the last active admin can't be demoted, blocked or
+  deleted; losing access goes through `on_access_lost`, where the MCP will revoke tokens. A deleted
+  account takes its notes' files from Storage and its account from Supabase Auth; the files on
+  shared pages stay. Apply `supabase/migrations/20261007120000_users.sql` and add `ADMIN_EMAILS` to
+  the server's `.env` before deploying it. See [docs/authentication.md](docs/authentication.md).
 - [ ] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
   (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class.
   - Personal tokens: `api_tokens(id, user_id, name, token_hash, prefix, last_used_at,

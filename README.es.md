@@ -67,6 +67,7 @@ que el portero deja pasar, y el agente web la maqueta como página.
 - **Hacer un recorrido corto** la primera vez que entras.
 - **Llevarte el cuaderno**: descargar las páginas de una sección como archivos Markdown, para
   guardarlas o subirlas a NotebookLM.
+- **Cuidar de tu cuenta**: cambiar tu nombre o borrarla.
 
 **Como admin**
 
@@ -74,6 +75,8 @@ que el portero deja pasar, y el agente web la maqueta como página.
 - **Revisar qué hizo la IA** en el registro: qué leyó, qué cambió y de qué notas partió.
 - **Organizar el árbol** a mano: crear, renombrar, mover, reordenar y borrar.
 - **Fijar el horario y el idioma de la clase**, español o inglés.
+- **Cuidar de la gente de la clase**: aprobar las altas nuevas, hacer admin a alguien, bloquear o
+  quitar a alguien.
 
 <p align="center">
   <img src="assets/readme/diagram.png" alt="Una página escrita por Kolmi, con un diagrama de cuatro roles de agente y lo que puede hacer cada uno" width="100%">

@@ -67,6 +67,7 @@ what the gatekeeper lets through, and the web agent lays it out as a page.
 - **Take a short tour** the first time you sign in.
 - **Take the notebook with you**: download a section's pages as Markdown files, to keep or to
   upload to NotebookLM.
+- **Look after your account**: change your name, or delete it.
 
 **As an admin**
 
@@ -75,6 +76,8 @@ what the gatekeeper lets through, and the web agent lays it out as a page.
   from.
 - **Organize the tree** by hand: create, rename, move, reorder and delete.
 - **Set the class's timetable and language**, Spanish or English.
+- **Look after the class's people**: approve new sign-ups, make someone an admin, block or remove
+  someone.
 
 <p align="center">
   <img src="assets/readme/page.en.png" alt="Part of a page written by Kolmi: a short explanation, a YAML file in a code block and a note on what it does" width="720">

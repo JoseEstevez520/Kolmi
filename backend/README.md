@@ -145,9 +145,11 @@ changes nothing.
 
 | Action | Route | Who |
 |---|---|---|
-| `get_profile` | `GET /profile` | any signed-in user |
+| `get_profile` | `GET /profile` | any signed-in user, whatever their status |
 | `register_profile` | `POST /register` | any signed-in user |
-| `create_note` | `POST /notes` | approved profile |
+| `update_my_name` | `POST /profile/name` | any member |
+| `delete_my_account` | `POST /profile/delete` | any signed-in user, whatever their status |
+| `create_note` | `POST /notes` | any member |
 | `update_note` | `POST /notes/update` | the note's author, until the daily pass |
 | `my_notes` | `GET /notes/mine` | any signed-in user |
 | `list_nodes` | `GET /nodes` | any signed-in user |
@@ -162,8 +164,13 @@ changes nothing.
 | `run_pass` | `POST /pass/run` | admin |
 | `get_settings` | `GET /settings` | any signed-in user |
 | `update_settings` | `POST /settings` | admin |
+| `list_users` | `GET /users` | admin |
+| `set_role` | `POST /users/role` | admin |
+| `set_status` | `POST /users/status` | admin |
+| `delete_user` | `POST /users/delete` | admin |
 
-Every route takes `Authorization: Bearer <Supabase access token>`.
+Every route takes `Authorization: Bearer <Supabase access token>`. "Any member" is an active
+one: someone pending or blocked only gets the routes that say "whatever their status".
 
 ## Deploy (Docker)
 

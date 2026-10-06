@@ -32,7 +32,25 @@ up your own SMTP (Resend, Brevo) if you want it on.
 
 After the **first** login (with any method), if the user has no profile, they're asked for a
 **class code** and a **display name** (prefilled with the Google one if it exists). The code
-is in a backend environment variable, `CLASS_CODE`. Without a profile, no notes can be left.
+is in a backend environment variable, `CLASS_CODE`. Without a profile, nothing but signing up can
+be done.
+
+## Roles and status
+
+Two roles: `student` and `admin`, a student with more permissions (the tree, the notes, the pass,
+the class's people). There is no teacher. Apart from the role, a status: `active`, `pending`
+(waiting for an admin to let them in) or `blocked`. Only an active member reads or writes
+anything, checked once, in `invoke`, and in the two routes that aren't actions (uploading a file
+and the export). Someone pending or blocked only sees a waiting screen, signs out or deletes their
+account.
+
+- **The first admin** comes from `ADMIN_EMAILS` in `backend/.env`: an address in it signs up as an
+  active admin. Only new sign-ups: an existing account keeps its role.
+- **Approval:** with the class setting "New sign-ups need approval" on (for when the class code
+  leaks), a new sign-up starts as pending and shows up in the admin's Users list.
+- **The last admin stays:** the last active admin can't be made a student, blocked or deleted.
+- **Losing access** (demoted, blocked, deleted) clears the cached profile at once, through
+  `on_access_lost`, where the MCP will also revoke tokens.
 
 ## Database
 
@@ -43,7 +61,7 @@ create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   role text default 'student',  -- student | admin
-  approved boolean default true,
+  status text default 'active',  -- active | pending | blocked (approved is no longer read)
   created_at timestamptz default now()
 );
 
@@ -69,7 +87,7 @@ Every route receives `Authorization: Bearer <Supabase access token>` and validat
 |---|---|
 | `GET /profile` | the user's profile, or 404 if it doesn't exist |
 | `POST /register` | `{code, name}`: validates the code against `CLASS_CODE` and creates the profile. 403 if the code is wrong |
-| `POST /notes` | `{content}`: requires a profile with `approved = true` and saves the note as `pending` |
+| `POST /notes` | `{content}`: requires an active profile and saves the note as `pending` |
 | `GET /notes/mine` | the user's own notes |
 
 Environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CLASS_CODE`. The service key

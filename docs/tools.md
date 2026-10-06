@@ -45,6 +45,17 @@ drag and drop resends a whole order with `reorder_nodes` (not a tool).
 Errors say how to recover: "There is no node 12; list_nodes shows the tree", not a bare 404. A
 model reads the message and tries again.
 
+## Who may act at all
+
+Before the role, `invoke` checks the caller's status: only an active member gets in. Someone
+pending, blocked or with no profile gets a 403 that says why and what to do. An action marked
+`any_status` runs for them anyway: their profile, signing up and deleting their own account,
+nothing else. The routes that aren't actions (uploading a file, the export) make the same check,
+so there is no way in around it.
+
+The class's people (`list_users`, `set_role`, `set_status`, `delete_user`, `update_my_name`) are
+chat tools for whoever may use them and never MCP ones; `delete_my_account` is no tool at all.
+
 ## Light answers
 
 The API returns full rows. On the tool path, `tools.answer` drops what only the web draws

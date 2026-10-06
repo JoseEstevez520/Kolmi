@@ -8,7 +8,8 @@ page says what the app does with data so that person can tell their class. It is
 
 All of it lives in the instance's Supabase project, in the region its owner picked.
 
-- **Accounts:** the name and the email the student signs up with, and their role.
+- **Accounts:** the name and the email someone signs up with, their role (student or admin) and
+  their status (active, pending while an admin lets them in, or blocked).
 - **Notes:** what each student writes and the files they attach. Files go to a private Storage
   bucket and are served through short-lived links.
 - **The shared pages:** the pages the AI writes from the notes, their earlier versions, and the
@@ -18,7 +19,9 @@ All of it lives in the instance's Supabase project, in the region its owner pick
 
 - A student sees their own notes. Until the pass has taken a note, only its author and the admins
   can see it.
-- Admins see every note and the AI log.
+- Admins see every note and the AI log, and the class's people: each one's name, email, role,
+  status, when they joined and how many notes they left. An admin never sees anyone's chat with the
+  hive: only its author does.
 - Everyone in the class sees the shared pages.
 
 ## What leaves the instance
@@ -46,8 +49,10 @@ a service like NotebookLM sends them to that service, under its own terms.
 - Ask them not to write personal data or secrets in notes.
 - Pick the AI provider with care, since it is the one place student text leaves your control.
 - Keep the Supabase and provider keys in `.env`, never in git.
-- Be ready to answer a request to see, correct or delete someone's data. The app has no button for
-  deleting an account yet; today that is done in Supabase.
+- Be ready to answer a request to see, correct or delete someone's data. Anyone changes their name
+  and deletes their own account in Settings; an admin deletes someone's from the admin panel. A
+  deleted account takes its notes, their files and its chat with it; what the pass already wrote
+  into the shared pages stays, and so do the files on those pages, with no author.
 
 ## A notice to adapt
 
