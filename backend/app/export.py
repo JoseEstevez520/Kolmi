@@ -16,7 +16,7 @@ import posixpath
 import re
 import unicodedata
 import zipfile
-from typing import Any
+from typing import Any, Callable
 
 FENCE = re.compile(r"(```.*?```|~~~.*?~~~)", re.S)
 IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)\s]*)[^)]*\)")
@@ -86,12 +86,21 @@ def plan(nodes: list[dict[str, Any]], scope: int | None = None) -> dict[int, tup
     return out
 
 
-def rewrite(markdown: str, here: str, paths: dict[int, str], titles: dict[str, int]) -> str:
-    """The page's Markdown with every link and image made to work, or to plain text."""
+def rewrite(
+    markdown: str,
+    here: str,
+    paths: dict[int, str],
+    titles: dict[str, int],
+    link_to: Callable[[int], str] | None = None,
+) -> str:
+    """The page's Markdown with every link and image made to work, or to plain text. A link to
+    another page goes to its file, relative to this one, or to `link_to(id)` when given."""
 
     def target(node_id: int) -> str | None:
         path = paths.get(node_id)
-        return posixpath.relpath(path, posixpath.dirname(here) or ".") if path else None
+        if not path:
+            return None
+        return link_to(node_id) if link_to else posixpath.relpath(path, posixpath.dirname(here) or ".")
 
     def image(match: re.Match[str]) -> str:
         alt, url = match.group(1), match.group(2)
@@ -144,6 +153,30 @@ def build(nodes: list[dict[str, Any]], scope: int | None = None) -> dict[str, st
         body = rewrite(node.get("content_md") or "", path, paths, titles)
         files[path] = render_page(node, trail, body)
     return files
+
+
+def page_markdown(
+    nodes: list[dict[str, Any]], node_id: int, link_to: Callable[[int], str]
+) -> str | None:
+    """One shared page as the export writes it, its links to other pages going to `link_to(id)`;
+    None when it isn't a page with content."""
+    layout = plan(nodes)
+    if node_id not in layout:
+        return None
+    paths = {nid: path for nid, (path, _) in layout.items()}
+    by_id = {node["id"]: node for node in nodes}
+    titles: dict[str, int] = {}
+    for nid in layout:
+        titles.setdefault(by_id[nid]["title"].strip().lower(), nid)
+    path, trail = layout[node_id]
+    node = by_id[node_id]
+    return render_page(node, trail, rewrite(node.get("content_md") or "", path, paths, titles, link_to))
+
+
+def shared_pages(nodes: list[dict[str, Any]]) -> list[tuple[dict[str, Any], list[str]]]:
+    """Every page the export would take, with the titles of the sections above it."""
+    by_id = {node["id"]: node for node in nodes}
+    return [(by_id[nid], trail) for nid, (_, trail) in plan(nodes).items()]
 
 
 def to_zip(files: dict[str, str]) -> bytes:

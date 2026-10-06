@@ -409,3 +409,98 @@ def test_a_token_cannot_upload_or_export(client):
         with pytest.raises(HTTPException) as err:
             attempt()
         assert err.value.status_code == 403
+
+
+# -- the pages as resources ---------------------------------------------------------------------------
+
+
+def _with_pages(client):
+    client.tables["nodes"] = [
+        {"id": 1, "parent_id": None, "kind": "section", "title": "Unit 1", "position": 0, "content_md": ""},
+        {"id": 2, "parent_id": 1, "kind": "page", "title": "Loops", "position": 0,
+         "content_md": "# Loops\n\nA loop repeats. See [Functions](/node/3). The note said [x](../notes/raw.md).",
+         "content_web": "root = Page([])"},
+        {"id": 3, "parent_id": 1, "kind": "page", "title": "Functions", "position": 1, "content_md": "Name a block."},
+        {"id": 4, "parent_id": 1, "kind": "page", "title": "Empty", "position": 2, "content_md": ""},
+    ]
+    client.tables["notes"] = [{"id": 9, "user_id": "s1", "status": "pending", "content": "RAW NOTE TEXT"}]
+
+
+def test_the_shared_pages_are_listed_as_resources(http, client):
+    _with_pages(client)
+
+    reply = _rpc(http, _token(client), "resources/list")
+
+    found = {r["uri"]: r for r in reply.json()["result"]["resources"]}
+    assert set(found) == {"kolmi://page/2", "kolmi://page/3"}  # a section and an empty page aren't
+    assert found["kolmi://page/2"]["name"] == "Loops" and found["kolmi://page/2"]["mimeType"] == "text/markdown"
+
+
+def test_a_page_reads_as_the_export_writes_it(http, client):
+    _with_pages(client)
+
+    reply = _rpc(http, _token(client), "resources/read", {"uri": "kolmi://page/2"})
+
+    text = reply.json()["result"]["contents"][0]["text"]
+    assert text.startswith("# Loops\n\nUnit 1\n\nA loop repeats.")
+    assert "[Functions](kolmi://page/3)" in text  # another page, as a resource
+    assert "../notes/raw.md" not in text and "RAW NOTE TEXT" not in text and "root = Page" not in text
+
+
+def test_a_page_that_is_not_there_is_a_resource_not_found(http, client):
+    _with_pages(client)
+    token = _token(client)
+
+    for uri in ("kolmi://page/4", "kolmi://page/99", "kolmi://note/9", "file:///etc/passwd"):
+        reply = _rpc(http, token, "resources/read", {"uri": uri})
+        assert reply.json()["error"]["code"] == -32002, uri
+
+
+def test_the_template_names_the_page_uri(http, client):
+    reply = _rpc(http, _token(client), "resources/templates/list")
+
+    assert reply.json()["result"]["resourceTemplates"][0]["uriTemplate"] == "kolmi://page/{id}"
+
+
+def test_no_one_reads_a_page_without_a_good_token(http, client):
+    _with_pages(client)
+    assert _rpc(http, None, "resources/read", {"uri": "kolmi://page/2"}).status_code == 401
+    assert _rpc(http, _token(client, "p1"), "resources/read", {"uri": "kolmi://page/2"}).status_code == 401
+
+
+# -- the prompt -----------------------------------------------------------------------------------------
+
+
+def _prompt(http, token, material=None):
+    args = {"name": "material_to_notes", **({"arguments": {"material": material}} if material else {})}
+    reply = _rpc(http, token, "prompts/get", args)
+    return reply.json()["result"]["messages"][0]["content"]["text"]
+
+
+def test_the_prompt_is_offered(http, client):
+    prompts = _rpc(http, _token(client), "prompts/list").json()["result"]["prompts"]
+
+    assert [p["name"] for p in prompts] == ["material_to_notes"]
+    assert prompts[0]["arguments"][0]["name"] == "material" and not prompts[0]["arguments"][0]["required"]
+
+
+def test_a_student_is_guided_to_leave_one_note_per_topic(http, client):
+    text = _prompt(http, _token(client), "https://moodle.example/course/7")
+
+    assert "https://moodle.example/course/7" in text
+    for step in ("list_nodes", "search_pages", "view_node", "create_note", "source_url", "one note per topic"):
+        assert step in text
+    assert "write_page" not in text
+
+
+def test_an_admin_is_guided_to_merge_into_the_page(http, client):
+    text = _prompt(http, _token(client, "a1"))
+
+    assert 'write_page in mode "merge"' in text and "create_note" not in text
+    assert "what I share or point you to" in text
+
+
+def test_an_unknown_prompt_is_an_error(http, client):
+    reply = _rpc(http, _token(client), "prompts/get", {"name": "nope"})
+
+    assert "error" in reply.json()
