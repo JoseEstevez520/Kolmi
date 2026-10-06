@@ -51,11 +51,6 @@ def get_settings(ctx: Context, params: None):
     min_role="admin",
 )
 def update_settings(ctx: Context, params: UpdateSettingsParams):
-    # The route checks the role too; the handler checks it again so the future chat, which
-    # calls handlers directly, cannot skip it.
-    if not (ctx.profile and ctx.profile.get("role") == "admin"):
-        raise HTTPException(403, "Admin only")
-
     current = read_settings(ctx.client)
     row: dict = {"id": SETTINGS_ID, "class_language": current["class_language"]}
 

@@ -1,8 +1,8 @@
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Request
 
-from .actions import Action, get_registry
+from .actions import Action, get_registry, invoke
 from .auth import Context, get_context
 
 
@@ -19,14 +19,7 @@ async def _params(request: Request) -> dict[str, Any]:
 
 def _endpoint(action: Action):
     async def endpoint(request: Request, ctx: Context = Depends(get_context)):
-        if action.min_role == "admin" and not (
-            ctx.profile and ctx.profile.get("role") == "admin"
-        ):
-            raise HTTPException(403, "Admin only")
-
-        raw = await _params(request)
-        params = action.params.model_validate(raw) if action.params else None
-        return action.handler(ctx, params)
+        return invoke(action, ctx, await _params(request))
 
     endpoint.__name__ = action.name
     return endpoint

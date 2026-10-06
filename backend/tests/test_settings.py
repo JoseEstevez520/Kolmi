@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from app import class_settings
+from app.actions import get_registry, invoke
 from app.actions.settings import UpdateSettingsParams, get_settings, update_settings
 from app.agents import openui
 from app.auth import Context
@@ -127,7 +128,7 @@ def test_a_student_cannot_set_it(env_language):
     table = _Table()
 
     with pytest.raises(HTTPException) as exc:
-        update_settings(_ctx(table), UpdateSettingsParams(class_language="es"))
+        invoke(get_registry()["update_settings"], _ctx(table), {"class_language": "es"})
 
     assert exc.value.status_code == 403
     assert table.rows == []
