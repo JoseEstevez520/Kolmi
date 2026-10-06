@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from ..agents import get_llm, run_chat
+from ..agents import get_chat_llm, run_chat
 from ..auth import Context
 from ..class_settings import class_language, read_settings
 from ..files import node_files
@@ -136,7 +136,7 @@ def ask_chat(ctx: Context, params: AskChatParams):
     # The asker's own tools, with their role: reads run in the loop, writes are only proposed.
     proposed: list[dict[str, Any]] = []
     answer = run_chat(
-        get_llm(),
+        get_chat_llm(),
         question,
         nodes,
         read_page=_read_page(ctx.client),

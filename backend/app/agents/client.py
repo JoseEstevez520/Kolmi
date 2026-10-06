@@ -153,6 +153,17 @@ def get_llm() -> LLM:
 
 
 @lru_cache
+def get_chat_llm() -> LLM:
+    """The model the chat answers with: `chat_model` when it is set, else the main one."""
+    settings = get_settings()
+    return OpenAILLM(
+        api_key=settings.llm_api_key,
+        base_url=settings.llm_base_url,
+        model=settings.chat_model or settings.llm_model,
+    )
+
+
+@lru_cache
 def get_web_llm() -> LLM | None:
     """The web model, when one is set; otherwise the main model writes the pages."""
     settings = get_settings()

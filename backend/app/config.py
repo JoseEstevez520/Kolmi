@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     llm_base_url: str = "https://api.deepseek.com"
     llm_model: str = "deepseek-flash"
+    # The chat's own model, optional: a student waits on it, so a faster one may suit it better
+    # than the pass's. Same endpoint and key as above; empty, the chat uses `llm_model`.
+    chat_model: str = ""
 
     # The web model, optional: it writes the pages as OpenUI Lang, and when it fails, or isn't
     # set, the model above writes them instead. Any OpenAI-compatible endpoint. web_prompt is

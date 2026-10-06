@@ -63,7 +63,8 @@ so the suite spends no tokens and touches no network.
 ## Environment variables
 
 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CLASS_CODE`, the model (`LLM_API_KEY`,
-`LLM_BASE_URL`, `LLM_MODEL`) and, optionally, the web model (`WEB_*`), `CORS_ORIGINS` and
+`LLM_BASE_URL`, `LLM_MODEL`) and, optionally, a faster model for the chat only (`CHAT_MODEL`,
+same endpoint and key), the web model (`WEB_*`), `CORS_ORIGINS` and
 `CLASS_LANGUAGE`. In `.env`, never in git.
 
 For search by meaning (see below), `EMBEDDING_API_KEY` and, optionally, `EMBEDDING_BASE_URL` (any

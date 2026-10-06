@@ -165,7 +165,7 @@ def _ctx(client: _Client, role: str = "student", user_id: str = "u1") -> Context
 
 def _ask(monkeypatch, client: _Client, rounds, role: str = "student", user_id: str = "u1"):
     llm = FakeLLM(json_response=ANSWER, tool_rounds=rounds)
-    monkeypatch.setattr("app.actions.chat.get_llm", lambda: llm)
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
     # The open web is never reached: no test asks for it, and this makes sure.
     monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
     result = invoke(get_action("ask_chat"), _ctx(client, role, user_id), {"question": "help me"})
