@@ -30,12 +30,15 @@ export const open = ref(false)
 export const messages = ref([])
 export const responding = ref(false)
 
-// A greeting the first time it opens, not from the model: it just says who it is.
-watch(open, (isOpen) => {
-  if (isOpen && messages.value.length === 0) {
+// A greeting the first time the chat is shown, bubble or page, not from the model: it just says
+// who it is.
+export function greet() {
+  if (messages.value.length === 0) {
     messages.value.push({ id: nextId++, role: 'assistant', text: t('chat.greeting') })
   }
-})
+}
+
+watch(open, (isOpen) => isOpen && greet())
 
 // The aurora follows what is going on: resting until the first message, thinking while the
 // answer is on its way, settling to a quiet tint once the conversation has started.
