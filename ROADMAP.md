@@ -122,9 +122,6 @@ a GitHub repo and writes the class's notes in Kolmi.
   and log who and from where. Left:
   - The page showing it is being rebuilt.
   - A version history with a restore button in the UI.
-- [ ] **Import notes that already exist** — a class that already has its notes as Markdown files
-  brings them in as pages: their Markdown as it is, and the web page made from it. With
-  `write_page` in `replace` mode this is mostly a loop over the files (not started).
 - [ ] **Users from the admin panel** — today there is no user management at all: the first admin
   is set by hand in Supabase and `approved` only stops notes, files and the export.
   - Two roles, `student` and `admin`, and a status apart from the role: `active` | `pending` |
