@@ -7,8 +7,9 @@ built, plus the daily pass that turns notes into pages.
 
 Every feature is an **action**: a name, a description, a Pydantic params model,
 a permission check and a handler. The registry (`app/actions/`) is the single
-source: `app/api.py` turns each action into an API route, and the same actions
-will become the chat's tools (`Action.tool_schema()`).
+source: every caller runs one through `invoke` (role, then params), `app/api.py`
+turns each action into an API route, and `app/actions/tools.py` offers the same
+actions as tools to a model. See [docs/tools.md](../docs/tools.md).
 
 ## Setup
 

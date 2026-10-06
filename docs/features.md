@@ -72,8 +72,10 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 - A **single registry** of actions, from which two things are generated:
   1. the API routes the web uses;
   2. the tools (function calling, OpenAI/DeepSeek format) for the future chat.
-- Permissions are checked **inside** each action, based on the calling user. The chat acts as
-  that user and has no more powers than they do.
+- Permissions are checked once, in `invoke`, for every caller (the web, the chat, the MCP); checks
+  that depend on the data (whose note, whose file) stay in the action. The chat acts as that
+  user and has no more powers than they do. How actions become tools:
+  [tools.md](tools.md).
 - Destructive actions carry `requires_confirmation: true` so the chat asks for confirmation
   before running them.
 - Every change the AI makes to a page saves the previous version first and leaves an entry in

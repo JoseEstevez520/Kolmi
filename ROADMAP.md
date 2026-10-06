@@ -109,21 +109,12 @@ MCP. Reading is free; anything that changes something is confirmed (a button in 
 client's own prompt over the MCP). The case that matters most: someone's AI reads their Moodle or
 a GitHub repo and writes the class's notes in Kolmi.
 
-- [ ] **Actions as tools** — the base for everything below.
-  - One `invoke(action, ctx, args)` in the registry that validates the params, checks the caller's
-    status and role, and runs the handler. The API, the chat and the MCP all go through it. Today
-    the admin check lives in `api.py`'s route, so anything calling a handler directly skips it.
-  - More on each `Action`: `read_only`, `tool` (offered as a tool at all: not `register_profile`,
-    `download_file` or `ask_chat`) and `mcp` (offered over the MCP: never user management).
-  - Tools written for a model, not copied from the routes: shaped as tasks (move a page after
-    another, not resend a whole order), a description that says what it does and when to use it,
-    a `Field(description=...)` on every param, light answers (no `content_web`, capped in size)
-    and errors that say how to recover ("there is no page 12; `list_nodes` shows the tree").
-  - Who did what, and from where: `user_id` and `source` (`pass` | `chat` | `mcp` | `web`) on
-    `ai_log`; `source` and an optional `source_url` (the Moodle link, the commit) on `notes`.
-  - `update_node` stops taking `content_md` and `content_web`: a page's content changes only
-    through `write_page`, which keeps the version before it.
-  - Tests for `invoke`: role, status, and an admin action failing when called directly.
+- [x] **Actions as tools** — the base for everything below: one `invoke` every caller goes
+  through (role, then params), `read_only`, `tool` and `mcp` on each action, descriptions and
+  errors written for a model, a task-shaped `move_node`, light answers on the tool path, and
+  where notes and the AI log came from. Nothing calls the tools yet: the MCP and the chat come
+  next. See [docs/tools.md](docs/tools.md). Apply
+  `supabase/migrations/20261006120000_sources.sql` in the Supabase SQL editor before deploying it.
 - [ ] **Pages from outside the pass** — admin only.
   - `write_page(node_id, markdown, mode, source_url?)`. `replace`: the Markdown as it is, past the
     gatekeeper. `merge`: the notes agent folds it into what the page has, always through the
