@@ -122,6 +122,13 @@ a GitHub repo and writes the class's notes in Kolmi.
   account takes its notes' files from Storage and its account from Supabase Auth; the files on
   shared pages stay. Apply `supabase/migrations/20261007120000_users.sql` and add `ADMIN_EMAILS` to
   the server's `.env` before deploying it. See [docs/authentication.md](docs/authentication.md).
+- [ ] **Users, what's left** — three small things:
+  - The first admin: whoever signs up first on an instance with no admin becomes one, in place of
+    `ADMIN_EMAILS` (the way self-hosted apps usually do it); the class code already stands in the
+    way of strangers.
+  - A blocked person with the app open sees the waiting screen only when they navigate; handle a
+    blocking 403 in one place in the API client and send them there.
+  - Drop the `approved` column in its own migration, once the status has run stable for a while.
 - [ ] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
   (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class.
   - Personal tokens: `api_tokens(id, user_id, name, token_hash, prefix, last_used_at,
