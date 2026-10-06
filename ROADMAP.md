@@ -302,6 +302,8 @@ Same tools, same loop, another trigger.
 
 ## Ideas, not committed
 
+- Dokploy as a documented way to install an instance: a self-hosted panel that deploys from GitHub
+  with rollbacks, for a class that doesn't want to write its own deploy script.
 - A teacher dashboard (what the hive did this week).
 - Export the notes to PDF.
 - Link a topic to NotebookLM, so a section's notes can be studied there too.
