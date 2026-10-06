@@ -160,6 +160,23 @@ Index every page once, after setting the key (`--force` ignores the stored hashe
 .venv/bin/python -m app.rag reindex --force
 ```
 
+### Measuring retrieval
+
+`evals/rag_questions.json` holds questions in Spanish, each with the page that answers it and a
+kind: `exact` (uses a term from the page), `paraphrase` (same idea, other words) or `concept`.
+`evals/rag_retrieval.py` asks the app's own `search` each one, collapses the chunks to pages and
+prints recall@1/3/8 and MRR, overall and per kind, plus the questions that missed. It only reads
+the database; set the same environment as the server (including `EMBEDDING_API_KEY`).
+
+```bash
+.venv/bin/python -m evals.rag_retrieval
+.venv/bin/python -m evals.rag_retrieval --only concept --verbose --json out.json
+```
+
+The ids in the questions point at one instance's pages. To write a set for yours, run
+`.venv/bin/python -m evals.make_rag_questions --pages 28`: it has the configured model draft
+questions from the page text and overwrites the file. Skim the result before trusting it.
+
 ## Routes
 
 | Action | Route | Who |
