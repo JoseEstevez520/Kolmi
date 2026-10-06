@@ -74,20 +74,13 @@ What we're building and what's next. Open to whatever the class needs.
   down, drag a block to move it or its edge to resize it, snapped to a whole session; click to set
   its title, detail or linked page. Days are picked with `WeekPillbox`, the same part the daily
   pass's own schedule uses.
-
-## Now: live, with real use
-
-The instance on the server and a class using it come first: the MCP needs a public address,
-and real use says more than any plan.
-
-- [ ] **Deploy** — the instance on the server: Docker, the pass's host cron and the domain.
-- [ ] **Seed the tree** — the class's sections, each with a description, so the gatekeeper knows
-  where things go. The database is empty on purpose while the app is built: the real tree comes
-  when it's ready for the class.
 - [x] **First real pass** — tried in October 2026 with real notes, a course's files and photos of
   handwritten notes, and then cleaned up. The gatekeeper did what the plan expects in every case
   (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
   The plan and the results are in [docs/testing.md](docs/testing.md).
+
+## Now: what real use showed
+
 - [ ] **Better pages** — what the test showed: pages come
   out with no "To explore" section and, for some notes that would suit a drawing, no drawing
   (a flow got a diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
@@ -141,9 +134,9 @@ a GitHub repo and writes the class's notes in Kolmi.
   - `rebuild_page(node_id)`: the web again from the page's Markdown.
   - `list_versions(node_id)` and `restore_version(version_id)` (confirmed), with a history and a
     restore button in the UI. Not optional once an AI can write pages.
-- [ ] **Import the existing notes** — a class's notes that already exist as pages: their
-  Markdown as it is, and the web page made from it. With `write_page` in `replace` mode this is
-  mostly a loop over the files.
+- [ ] **Import notes that already exist** — a class that already has its notes as Markdown files
+  brings them in as pages: their Markdown as it is, and the web page made from it. With
+  `write_page` in `replace` mode this is mostly a loop over the files.
 - [ ] **Users from the admin panel** — today there is no user management at all: the first admin
   is set by hand in Supabase and `approved` only stops notes, files and the export.
   - Two roles, `student` and `admin`, and a status apart from the role: `active` | `pending` |

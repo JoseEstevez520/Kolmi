@@ -34,3 +34,6 @@ in its own repo.
   languages: edit one and the other in the same commit.
 - **Personal setup is local.** This developer's own server, Supabase and deploy details live
   in `LOCAL.md` (gitignored). If it exists, read it for the instance-specific context.
+- **Nothing personal in the repo.** The repo is the product, for any class. What belongs to one
+  instance (its deploy, its tree, its notes, its own to-dos) never goes in the roadmap, the docs
+  or the code: it goes in `LOCAL.md`.
