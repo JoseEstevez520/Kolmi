@@ -50,7 +50,8 @@ const pickedPath = computed(() => paths.value.get(picked.value)?.slice(-2).join(
     size="sm"
     align="end"
     fluid
-    class="min-w-0 text-fg-muted"
+    shrink
+    class="text-fg-muted"
     :label="pickedPath ? `${label} ${pickedPath}` : label"
   >
     <template #trigger>
