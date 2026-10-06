@@ -47,7 +47,7 @@ export default {
 
   sidebar: {
     home: 'Home',
-    notes: 'Notes',
+   
     schedule: 'Timetable',
     admin: 'Admin',
     aiLog: 'AI log',
@@ -282,14 +282,13 @@ export default {
       empty: 'Nobody has joined yet.',
       you: 'you',
       noEmail: 'no email',
-      joined: 'Joined {date}',
-      notes: 'no notes | {n} note | {n} notes',
+      columns: { person: 'Person', status: 'Status', role: 'Role', joined: 'Joined', actions: 'Actions' },
       role: 'Role of {name}',
       roles: { student: 'Student', admin: 'Admin' },
       status: { active: 'Active', pending: 'Pending', blocked: 'Blocked' },
-      approve: 'Approve',
-      block: 'Block',
-      unblock: 'Unblock',
+      approve: 'Approve {name}',
+      block: 'Block {name}',
+      unblock: 'Unblock {name}',
       delete: 'Delete {name}',
       confirmDelete: 'Delete',
     },

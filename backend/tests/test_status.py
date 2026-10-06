@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from fastapi import HTTPException
+from postgrest.exceptions import APIError
 
 from app import auth
 from app.actions import get_registry, invoke
@@ -103,45 +105,120 @@ def test_check_active_lets_an_active_member_through():
 # -- sign-up ---------------------------------------------------------------------------------------
 
 
-@pytest.fixture
-def admin_emails(monkeypatch):
-    settings = get_settings()
-    monkeypatch.setattr(settings, "admin_emails", "First@Class.org, other@class.org")
-    return settings
+class _Signups:
+    """`sign_up_profile` as the database runs it (supabase/migrations/20261008120000_first_admin.sql):
+    the first on an instance with no admin becomes one, active; anyone else a student, pending while
+    approval is on. Whether two at once can both be first is the lock's job, checked on Postgres."""
+
+    def __init__(self, client: "_Client") -> None:
+        self.client = client
+        self.calls: list[dict[str, Any]] = []
+
+    def __call__(self, name: str, params: dict[str, Any]):
+        assert name == "sign_up_profile"
+        self.calls.append(params)
+        profiles = self.client.tables["profiles"]
+        if any(p["id"] == params["p_id"] for p in profiles):
+            raise APIError({"code": "23505", "message": "duplicate key value"})
+        settings = self.client.tables["settings"]
+        waiting = bool(settings and settings[0].get("signups_need_approval"))
+        if not any(p["role"] == "admin" for p in profiles):
+            row = {"role": "admin", "status": "active"}
+        else:
+            row = {"role": "student", "status": "pending" if waiting else "active"}
+        row = {"id": params["p_id"], "name": params["p_name"], **row}
+        profiles.append(row)
+        return SimpleNamespace(execute=lambda: SimpleNamespace(data=row))
 
 
-def _sign_up(client, email="ana@class.org"):
-    ctx = Context(user_id="u1", email=email, profile=None, client=client)
-    return invoke(get_registry()["register_profile"], ctx, {"code": get_settings().class_code, "name": "Ana"})
+def _signing_up(**tables) -> _Client:
+    client = _Client(**tables)
+    client.rpc = _Signups(client)
+    return client
 
 
-def test_an_address_in_admin_emails_signs_up_as_an_active_admin(admin_emails):
-    client = _Client(settings=[{"id": 1, "class_language": "en", "signups_need_approval": True}])
+def _sign_up(client, user="u1", name="Ana"):
+    ctx = Context(user_id=user, email=f"{user}@class.org", profile=None, client=client)
+    return invoke(get_registry()["register_profile"], ctx, {"code": get_settings().class_code, "name": name})
 
-    row = _sign_up(client, "first@class.org")
+
+APPROVAL_ON = [{"id": 1, "class_language": "en", "signups_need_approval": True}]
+
+
+def test_the_first_to_sign_up_becomes_an_active_admin():
+    row = _sign_up(_signing_up())
 
     assert row["role"] == "admin" and row["status"] == "active"
 
 
-def test_anyone_else_signs_up_as_an_active_student(admin_emails):
-    row = _sign_up(_Client())
+def test_the_first_admin_is_let_in_even_with_approval_on():
+    row = _sign_up(_signing_up(settings=APPROVAL_ON))
+
+    assert row["role"] == "admin" and row["status"] == "active"
+
+
+def test_two_sign_ups_in_a_row_give_one_admin():
+    client = _signing_up()
+
+    first, second = _sign_up(client, "u1", "Ana"), _sign_up(client, "u2", "Sam")
+
+    assert (first["role"], second["role"]) == ("admin", "student")
+    assert second["status"] == "active"
+    assert sum(p["role"] == "admin" for p in client.tables["profiles"]) == 1
+
+
+def test_an_instance_with_an_admin_signs_up_a_student():
+    client = _signing_up(profiles=[{"id": "a1", "name": "Ana", "role": "admin", "status": "active"}])
+
+    row = _sign_up(client, "u2", "Sam")
 
     assert row["role"] == "student" and row["status"] == "active"
 
 
-def test_with_approval_on_a_new_sign_up_waits(admin_emails):
-    client = _Client(settings=[{"id": 1, "class_language": "en", "signups_need_approval": True}])
+def test_with_approval_on_a_new_sign_up_waits():
+    client = _signing_up(
+        profiles=[{"id": "a1", "name": "Ana", "role": "admin", "status": "active"}], settings=APPROVAL_ON
+    )
 
-    row = _sign_up(client)
+    row = _sign_up(client, "u2", "Sam")
 
     assert row["role"] == "student" and row["status"] == "pending"
 
 
+def test_the_database_decides_from_the_name_and_id_alone():
+    client = _signing_up()
+
+    _sign_up(client, "u7", "Pat")
+
+    assert client.rpc.calls == [{"p_id": "u7", "p_name": "Pat"}]
+
+
+def test_the_same_account_signing_up_twice_at_once_is_a_409():
+    client = _signing_up()
+    _sign_up(client, "u1")
+
+    with pytest.raises(HTTPException) as err:
+        _sign_up(client, "u1")  # the profile isn't cached yet: only the database sees the double
+
+    assert err.value.status_code == 409
+
+
+def test_someone_with_a_profile_cannot_sign_up_again():
+    client = _signing_up()
+    ctx = _ctx(client=client)
+
+    with pytest.raises(HTTPException) as err:
+        invoke(get_registry()["register_profile"], ctx, {"code": get_settings().class_code, "name": "Ana"})
+
+    assert err.value.status_code == 409 and client.rpc.calls == []
+
+
 def test_a_wrong_code_is_still_refused():
-    ctx = Context(user_id="u1", email="a@b.c", profile=None, client=_Client())
+    client = _signing_up()
+    ctx = Context(user_id="u1", email="a@b.c", profile=None, client=client)
     with pytest.raises(HTTPException) as err:
         invoke(get_registry()["register_profile"], ctx, {"code": "nope", "name": "Ana"})
-    assert err.value.status_code == 403
+    assert err.value.status_code == 403 and client.rpc.calls == []
 
 
 # -- the approval switch ----------------------------------------------------------------------------

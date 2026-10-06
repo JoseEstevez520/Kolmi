@@ -44,8 +44,11 @@ anything, checked once, in `invoke`, and in the two routes that aren't actions (
 and the export). Someone pending or blocked only sees a waiting screen, signs out or deletes their
 account.
 
-- **The first admin** comes from `ADMIN_EMAILS` in `backend/.env`: an address in it signs up as an
-  active admin. Only new sign-ups: an existing account keeps its role.
+- **The first admin** is whoever signs up first on an instance with no admin: they come in as an
+  active admin, whatever the approval setting. Signing up already needs the class code, which keeps
+  strangers out. The database decides it, in `sign_up_profile`, which takes one sign-up at a time
+  under a lock, so two at once can't both become the first admin. Accounts that already exist
+  keep their role.
 - **Approval:** with the class setting "New sign-ups need approval" on (for when the class code
   leaks), a new sign-up starts as pending and shows up in the admin's Users list.
 - **The last admin stays:** the last active admin can't be made a student, blocked or deleted.

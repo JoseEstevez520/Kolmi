@@ -22,9 +22,10 @@ export function formatDate(value) {
 }
 
 // Just the day, for when someone joined.
+// A day in numbers, as a table's column reads it: "5/10/26".
 export function formatDay(value) {
   const date = toDate(value)
-  return date ? formatter('day', { dateStyle: 'medium' }).format(date) : ''
+  return date ? formatter('day', { dateStyle: 'short' }).format(date) : ''
 }
 
 // For narrow cells (the AI log): day, short month and the time, no year.

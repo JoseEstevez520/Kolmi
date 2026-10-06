@@ -110,15 +110,13 @@ a GitHub repo and writes the class's notes in Kolmi.
   in the upload and export routes). An admin's Users block in `/admin` (`list_users`, `set_role`,
   `set_status`, `delete_user`) and the class setting "New sign-ups need approval", with a waiting
   screen for whoever is pending or blocked; anyone changes their name and deletes their account in
-  Settings. The first admin from `ADMIN_EMAILS`; the last active admin can't be demoted, blocked or
-  deleted; losing access goes through `on_access_lost`, where the MCP will revoke tokens. A deleted
-  account takes its notes' files from Storage and its account from Supabase Auth; the files on
-  shared pages stay. Apply `supabase/migrations/20261007120000_users.sql` and add `ADMIN_EMAILS` to
-  the server's `.env` before deploying it. See [docs/authentication.md](docs/authentication.md).
-- [ ] **Users, what's left** — three small things:
-  - The first admin: whoever signs up first on an instance with no admin becomes one, in place of
-    `ADMIN_EMAILS` (the way self-hosted apps usually do it); the class code already stands in the
-    way of strangers.
+  Settings. The first to sign up on an instance with no admin becomes one; the last active admin
+  can't be demoted, blocked or deleted; losing access goes through `on_access_lost`, where the MCP
+  will revoke tokens. A deleted account takes its notes' files from Storage and its account from
+  Supabase Auth; the files on shared pages stay. Apply `supabase/migrations/20261007120000_users.sql`
+  and `20261008120000_first_admin.sql` before deploying it. See
+  [docs/authentication.md](docs/authentication.md).
+- [ ] **Users, what's left** — two small things:
   - A blocked person with the app open sees the waiting screen only when they navigate; handle a
     blocking 403 in one place in the API client and send them there.
   - Drop the `approved` column in its own migration, once the status has run stable for a while.
