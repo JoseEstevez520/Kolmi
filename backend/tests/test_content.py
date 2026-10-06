@@ -143,6 +143,15 @@ def test_last_goes_to_the_end():
     assert _order(nodes, 1) == [4, 5, 3]
 
 
+def test_left_out_the_parent_stays_the_one_it_has():
+    nodes = _tree()
+
+    row = _move(nodes, node_id=3, placement="last")
+
+    assert row["parent_id"] == 1
+    assert _order(nodes, 1) == [4, 5, 3]
+
+
 def test_after_a_node_that_is_not_a_sibling_is_refused():
     with pytest.raises(HTTPException) as exc:
         _move(_tree(), node_id=2, parent_id=1, placement="after", after_node_id=6)

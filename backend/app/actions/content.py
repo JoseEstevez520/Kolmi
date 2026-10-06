@@ -37,7 +37,7 @@ class UpdateNodeParams(BaseModel):
 
 class MoveNodeParams(BaseModel):
     node_id: int = Field(..., description="The node to move, from list_nodes.")
-    parent_id: int | None = Field(None, description="Its parent after the move; null for the top level. Give the current one to only reorder.")
+    parent_id: int | None = Field(None, description="Its parent after the move; null for the top level. Left out, it stays under the one it has, to only reorder.")
     # Where among the new siblings. Left out, only the parent changes (the web moves, then
     # reorders).
     placement: Literal["first", "after", "last"] | None = Field(None, description="Where among its new siblings: first, after (with after_node_id) or last.")
@@ -209,22 +209,25 @@ def move_node(ctx: Context, params: MoveNodeParams):
     by_id = {n["id"]: n for n in nodes}
     if params.node_id not in by_id:
         raise HTTPException(404, f"There is no node {params.node_id}; list_nodes shows the tree")
-    if params.parent_id is not None and params.parent_id not in by_id:
-        raise HTTPException(404, f"There is no node {params.parent_id}; list_nodes shows the tree")
+    # Left out, the parent is the one it has: a model asking for "last" means among its siblings,
+    # not at the top level. The web always sends it.
+    parent_id = params.parent_id if "parent_id" in params.model_fields_set else by_id[params.node_id]["parent_id"]
+    if parent_id is not None and parent_id not in by_id:
+        raise HTTPException(404, f"There is no node {parent_id}; list_nodes shows the tree")
 
     # Walking up from the new parent must not reach the node: it would end up inside itself.
-    cursor = params.parent_id
+    cursor = parent_id
     while cursor is not None:
         if cursor == params.node_id:
             raise HTTPException(422, "A node can't go inside itself or one of its own children")
         cursor = by_id[cursor]["parent_id"]
 
     if params.placement is None:
-        data = {"parent_id": params.parent_id}
+        data = {"parent_id": parent_id}
     else:
         siblings = [
             n for n in nodes
-            if n["parent_id"] == params.parent_id and n["id"] != params.node_id
+            if n["parent_id"] == parent_id and n["id"] != params.node_id
         ]
         if params.placement == "after" and params.after_node_id not in {s["id"] for s in siblings}:
             raise HTTPException(
@@ -234,7 +237,7 @@ def move_node(ctx: Context, params: MoveNodeParams):
         slot, moves = place_among(siblings, params.placement, params.after_node_id)
         for sibling_id, position in moves.items():
             ctx.client.table("nodes").update({"position": position}).eq("id", sibling_id).execute()
-        data = {"parent_id": params.parent_id, "position": slot}
+        data = {"parent_id": parent_id, "position": slot}
 
     rows = ctx.client.table("nodes").update(data).eq("id", params.node_id).execute().data
     if not rows:
