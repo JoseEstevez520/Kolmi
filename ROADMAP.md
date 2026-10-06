@@ -79,13 +79,6 @@ What we're building and what's next. Open to whatever the class needs.
   (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
   The plan and the results are in [docs/testing.md](docs/testing.md).
 
-## Now: what real use showed
-
-- [ ] **Better pages** — some notes that would suit a drawing come out with none (a flow got a
-  diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
-  so a file only gets judged by its name. Decide whether the Gateway's web model is worth
-  bringing back.
-
 ## Next: actions as tools, users and the MCP
 
 One set of actions, used three ways: by the web, by the chat and by anyone's own AI through the
@@ -267,6 +260,10 @@ Same tools, same loop, another trigger.
 
 ## Later
 
+- [ ] **Better pages** — some notes that would suit a drawing come out with none (a flow got a
+  diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
+  so a file only gets judged by its name. Decide whether the Gateway's web model is worth
+  bringing back.
 - [ ] The page showing it is being rebuilt, while `write_page`, `rebuild_page` or the pass remake
   it. Needs a state per page and the web asking for it; today the new version just appears.
 - [ ] Moderation and reporting tools.
