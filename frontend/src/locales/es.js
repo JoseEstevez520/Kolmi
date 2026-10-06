@@ -247,7 +247,7 @@ export default {
     title: 'Administración',
     sections: {
       content: { tab: 'Contenido', lead: 'Crea, renombra, edita, mueve, ordena y borra el árbol de contenido.' },
-      people: { tab: 'Personas', lead: 'Deja entrar a quien espera, cambia roles y bloquea o elimina personas.' },
+      people: { tab: 'Personas', lead: 'Quién está en la clase. Deja entrar a quien espera, cambia roles, bloquea o quita a alguien.' },
       class: { tab: 'La clase', lead: 'El idioma, el repaso diario, el chat y los registros de esta clase.' },
     },
     addTop: 'Añadir al nivel principal',
@@ -274,7 +274,6 @@ export default {
     color: 'Color',
     onHome: 'Mostrar en el inicio',
     users: {
-      hint: 'Quién está en la clase. Quienes están pendientes esperan aquí hasta que los dejes entrar.',
       loading: 'Cargando a las personas…',
       loadError: 'No se pudo cargar a las personas.',
       empty: 'Todavía no se ha unido nadie.',

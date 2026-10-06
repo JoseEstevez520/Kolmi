@@ -113,8 +113,6 @@ onMounted(load)
 
 <template>
   <div class="flex flex-col gap-4 pt-4">
-    <p class="m-0 text-meta text-fg-muted">{{ t('admin.users.hint') }}</p>
-
     <StatusText v-if="loading" :delay="300" :text="t('admin.users.loading')" working />
     <StatusText v-else-if="loadError" :text="loadError" error />
     <Empty

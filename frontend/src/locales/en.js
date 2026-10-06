@@ -250,7 +250,7 @@ export default {
     title: 'Admin',
     sections: {
       content: { tab: 'Content', lead: 'Create, rename, edit, move, reorder and delete the content tree.' },
-      people: { tab: 'Users', lead: 'Let people in, change their roles, and block or remove them.' },
+      people: { tab: 'Users', lead: 'Who is in the class. Let in whoever is waiting, change roles, block or remove someone.' },
       class: { tab: 'The class', lead: 'The language, the daily pass, the chat and the sign-ups of this class.' },
     },
     addTop: 'Add at the top level',
@@ -277,7 +277,6 @@ export default {
     color: 'Colour',
     onHome: 'Show on the home',
     users: {
-      hint: 'Who is in the class. Pending people wait here until you let them in.',
       loading: 'Loading the people…',
       loadError: 'Could not load the people.',
       empty: 'Nobody has joined yet.',
