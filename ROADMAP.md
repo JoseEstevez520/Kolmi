@@ -294,8 +294,8 @@ Same tools, same loop, another trigger.
     for admins.
 - [ ] **Better pages** — some notes that would suit a drawing come out with none (a flow got a
   diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
-  so a file only gets judged by its name. Decide whether the Gateway's web model is worth
-  bringing back.
+  so a file only gets judged by its name. Try another model for the pages' drawings, such as
+  OpenUI's own.
 - [ ] The page showing it is being rebuilt, while `write_page`, `rebuild_page` or the pass remake
   it. Needs a state per page and the web asking for it; today the new version just appears.
 - [ ] Moderation and reporting tools.
@@ -303,8 +303,6 @@ Same tools, same loop, another trigger.
 - [ ] Notifications (weekly digest, "the hive worked", a forum reply).
 - [ ] More languages beyond English and Spanish.
 - [ ] Better interactive pieces, if pages turn out to need them.
-- [ ] The OpenUI Gateway as the web model again, once its account has credit (only the key
-  changes).
 
 ## Ideas, not committed
 
