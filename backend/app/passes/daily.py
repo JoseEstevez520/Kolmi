@@ -8,6 +8,7 @@ from typing import Any
 from ..agents import LLM, build_page, get_llm, get_web_llm, run_gatekeeper, write_markdown
 from ..agents.gatekeeper import build_index
 from ..agents.schemas import Batch, GatekeeperResult, NewPage
+from ..rag import index_pages
 from ..store import Store, SupabaseStore
 from .schedule import is_due
 
@@ -341,6 +342,10 @@ def run_daily_pass(
         stats["unreviewed"] = _review(plan, note_ids)
         files = {f["id"]: f for n in notes for f in n.get("files") or []}
         _apply(store, llm, web_llm, pass_id, plan, note_ids, stats, language, files)
+        # The pages it wrote go in the search index; one that fails stays as it was.
+        client = getattr(store, "client", None)
+        if client is not None:
+            stats["indexed"] = index_pages(client, [page["node_id"] for page in stats["pages"]])
         store.close_pass(pass_id, status="done", stats=stats)
     except Exception as exc:
         store.close_pass(pass_id, status="failed", stats=stats, error=str(exc))

@@ -9,6 +9,7 @@ from ..auth import Context
 from ..class_settings import read_settings
 from ..files import BUCKET, is_missing, own_pending_note
 from ..passes.schedule import today_start
+from ..rag import search
 from .registry import action
 
 
@@ -234,8 +235,27 @@ def _snippet(text: str, at: int) -> str:
     path="/search",
 )
 def search_pages(ctx: Context, params: SearchParams):
-    # A class's pages are few: they are read once and matched here, every word in the title or
-    # the text, the title's hits first.
+    # With the search index on, by meaning: one hit per page, in the order of its best chunk.
+    chunks = search(ctx.client, params.query, k=SEARCH_LIMIT * 2)
+    if chunks:
+        best: dict[int, dict] = {}
+        for chunk in chunks:
+            best.setdefault(chunk["node_id"], chunk)
+        ids = list(best)[:SEARCH_LIMIT]
+        rows = ctx.client.table("nodes").select("id, title").in_("id", ids).execute().data
+        titles = {row["id"]: row.get("title") or "" for row in rows}
+        hits = []
+        for node_id in ids:
+            if node_id not in titles:
+                continue
+            chunk = best[node_id]
+            heading, content = chunk["heading"], chunk["content"]
+            text = f"{heading}: {content}" if heading else content
+            hits.append({"id": node_id, "title": titles[node_id], "snippet": _snippet(text, 0)})
+        return hits
+
+    # Otherwise, with the index off or empty: a class's pages are few, so they are read once and
+    # matched here, every word in the title or the text, the title's hits first.
     words = [w for w in params.query.lower().split() if w]
     pages = ctx.client.table("nodes").select("id, title, kind, content_md").eq("kind", "page").execute().data
     hits = []

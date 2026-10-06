@@ -5,12 +5,15 @@ from typing import Any
 
 from ..class_settings import FALLBACK_LANGUAGE
 from .client import LLM
-from .prompts import chat_system
+from .prompts import CHAT_PASSAGES, chat_system
 from .schemas import ChatAnswer
 from .search import SEARCH_WEB_TOOL, WebSearch, search_tool, web_search
 from .tree import READ_PAGE_TOOL, PageReader, build_index, read_page_tool
 
 log = logging.getLogger(__name__)
+
+# With passages, the most characters of tree index the chat is sent (some 1,500 tokens).
+INDEX_BUDGET = 6000
 
 
 def _combined_tool(read_page_run, search_run):
@@ -36,18 +39,41 @@ def run_chat(
     today: str = "",
     schedule: str = "",
     search: WebSearch | None = web_search,
+    passages: list[dict[str, Any]] | None = None,
 ) -> ChatAnswer:
     """Answer a student's question from the class's own content, same shape as the gatekeeper:
     the tree as an index, and the pages it wants with the `read_page` tool. With a model that has
     no tools, or if that loop fails, it answers from the index alone. `schedule` is the week's
     timetable as plain text, already resolved against the tree's titles, and `today` its weekday
     and date; both empty when the class hasn't set a timetable up. `search` is a `search_web`
-    reader, DuckDuckGo (needs no key) by default; pass `None` to turn it off.
+    reader, DuckDuckGo (needs no key) by default; pass `None` to turn it off. `passages` are the
+    chunks a search by meaning found closest to the question ({node_id, heading, content}), put
+    before it; with them the index can be shortened, since they carry the content.
     """
     system = chat_system(language)
     when = f"\n\nToday: {today}" if today else ""
     timetable = f"\n\nTimetable:\n{schedule}" if schedule else ""
-    user = f"Tree:\n{build_index(nodes)}{when}{timetable}\n\nQuestion: {question}"
+    index = build_index(nodes)
+    found = ""
+    if passages:
+        system = f"{system}\n{CHAT_PASSAGES}"
+        # Past the budget the index loses its descriptions, then its pages (a section's are a
+        # read_page away), so it still fits as the notes grow.
+        if len(index) > INDEX_BUDGET:
+            index = build_index([{**n, "description": ""} for n in nodes])
+        if len(index) > INDEX_BUDGET:
+            index = build_index([n for n in nodes if n.get("kind") == "section"])
+        titles = {n["id"]: n.get("title") or "" for n in nodes}
+        parts = []
+        for p in passages:
+            title, heading = titles.get(p["node_id"], ""), p.get("heading") or ""
+            # The breadcrumb often starts with the page's own title (its H1): said once.
+            if heading == title or heading.startswith(f"{title} › "):
+                heading = heading[len(title) + 3 :]
+            label = " › ".join(part for part in (title, heading) if part)
+            parts.append(f"[{p['node_id']} · {label}]\n{p['content']}")
+        found = "\n\nPassages:\n\n" + "\n\n".join(parts)
+    user = f"Tree:\n{index}{when}{timetable}{found}\n\nQuestion: {question}"
 
     with_tools = getattr(llm, "complete_with_tools", None)
     if with_tools is not None and read_page is not None:

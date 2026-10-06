@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     web_model: str = ""
     web_prompt: Literal["full", "gateway"] = "full"
 
+    # Search by meaning (app/rag), optional: without a key the chat and search_pages match words,
+    # as they always have. Any OpenAI-compatible embeddings endpoint; DeepSeek has none.
+    embedding_api_key: str = ""
+    embedding_base_url: str = "https://api.openai.com/v1"
+    embedding_model: str = "text-embedding-3-small"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

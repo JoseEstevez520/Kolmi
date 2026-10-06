@@ -12,6 +12,7 @@ from ..auth import Context
 from ..class_settings import class_language, read_settings
 from ..files import node_files
 from ..passes.schedule import TIMEZONE, today_start
+from ..rag import search
 from .content import LIST_COLUMNS
 from .registry import action
 from .schedule import _resolve
@@ -124,6 +125,8 @@ def ask_chat(ctx: Context, params: AskChatParams):
         language=language,
         today=_today_text(language),
         schedule=_schedule_text(ctx.client, settings, language),
+        # The parts of the pages closest to the question; none with the search index off.
+        passages=search(ctx.client, question),
     )
 
     ctx.client.table("chat_messages").insert(
