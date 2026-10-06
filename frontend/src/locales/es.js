@@ -44,7 +44,7 @@ export default {
 
   sidebar: {
     home: 'Inicio',
-    notes: 'Notas',
+   
     schedule: 'Horario',
     admin: 'Administración',
     aiLog: 'Registro de la IA',
@@ -279,14 +279,13 @@ export default {
       empty: 'Todavía no se ha unido nadie.',
       you: 'tú',
       noEmail: 'sin correo',
-      joined: 'Se unió el {date}',
-      notes: 'sin notas | {n} nota | {n} notas',
+      columns: { person: 'Persona', status: 'Estado', role: 'Rol', joined: 'Alta', actions: 'Acciones' },
       role: 'Rol de {name}',
       roles: { student: 'Estudiante', admin: 'Admin' },
       status: { active: 'Activo', pending: 'Pendiente', blocked: 'Bloqueado' },
-      approve: 'Aprobar',
-      block: 'Bloquear',
-      unblock: 'Desbloquear',
+      approve: 'Aprobar a {name}',
+      block: 'Bloquear a {name}',
+      unblock: 'Desbloquear a {name}',
       delete: 'Borrar a {name}',
       confirmDelete: 'Borrar',
     },

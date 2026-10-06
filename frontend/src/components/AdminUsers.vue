@@ -12,17 +12,25 @@ import {
   SelectValue,
   Status,
   StatusText,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tooltip,
   TruncatedText,
 } from 'elastic-ui'
-import { Users } from '@lucide/vue'
+import { Ban, Check, Undo2, Users } from '@lucide/vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { formatDay } from '../lib/format.js'
 
-// The class's people: their role (a Select, saved at once), whether they were let in, and what
-// an admin can do about it: approve someone pending, block or unblock, delete. Whoever is
-// waiting comes first, then the rest by when they joined. A change the server refuses (the last
-// admin, say) says why under the list, and the Select goes back to what it was.
+// The class's people, as a table: who, whether they were let in, their role (a Select, saved at
+// once) and when they joined, and an admin's quiet actions as icons:
+// approve someone pending, block or unblock, delete. Whoever is waiting comes first, then the rest
+// by when they joined. A change the server refuses (the last admin, say) says why under the
+// table, and the Select goes back to what it was.
 const { t } = useI18n()
 
 const users = ref([])
@@ -81,6 +89,13 @@ function setRole(user, role) {
   return change(user, () => api.setUserRole({ userId: user.id, role }), () => revert.value++).catch(() => {})
 }
 
+// The one status action a row offers: let a pending person in, unblock a blocked one, block anyone else.
+function statusAction(user) {
+  if (user.status === 'pending') return { status: 'active', icon: Check, key: 'approve' }
+  if (user.status === 'blocked') return { status: 'active', icon: Undo2, key: 'unblock' }
+  return { status: 'blocked', icon: Ban, key: 'block' }
+}
+
 function setStatus(user, status) {
   return change(user, () => api.setUserStatus({ userId: user.id, status })).catch(() => {})
 }
@@ -109,85 +124,77 @@ onMounted(load)
       :icon="Users"
     />
 
-    <ul v-else :key="revert" class="m-0 flex list-none flex-col divide-y divide-border border-y border-border p-0">
-      <li
-        v-for="user in sorted"
-        :key="user.id"
-        class="grid gap-3 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-6"
-      >
-        <div class="flex min-w-0 flex-col gap-1">
-          <div class="flex min-w-0 items-center gap-2">
-            <TruncatedText class="min-w-0 text-label font-medium text-fg">{{ user.name }}</TruncatedText>
-            <span v-if="user.id === profile?.id" class="shrink-0 text-meta text-fg-faint">
-              ({{ t('admin.users.you') }})
-            </span>
-          </div>
-          <TruncatedText v-if="user.email" class="text-meta text-fg-muted">{{ user.email }}</TruncatedText>
-          <span v-else class="text-meta text-fg-faint">{{ t('admin.users.noEmail') }}</span>
-          <span class="text-meta text-fg-muted">
-            {{ t('admin.users.joined', { date: formatDay(user.created_at) }) }} ·
-            {{ t('admin.users.notes', { n: user.notes }, user.notes) }}
-          </span>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Select :model-value="user.role" class="w-36" @update:model-value="(role) => setRole(user, role)">
-            <SelectTrigger :aria-label="t('admin.users.role', { name: user.name })">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="role in ROLES" :key="role" :value="role">
-                {{ t(`admin.users.roles.${role}`) }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Status
-            class="w-28"
-            :state="STATUS_STATES[user.status] ?? 'idle'"
-            :label="t(`admin.users.status.${user.status}`)"
-          />
-
-          <div class="flex items-center gap-1 md:w-36 md:justify-end">
-            <Button
-              v-if="user.status === 'pending'"
-              size="sm"
-              :loading="busy === user.id"
-              @click="setStatus(user, 'active')"
-            >
-              {{ t('admin.users.approve') }}
-            </Button>
-            <Button
-              v-else-if="user.status === 'blocked'"
-              variant="ghost"
-              size="sm"
-              :disabled="busy === user.id"
-              @click="setStatus(user, 'active')"
-            >
-              {{ t('admin.users.unblock') }}
-            </Button>
-            <Button
-              v-else
-              variant="ghost"
-              size="sm"
-              :disabled="busy === user.id"
-              @click="setStatus(user, 'blocked')"
-            >
-              {{ t('admin.users.block') }}
-            </Button>
-            <ConfirmButton
-              variant="ghost"
-              tone="danger"
-              :label="t('admin.users.delete', { name: user.name })"
-              :confirm-label="t('admin.users.confirmDelete')"
-              :cancel-label="t('common.cancel')"
-              :disabled="busy === user.id"
-              :action="() => remove(user)"
+    <Table v-else :key="revert">
+      <TableHeader>
+        <TableRow>
+          <TableHead>{{ t('admin.users.columns.person') }}</TableHead>
+          <TableHead>{{ t('admin.users.columns.status') }}</TableHead>
+          <TableHead>{{ t('admin.users.columns.role') }}</TableHead>
+          <TableHead numeric>{{ t('admin.users.columns.joined') }}</TableHead>
+          <TableHead><span class="sr-only">{{ t('admin.users.columns.actions') }}</span></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow v-for="user in sorted" :key="user.id">
+          <TableCell>
+            <!-- A set width: a long name or email is cut short, rather than widening the table. -->
+            <div class="flex w-40 flex-col">
+            <div class="flex min-w-0 items-baseline gap-1.5">
+              <TruncatedText class="min-w-0 text-label text-fg">{{ user.name }}</TruncatedText>
+              <span v-if="user.id === profile?.id" class="shrink-0 text-meta text-fg-faint">
+                {{ t('admin.users.you') }}
+              </span>
+            </div>
+            <TruncatedText v-if="user.email" class="text-meta text-fg-muted">{{ user.email }}</TruncatedText>
+            <span v-else class="text-meta text-fg-faint">{{ t('admin.users.noEmail') }}</span>
+            </div>
+          </TableCell>
+          <TableCell>
+            <Status
+              :state="STATUS_STATES[user.status] ?? 'idle'"
+              :label="t(`admin.users.status.${user.status}`)"
             />
-          </div>
-        </div>
-      </li>
-    </ul>
+          </TableCell>
+          <TableCell>
+            <Select :model-value="user.role" class="w-32" @update:model-value="(role) => setRole(user, role)">
+              <SelectTrigger :aria-label="t('admin.users.role', { name: user.name })">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="role in ROLES" :key="role" :value="role">
+                  {{ t(`admin.users.roles.${role}`) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </TableCell>
+          <TableCell numeric class="text-fg-muted">{{ formatDay(user.created_at) }}</TableCell>
+          <!-- Room on the right: the delete widens into its question in place, and must not be cut. -->
+          <TableCell class="pr-6 max-sm:pr-24">
+            <div class="flex items-center gap-1">
+              <Tooltip :content="t(`admin.users.${statusAction(user).key}`, { name: user.name })">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  :icon="statusAction(user).icon"
+                  :aria-label="t(`admin.users.${statusAction(user).key}`, { name: user.name })"
+                  :disabled="busy === user.id"
+                  @click="setStatus(user, statusAction(user).status)"
+                />
+              </Tooltip>
+              <ConfirmButton
+                variant="ghost"
+                tone="danger"
+                :label="t('admin.users.delete', { name: user.name })"
+                :confirm-label="t('admin.users.confirmDelete')"
+                :cancel-label="t('common.cancel')"
+                :disabled="busy === user.id"
+                :action="() => remove(user)"
+              />
+            </div>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
 
     <StatusText v-if="error" :text="error" error />
   </div>
