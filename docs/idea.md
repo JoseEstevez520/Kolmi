@@ -76,6 +76,9 @@ find the chunks that talk about the topic first and answer only with them.
 - **Answer**: on each question, find the similar chunks and the LLM answers only with them,
   citing the page.
 
+The first version skips the vectors: the model gets the tree as an index and reads the pages it
+needs. Search by meaning is the next step, for when the notebook outgrows that (see the roadmap).
+
 ## Open questions
 
 - Where notes come in: chat bot or web.

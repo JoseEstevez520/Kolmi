@@ -177,6 +177,21 @@ a GitHub repo and writes the class's notes in Kolmi.
     page", "go back to yesterday's Docker page", "what did last night's pass do?", "approve the
     three pending users".
   - Evals: real requests and the tool and arguments each should lead to.
+- [ ] **Real RAG: search by meaning, so it scales** — today the chat gets the tree as an index and
+  reads whole pages with `read_page`. That works for a small class, but the index stops fitting
+  in the model's context as the notebook grows, and the model can miss a page it never opens.
+  Retrieval by meaning keeps it working at any size.
+  - pgvector on Supabase (the plan in [docs/idea.md](docs/idea.md)): a table of chunks per page,
+    each with its page, its heading, the text and its embedding.
+  - Chunk by heading, so a chunk keeps its place in the page; tables and code stay whole.
+  - Index at the end of the daily pass (only the pages that changed), and again when a page is
+    written from outside, restored or rebuilt, so the index never lags the Markdown.
+  - On a question: find the closest chunks, hand them over with their page and heading, and keep
+    `read_page` for when the whole page is needed. The answer cites the page as it does now.
+  - The same search can back `search_pages` over the MCP, which is plain text today.
+  - Open: the embedding model (any OpenAI-compatible endpoint, set in `.env` like the others; look
+    at what the instance's own provider offers before adding another), and how much the search
+    costs per question. Look at existing chunkers and the Supabase docs before building any.
 - [ ] **A chat page** — `/chat` first, with the conversation wide, and `/chat/:sessionId` once sessions exist: sessions on the left (a `Sheet` on a phone),
   the conversation wide. The bubble keeps the current session and gets "open in full"; on
   `/chat` it hides. In elastic-ui: room for actions in `ChatMorph`'s header, an action proposal
