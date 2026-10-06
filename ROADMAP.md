@@ -86,14 +86,8 @@ What we're building and what's next. Open to whatever the class needs.
   (a flow got a diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
   so a file only gets judged by its name. Decide whether the Gateway's web model is worth
   bringing back.
-- [ ] **Gatekeeper judgement** — it isn't deterministic (the same notes were split into two pages
-  in one run and merged in another) and it can fold an unrelated topic into a page (Maven inside
-  Spring Boot basics). Look at it with more real notes before changing the prompt.
 - [ ] **Measure a pass** — time is known (about 1.5 to 5.5 minutes for 2 to 8 notes); the cost per
   night is not. Needed to set the schedule and the model.
-- [ ] **Timetable: dragging onto an occupied slot** — today a dropped block just lands where it's
-  let go, even over another one. The usual calendar feel is for what's already there to shift
-  aside (or refuse the drop); decide which, and build it.
 
 ## Next: actions as tools, users and the MCP
 
