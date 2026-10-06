@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { api } from './api.js'
+import { ready, session } from './auth.js'
 import { flatten } from './content.js'
 import { t } from './i18n.js'
 
@@ -24,17 +25,107 @@ export async function loadChatEnabled() {
 }
 
 // The chat's state, held once for the whole app (ChatMorph is mounted once, in App.vue): whether
-// it is open, the conversation so far, and whether an answer is on its way. Nothing is kept
-// between visits; a reload starts a new conversation, as nothing here is saved to the browser.
+// it is open, the conversation so far, and whether an answer is on its way. The conversation
+// is also kept in sessionStorage, so a reload (F5) keeps it but a new tab starts clean.
 export const open = ref(false)
 export const messages = ref([])
 export const responding = ref(false)
+
+let nextId = 1
+
+const STORAGE_KEY = 'kolmi.chat'
+const MAX_STORED = 40
+// The history the model gets: the last few turns, each cut short.
+const HISTORY_MESSAGES = 6
+const HISTORY_CHARS = 1500
+// Whose conversation this is, so another person signing in on the same tab never sees it.
+let owner = null
+
+// Storage can be blocked or full: the chat works the same without it.
+function readStored() {
+  try {
+    return JSON.parse(sessionStorage.getItem(STORAGE_KEY))
+  } catch {
+    return null
+  }
+}
+
+function writeStored() {
+  try {
+    const stored = messages.value.slice(-MAX_STORED)
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ owner, nextId, messages: stored }))
+  } catch {
+    // ignore
+  }
+}
+
+function clearStored() {
+  clearTimeout(writeTimer)
+  try {
+    sessionStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+// What was waiting on the server when the page went away is not coming back: a reply with no
+// text becomes the generic error, a proposal in flight goes back to waiting for a decision, and
+// the local `busy` flag is reset.
+function restore(m) {
+  if (m.role === 'assistant' && !m.text && !m.error) {
+    return { ...m, status: '', error: t('chat.error') }
+  }
+  if (!m.proposals) return m
+  const proposals = m.proposals.map((p) => ({
+    ...p,
+    busy: false,
+    status: p.status === 'running' ? 'pending' : p.status,
+  }))
+  return { ...m, status: '', proposals }
+}
+
+const stored = readStored()
+if (stored && Array.isArray(stored.messages)) {
+  owner = stored.owner ?? null
+  messages.value = stored.messages.map(restore)
+  nextId = Math.max(Number(stored.nextId) || 1, ...messages.value.map((m) => m.id + 1))
+}
+
+let writeTimer
+watch(
+  messages,
+  () => {
+    clearTimeout(writeTimer)
+    writeTimer = setTimeout(writeStored, 200)
+  },
+  { deep: true },
+)
+
+function clearConversation() {
+  messages.value = []
+  clearStored()
+  if (open.value) greet()
+}
+
+// Follow the signed-in person: a different one (or none) means a fresh conversation. The first
+// value seen after a reload is the same person, so it keeps what was restored.
+watch(
+  () => (ready.value ? (session.value?.user?.id ?? null) : undefined),
+  (id) => {
+    // `undefined` is the session not being read yet: nothing to decide.
+    if (id !== undefined && id !== owner) {
+      if (messages.value.length) clearConversation()
+      owner = id
+    }
+  },
+  { immediate: true },
+)
 
 // A greeting the first time the chat is shown, bubble or page, not from the model: it just says
 // who it is.
 export function greet() {
   if (messages.value.length === 0) {
-    messages.value.push({ id: nextId++, role: 'assistant', text: t('chat.greeting') })
+    messages.value.push({ id: nextId++, role: 'assistant', text: t('chat.greeting'), greeting: true })
   }
 }
 
@@ -45,11 +136,14 @@ watch(open, (isOpen) => isOpen && greet())
 export const settled = computed(() => messages.value.length > 0)
 export const activity = computed(() => (responding.value ? 'thinking' : 'rest'))
 
-let nextId = 1
-
 export async function send(text) {
   const question = text.trim()
   if (!question || responding.value) return
+
+  const history = messages.value
+    .filter((m) => (m.role === 'user' || m.role === 'assistant') && m.text && !m.greeting && !m.error)
+    .slice(-HISTORY_MESSAGES)
+    .map((m) => ({ role: m.role, text: m.text.slice(0, HISTORY_CHARS) }))
 
   messages.value.push({ id: nextId++, role: 'user', text: question })
   // `text: ''` from the start, not left out: ChatMessage only shows its "thinking" line once it
@@ -62,7 +156,7 @@ export async function send(text) {
   // mutation as reactive when it goes through the array's own reactive reference, not a plain
   // object held across the await.
   try {
-    const result = await api.askChat(question)
+    const result = await api.askChat(question, history)
     const reply = messages.value.find((m) => m.id === replyId)
     if (reply) {
       reply.text = result.answer
