@@ -13,6 +13,12 @@ from zoneinfo import ZoneInfo
 TIMEZONE = "Europe/Madrid"
 
 
+def today_start(tz: str = TIMEZONE) -> str:
+    """When today began in the class's timezone, as ISO: what a daily cap counts from."""
+    now = datetime.now(ZoneInfo(tz))
+    return datetime.combine(now.date(), time.min, tzinfo=now.tzinfo).isoformat()
+
+
 def is_due(now: datetime, settings: dict[str, Any], last_run: datetime | None) -> bool:
     """Enabled, today is a chosen day, and a chosen time has passed since the last pass.
 

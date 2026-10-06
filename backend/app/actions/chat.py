@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, time
+from datetime import datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -11,7 +11,7 @@ from ..agents import get_llm, run_chat
 from ..auth import Context
 from ..class_settings import class_language, read_settings
 from ..files import node_files
-from ..passes.schedule import TIMEZONE
+from ..passes.schedule import TIMEZONE, today_start
 from .content import LIST_COLUMNS
 from .registry import action
 from .schedule import _resolve
@@ -67,17 +67,12 @@ class AskChatParams(BaseModel):
     question: str
 
 
-def _today_start(tz: str = TIMEZONE) -> str:
-    now = datetime.now(ZoneInfo(tz))
-    return datetime.combine(now.date(), time.min, tzinfo=now.tzinfo).isoformat()
-
-
 def _messages_today(client, user_id: str) -> int:
     rows = (
         client.table("chat_messages")
         .select("id", count="exact")
         .eq("user_id", user_id)
-        .gte("created_at", _today_start())
+        .gte("created_at", today_start())
         .execute()
     )
     return rows.count or 0
