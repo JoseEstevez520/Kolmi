@@ -66,6 +66,11 @@ so the suite spends no tokens and touches no network.
 `LLM_BASE_URL`, `LLM_MODEL`) and, optionally, the web model (`WEB_*`), `CORS_ORIGINS` and
 `CLASS_LANGUAGE`. In `.env`, never in git.
 
+`ADMIN_EMAILS` (comma-separated) is how a class gets its first admin: an address in it signs up
+as an admin and is let in at once. It counts only for new sign-ups; an account that already
+exists keeps its role, and an admin changes roles from the admin panel. Add it to the server's
+`.env` before deploying the users change.
+
 Two models, and what each is for:
 
 - **The web model** (`WEB_*`, optional) composes the pages in OpenUI Lang, figures included.

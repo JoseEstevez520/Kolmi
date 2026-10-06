@@ -86,8 +86,6 @@ class MyNotesParams(BaseModel):
     path="/notes",
 )
 def create_note(ctx: Context, params: CreateNoteParams):
-    if not ctx.profile or not ctx.profile.get("approved"):
-        raise HTTPException(403, "Profile not approved")
     _check_hint(ctx, params.node_id)
     if not params.content.strip() and not params.for_files:
         raise HTTPException(422, "A note needs some text or a file")

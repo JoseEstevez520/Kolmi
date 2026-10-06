@@ -2,12 +2,11 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from .auth import Context, get_context
+from .auth import Context, check_active, get_context
 from .files import (
     BUCKET,
     MAX_FILE_BYTES,
     MAX_FILES_PER_NOTE,
-    approved,
     check_file,
     files_guard,
     is_admin,
@@ -37,7 +36,7 @@ def store_upload(
     note_id: int | None = None, node_id: int | None = None,
 ) -> dict:
     """Check who is sending what, keep it in the bucket and record it."""
-    approved(ctx)
+    check_active(ctx)
     if (note_id is None) == (node_id is None):
         raise HTTPException(422, "Give a note_id or a node_id")
     name = (name or "").strip().replace("\\", "/").split("/")[-1][:200]

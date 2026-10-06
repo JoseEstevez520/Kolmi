@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     supabase_service_key: str
     class_code: str
     cors_origins: str = "http://localhost:5173"
+    # Comma-separated addresses that sign up as admins. Only for new sign-ups: an account that
+    # already exists keeps its role.
+    admin_emails: str = ""
 
     # The language the AI writes the shared notes and pages in, until an admin sets it in the
     # admin panel (stored in the `settings` table). A code from app/class_settings.LANGUAGES.
@@ -31,6 +34,10 @@ class Settings(BaseSettings):
     web_base_url: str = ""
     web_model: str = ""
     web_prompt: Literal["full", "gateway"] = "full"
+
+    @property
+    def admin_emails_set(self) -> frozenset[str]:
+        return frozenset(e.strip().lower() for e in self.admin_emails.split(",") if e.strip())
 
     @property
     def cors_origins_list(self) -> list[str]:

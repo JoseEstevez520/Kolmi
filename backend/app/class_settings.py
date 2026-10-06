@@ -53,6 +53,11 @@ DEFAULT_CHAT = {
 }
 CHAT_COLUMNS = ", ".join(DEFAULT_CHAT)
 
+# Who gets in: off by default, so a sign-up with the class code is let in at once. On, for when
+# the code leaks, a new sign-up waits for an admin.
+DEFAULT_ACCESS = {"signups_need_approval": False}
+ACCESS_COLUMNS = ", ".join(DEFAULT_ACCESS)
+
 
 def default_language() -> str:
     """`CLASS_LANGUAGE` from the environment, or English when it is not a supported code."""
@@ -70,27 +75,28 @@ def _select(client, columns: str) -> list[dict[str, Any]]:
     )
 
 
+# The columns the settings row may have, newest first: an instance whose migrations are behind
+# reads what it has, and the rest takes its default.
+_COLUMN_SETS = [
+    f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}, {ACCESS_COLUMNS}",
+    f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}",
+    f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}",
+    f"class_language, updated_at, {PASS_COLUMNS}",
+    "class_language, updated_at",
+]
+
+
 def _row(client) -> dict[str, Any] | None:
-    try:
+    error: Exception | None = None
+    for columns in _COLUMN_SETS:
         try:
-            rows = _select(
-                client,
-                f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}",
-            )
-        except Exception:  # the chat columns are not there yet
-            try:
-                rows = _select(
-                    client, f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}"
-                )
-            except Exception:  # the pass or timetable columns are not there yet
-                try:
-                    rows = _select(client, f"class_language, updated_at, {PASS_COLUMNS}")
-                except Exception:
-                    rows = _select(client, "class_language, updated_at")
-    except Exception as exc:  # the table is not there yet, or Supabase is unreachable
-        log.warning("could not read the settings row, using the environment: %s", exc)
-        return None
-    return rows[0] if rows else None
+            rows = _select(client, columns)
+        except Exception as exc:  # a column, or the table, is not there yet; or Supabase is down
+            error = exc
+            continue
+        return rows[0] if rows else None
+    log.warning("could not read the settings row, using the environment: %s", error)
+    return None
 
 
 def read_settings(client) -> dict[str, Any]:
@@ -104,6 +110,7 @@ def read_settings(client) -> dict[str, Any]:
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_PASS.items()},
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_SCHEDULE.items()},
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_CHAT.items()},
+        **{key: (row or {}).get(key, default) for key, default in DEFAULT_ACCESS.items()},
         "timezone": "Europe/Madrid",
         "languages": [{"code": code, "name": name} for code, name in LANGUAGES.items()],
     }

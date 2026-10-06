@@ -32,13 +32,14 @@ class UpdateSettingsParams(BaseModel):
     schedule_session_minutes: int | None = None
     chat_enabled: bool | None = None
     chat_daily_limit: int | None = None
+    signups_need_approval: bool | None = None
 
 
 @action(
     name="get_settings",
     read_only=True,
     tool=True,
-    description="The class settings: the AI's language, when its daily pass runs, the class timetable's days, hours and breaks (schedule_days is what a slot's day indexes), and the chat's switch and daily cap.",
+    description="The class settings: the AI's language, when its daily pass runs, the class timetable's days, hours and breaks (schedule_days is what a slot's day indexes), the chat's switch and daily cap, and whether new sign-ups wait for an admin.",
     method="GET",
     path="/settings",
 )
@@ -48,7 +49,7 @@ def get_settings(ctx: Context, params: None):
 
 @action(
     name="update_settings",
-    description="Set the class language, the daily pass's schedule, the class timetable's shape (days, hours, breaks), and whether the chat is on and its daily message cap.",
+    description="Set the class language, the daily pass's schedule, the class timetable's shape (days, hours, breaks), whether the chat is on and its daily message cap, and whether new sign-ups wait for an admin.",
     params=UpdateSettingsParams,
     path="/settings",
     min_role="admin",
@@ -119,6 +120,8 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
         row["chat_daily_limit"] = params.chat_daily_limit
     if params.chat_enabled is not None:
         row["chat_enabled"] = params.chat_enabled
+    if params.signups_need_approval is not None:
+        row["signups_need_approval"] = params.signups_need_approval
 
     row["updated_at"] = datetime.now(timezone.utc).isoformat()
     try:

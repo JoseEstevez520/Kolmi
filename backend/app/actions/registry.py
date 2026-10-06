@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, ValidationError
 
-from ..auth import Context
+from ..auth import Context, check_active
 
 Handler = Callable[[Context, Optional[BaseModel]], Any]
 
@@ -29,6 +29,9 @@ class Action:
     path: Optional[str] = None
     requires_confirmation: bool = False
     min_role: str = "student"
+    # Runs for a caller who isn't active: only what a pending or blocked person still needs (their
+    # profile, signing up, deleting their own account).
+    any_status: bool = False
     # Whether it only reads, and where it is offered as a tool: to the chat, and to the MCP.
     read_only: bool = False
     tool: bool = False
@@ -70,6 +73,7 @@ def action(
     read_only: bool = False,
     tool: bool = False,
     mcp: bool = False,
+    any_status: bool = False,
 ):
     def decorator(fn: Handler) -> Handler:
         _REGISTRY[name] = Action(
@@ -84,6 +88,7 @@ def action(
             read_only=read_only,
             tool=tool,
             mcp=mcp,
+            any_status=any_status,
         )
         return fn
 
@@ -103,9 +108,10 @@ def has_role(ctx: Context, min_role: str) -> bool:
 
 
 def _check_status(ctx: Context, action: Action) -> None:
-    """Whether the caller may act at all: the one place for it. Today `approved` is still checked
-    by the handlers that need it (notes, files, the export); `active | pending | blocked` comes here."""
-    return None
+    """Whether the caller may act at all: the one place for it. Only an active member may, but
+    for the few actions a pending or blocked one still needs."""
+    if not action.any_status:
+        check_active(ctx)
 
 
 def _invalid(exc: ValidationError) -> str:

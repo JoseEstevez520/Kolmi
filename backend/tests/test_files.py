@@ -8,6 +8,7 @@ import pytest
 from fastapi import HTTPException
 from postgrest.exceptions import APIError
 
+from app.actions import get_registry, invoke
 from app.actions.files import FileIdParams, NoteFilesParams, delete_file, download_file, note_files
 from app.agents.gatekeeper import _notes, build_index, run_gatekeeper
 from app.auth import Context
@@ -204,7 +205,7 @@ def test_anonymous_download_is_refused():
     assert http.post("/files/delete", json={"file_id": 1}).status_code == 401
 
 
-def test_a_page_file_downloads_for_any_approved_user_and_a_note_file_for_its_author():
+def test_a_page_file_downloads_for_any_member_and_a_note_file_for_its_author():
     client = _Client()
     note_file = put(client)
     page_file = put(client, ctx(client, "a1", "admin"), node_id=20, note_id=None)
@@ -217,8 +218,10 @@ def test_a_page_file_downloads_for_any_approved_user_and_a_note_file_for_its_aut
         download_file(ctx(client, "u2"), FileIdParams(file_id=note_file["id"]))
     assert error.value.status_code == 404
     assert download_file(ctx(client, "a1", "admin"), FileIdParams(file_id=note_file["id"]))["url"]
+    # A member not let in yet is stopped before the handler, by invoke.
+    pending = Context(user_id="u2", email=None, profile={"status": "pending", "role": "student"}, client=client)
     with pytest.raises(HTTPException) as error:
-        download_file(ctx(client, "u2", approved=False), FileIdParams(file_id=page_file["id"]))
+        invoke(get_registry()["download_file"], pending, {"file_id": page_file["id"]})
     assert error.value.status_code == 403
 
 

@@ -5,7 +5,6 @@ from ..auth import Context
 from ..files import (
     BUCKET,
     DOWNLOAD_URL_SECONDS,
-    approved,
     files_guard,
     is_admin,
     own_pending_note,
@@ -44,7 +43,6 @@ def _file(ctx: Context, file_id: int) -> dict:
     path="/files",
 )
 def note_files(ctx: Context, params: NoteFilesParams):
-    approved(ctx)
     if not is_admin(ctx):
         # Someone else's note answers as a missing one.
         rows = (
@@ -85,7 +83,6 @@ def download_file(ctx: Context, params: FileIdParams):
     path="/files/delete",
 )
 def delete_file(ctx: Context, params: FileIdParams):
-    approved(ctx)
     file = _file(ctx, params.file_id)
     if file.get("node_id") is not None:
         if not is_admin(ctx):

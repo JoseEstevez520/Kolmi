@@ -164,11 +164,6 @@ def node_files(client: Any, node_id: int) -> list[dict[str, Any]]:
 # --- Who may do what -------------------------------------------------------------------------
 
 
-def approved(ctx: Context) -> None:
-    if not ctx.profile or not ctx.profile.get("approved"):
-        raise HTTPException(403, "Profile not approved")
-
-
 def is_admin(ctx: Context) -> bool:
     return bool(ctx.profile and ctx.profile.get("role") == "admin")
 
@@ -186,8 +181,8 @@ def own_pending_note(ctx: Context, note_id: int) -> None:
 
 
 def read_access(ctx: Context, file: dict[str, Any]) -> None:
-    """Who may download: anyone approved for a page's file; a note's file, its author or an admin."""
-    approved(ctx)
+    """Who may download: any member for a page's file; a note's file, its author or an admin.
+    That the caller is an active member is checked before, by `invoke`."""
     if file.get("node_id") is not None or is_admin(ctx):
         return
     if file.get("user_id") != ctx.user_id:

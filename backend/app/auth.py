@@ -50,6 +50,38 @@ def _profile(client: Client, user_id: str) -> dict[str, Any] | None:
     return rows[0]
 
 
+def forget_profile(user_id: str) -> None:
+    """Drop a cached profile, so a change of role or status counts from the next request."""
+    _profiles.pop(user_id, None)
+
+
+def on_access_lost(user_id: str) -> None:
+    """Someone lost their access: demoted, blocked or deleted. The one place that cuts it off
+    everywhere. Today that is the cached profile; the MCP adds revoking their tokens here."""
+    forget_profile(user_id)
+
+
+def status_of(profile: dict[str, Any] | None) -> str | None:
+    """`active`, `pending` or `blocked`; None with no profile. A profile read before the users
+    migration has only `approved`."""
+    if not profile:
+        return None
+    return profile.get("status") or ("active" if profile.get("approved", True) else "pending")
+
+
+def check_active(ctx: "Context") -> None:
+    """Refuse a caller who isn't an active member of the class, saying why and what to do. Every
+    way in goes through it: `invoke` for the actions, and the routes that aren't actions."""
+    current = status_of(ctx.profile)
+    if current == "active":
+        return
+    if current is None:
+        raise HTTPException(403, "You're not in the class yet: sign up with the class code first")
+    if current == "pending":
+        raise HTTPException(403, "Your account is pending: an admin has to let you in")
+    raise HTTPException(403, "Your account is blocked: ask an admin of the class")
+
+
 def get_context(
     authorization: str | None = Header(default=None),
     client: Client = Depends(get_client),
