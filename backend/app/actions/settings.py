@@ -33,13 +33,14 @@ class UpdateSettingsParams(BaseModel):
     chat_enabled: bool | None = None
     chat_daily_limit: int | None = None
     signups_need_approval: bool | None = None
+    mcp_daily_notes: int | None = None
 
 
 @action(
     name="get_settings",
     read_only=True,
     tool=True,
-    description="The class settings: the AI's language, when its daily pass runs, the class timetable's days, hours and breaks (schedule_days is what a slot's day indexes), the chat's switch and daily cap, and whether new sign-ups wait for an admin.",
+    description="The class settings: the AI's language, when its daily pass runs, the class timetable's days, hours and breaks (schedule_days is what a slot's day indexes), the chat's switch and daily cap, whether new sign-ups wait for an admin, and how many notes a student may leave a day through their own AI.",
     method="GET",
     path="/settings",
 )
@@ -49,7 +50,7 @@ def get_settings(ctx: Context, params: None):
 
 @action(
     name="update_settings",
-    description="Set the class language, the daily pass's schedule, the class timetable's shape (days, hours, breaks), whether the chat is on and its daily message cap, and whether new sign-ups wait for an admin.",
+    description="Set the class language, the daily pass's schedule, the class timetable's shape (days, hours, breaks), whether the chat is on and its daily message cap, whether new sign-ups wait for an admin, and how many notes a student may leave a day through their own AI.",
     params=UpdateSettingsParams,
     path="/settings",
     min_role="admin",
@@ -122,6 +123,10 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
         row["chat_enabled"] = params.chat_enabled
     if params.signups_need_approval is not None:
         row["signups_need_approval"] = params.signups_need_approval
+    if params.mcp_daily_notes is not None:
+        if params.mcp_daily_notes <= 0:
+            raise HTTPException(422, "mcp_daily_notes must be a positive number")
+        row["mcp_daily_notes"] = params.mcp_daily_notes
 
     row["updated_at"] = datetime.now(timezone.utc).isoformat()
     try:

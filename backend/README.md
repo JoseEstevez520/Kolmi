@@ -162,12 +162,19 @@ changes nothing.
 | `run_pass` | `POST /pass/run` | admin |
 | `get_settings` | `GET /settings` | any signed-in user |
 | `update_settings` | `POST /settings` | admin |
+| `delete_note` | `POST /notes/delete` | the note's author, until the daily pass |
+| `search_pages` | `GET /search` | any member |
+| `create_my_token` | `POST /tokens` | any member, from the app |
+| `list_my_tokens` | `GET /tokens` | any member, from the app |
+| `revoke_my_token` | `POST /tokens/revoke` | any member, from the app |
 | `list_users` | `GET /users` | admin |
 | `set_role` | `POST /users/role` | admin |
 | `set_status` | `POST /users/status` | admin |
 | `delete_user` | `POST /users/delete` | admin |
 
-Every route takes `Authorization: Bearer <Supabase access token>`. "Any member" is an active
+Every route takes `Authorization: Bearer <Supabase access token>`, or a personal token
+(`kolmi_...`), which reaches only what is offered over the MCP. `/mcp` is the MCP server, with a
+personal token: see [docs/mcp.md](../docs/mcp.md). "Any member" is an active
 one: someone pending or blocked only gets the routes that say "whatever their status".
 
 ## Deploy (Docker)

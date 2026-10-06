@@ -128,7 +128,10 @@ class _Notes:
         return _Insert()
 
 
-def test_a_note_keeps_where_it_was_left_from():
+def test_a_note_keeps_where_it_was_left_from(monkeypatch):
+    from app.actions import notes
+
+    monkeypatch.setattr(notes, "_within_the_mcp_cap", lambda ctx: None)  # the cap has its own tests
     client = _Notes()
     profile = {"id": "u1", "role": "student", "approved": True}
     ctx = Context(user_id="u1", email=None, profile=profile, client=client, source="mcp")  # type: ignore[arg-type]

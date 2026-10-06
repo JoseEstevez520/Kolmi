@@ -250,9 +250,17 @@ def test_forgetting_a_profile_drops_it_from_the_cache():
     assert "u9" not in auth._profiles
 
 
-def test_losing_access_forgets_the_profile():
+def test_losing_access_forgets_the_profile_and_revokes_the_tokens():
+    client = _Client(api_tokens=[
+        {"id": 1, "user_id": "u9", "revoked_at": None},
+        {"id": 2, "user_id": "u9", "revoked_at": "2026-10-01T00:00:00Z"},
+        {"id": 3, "user_id": "u8", "revoked_at": None},
+    ])
     auth._profiles["u9"] = (0.0, {"id": "u9"})
 
-    on_access_lost("u9")
+    on_access_lost("u9", client)
 
     assert "u9" not in auth._profiles
+    rows = {row["id"]: row for row in client.tables["api_tokens"]}
+    assert rows[1]["revoked_at"] and rows[2]["revoked_at"] == "2026-10-01T00:00:00Z"
+    assert rows[3]["revoked_at"] is None

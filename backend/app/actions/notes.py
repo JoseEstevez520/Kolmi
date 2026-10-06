@@ -6,7 +6,9 @@ from pydantic import BaseModel, Field
 from postgrest.exceptions import APIError
 
 from ..auth import Context
-from ..files import is_missing
+from ..class_settings import read_settings
+from ..files import BUCKET, is_missing, own_pending_note
+from ..passes.schedule import today_start
 from .registry import action
 
 
@@ -77,6 +79,28 @@ class MyNotesParams(BaseModel):
     status: str | None = Field(None, description="Only the notes with this status: pending, processed or discarded.")
 
 
+def _within_the_mcp_cap(ctx: Context) -> None:
+    """A student's own AI leaves at most the class's daily number of notes: each one costs the
+    gatekeeper a call. Admins have no cap, and the app has none."""
+    if ctx.source != "mcp" or (ctx.profile or {}).get("role") == "admin":
+        return
+    cap = read_settings(ctx.client).get("mcp_daily_notes", 30)
+    left = (
+        ctx.client.table("notes")
+        .select("id", count="exact")
+        .eq("user_id", ctx.user_id)
+        .eq("source", "mcp")
+        .gte("created_at", today_start())
+        .execute()
+    )
+    if (left.count or 0) >= cap:
+        raise HTTPException(
+            429,
+            f"You've left {cap} notes through your AI today, the most a day in this class. You can "
+            "leave more from midnight (Madrid time), or write them in the app.",
+        )
+
+
 @action(
     name="create_note",
     tool=True,
@@ -89,6 +113,7 @@ def create_note(ctx: Context, params: CreateNoteParams):
     _check_hint(ctx, params.node_id)
     if not params.content.strip() and not params.for_files:
         raise HTTPException(422, "A note needs some text or a file")
+    _within_the_mcp_cap(ctx)
 
     row = {
         "user_id": ctx.user_id,
@@ -153,3 +178,74 @@ def my_notes(ctx: Context, params: MyNotesParams | None):
         query = query.eq("status", params.status)
     notes = query.order("created_at", desc=True).execute().data
     return _with_file_names(ctx, notes)
+
+
+class NoteIdParams(BaseModel):
+    note_id: int = Field(..., description="The note's id, from my_notes.")
+
+
+@action(
+    name="delete_note",
+    tool=True,
+    mcp=True,
+    description="Delete one of your own notes while it is still pending, with its files. Confirmed, and it can't be undone. Once the daily pass has taken a note it is part of a page, and stays.",
+    params=NoteIdParams,
+    path="/notes/delete",
+    requires_confirmation=True,
+)
+def delete_note(ctx: Context, params: NoteIdParams):
+    own_pending_note(ctx, params.note_id)
+    try:
+        files = ctx.client.table("files").select("path").eq("note_id", params.note_id).execute().data
+    except APIError as exc:
+        if not is_missing(exc):  # files are not set up yet: there are none
+            raise
+        files = []
+    paths = [row["path"] for row in files if row.get("path")]
+    if paths:
+        ctx.client.storage.from_(BUCKET).remove(paths)
+    ctx.client.table("notes").delete().eq("id", params.note_id).execute()
+    return {"deleted": params.note_id}
+
+
+class SearchParams(BaseModel):
+    query: str = Field(..., min_length=2, max_length=200, description="Words to look for in the pages' titles and text.")
+
+
+# Enough to tell the hits apart and pick one to read with view_node.
+SEARCH_LIMIT = 20
+SNIPPET = 160
+
+
+def _snippet(text: str, at: int) -> str:
+    start = max(at - SNIPPET // 2, 0)
+    part = text[start : start + SNIPPET].replace("\n", " ").strip()
+    return ("…" if start else "") + part + ("…" if start + SNIPPET < len(text) else "")
+
+
+@action(
+    name="search_pages",
+    read_only=True,
+    tool=True,
+    mcp=True,
+    description="Look for words in the class's pages: their titles and their Markdown. Each hit gives the page's id, its title and a bit of text round the words, best first; read the page with view_node. For where something belongs in the tree, list_nodes.",
+    params=SearchParams,
+    method="GET",
+    path="/search",
+)
+def search_pages(ctx: Context, params: SearchParams):
+    # A class's pages are few: they are read once and matched here, every word in the title or
+    # the text, the title's hits first.
+    words = [w for w in params.query.lower().split() if w]
+    pages = ctx.client.table("nodes").select("id, title, kind, content_md").eq("kind", "page").execute().data
+    hits = []
+    for page in pages:
+        title, text = (page.get("title") or ""), (page.get("content_md") or "")
+        low_title, low_text = title.lower(), text.lower()
+        if not all(w in low_title or w in low_text for w in words):
+            continue
+        in_title = sum(w in low_title for w in words)
+        at = min((low_text.find(w) for w in words if w in low_text), default=0)
+        hits.append((-in_title, title, {"id": page["id"], "title": title, "snippet": _snippet(text, at)}))
+    hits.sort(key=lambda hit: hit[:2])
+    return [hit[2] for hit in hits[:SEARCH_LIMIT]]

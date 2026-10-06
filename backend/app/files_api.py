@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from .auth import Context, check_active, get_context
+from .auth import Context, app_only, check_active, get_context
 from .files import (
     BUCKET,
     MAX_FILE_BYTES,
@@ -37,6 +37,7 @@ def store_upload(
 ) -> dict:
     """Check who is sending what, keep it in the bucket and record it."""
     check_active(ctx)
+    app_only(ctx)
     if (note_id is None) == (node_id is None):
         raise HTTPException(422, "Give a note_id or a node_id")
     name = (name or "").strip().replace("\\", "/").split("/")[-1][:200]
