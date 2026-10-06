@@ -162,7 +162,8 @@ Index every page once, after setting the key (`--force` ignores the stored hashe
 
 ### Measuring retrieval
 
-`evals/rag_questions.json` holds questions in Spanish, each with the page that answers it and a
+`evals/rag_questions.json` (not in git: it names this instance's pages, so each class makes its
+own with `make_rag_questions`) holds questions, each with the page that answers it and a
 kind: `exact` (uses a term from the page), `paraphrase` (same idea, other words) or `concept`.
 `evals/rag_retrieval.py` asks the app's own `search` each one, collapses the chunks to pages and
 prints recall@1/3/8 and MRR, overall and per kind, plus the questions that missed. It only reads

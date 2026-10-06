@@ -166,18 +166,17 @@ a GitHub repo and writes the class's notes in Kolmi.
   blocked past the limit, the same shape as `ai_log`/`ai_passes`) — a student's own browser-held
   key is still open, not built. The answer's Markdown is drawn with elastic-ui's own `Markdown`
   (not `ChatMessage`'s `text`/`ChatStream`, which only animates plain text).
-- [ ] **Tools in the chat** — the registry's tools for the caller's role. Backend done, the web's
-  card missing.
-  - Done: `ask_chat` offers the actions on surface `chat` for the asker's role. Reads run inside
-    the model's loop (`tools.run_tool`). Anything that changes something is checked with
-    `registry.check` and kept as a proposal in `chat_proposals`, not run; every write is a
-    proposal, `create_note` included. `POST /chat/confirm` (only the asker, only once, edited
-    args validated again, runs through `invoke`) and `POST /chat/cancel`. Evals:
-    `backend/evals/chat_tools.json`, `python -m evals.run_chat_evals`. See
-    [docs/tools.md](docs/tools.md).
-  - Left: the proposal card (Confirm, Edit, Cancel) in elastic-ui, which has none yet (`ChatTool`
-    has no actions); release it, bump `frontend/vendor/`, then build the web's side.
-  - Before deploying, apply `supabase/migrations/20261010120000_chat_proposals.sql`.
+- [x] **Tools in the chat** — the registry's tools for the caller's role. `ask_chat` offers the
+  actions on surface `chat`; reads run inside the model's loop, and anything that changes something
+  is checked with `registry.check` and kept as a proposal in `chat_proposals`, never run: every
+  write is a proposal, `create_note` included. The web shows each one as elastic-ui's
+  `ChatProposal` card (Confirm, Edit, Cancel; Confirm asks twice when it destroys something).
+  `POST /chat/confirm` (only the asker, only once, edited args validated again, runs through
+  `invoke` with the confirmer's role) and `POST /chat/cancel`; a proposal stuck while running is
+  freed after two minutes, and one answer proposes at most five. A blank reply from the model
+  after a tool is asked again. Evals: `backend/evals/chat_tools.json`,
+  `python -m evals.run_chat_evals`. See [docs/tools.md](docs/tools.md). Apply
+  `supabase/migrations/20261010120000_chat_proposals.sql` before deploying it.
   - What it's for: "make a note that the exam goes up to unit 4", "save what you just explained as
     a note", "why was my note from yesterday discarded?"; for an admin, "make a Kubernetes section
     with these three pages", "move Maven out of Spring Boot", "put this text as the CI/CD
