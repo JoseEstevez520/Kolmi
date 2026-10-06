@@ -65,6 +65,17 @@ from (`Context.source`, `web` by default). Apply
 `update_node` no longer takes `content_md` or `content_web` (and refuses unknown fields): a
 page's content changes only through the pass and, later, `write_page`, which keeps a version.
 
+## Pages from outside the pass
+
+`write_page` puts Markdown into a page without waiting for the daily pass. In `replace` mode
+the Markdown becomes the page as it is, so it is for text the caller wrote. In `merge` mode the
+notes agent folds it into the page and strips names and private data, so it is for material from
+Moodle, a repo or a forum. It runs in the background: the action answers `queued` at once and
+`view_ai_log` shows the outcome (`updated`, or `flagged` with the error), with who asked and from
+where. `rebuild_page` makes the web again from the page's Markdown. Every rewrite keeps the
+previous content in `node_versions`; `list_versions` lists them (a preview, never the web) and
+`restore_version` (confirmed) brings one back, saving the current content first.
+
 ## Decisions taken
 
 - `approved` stays in the handlers until the user status replaces it.

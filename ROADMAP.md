@@ -115,19 +115,16 @@ a GitHub repo and writes the class's notes in Kolmi.
   where notes and the AI log came from. Nothing calls the tools yet: the MCP and the chat come
   next. See [docs/tools.md](docs/tools.md). Apply
   `supabase/migrations/20261006120000_sources.sql` in the Supabase SQL editor before deploying it.
-- [ ] **Pages from outside the pass** — admin only.
-  - `write_page(node_id, markdown, mode, source_url?)`. `replace`: the Markdown as it is, past the
-    gatekeeper. `merge`: the notes agent folds it into what the page has, always through the
-    step that strips names and private data (Moodle forums and commit authors carry them). Either
-    way the version before is kept and the log says who and from where. It runs in the
-    background (`build_page` and `draw_visuals` take a while): it answers "queued" and the page
-    shows it is being rebuilt.
-  - `rebuild_page(node_id)`: the web again from the page's Markdown.
-  - `list_versions(node_id)` and `restore_version(version_id)` (confirmed), with a history and a
-    restore button in the UI. Not optional once an AI can write pages.
+- [ ] **Pages from outside the pass** — admin only. Done in the backend: `write_page(node_id,
+  markdown, mode, source_url?)` (`replace` as it is, `merge` through the notes agent, which strips
+  names and private data), `rebuild_page(node_id)`, `list_versions(node_id)` and
+  `restore_version(version_id)` (confirmed). They run in the background, keep the version before
+  and log who and from where. Left:
+  - The page showing it is being rebuilt.
+  - A version history with a restore button in the UI.
 - [ ] **Import notes that already exist** — a class that already has its notes as Markdown files
   brings them in as pages: their Markdown as it is, and the web page made from it. With
-  `write_page` in `replace` mode this is mostly a loop over the files.
+  `write_page` in `replace` mode this is mostly a loop over the files (not started).
 - [ ] **Users from the admin panel** — today there is no user management at all: the first admin
   is set by hand in Supabase and `approved` only stops notes, files and the export.
   - Two roles, `student` and `admin`, and a status apart from the role: `active` | `pending` |
