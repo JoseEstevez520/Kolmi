@@ -94,13 +94,6 @@ What we're building and what's next. Open to whatever the class needs.
 - [ ] **Timetable: dragging onto an occupied slot** — today a dropped block just lands where it's
   let go, even over another one. The usual calendar feel is for what's already there to shift
   aside (or refuse the drop); decide which, and build it.
-- [ ] **Bug: the note's "Where does it go?" picker sometimes shows no text** — in the note editor's
-  top bar (`NoteWriteView.vue`), the `NodePicker` trigger at times shows its folder icon with the
-  label gone or glitched. Not reproduced yet. A likely cause: the bar's right group is `min-w-0`
-  and the picker's `TruncatedText` is the only part that can shrink, so when the save status and
-  the attach button's text take the room, its label truncates down to nothing. Reproduce it first
-  (narrow screens, while saving, with a long path), then fix it; if the cause is in
-  `PopoverMorph` or `TruncatedText`, the fix belongs in elastic-ui.
 
 ## Next: actions as tools, users and the MCP
 
