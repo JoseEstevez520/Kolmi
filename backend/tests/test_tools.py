@@ -36,10 +36,10 @@ def test_what_a_student_is_offered():
 
 def test_what_an_admin_is_offered():
     every_tool = {a.name for a in get_registry().values() if a.tool}
-    assert len(every_tool) == 19
+    assert len(every_tool) == 22
     assert _names("admin", "chat") == every_tool
     assert _names("admin", "mcp") == every_tool - {"get_settings"} - SCHEDULE_WRITES
-    assert len(_names("admin", "mcp")) == 15
+    assert len(_names("admin", "mcp")) == 18
 
 
 def test_the_mcp_only_offers_tools():

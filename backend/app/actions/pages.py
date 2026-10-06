@@ -174,3 +174,93 @@ def write_page(ctx: Context, params: WritePageParams):
         source_url=params.source_url,
     )
     return {"status": "queued", "node_id": params.node_id}
+
+
+class VersionIdParams(BaseModel):
+    version_id: int = Field(..., description="The version to restore, from list_versions.")
+
+
+@action(
+    name="rebuild_page",
+    tool=True,
+    mcp=True,
+    description="Make a page's web again from its current Markdown, without changing the Markdown. Admin only. Use it when the page looks wrong but its text is right. It runs in the background and answers at once; the page keeps its previous content as a version, and view_ai_log shows when it is done.",
+    params=PageIdParams,
+    path="/page/rebuild",
+    min_role="admin",
+)
+def rebuild_page(ctx: Context, params: PageIdParams):
+    check_page(ctx, params.node_id, "rebuild_page")
+    start_rewrite(
+        ctx.client,
+        node_id=params.node_id,
+        markdown="",
+        mode="rebuild",
+        user_id=ctx.user_id,
+        source=ctx.source,
+    )
+    return {"status": "queued", "node_id": params.node_id}
+
+
+@action(
+    name="list_versions",
+    read_only=True,
+    tool=True,
+    mcp=True,
+    description="The earlier versions of a page, newest first: id, when it was saved and the start of its Markdown as a preview. Admin only. A version is saved each time a page is rewritten; restore_version brings one back.",
+    params=PageIdParams,
+    method="GET",
+    path="/page/versions",
+    min_role="admin",
+)
+def list_versions(ctx: Context, params: PageIdParams):
+    rows = (
+        ctx.client.table("node_versions")
+        .select("id, created_at, content_md")
+        .eq("node_id", params.node_id)
+        .order("created_at", desc=True)
+        .execute()
+        .data
+    )
+    return [
+        {"id": r["id"], "created_at": r["created_at"], "preview": (r.get("content_md") or "")[:300]}
+        for r in rows
+    ]
+
+
+@action(
+    name="restore_version",
+    tool=True,
+    mcp=True,
+    description="Put an earlier version of a page back, from list_versions. Admin only, confirmed. The page as it is now is saved as a version first, so a restore can be undone.",
+    params=VersionIdParams,
+    path="/page/versions/restore",
+    requires_confirmation=True,
+    min_role="admin",
+)
+def restore_version(ctx: Context, params: VersionIdParams):
+    rows = (
+        ctx.client.table("node_versions")
+        .select("id, node_id, content_md, content_web")
+        .eq("id", params.version_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not rows:
+        raise HTTPException(
+            404, f"There is no version {params.version_id}; list_versions lists a page's"
+        )
+    version = rows[0]
+    node_id = version["node_id"]
+    store = SupabaseStore(ctx.client)
+    current = store.page(node_id)
+    if current and ((current.get("content_md") or "").strip() or (current.get("content_web") or "").strip()):
+        store.save_version(node_id, current.get("content_md") or "", current.get("content_web") or "")
+    store.write_page(
+        node_id,
+        content_md=version.get("content_md") or "",
+        content_web=version.get("content_web") or "",
+    )
+    _log(ctx.client, node_id, "updated", f"Restored version {params.version_id}", ctx.user_id, ctx.source)
+    return ctx.client.table("nodes").select(NODE_COLUMNS).eq("id", node_id).limit(1).execute().data[0]

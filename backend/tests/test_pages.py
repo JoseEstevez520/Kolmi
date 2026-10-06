@@ -151,3 +151,72 @@ def test_a_missing_node_is_a_404():
         )
     assert err.value.status_code == 404
     assert "list_nodes" in err.value.detail
+
+
+def test_rebuild_page_queues_a_rebuild(monkeypatch):
+    client = _Client(_nodes())
+    started: list[dict[str, Any]] = []
+    monkeypatch.setattr(pages, "start_rewrite", lambda c, **kw: started.append(kw))
+
+    result = invoke(get_registry()["rebuild_page"], _ctx(client), {"node_id": 2})
+
+    assert result == {"status": "queued", "node_id": 2}
+    assert started[0]["mode"] == "rebuild"
+    with pytest.raises(HTTPException) as err:
+        invoke(get_registry()["rebuild_page"], _ctx(client), {"node_id": 1})
+    assert err.value.status_code == 422
+
+
+def test_rebuild_keeps_the_markdown_and_logs_it():
+    client = _Client(_nodes())
+
+    pages.rewrite_page(
+        client, node_id=2, markdown="", mode="rebuild", user_id="u1", source="chat",
+        llm=FakeLLM(text_response="web"), web_llm=None,
+    )
+
+    assert _page(client)["content_md"] == "old md"
+    assert client.tables["ai_log"][0]["reason"] == "Rebuilt from its Markdown"
+    assert len(client.tables["node_versions"]) == 1
+
+
+def _with_versions() -> _Client:
+    client = _Client(_nodes())
+    client.tables["node_versions"] = [
+        {"id": 7, "node_id": 2, "created_at": "2026-01-01", "content_md": "a" * 400, "content_web": "w7"},
+        {"id": 8, "node_id": 2, "created_at": "2026-01-02", "content_md": "b", "content_web": "w8"},
+        {"id": 9, "node_id": 3, "created_at": "2026-01-03", "content_md": "c", "content_web": "w9"},
+    ]
+    return client
+
+
+def test_list_versions_gives_previews_without_the_web():
+    client = _with_versions()
+
+    rows = invoke(get_registry()["list_versions"], _ctx(client), {"node_id": 2})
+
+    assert [r["id"] for r in rows] == [7, 8]
+    assert len(rows[0]["preview"]) == 300
+    assert all(set(r) == {"id", "created_at", "preview"} for r in rows)
+
+
+def test_restore_version_saves_the_current_and_writes_the_old():
+    client = _with_versions()
+    page = _page(client)
+    page["updated_at"] = None
+
+    row = invoke(get_registry()["restore_version"], _ctx(client, "chat"), {"version_id": 8})
+
+    assert row["id"] == 2
+    assert page["content_md"] == "b" and page["content_web"] == "w8"
+    assert client.tables["node_versions"][-1]["content_md"] == "old md"
+    log = client.tables["ai_log"][0]
+    assert log["reason"] == "Restored version 8"
+    assert log["user_id"] == "u1" and log["source"] == "chat"
+
+
+def test_restoring_a_missing_version_is_a_404():
+    with pytest.raises(HTTPException) as err:
+        invoke(get_registry()["restore_version"], _ctx(_with_versions()), {"version_id": 99})
+    assert err.value.status_code == 404
+    assert "list_versions" in err.value.detail
