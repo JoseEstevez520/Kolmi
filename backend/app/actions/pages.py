@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field
 from ..agents.client import get_llm, get_web_llm
 from ..agents.notes import write_markdown
 from ..agents.tree import build_index
-from ..agents.web import build_page
+from ..agents import openui
+from ..agents.web import build_page, page_problems
 from ..auth import Context
 from ..class_settings import class_language
 from ..store import NODE_COLUMNS, SupabaseStore
@@ -33,6 +34,21 @@ class WritePageParams(BaseModel):
         None,
         max_length=2000,
         description="Where the material comes from (a Moodle page, a repo, a forum thread), if anywhere. It goes in the AI log.",
+    )
+
+
+class WritePageWebParams(BaseModel):
+    node_id: int = Field(..., description="The page to write, from list_nodes. It must be a page, not a section.")
+    content_web: str = Field(
+        ...,
+        min_length=1,
+        max_length=500_000,
+        description="The whole page in OpenUI Lang, starting root = Page([...]), with every Diagram's svg and every Artifact's piece already drawn. view_node doesn't give the current one; write the page from its Markdown and the catalogue.",
+    )
+    source_url: str | None = Field(
+        None,
+        max_length=2000,
+        description="Where the page or its pieces come from, if anywhere. It goes in the AI log.",
     )
 
 
@@ -264,3 +280,51 @@ def restore_version(ctx: Context, params: VersionIdParams):
     )
     _log(ctx.client, node_id, "updated", f"Restored version {params.version_id}", ctx.user_id, ctx.source)
     return ctx.client.table("nodes").select(NODE_COLUMNS).eq("id", node_id).limit(1).execute().data[0]
+
+
+@action(
+    name="write_page_web",
+    tool=True,
+    mcp=True,
+    description="Set a page's web, its OpenUI Lang, exactly as given, with no web agent in between: for a livelier page than the agent makes (a richer figure, a chart, an interactive piece). Admin only, confirmed. It is checked against the catalogue first and nothing is saved if it fails: the error lists each line and what to change, so fix those and send the whole page again. The page's Markdown stays as it is and its previous web is kept as a version (list_versions, restore_version). The next rebuild of the page (the daily pass, write_page, rebuild_page) makes its web again from the Markdown.",
+    params=WritePageWebParams,
+    path="/page/web",
+    requires_confirmation=True,
+    min_role="admin",
+)
+def write_page_web(ctx: Context, params: WritePageWebParams):
+    check_page(ctx, params.node_id, "write_page_web")
+    found = page_problems(params.content_web)
+    if found:
+        listed = "\n".join(f"- {problem}" for problem in found)
+        raise HTTPException(
+            422,
+            f"The page's OpenUI Lang doesn't hold up, so nothing was saved:\n{listed}\n"
+            "Fix these and send the whole page again.",
+        )
+
+    store = SupabaseStore(ctx.client)
+    rows = (
+        ctx.client.table("nodes")
+        .select("content_md, content_web")
+        .eq("id", params.node_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    current = rows[0] if rows else {}
+    existing_md = current.get("content_md") or ""
+    existing_web = current.get("content_web") or ""
+    if existing_md.strip() or existing_web.strip():
+        store.save_version(params.node_id, existing_md, existing_web)
+    # The Markdown stays as it is: the page's source, for the chat and the next rebuild.
+    store.write_page(
+        params.node_id, content_md=existing_md, content_web=openui.strip_fence(params.content_web)
+    )
+    reason = "Web written as given"
+    if params.source_url:
+        reason += f" from {params.source_url}"
+    _log(ctx.client, params.node_id, "updated", reason, ctx.user_id, ctx.source)
+    return (
+        ctx.client.table("nodes").select(NODE_COLUMNS).eq("id", params.node_id).limit(1).execute().data[0]
+    )

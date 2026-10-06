@@ -152,6 +152,43 @@ def _problem(kind: str, answer: str) -> tuple[str, str]:
     return drawing, _overlap(drawing) if kind == "svg" else ""
 
 
+def page_problems(source: str) -> list[str]:
+    """What stops `source` from being saved as a page's web as it is, with no web agent behind
+    it: the catalogue's checks (`openui.problems`), then each Diagram's and Artifact's drawing,
+    which must be there and pass the same checks a drawn one does (the renderer draws nothing
+    for a brief alone). Empty when the page holds up."""
+    found = openui.problems(source)
+    if found:
+        return found
+
+    def visit(value: Any) -> None:
+        if isinstance(value, openui.Node):
+            if value.name in _VISUALS:
+                brief_at, drawn_at, kind = _VISUALS[value.name]
+                args = list(value.args) + [None] * (drawn_at + 1 - len(value.args))
+                label = str(args[0] or "")
+                slot = "svg" if kind == "svg" else "piece"
+                drawing = args[drawn_at] if isinstance(args[drawn_at], str) else ""
+                if not drawing.strip():
+                    found.append(
+                        f"The {value.name} {label!r} has no drawing: put it in its {slot} argument "
+                        f"(the {drawn_at + 1}th), or leave the {value.name} out. A brief alone shows nothing."
+                    )
+                else:
+                    usable, problem = _problem(kind, drawing)
+                    if not usable:
+                        found.append(f"The {value.name} {label!r}, in its {slot}: {problem}.")
+            for arg in value.args:
+                visit(arg)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+
+    for _, expr in openui.statements(source):
+        visit(expr)
+    return found[: openui.MAX_PROBLEMS]
+
+
 # The font sizes the theme gives its text classes (frontend theme.js); CSS wins over a
 # font-size attribute, a style attribute over both.
 _CLASS_SIZES = {"diagram-label": 13.0, "diagram-text": 12.0}
