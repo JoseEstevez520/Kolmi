@@ -47,6 +47,9 @@ import { zen } from './lib/zen.js'
 const route = useRoute()
 const router = useRouter()
 const withSidebar = computed(() => route.meta.layout === 'app' && Boolean(session.value))
+// A page flagged `fullBleed` owns the whole pane: no padding, filling it from under the header
+// to the bottom edge, so it can paint its own background (the chat page's aurora).
+const fullBleed = computed(() => Boolean(route.meta.fullBleed) && !zen.value)
 
 // Whether the admin turned the chat on is read once, as soon as someone who has been let in is
 // signed in: a person still waiting (or blocked) would only get a 403 from the settings.
@@ -75,8 +78,11 @@ const indicator = ref(null)
     <SidebarLayout v-if="withSidebar" :bare="zen">
       <AppSidebar />
 
-      <div class="min-w-0 flex-1">
-        <SidebarLayoutHeader :toggle-label="t('app.openMenu')" class="shadow-none">
+      <div :class="['min-w-0 flex-1', fullBleed && 'relative h-dvh overflow-hidden']">
+        <SidebarLayoutHeader
+          :toggle-label="t('app.openMenu')"
+          :class="['shadow-none', fullBleed && 'relative z-10 !bg-transparent !backdrop-blur-none']"
+        >
           <AppBreadcrumbs />
           <template #end>
             <!-- It stays through a language switch, and reads a default text only once. -->
@@ -87,7 +93,7 @@ const indicator = ref(null)
           </template>
         </SidebarLayoutHeader>
 
-        <main class="pt-4 pb-24">
+        <main :class="fullBleed ? 'absolute inset-0' : 'pt-4 pb-24'">
           <RouterView v-slot="{ Component, route: current }">
             <PageTransition :page="current.meta.page ?? current.path" @changed="indicator?.flash()">
               <component :is="Component" />
