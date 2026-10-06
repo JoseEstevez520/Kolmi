@@ -82,15 +82,24 @@ export default {
       once: 'Solo se muestra esta vez. Cópialo ahora.',
       secret: 'El texto de abajo es como una contraseña: no lo pegues en chats compartidos ni en capturas.',
       done: 'Hecho',
-      tabs: { cli: 'Terminal', other: 'Otro cliente', agent: 'Tu agente' },
       clients: {
         claude: { name: 'Claude Code', note: 'Añade --scope user para tenerlo en todos los proyectos.' },
         gemini: { name: 'Gemini CLI', note: 'Ejecútalo en tu terminal.' },
         codex: {
-          name: 'Codex CLI',
+          name: 'Codex',
           note: 'Codex lee el token de una variable de entorno: KOLMI_TOKEN tiene que estar definida donde se ejecute Codex.',
         },
+        cursor: { name: 'Cursor', note: 'Abre Cursor y añade el servidor. O pega esto en su mcp.json.', add: 'Añadir a Cursor' },
+        vscode: {
+          name: 'VS Code',
+          note: 'Guárdalo como .vscode/mcp.json. VS Code te pide el token al arrancar el servidor, así que el archivo no guarda ningún secreto.',
+        },
+        windsurf: { name: 'Windsurf', note: 'Añádelo al mcp_config.json de Windsurf.' },
+        other: { name: 'Otro cliente' },
+        agent: { name: 'Tu agente' },
       },
+      pick: '¿Dónde quieres conectarlo?',
+      copyToken: 'Copiar token',
       other: {
         address: 'Dirección',
         header: 'Cabecera',

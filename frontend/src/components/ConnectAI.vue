@@ -3,9 +3,13 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Button,
+  Card,
+  CardContent,
   CodeBlock,
   ConfirmButton,
+  CopyButton,
   Input,
+  Logo,
   StatusText,
   Table,
   TableBody,
@@ -13,15 +17,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
+  ToggleGroup,
+  ToggleGroupItem,
+  Tooltip,
   TruncatedText,
 } from 'elastic-ui'
+import { MessageSquareText, SquareTerminal } from '@lucide/vue'
+import { siClaude, siCursor, siGooglegemini, siWindsurf } from 'simple-icons'
+import openaiLogo from '../assets/logos/openai.svg'
+import vscodeLogo from '../assets/logos/vscode.svg'
 import { api } from '../lib/api.js'
 import { formatDay } from '../lib/format.js'
-import { CLI_CLIENTS, authHeader, mcpServersJson, mcpUrl } from '../lib/mcp-clients.js'
+import {
+  CLI_CLIENTS,
+  authHeader,
+  cursorConfig,
+  cursorLink,
+  mcpServersJson,
+  mcpUrl,
+  vscodeJson,
+  windsurfJson,
+} from '../lib/mcp-clients.js'
 
 // Connecting your own AI to the class: a personal token, made here and shown once, and the exact
 // text that puts it into each kind of client. The token lives only in this component's memory
@@ -34,7 +50,23 @@ const name = ref('')
 const creating = ref(false)
 const createError = ref('')
 const created = ref(null)
-const tab = ref('cli')
+// The picker: each client's logo (Simple Icons' entry, or a one-colour SVG for the two it lacks).
+const PICKER = [
+  { id: 'claude', icon: siClaude },
+  { id: 'gemini', icon: siGooglegemini },
+  { id: 'codex', src: openaiLogo },
+  { id: 'cursor', icon: siCursor },
+  { id: 'vscode', src: vscodeLogo },
+  { id: 'windsurf', icon: siWindsurf },
+  { id: 'other' },
+  { id: 'agent' },
+]
+const client = ref('claude')
+// Pressing the chosen client again would unpress it: keep it chosen instead.
+function pick(value) {
+  if (value) client.value = value
+}
+const cliClient = computed(() => CLI_CLIENTS.find((c) => c.id === client.value))
 
 const tokens = ref([])
 const loading = ref(true)
@@ -68,7 +100,7 @@ async function create() {
     const { token: _secret, ...row } = made
     tokens.value = [row, ...tokens.value]
     created.value = made
-    tab.value = 'cli'
+    client.value = 'claude'
     name.value = ''
   } catch (e) {
     createError.value = e.message || t('common.somethingWrongLong')
@@ -137,40 +169,77 @@ onBeforeUnmount(() => {
         <p class="text-label text-fg-secondary">{{ t('settings.connect.secret') }}</p>
       </div>
 
-      <Tabs v-model="tab" variant="underline">
-        <TabsList :aria-label="t('settings.connect.title')">
-          <TabsTrigger value="cli">{{ t('settings.connect.tabs.cli') }}</TabsTrigger>
-          <TabsTrigger value="other">{{ t('settings.connect.tabs.other') }}</TabsTrigger>
-          <TabsTrigger value="agent">{{ t('settings.connect.tabs.agent') }}</TabsTrigger>
-        </TabsList>
+      <Card size="sm">
+        <CardContent class="flex items-center justify-between gap-2">
+          <code class="min-w-0 break-all font-mono text-label text-fg">{{ token }}</code>
+          <CopyButton :value="token" :label="t('settings.connect.copyToken')" />
+        </CardContent>
+      </Card>
 
-        <TabsContent value="cli" class="pt-4">
-          <div class="flex flex-col gap-6">
-            <div v-for="client in CLI_CLIENTS" :key="client.id" class="flex flex-col gap-2">
-              <CodeBlock
-                wrap
-                :title="t(`settings.connect.clients.${client.id}.name`)"
-                :code="client.lines(params).join('\n')"
-              />
-              <p class="text-meta text-fg-muted">{{ t(`settings.connect.clients.${client.id}.note`) }}</p>
-            </div>
+      <ToggleGroup :model-value="client" @update:model-value="pick" type="single" class="self-start" :aria-label="t('settings.connect.pick')">
+        <!-- No Tooltip around an item: its trigger would overwrite the item's data-state, which the
+             group's sliding indicator reads. The native title is the hover name. -->
+        <ToggleGroupItem
+          v-for="item in PICKER"
+          :key="item.id"
+          :value="item.id"
+          :title="t(`settings.connect.clients.${item.id}.name`)"
+          :aria-label="t(`settings.connect.clients.${item.id}.name`)"
+        >
+          <Logo v-if="item.icon" :icon="item.icon" alt="" mono />
+          <Logo v-else-if="item.src" :src="item.src" alt="" mono />
+          <SquareTerminal v-else-if="item.id === 'other'" class="size-5" aria-hidden="true" />
+          <MessageSquareText v-else class="size-5" aria-hidden="true" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      <div class="flex flex-col gap-3">
+        <h4 class="text-label font-medium text-fg">{{ t(`settings.connect.clients.${client}.name`) }}</h4>
+
+        <template v-if="cliClient">
+          <CodeBlock wrap :code="cliClient.lines(params).join('\n')" />
+          <p class="text-meta text-fg-muted">{{ t(`settings.connect.clients.${client}.note`) }}</p>
+        </template>
+
+        <template v-else-if="client === 'cursor'">
+          <div class="flex items-center gap-2">
+            <Tooltip :content="t('settings.connect.clients.cursor.add')">
+              <Button
+                variant="ghost"
+                size="icon"
+                :href="cursorLink(params)"
+                :aria-label="t('settings.connect.clients.cursor.add')"
+              >
+                <Logo :icon="siCursor" alt="" mono />
+              </Button>
+            </Tooltip>
+            <p class="text-meta text-fg-muted">{{ t('settings.connect.clients.cursor.note') }}</p>
           </div>
-        </TabsContent>
+          <CodeBlock wrap language="json" :code="cursorConfig(params)" />
+        </template>
 
-        <TabsContent value="other" class="pt-4">
-          <div class="flex flex-col gap-6">
-            <CodeBlock wrap :title="t('settings.connect.other.address')" :code="url" />
-            <CodeBlock wrap :title="t('settings.connect.other.header')" :code="authHeader(token)" />
-            <CodeBlock :title="t('settings.connect.other.file')" :code="mcpServersJson(params)" />
-            <p class="-mt-3 text-meta text-fg-muted">{{ t('settings.connect.other.chatApps') }}</p>
-          </div>
-        </TabsContent>
+        <template v-else-if="client === 'vscode'">
+          <CodeBlock wrap language="json" title=".vscode/mcp.json" :code="vscodeJson(params)" />
+          <p class="text-meta text-fg-muted">{{ t('settings.connect.clients.vscode.note') }}</p>
+        </template>
 
-        <TabsContent value="agent" class="flex flex-col gap-3 pt-4">
+        <template v-else-if="client === 'windsurf'">
+          <CodeBlock wrap language="json" title="mcp_config.json" :code="windsurfJson(params)" />
+          <p class="text-meta text-fg-muted">{{ t('settings.connect.clients.windsurf.note') }}</p>
+        </template>
+
+        <template v-else-if="client === 'other'">
+          <CodeBlock wrap :title="t('settings.connect.other.address')" :code="url" />
+          <CodeBlock wrap :title="t('settings.connect.other.header')" :code="authHeader(token)" />
+          <CodeBlock :title="t('settings.connect.other.file')" :code="mcpServersJson(params)" />
+          <p class="text-meta text-fg-muted">{{ t('settings.connect.other.chatApps') }}</p>
+        </template>
+
+        <template v-else>
           <p class="text-label text-fg-secondary">{{ t('settings.connect.agent.hint') }}</p>
-          <CodeBlock wrap :title="t('settings.connect.tabs.agent')" :code="agentText" />
-        </TabsContent>
-      </Tabs>
+          <CodeBlock wrap :code="agentText" />
+        </template>
+      </div>
 
       <div>
         <Button variant="ghost" class="-ml-4" @click="done">{{ t('settings.connect.done') }}</Button>
