@@ -31,12 +31,14 @@ in its own repo.
   frame), it is built in elastic-ui, following that repo's rules. Then it is released, and the
   packed version in `frontend/vendor/` is bumped. The same goes for a missing variant or a bug.
   See [frontend/design.md](frontend/design.md).
-- **Look before you build.** Before writing a piece of code, check whether it already exists: in
-  this repo, in a package already used, in the library's own docs, or as an established standard.
-  When something exists, reuse it; when there are several ways, take the current standard over an
-  older one, and say in the write-up what you looked at and why you chose it. Build it yourself
-  only when nothing fits, and say so. This goes for dependencies, protocols (auth, tokens, MCP,
-  streaming) and UI parts alike.
+- **Look before you build.** Before writing a piece of code, check whether it already exists, and
+  search outside the repo too: GitHub and the web, where how to do it is often documented by the
+  project or company that owns the standard (the MCP spec and SDK, Supabase, OpenAI, Vue). Look
+  first in this repo, a package already used and the library's own docs. When something exists,
+  reuse it; when there are several ways, take the current standard over an older one, and say in
+  the write-up what you looked at, where, and why you chose it. Build it yourself only when
+  nothing fits, and say so. This goes for dependencies, protocols (auth, tokens, MCP, streaming)
+  and UI parts alike.
 - **Agents use the OpenAI SDK, with their own loop.** Move one agent to LangGraph only when it
   must pause and resume its own reasoning, survive a long run or coordinate with other agents.
   Approval is not a reason: a turn ends with a proposal and the confirmation is a new request.
