@@ -169,6 +169,7 @@ onMounted(load)
       <div class="flex items-center justify-between gap-4">
         <StatusText class="text-label text-fg-secondary" :text="nextText" />
         <ActionButton
+          variant="ghost"
           icon="play"
           :label="t('admin.pass.runNow')"
           :done-label="t('admin.pass.started')"
