@@ -103,9 +103,7 @@ a GitHub repo and writes the class's notes in Kolmi.
   markdown, mode, source_url?)` (`replace` as it is, `merge` through the notes agent, which strips
   names and private data), `rebuild_page(node_id)`, `list_versions(node_id)` and
   `restore_version(version_id)` (confirmed). They run in the background, keep the version before
-  and log who and from where. Left:
-  - The page showing it is being rebuilt.
-  - A version history with a restore button in the UI.
+  and log who and from where. Left: a version history with a restore button in the UI.
 - [x] **An admin tool to edit a page's web** — `write_page_web` (admin, confirmed) sets a page's
   OpenUI Lang as written, with no web agent: checked against the catalogue first (each problem
   with its line and what to change), never leaving a page blank, the version before kept, logged
@@ -267,6 +265,8 @@ Same tools, same loop, another trigger.
 
 ## Later
 
+- [ ] The page showing it is being rebuilt, while `write_page`, `rebuild_page` or the pass remake
+  it. Needs a state per page and the web asking for it; today the new version just appears.
 - [ ] Moderation and reporting tools.
 - [ ] More contribution types (links, images, files over the MCP).
 - [ ] Notifications (weekly digest, "the hive worked", a forum reply).
