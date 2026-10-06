@@ -165,17 +165,6 @@ a GitHub repo and writes the class's notes in Kolmi.
   blocked past the limit, the same shape as `ai_log`/`ai_passes`) — a student's own browser-held
   key is still open, not built. The answer's Markdown is drawn with elastic-ui's own `Markdown`
   (not `ChatMessage`'s `text`/`ChatStream`, which only animates plain text).
-- [ ] **Chat sessions** — today the model gets only the question on its own, so "and how is that
-  set up?" doesn't know what "that" is, and a reload starts over.
-  - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
-    one message a row (`session_id`, `role`, `content`, `parts jsonb`), the rows there today
-    moved into an "earlier" session per user.
-  - Only their owner sees them: no admin action reads them. The owner can delete them; they stay
-    until then.
-  - The model gets the last turns plus a summary kept on the session; `complete_with_tools` takes
-    a list of messages. It also gets the page the user has open, so "explain this" works.
-  - A title from a cheap call. The daily cap counts the user's messages, not tool rounds; none
-    for admins.
 - [ ] **Tools in the chat** — the registry's tools for the caller's role.
   - Reads run inside the model's loop, as `read_page` does.
   - Anything that changes something is proposed, not run: the backend validates the proposal and
@@ -188,10 +177,21 @@ a GitHub repo and writes the class's notes in Kolmi.
     page", "go back to yesterday's Docker page", "what did last night's pass do?", "approve the
     three pending users".
   - Evals: real requests and the tool and arguments each should lead to.
-- [ ] **A chat page** — `/chat` and `/chat/:sessionId`: sessions on the left (a `Sheet` on a phone),
+- [ ] **A chat page** — `/chat` first, with the conversation wide, and `/chat/:sessionId` once sessions exist: sessions on the left (a `Sheet` on a phone),
   the conversation wide. The bubble keeps the current session and gets "open in full"; on
   `/chat` it hides. In elastic-ui: room for actions in `ChatMorph`'s header, an action proposal
   card, a session list item and an activity line (see whether `AgentStep` will do).
+- [ ] **Chat sessions** — today the model gets only the question on its own, so "and how is that
+  set up?" doesn't know what "that" is, and a reload starts over.
+  - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
+    one message a row (`session_id`, `role`, `content`, `parts jsonb`), the rows there today
+    moved into an "earlier" session per user.
+  - Only their owner sees them: no admin action reads them. The owner can delete them; they stay
+    until then.
+  - The model gets the last turns plus a summary kept on the session; `complete_with_tools` takes
+    a list of messages. It also gets the page the user has open, so "explain this" works.
+  - A title from a cheap call. The daily cap counts the user's messages, not tool rounds; none
+    for admins.
 - [ ] **Chat pass 2: streaming and interactive answers** — an answer can be the page catalogue's
   own parts (`frontend/src/lib/openui`, `docs/page-format.md`): `Text`, `Table`, `Chart`, `Steps`,
   `Callout`, `Cards`, `CodeBlock`; no `Diagram` or `Artifact` at first, as both need a second,
