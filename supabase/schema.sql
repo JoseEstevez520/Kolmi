@@ -198,6 +198,22 @@ create table if not exists chat_messages (
 create index if not exists chat_messages_user_id_created_at_idx
   on chat_messages (user_id, created_at);
 
+-- A write the chat proposed and the person confirms or cancels. result is the tool's answer or
+-- the error.
+create table if not exists chat_proposals (
+  id bigserial primary key,
+  message_id bigint not null references chat_messages(id) on delete cascade,
+  user_id uuid not null references profiles(id) on delete cascade,
+  tool text not null,
+  args jsonb not null default '{}',
+  status text not null default 'pending' check (status in ('pending', 'running', 'done', 'cancelled')),
+  result text,
+  created_at timestamptz not null default now(),
+  decided_at timestamptz
+);
+
+create index if not exists chat_proposals_message_id_idx on chat_proposals (message_id);
+
 -- No seed row: until the admin first saves, the backend uses CLASS_LANGUAGE.
 
 -- Whether the caller is an admin. Security definer so it can read profiles, which has RLS
@@ -225,6 +241,7 @@ alter table settings enable row level security;
 alter table files enable row level security;
 alter table schedule_events enable row level security;
 alter table chat_messages enable row level security;
+alter table chat_proposals enable row level security;
 alter table api_tokens enable row level security;
 
 -- settings is the one exception: everyone signed in reads it, only admins write it. The
