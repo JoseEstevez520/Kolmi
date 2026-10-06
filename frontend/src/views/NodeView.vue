@@ -113,8 +113,10 @@ watch(id, load)
       <template v-if="node && !isPage && children.length > 0" #actions>
         <ActionButton
           variant="ghost"
+          size="icon"
           icon="arrowDown"
           :label="t('export.section')"
+          :working-label="t('export.working')"
           :done-label="t('export.done')"
           :error-label="t('export.error')"
           :action="() => downloadExport(id)"

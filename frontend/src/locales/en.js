@@ -118,6 +118,7 @@ export default {
 
   export: {
     section: 'Download',
+    working: 'Downloading',
     done: 'Downloaded',
     error: 'Could not download',
   },

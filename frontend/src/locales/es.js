@@ -115,6 +115,7 @@ export default {
 
   export: {
     section: 'Descargar',
+    working: 'Descargando',
     done: 'Descargado',
     error: 'No se ha podido descargar',
   },
