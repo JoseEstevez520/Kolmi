@@ -115,12 +115,11 @@ a GitHub repo and writes the class's notes in Kolmi.
   and log who and from where. Left:
   - The page showing it is being rebuilt.
   - A version history with a restore button in the UI.
-- [ ] **An admin tool to edit a page's web** — admin only. `write_page` takes Markdown and the
-  web is always rebuilt from it by the web agent; there's no way to hand a page its drawing
-  directly. For when an admin wants a livelier page than the agent makes (say, asking their own AI
-  over the MCP for a richer component), a tool that sets a page's OpenUI Lang (`content_web`)
-  as written: validated against the catalogue before saving, the version before kept, logged with
-  who and from where, and the Markdown left as it is. If a piece is missing, it goes into
+- [x] **An admin tool to edit a page's web** — `write_page_web` (admin, confirmed) sets a page's
+  OpenUI Lang as written, with no web agent: checked against the catalogue first (each problem
+  with its line and what to change), never leaving a page blank, the version before kept, logged
+  with who and from where, and the Markdown left as it is. The next rebuild makes the web again
+  from the Markdown. See [docs/tools.md](docs/tools.md). If a piece is missing, it goes into
   elastic-ui and the catalogue first.
 - [ ] **Users from the admin panel** — today there is no user management at all: the first admin
   is set by hand in Supabase and `approved` only stops notes, files and the export.

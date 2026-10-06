@@ -76,6 +76,29 @@ where. `rebuild_page` makes the web again from the page's Markdown. Every rewrit
 previous content in `node_versions`; `list_versions` lists them (a preview, never the web) and
 `restore_version` (confirmed) brings one back, saving the current content first.
 
+## A page's web as written
+
+`write_page_web` (admin, confirmed) sets a page's OpenUI Lang (`content_web`) exactly as given,
+with no web agent in between: for a livelier page than the agent makes, written by an admin's
+own AI over the MCP or in the chat. The Markdown stays as it is, the previous content is kept as
+a version, and the AI log says who and from where (`source_url` in the reason). It runs at once:
+no model is called.
+
+Nothing is saved unless the page holds up, and a page is never left blank. `page_problems` in
+`agents/web.py` checks it, and each problem names its line and what to change:
+
+- `openui.problems`: it parses, the root is a `Page` with blocks, every component is in the
+  catalogue, every call's arguments match its props (types, enums, required ones, a part in a
+  place that takes it, no unknown keys), every reference is defined and every statement is
+  reached from the root (one nothing uses would be dropped silently). It reads the props from
+  `page.spec.json`, the JSON Schema generated from the frontend's catalogue, matching each
+  call's arguments to them in order, so no rule is written twice.
+- Each `Diagram` and `Artifact` carries its drawing (`svg`, `piece`), which goes through the same
+  checks a drawn one does: the renderer draws nothing for a brief alone.
+
+The page's next rebuild (the daily pass, `write_page`, `rebuild_page`) makes its web again from
+the Markdown, so a web written this way lasts until then.
+
 ## Decisions taken
 
 - `approved` stays in the handlers until the user status replaces it.
