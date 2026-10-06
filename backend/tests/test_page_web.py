@@ -260,3 +260,55 @@ def test_the_tool_answer_carries_no_web():
 
     assert "content_web" not in answer and "Rule of thumb" not in answer
     assert json.loads(answer)["id"] == 2
+
+
+# -- reading the web ------------------------------------------------------------------------------
+
+
+def _student(client) -> Context:
+    return Context(
+        user_id="u2", email=None, profile={"id": "u2", "role": "student", "approved": True},
+        client=client,
+    )
+
+
+def test_a_student_can_read_a_page_s_web():
+    client = _Client(_nodes())
+
+    answer = run_tool(_student(client), "view_node", {"node_id": 2, "include_web": True}, "mcp")
+
+    assert json.loads(answer)["content_web"] == "old web"
+
+
+def test_the_web_is_only_there_when_asked_for():
+    client = _Client(_nodes())
+
+    answer = run_tool(_student(client), "view_node", {"node_id": 2}, "mcp")
+
+    assert "content_web" not in json.loads(answer)
+    assert json.loads(answer)["content_md"] == "old md"
+
+
+def test_a_web_too_long_for_one_answer_says_it_was_cut():
+    nodes = _nodes()
+    nodes[1]["content_web"] = "x" * 20_000
+    client = _Client(nodes)
+
+    answer = run_tool(_student(client), "view_node", {"node_id": 2, "include_web": True}, "mcp")
+
+    assert "[Cut:" in answer and "not the whole of it" in answer
+
+
+def test_a_student_cannot_write_the_web_through_a_tool():
+    client = _Client(_nodes())
+
+    answer = run_tool(_student(client), "write_page_web", {"node_id": 2, "content_web": GOOD}, "mcp")
+
+    assert answer.startswith("There is no tool write_page_web")
+    assert _page(client)["content_web"] == "old web"
+
+
+def test_write_page_web_points_at_the_read():
+    action = get_registry()["write_page_web"]
+
+    assert "include_web" in action.description

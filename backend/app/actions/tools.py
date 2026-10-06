@@ -33,26 +33,36 @@ TOOL_ANSWER_CHARS = 12_000
 HEAVY_KEYS = frozenset({"content_web"})
 
 
-def light(value: Any) -> Any:
-    """The value without what a model can't use."""
+def light(value: Any, keep: frozenset[str] = frozenset()) -> Any:
+    """The value without what a model can't use, but for the heavy fields in `keep`."""
     if isinstance(value, BaseModel):
-        return light(value.model_dump())
+        return light(value.model_dump(), keep)
     if isinstance(value, dict):
-        return {k: light(v) for k, v in value.items() if k not in HEAVY_KEYS}
+        return {k: light(v, keep) for k, v in value.items() if k not in HEAVY_KEYS - keep}
     if isinstance(value, list):
-        return [light(v) for v in value]
+        return [light(v, keep) for v in value]
     return value
 
 
-def answer(value: Any) -> str:
-    text = json.dumps(light(value), ensure_ascii=False, default=str)
+def answer(value: Any, keep: frozenset[str] = frozenset()) -> str:
+    text = json.dumps(light(value, keep), ensure_ascii=False, default=str)
     if len(text) <= TOOL_ANSWER_CHARS:
         return text
     more = len(text) - TOOL_ANSWER_CHARS
-    return (
-        text[:TOOL_ANSWER_CHARS]
-        + f"\n[Cut: {more} more characters. Ask for less: one node with view_node, a status or a limit.]"
-    )
+    if keep:
+        # A web cut short can't be edited: say so, rather than let it pass for the whole page.
+        hint = (
+            "The page's web is longer than one answer holds, so what came is not the whole of it: "
+            "don't edit it as it is. Write the page anew from its Markdown with write_page_web."
+        )
+    else:
+        hint = "Ask for less: one node with view_node, a status or a limit."
+    return text[:TOOL_ANSWER_CHARS] + f"\n[Cut: {more} more characters. {hint}]"
+
+
+def _asked_for_web(args: dict[str, Any] | None) -> bool:
+    flag = (args or {}).get("include_web")
+    return flag is True or str(flag).lower() in ("true", "1")
 
 
 def run_tool(ctx: Context, name: str, args: dict[str, Any] | None, surface: Surface) -> str:
@@ -64,6 +74,8 @@ def run_tool(ctx: Context, name: str, args: dict[str, Any] | None, surface: Surf
     if found is None:
         return f"There is no tool {name}. The tools you have are the ones listed."
     try:
-        return answer(invoke(found, ctx, args))
+        # A read asked for a page's web (view_node's include_web): it is handed back.
+        keep = HEAVY_KEYS if _asked_for_web(args) else frozenset()
+        return answer(invoke(found, ctx, args), keep)
     except HTTPException as exc:
         return f"Error {exc.status_code}: {exc.detail}"

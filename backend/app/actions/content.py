@@ -11,6 +11,10 @@ from .registry import action
 
 class ViewNodeParams(BaseModel):
     node_id: int = Field(..., description="The node's id, from list_nodes.")
+    include_web: bool = Field(
+        False,
+        description="Also give a page's web, its OpenUI Lang as the app draws it, to change what is there with write_page_web. It is long: leave it out to read the page.",
+    )
 
 
 class CreateNodeParams(BaseModel):
@@ -106,7 +110,7 @@ def list_nodes(ctx: Context, params: None):
     read_only=True,
     tool=True,
     mcp=True,
-    description="One section or page by id: its fields, its children and, for a page, its Markdown and files. Use it to read a page before answering about it or changing it. For the whole tree, list_nodes.",
+    description="One section or page by id: its fields, its children and, for a page, its Markdown and files, plus its web (OpenUI Lang) with include_web. Use it to read a page before answering about it or changing it. For the whole tree, list_nodes.",
     params=ViewNodeParams,
     method="GET",
     path="/node",

@@ -49,7 +49,10 @@ model reads the message and tries again.
 
 The API returns full rows. On the tool path, `tools.answer` drops what only the web draws
 (`content_web`, the page's OpenUI Lang) at any depth and cuts an answer past 12,000 characters,
-with a line saying how to ask for less. `tools.run_tool(ctx, name, args, surface)` runs one call
+with a line saying how to ask for less. `view_node` with `include_web` hands the web back: a
+read, open to every member as the page is in the app, so an admin's AI can change what is there
+with `write_page_web` rather than write it all. Past the cap the answer says the web came cut and
+is not to be edited as it is. `tools.run_tool(ctx, name, args, surface)` runs one call
 and always answers text, errors included. It doesn't ask for confirmation: the chat (a card with
 Confirm) and the MCP client (from `destructiveHint`) do that before calling.
 
@@ -96,8 +99,7 @@ Nothing is saved unless the page holds up, and a page is never left blank. `page
 - Each `Diagram` and `Artifact` carries its drawing (`svg`, `piece`), which goes through the same
   checks a drawn one does: the renderer draws nothing for a brief alone.
 
-The page's next rebuild (the daily pass, `write_page`, `rebuild_page`) makes its web again from
-the Markdown, so a web written this way lasts until then.
+The web follows the Markdown: the page's next rebuild draws it again from there.
 
 ## Decisions taken
 

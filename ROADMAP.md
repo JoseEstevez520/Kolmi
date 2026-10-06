@@ -107,8 +107,9 @@ a GitHub repo and writes the class's notes in Kolmi.
 - [x] **An admin tool to edit a page's web** — `write_page_web` (admin, confirmed) sets a page's
   OpenUI Lang as written, with no web agent: checked against the catalogue first (each problem
   with its line and what to change), never leaving a page blank, the version before kept, logged
-  with who and from where, and the Markdown left as it is. The next rebuild makes the web again
-  from the Markdown. See [docs/tools.md](docs/tools.md). If a piece is missing, it goes into
+  with who and from where, and the Markdown left as it is. The web follows the Markdown. Any
+  member's AI reads a page's web with `view_node`'s `include_web`. See
+  [docs/tools.md](docs/tools.md). If a piece is missing, it goes into
   elastic-ui and the catalogue first.
 - [ ] **Users from the admin panel** — today there is no user management at all: the first admin
   is set by hand in Supabase and `approved` only stops notes, files and the export.
