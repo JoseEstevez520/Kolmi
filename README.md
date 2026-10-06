@@ -85,6 +85,19 @@ what the gatekeeper lets through, and the web agent lays it out as a page.
 
 <p align="center"><sub>A page can hold more than text: diagrams, code you can copy, numbered steps.</sub></p>
 
+## Your own AI, connected
+
+Kolmi is also an MCP server, so the AI you already use (a coding agent, an editor) can work with
+the class's notebook as you. Say your course is on Moodle and the practice code is in a GitHub repo:
+with Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week's
+material and write it up, and it reads the class's tree first, sees what the pages already say and
+leaves one note per topic, each with the link it came from. An admin's AI can fold the material
+straight into a page instead.
+
+You connect it from Settings → Connect your AI: name the connection, copy the command for your
+client, and that's it. Reading is free; your AI acts with your role, and anything that changes
+something asks you first. See [docs/mcp.md](docs/mcp.md).
+
 ## Run it locally
 
 You need Python 3, Node 20 or higher, a Supabase project and an API key for a model.
@@ -117,6 +130,7 @@ and the cron for the pass are in [backend/README.md](backend/README.md).
 - [Authentication and users](docs/authentication.md): accounts, roles and the class code.
 - [Features and actions](docs/features.md): what the app does and how each action is built.
 - [Page format](docs/page-format.md): how a page goes from the pass to the screen.
+- [The MCP](docs/mcp.md): connecting your own AI, its tokens, resources, prompt and evals.
 - [Testing with real cases](docs/testing.md): the plan for trying it before the class does.
 - [Data and privacy](docs/privacy.md): what is stored, who sees it and what leaves the instance.
 - [Brand tone](docs/brand-tone.md): how Kolmi sounds.

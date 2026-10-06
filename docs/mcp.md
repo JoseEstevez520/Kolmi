@@ -71,6 +71,61 @@ chat apps".
 A note left through the MCP has `source = 'mcp'` and, when the AI gives one, the `source_url` it
 came from.
 
+## Pages as resources
+
+Each shared page is a resource, `kolmi://page/{id}` (the id `list_nodes` gives), with a template for
+it: a client can read a page without calling a tool. It reads as the export writes it
+(`export.page_markdown`): the title, where it sits, its Markdown, with a link to another page going
+to that page's own resource. Only pages with content; never a raw note, a file or the web. Any
+active member reads them; anything else is the spec's "resource not found" (-32002).
+
+## The prompt
+
+`material_to_notes` ("Turn this material into class notes"), with an optional `material` (pasted,
+or where it is), walks an AI through what Kolmi expects: read the tree first, check what the pages
+already say (`search_pages`, `view_node`), one note per topic in its own words with its
+`source_url` and a page hint, nothing personal or secret, and a word at the end on what it did. An
+admin's version folds the material into the page with `write_page` in `merge` mode instead of
+leaving notes. The text is in `app/mcp_server.py`.
+
+## Connect your AI
+
+Settings → Connect your AI makes a token with a name and shows it once, with the instructions for
+each kind of client already holding the instance's address and the token. After that only its
+prefix is listed, with when it was last used, and it can be revoked. The clients and their
+formats live in `frontend/src/lib/mcp-clients.js`, each with the official page it was taken from:
+
+| Client | How | Source |
+|---|---|---|
+| Claude Code | `claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"` | https://code.claude.com/docs/en/mcp |
+| Gemini CLI | `gemini mcp add --transport http --header "Authorization: Bearer <token>" kolmi <url>` | google-gemini/gemini-cli, `docs/tools/mcp-server.md` |
+| Codex CLI | the token from an environment variable: `codex mcp add kolmi --url <url> --bearer-token-env-var KOLMI_TOKEN` | openai/codex, `codex-rs/cli/src/mcp_cmd.rs` |
+| Any other | the address, the `Authorization` header, and an `mcpServers` JSON in Claude Code's `.mcp.json` shape | https://code.claude.com/docs/en/mcp |
+
+Codex keeps the token in an environment variable rather than its config; an `export` typed in a
+shell stays in its history, so it is better set where the shell's own secrets go.
+
+Editors with an install link (Cursor, VS Code) and their own JSON (Windsurf) aren't listed yet:
+their official pages couldn't be read when this was written, and their formats change, so they wait
+until checked. Chat apps (Claude, ChatGPT) want the OAuth sign-in, still to come.
+
+## Evals
+
+`backend/evals/mcp_tools.json` holds requests a member might make of their AI, each with the tool
+(and arguments) its first call should go to, and what it must not call. `run_mcp_evals` gives a
+model the tools exactly as `/mcp` lists them for the role, the server's instructions and the
+class's tree, and judges the first call; it calls no Kolmi tool and touches no database. From
+`backend/`, with `LLM_*` set as for the pass (or `--model`, `--base-url`, `--api-key-env` for another):
+
+```bash
+.venv/bin/python -m evals.run_mcp_evals
+.venv/bin/python -m evals.run_mcp_evals --role student --repeat 3
+.venv/bin/python -m evals.run_mcp_evals --only admin-merge --verbose
+```
+
+A failing case points at a description to rewrite, not at the model. `tests/test_evals.py` keeps
+the cases in step with the tools each role is offered.
+
 ## The daily cap
 
 Each note costs a gatekeeper call, so a student's AI leaves at most `mcp_daily_notes` notes a day
@@ -80,5 +135,5 @@ from the app don't count.
 
 ## Not yet
 
-Text only: files over the MCP come later. Pages as resources, the "turn this material into class
-notes" prompt, "Connect your AI" in Settings and evals with a real client are the next batch.
+Text only: files over the MCP come later. The OAuth sign-in for chat apps, and the editors' install
+links once their formats are checked.

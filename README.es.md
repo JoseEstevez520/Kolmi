@@ -84,6 +84,19 @@ que el portero deja pasar, y el agente web la maqueta como página.
 
 <p align="center"><sub>Una página puede llevar más que texto. El diagrama es parte de la página.</sub></p>
 
+## Tu propia IA, conectada
+
+Kolmi también es un servidor MCP, así que la IA que ya usas (un agente de programación, un editor)
+puede trabajar con el cuaderno de la clase en tu nombre. Pongamos que el curso está en Moodle y el
+código de las prácticas en un repo de GitHub: con Moodle, GitHub y Kolmi conectados al mismo
+asistente, le pides que lea el material de esta semana y lo pase a limpio, y lee primero el árbol de
+la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde
+salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.
+
+La conectas desde Ajustes → Conecta tu IA: le pones un nombre a la conexión, copias el comando de tu
+cliente y listo. Leer es libre; tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta
+antes. Más en [docs/mcp.md](docs/mcp.md).
+
 ## En local
 
 Necesitas Python 3, Node 20 o superior, un proyecto de Supabase y una clave de API de un modelo.
@@ -119,6 +132,7 @@ La documentación está en inglés.
 - [Autenticación y usuarios](docs/authentication.md): cuentas, roles y el código de clase.
 - [Funciones y acciones](docs/features.md): qué hace la app y cómo se construye cada acción.
 - [Formato de página](docs/page-format.md): cómo llega una página de la pasada a la pantalla.
+- [El MCP](docs/mcp.md): conectar tu propia IA, sus tokens, recursos, prompt y evals.
 - [Pruebas con casos reales](docs/testing.md): el plan para probarlo antes de que lo use la clase.
 - [Datos y privacidad](docs/privacy.md): qué se guarda, quién lo ve y qué sale de la instancia.
 - [Tono de marca](docs/brand-tone.md): cómo suena Kolmi.

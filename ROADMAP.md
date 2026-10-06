@@ -121,7 +121,7 @@ a GitHub repo and writes the class's notes in Kolmi.
   - A blocked person with the app open sees the waiting screen only when they navigate; handle a
     blocking 403 in one place in the API client and send them there.
   - Drop the `approved` column in its own migration, once the status has run stable for a while.
-- [ ] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
+- [x] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
   (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class. See
   [docs/mcp.md](docs/mcp.md). Done, in a first batch:
   - Personal tokens (`api_tokens`, only the hash kept), shown once and revocable, made from the
@@ -135,23 +135,14 @@ a GitHub repo and writes the class's notes in Kolmi.
     (`mcp_daily_notes`, 30), none for admins. Text only.
   - Apply `supabase/migrations/20261009120000_api_tokens.sql` before deploying it.
 
-  Left, in a second batch:
-  - Pages as resources (`kolmi://page/{id}`), from the export's Markdown.
-  - A prompt, "turn this material into class notes": read the tree first, decide where each thing
-    goes, one note per topic, each with its `source_url`; for an admin, `merge` into the page.
-  - A first set of evals with a real client: do the descriptions lead it to the right tool.
-  - The Moodle + GitHub + Kolmi case in both READMEs.
-- [ ] **"Connect your AI" in Settings** — each person sees their own instructions, with their
-  class's address and their own token already in them.
-  - Make a connection with a name ("my laptop's editor"); the token shows once, and that is when
-    the instructions show, with it inside.
-  - A tab per kind of client, each block with a copy button: the command for command-line coding
-    agents, an "add to editor" install link plus its JSON for the editors that take one, and the
-    plain address and header for anything else.
-  - "Or tell your agent": a text to paste into an agent that can run commands, which then adds
-    the server itself.
-  - Your connections: name, last used, revoke. A line saying the text is like a password: not for
-    shared chats.
+  - A second batch: the shared pages as resources (`kolmi://page/{id}`), the prompt
+    `material_to_notes`, evals for the tools' descriptions (`backend/evals/`), and the Moodle +
+    GitHub + Kolmi case in both READMEs.
+- [x] **"Connect your AI" in Settings** — a named connection makes a token, shown once with the
+  instructions for each kind of client (Claude Code, Gemini CLI, Codex CLI, any other: the address,
+  the header and an `mcpServers` JSON) and a text to tell your agent; then the connections, with
+  when each was last used, revocable. Left: the editors' install links (Cursor, VS Code) and
+  Windsurf's JSON, once their official formats are checked.
 - [ ] **Sign in over OAuth for chat apps** — the AI chat apps' custom connectors expect OAuth, not
   a pasted token: the address, then Kolmi's own sign-in in the browser. Comes right after the MCP
   if the class mostly uses chat apps rather than coding agents; check first whether Supabase Auth
