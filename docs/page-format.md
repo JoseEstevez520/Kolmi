@@ -144,7 +144,9 @@ a capable main model, since it also writes the notes and draws the SVGs and Arti
 DeepSeek, `LLM_MODEL=deepseek-v4-pro`.
 
 The answer is parsed by a small Python parser (`agents/openui/__init__.py`). A `Page` root
-with at least one block is a page. The pass stats record which model wrote each page
+with at least one block is a page. A page written as given (`write_page_web`, see [tools.md](tools.md))
+goes through a stricter check, `openui.problems`, which reads each component's props from
+`page.spec.json`. The pass stats record which model wrote each page
 (`pages[].model`, `pages[].format`: `web`, `kept` or `markdown`) and why a model was passed
 over (`web_fallbacks`).
 
