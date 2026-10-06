@@ -39,7 +39,7 @@ const routes = [
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
   // The conversation full screen: the same one as the bubble's (lib/chat.js). Only where the
   // admin turned the chat on.
-  { path: '/chat', name: 'chat', component: ChatView, meta: { layout: 'app', chat: true, fullBleed: true } },
+  { path: '/chat', name: 'chat', component: ChatView, meta: { layout: 'app', chat: true } },
   { path: '/schedule', name: 'schedule', component: ScheduleView, meta: { layout: 'app' } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { layout: 'app' } },
   // The admin panel is three pages under one shell (title and selector): /admin itself is the
