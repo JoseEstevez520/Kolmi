@@ -81,13 +81,10 @@ What we're building and what's next. Open to whatever the class needs.
 
 ## Now: what real use showed
 
-- [ ] **Better pages** — what the test showed: pages come
-  out with no "To explore" section and, for some notes that would suit a drawing, no drawing
-  (a flow got a diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
+- [ ] **Better pages** — some notes that would suit a drawing come out with none (a flow got a
+  diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
   so a file only gets judged by its name. Decide whether the Gateway's web model is worth
   bringing back.
-- [ ] **Measure a pass** — time is known (about 1.5 to 5.5 minutes for 2 to 8 notes); the cost per
-  night is not. Needed to set the schedule and the model.
 
 ## Next: actions as tools, users and the MCP
 
