@@ -25,8 +25,10 @@ def _names(role: str, surface: str) -> set[str]:
 STUDENT_MCP = {
     "list_nodes", "view_node", "create_note", "update_note", "my_notes", "list_schedule_events",
 }
-STUDENT_CHAT = STUDENT_MCP | {"get_settings"}
+STUDENT_CHAT = STUDENT_MCP | {"get_settings", "update_my_name"}
 SCHEDULE_WRITES = {"create_schedule_event", "update_schedule_event", "delete_schedule_event"}
+# The class's people are managed in the app and the chat, never over the MCP.
+PEOPLE = {"list_users", "set_role", "set_status", "delete_user", "update_my_name"}
 
 
 def test_what_a_student_is_offered():
@@ -36,9 +38,9 @@ def test_what_a_student_is_offered():
 
 def test_what_an_admin_is_offered():
     every_tool = {a.name for a in get_registry().values() if a.tool}
-    assert len(every_tool) == 23
+    assert len(every_tool) == 28
     assert _names("admin", "chat") == every_tool
-    assert _names("admin", "mcp") == every_tool - {"get_settings"} - SCHEDULE_WRITES
+    assert _names("admin", "mcp") == every_tool - {"get_settings"} - SCHEDULE_WRITES - PEOPLE
     assert len(_names("admin", "mcp")) == 19
 
 
@@ -48,7 +50,7 @@ def test_the_mcp_only_offers_tools():
 
 def test_some_actions_are_never_tools():
     registry = get_registry()
-    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile"):
+    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account"):
         assert not registry[name].tool
     for name in ("update_settings", "get_settings", "register_profile", "get_profile"):
         assert not registry[name].mcp

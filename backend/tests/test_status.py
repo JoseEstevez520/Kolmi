@@ -59,7 +59,7 @@ def test_no_profile_is_told_to_sign_up():
 
 
 def test_a_blocked_admin_is_stopped_too():
-    assert "blocked" in _refusal(_ctx("blocked", role="admin"), "list_notes")
+    assert "blocked" in _refusal(_ctx("blocked", role="admin"), "list_users")
 
 
 @pytest.mark.parametrize("name", ["list_nodes", "view_node", "my_notes", "create_note", "ask_chat"])
@@ -74,7 +74,7 @@ def test_the_profile_is_open_whatever_the_status():
 
 def test_only_a_few_actions_run_whatever_the_status():
     allowed = {a.name for a in get_registry().values() if a.any_status}
-    assert allowed == {"get_profile", "register_profile"}
+    assert allowed == {"get_profile", "register_profile", "delete_my_account"}
 
 
 def test_a_profile_from_before_the_migration_reads_its_approval():
