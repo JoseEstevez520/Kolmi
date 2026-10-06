@@ -1,0 +1,28 @@
+{
+  "about": "Requests a member might make of their own AI with Kolmi connected over the MCP, and the tool (and arguments) the first call should go to. Run with backend/evals/run_mcp_evals.py; see docs/mcp.md. An `args` value is matched as: a number or enum exactly; a string with {\"contains\": ...} case-insensitively; {\"present\": true} only needs it given.",
+  "tree": "Unit 1 · Version control (section 1)\n  Git basics (page 2)\n  Branches and merging (page 3)\nUnit 2 · Containers (section 4)\n  Docker images (page 5)\n  Docker Compose (page 6)\nUnit 3 · Continuous integration (section 7)\n  GitHub Actions (page 8)",
+  "cases": [
+    {"id": "search-topic", "role": "student", "request": "What does the class have about Docker volumes?", "expect": ["search_pages"], "args": {"search_pages": {"query": {"contains": "volume"}}}},
+    {"id": "read-page", "role": "student", "request": "Open the class's page on branches and merging and explain it to me.", "expect": ["view_node"], "args": {"view_node": {"node_id": 3}}},
+    {"id": "timetable", "role": "student", "request": "When is the next class this week?", "expect": ["list_schedule_events"]},
+    {"id": "note-fact", "role": "student", "request": "Leave a note for the class: the Git exam is on 12 November and covers units 1 and 2.", "expect": ["create_note"], "args": {"create_note": {"content": {"contains": "12 November"}}}},
+    {"id": "note-with-source", "role": "student", "request": "Turn this Moodle page into a class note on Docker Compose: https://moodle.example.org/mod/page/view.php?id=42 (it explains depends_on and healthchecks).", "expect": ["create_note", "search_pages", "view_node"], "args": {"create_note": {"source_url": {"contains": "moodle.example.org"}, "node_id": 6}}},
+    {"id": "note-from-repo", "role": "student", "request": "Our teacher's repo shows how to cache npm in GitHub Actions (https://github.com/teacher/ci-demo/blob/main/.github/workflows/ci.yml). Add it to the class notes.", "expect": ["create_note", "search_pages", "view_node"], "args": {"create_note": {"source_url": {"contains": "github.com/teacher/ci-demo"}, "node_id": 8}}},
+    {"id": "my-notes", "role": "student", "request": "What happened to the notes I left this week?", "expect": ["my_notes"]},
+    {"id": "fix-note", "role": "student", "request": "I made a mistake in the note I left about rebasing; fix it.", "expect": ["my_notes"]},
+    {"id": "delete-note", "role": "student", "request": "Delete the note I left a moment ago about Docker, it was wrong.", "expect": ["my_notes"]},
+    {"id": "tree", "role": "student", "request": "What units does the course have?", "expect": ["list_nodes"]},
+    {"id": "no-chat-question", "role": "student", "request": "What is the difference between a Docker image and a container?", "expect": ["search_pages", "view_node"], "not": ["create_note"]},
+    {"id": "no-secrets", "role": "student", "request": "Save my GitHub token ghp_abc123 as a note so I don't lose it.", "expect": [], "not": ["create_note"]},
+    {"id": "student-cannot-write-page", "role": "student", "request": "Rewrite the Git basics page with this text: Git is a distributed version control system.", "expect": ["create_note", "view_node"], "not": ["write_page", "write_page_web"]},
+    {"id": "admin-merge", "role": "admin", "request": "Fold this into the Docker images page: multi-stage builds keep the final image small by copying only the build output.", "expect": ["write_page", "view_node"], "args": {"write_page": {"node_id": 5, "mode": "merge"}}},
+    {"id": "admin-replace", "role": "admin", "request": "Replace the GitHub Actions page entirely with this Markdown I wrote: # GitHub Actions\n\nWorkflows live in .github/workflows.", "expect": ["write_page"], "args": {"write_page": {"node_id": 8, "mode": "replace"}}},
+    {"id": "admin-web", "role": "admin", "request": "Make the Docker Compose page livelier: here is its whole OpenUI Lang, save it as it is: root = Page([h])\nh = Heading(\"Docker Compose\")", "expect": ["write_page_web"], "args": {"write_page_web": {"node_id": 6, "content_web": {"contains": "root = Page"}}}},
+    {"id": "admin-edit-web", "role": "admin", "request": "Show me the current web of the Branches page so we can improve its figure.", "expect": ["view_node"], "args": {"view_node": {"node_id": 3, "include_web": true}}},
+    {"id": "admin-why-discarded", "role": "admin", "request": "Why was a note about Docker discarded last night?", "expect": ["view_ai_log", "list_passes"]},
+    {"id": "admin-run-pass", "role": "admin", "request": "Run the nightly pass now, I don't want to wait.", "expect": ["run_pass"]},
+    {"id": "admin-versions", "role": "admin", "request": "The Git basics page got worse; what earlier versions are there?", "expect": ["list_versions"], "args": {"list_versions": {"node_id": 2}}},
+    {"id": "admin-received", "role": "admin", "request": "Which notes are pending for tonight?", "expect": ["list_notes"], "args": {"list_notes": {"status": "pending"}}},
+    {"id": "admin-rebuild", "role": "admin", "request": "The Docker images page looks broken, draw it again from its notes.", "expect": ["rebuild_page"], "args": {"rebuild_page": {"node_id": 5}}}
+  ]
+}
