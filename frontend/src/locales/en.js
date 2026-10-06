@@ -47,7 +47,7 @@ export default {
 
   sidebar: {
     home: 'Home',
-   
+    notes: 'Notes',
     schedule: 'Timetable',
     admin: 'Admin',
     aiLog: 'AI log',
