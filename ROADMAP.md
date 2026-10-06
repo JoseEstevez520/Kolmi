@@ -166,18 +166,23 @@ a GitHub repo and writes the class's notes in Kolmi.
   blocked past the limit, the same shape as `ai_log`/`ai_passes`) — a student's own browser-held
   key is still open, not built. The answer's Markdown is drawn with elastic-ui's own `Markdown`
   (not `ChatMessage`'s `text`/`ChatStream`, which only animates plain text).
-- [ ] **Tools in the chat** — the registry's tools for the caller's role.
-  - Reads run inside the model's loop, as `read_page` does.
-  - Anything that changes something is proposed, not run: the backend validates the proposal and
-    keeps it on the message, the web shows a card (Confirm, Edit, Cancel), and confirming calls
-    `POST /chat/confirm` → `invoke`, with the result added to the session. Every write is a
-    proposal at first, `create_note` included.
+- [ ] **Tools in the chat** — the registry's tools for the caller's role. Backend done, the web's
+  card missing.
+  - Done: `ask_chat` offers the actions on surface `chat` for the asker's role. Reads run inside
+    the model's loop (`tools.run_tool`). Anything that changes something is checked with
+    `registry.check` and kept as a proposal in `chat_proposals`, not run; every write is a
+    proposal, `create_note` included. `POST /chat/confirm` (only the asker, only once, edited
+    args validated again, runs through `invoke`) and `POST /chat/cancel`. Evals:
+    `backend/evals/chat_tools.json`, `python -m evals.run_chat_evals`. See
+    [docs/tools.md](docs/tools.md).
+  - Left: the proposal card (Confirm, Edit, Cancel) in elastic-ui, which has none yet (`ChatTool`
+    has no actions); release it, bump `frontend/vendor/`, then build the web's side.
+  - Before deploying, apply `supabase/migrations/20261010120000_chat_proposals.sql`.
   - What it's for: "make a note that the exam goes up to unit 4", "save what you just explained as
     a note", "why was my note from yesterday discarded?"; for an admin, "make a Kubernetes section
     with these three pages", "move Maven out of Spring Boot", "put this text as the CI/CD
     page", "go back to yesterday's Docker page", "what did last night's pass do?", "approve the
     three pending users".
-  - Evals: real requests and the tool and arguments each should lead to.
 - [ ] **Real RAG: search by meaning, so it scales** — today the chat gets the tree as an index and
   reads whole pages with `read_page`. That works for a small class, but the index stops fitting
   in the model's context as the notebook grows, and the model can miss a page it never opens.

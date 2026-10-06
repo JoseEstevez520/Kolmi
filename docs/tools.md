@@ -67,8 +67,46 @@ with a line saying how to ask for less. `view_node` with `include_web` hands the
 read, open to every member as the page is in the app, so an admin's AI can change what is there
 with `write_page_web` rather than write it all. Past the cap the answer says the web came cut and
 is not to be edited as it is. `tools.run_tool(ctx, name, args, surface)` runs one call
-and always answers text, errors included. It doesn't ask for confirmation: the chat (a card with
-Confirm) and the MCP client (from `destructiveHint`) do that before calling.
+and always answers text, errors included. It doesn't ask for confirmation: the chat (a proposal
+the person confirms, see below) and the MCP client (from `destructiveHint`) do that before calling.
+
+## Tools in the chat
+
+`ask_chat` offers the model `read_page` and `search_web` plus the registry's actions on surface
+`chat` for the asker's role (`tools.offered(ctx, "chat")`). Actions with `tool=False`
+(`ask_chat`, `delete_my_account`, tokens, `update_settings`...) never.
+
+- A `read_only` action runs inside the model's loop through `tools.run_tool`: light answers, the
+  12,000-character cap.
+- Anything else is not run. `registry.check` validates it (status, role, params: the checks of
+  `invoke`, without the handler) and it is kept as a proposal: a row in `chat_proposals`
+  (`message_id`, `user_id`, `tool`, `args`, `status` `pending | running | done | cancelled`,
+  `result`, `decided_at`). The model is told it was proposed. Every write is a proposal,
+  `create_note` included.
+- `ask_chat` answers `{answer, sources, message_id, proposals: [{id, tool, args, status,
+  destructive, result}]}`. `destructive` is the action's `requires_confirmation`.
+- `POST /chat/confirm` (`confirm_chat_proposal`, `{proposal_id, args?}`): only the person who
+  asked (anyone else gets 404), only once (claimed atomically `pending` to `running`, else 409).
+  It runs through `invoke` with the confirmer's role and source `chat`; edited args are
+  validated again. On an error the proposal goes back to `pending` with the error in `result`.
+  If the model's loop fails and the chat answers from the index alone, nothing is proposed.
+  `POST /chat/cancel` (`cancel_chat_proposal`) cancels it.
+- Apply `supabase/migrations/20261010120000_chat_proposals.sql` before deploying.
+
+Format, after looking at the references: the OpenAI Agents SDK's human-in-the-loop
+(`needs_approval` gives interruptions, approve or reject by call;
+[docs](https://github.com/openai/openai-agents-python/blob/main/docs/human_in_the_loop.md)),
+the Vercel AI SDK's `needsApproval` and its `approval-requested` part, and LangGraph's
+`interrupt()` (an editable resume value). Kolmi keeps a row per proposal on the server, not in
+the client's history, keyed by its own id, with editable args like LangGraph's resume, and no
+paused run: a turn ends with proposals and confirming is a new request, as AGENTS.md says. No
+LangGraph.
+
+Evals: `backend/evals/chat_tools.json`, run with `.venv/bin/python -m evals.run_chat_evals` from
+`backend/` (same flags as `run_mcp_evals`: `--role`, `--repeat`, `--only`, `--verbose`).
+
+The web's proposal card is not built: elastic-ui has no proposal card yet (`ChatTool` has only
+working, done and error, and no actions), so it waits on the library.
 
 ## Who did what, and from where
 
@@ -124,3 +162,5 @@ The web follows the Markdown: the page's next rebuild draws it again from there.
 - `update_settings` is not a tool for now.
 - `update_settings`'s own admin check went: `invoke` covers it.
 - Tool answers are capped at 12,000 characters.
+- In the chat every write is a proposal, stored server-side and confirmed in a new request; no
+  LangGraph.
