@@ -171,12 +171,9 @@ a GitHub repo and writes the class's notes in Kolmi.
   a pasted token: the address, then Kolmi's own sign-in in the browser. Comes right after the MCP
   if the class mostly uses chat apps rather than coding agents; check first whether Supabase Auth
   can be the OAuth server.
-- [ ] **How agents are built, in `AGENTS.md`** — today it says to move to LangGraph once there are
-  loops or approval, but approval here never pauses a loop (the turn ends with a proposal; the
-  confirmation is a new request). The rule to write: agents use the OpenAI SDK with their own
-  loop; one agent moves to LangGraph only when it must pause and resume its own reasoning,
-  survive a long run or coordinate with other agents. State that lives in the database (a thread,
-  a session) is not a reason.
+- [x] **How agents are built, in `AGENTS.md`** — agents use the OpenAI SDK with their own loop;
+  one moves to LangGraph only when it must pause and resume its own reasoning, survive a long run
+  or coordinate with other agents. Approval and state in the database are not reasons.
 
 ## Then: the chat
 

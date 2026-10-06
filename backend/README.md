@@ -52,8 +52,10 @@ uvicorn app.main:app --reload
 ## Tests
 
 ```bash
-pytest
+SUPABASE_URL=http://localhost SUPABASE_SERVICE_KEY=test CLASS_CODE=test pytest -q
 ```
+
+The settings need those three to load; any value does, as nothing is reached.
 
 The daily pass is tested with a fake model and a fake store (`tests/fakes.py`),
 so the suite spends no tokens and touches no network.

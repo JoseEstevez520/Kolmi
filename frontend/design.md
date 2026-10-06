@@ -16,7 +16,8 @@ here: no hand-styled stand-ins, no overriding its classes. The steps:
 1. Plan it in the elastic-ui repo, following its `AGENTS.md` and `DECISIONS.md`.
 2. Build it with its story and its `USAGE.md` entry.
 3. Release a version and pack it.
-4. Swap the tarball in `vendor/` and `package.json`.
+4. Swap the tarball in `vendor/` and point `frontend/package.json` and `landing/package.json` at it;
+   `npm install` in both refreshes their lockfiles.
 5. Restart the dev server: a reload keeps the old version.
 
 **A fading edge only when the text runs past.** `mask-fade-r` always fades a line's end,

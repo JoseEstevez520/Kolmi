@@ -49,8 +49,9 @@ The infrastructure is two pieces:
 - **Supabase** (cloud, free): login and a database with the notes, the pages and their
   versions. If you ever want, it self-hosts on the server.
 
-The agents are built with the OpenAI SDK. Start with a simple script and move to LangGraph (a
-framework for multi-step agent flows) when loops or approval are needed.
+The agents are built with the OpenAI SDK, each with its own loop. One moves to LangGraph (a
+framework for multi-step agent flows) only when it must pause and resume its own reasoning,
+survive a long run or coordinate with other agents.
 
 The account side has its own spec: [Authentication](authentication.md).
 
