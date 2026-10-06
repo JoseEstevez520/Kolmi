@@ -59,13 +59,21 @@ export default {
 
   settings: {
     title: 'Settings',
-    lead: 'How the app behaves in this browser.',
+    lead: 'How the app behaves in this browser, and your account.',
     language: 'Language',
     languageHint: "Menus, buttons and messages. Notes are written in the class's language.",
     motion: 'Animations',
     tour: 'Guided tour',
     replayTour: 'Show it again',
     savedHere: 'Saved in this browser only.',
+    account: 'Your account',
+    name: 'Your name',
+    nameHint: 'The name your notes are shown under.',
+    nameSaved: 'Name saved.',
+    deleteAccount: 'Delete my account',
+    deleteHint:
+      'Your notes and your chat go with it. What the hive already wrote into the pages stays.',
+    deleteConfirm: 'Delete',
   },
 
   export: {

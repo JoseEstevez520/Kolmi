@@ -56,13 +56,21 @@ export default {
 
   settings: {
     title: 'Ajustes',
-    lead: 'Cómo se comporta la app en este navegador.',
+    lead: 'Cómo se comporta la app en este navegador, y tu cuenta.',
     language: 'Idioma',
     languageHint: 'Los menús, botones y avisos. Los apuntes se escriben en el idioma de la clase.',
     motion: 'Animaciones',
     tour: 'Visita guiada',
     replayTour: 'Volver a verla',
     savedHere: 'Se guarda solo en este navegador.',
+    account: 'Tu cuenta',
+    name: 'Tu nombre',
+    nameHint: 'El nombre con el que se muestran tus apuntes.',
+    nameSaved: 'Nombre guardado.',
+    deleteAccount: 'Borrar mi cuenta',
+    deleteHint:
+      'Se van tus apuntes y tu chat. Lo que la colmena ya escribió en las páginas se queda.',
+    deleteConfirm: 'Borrar',
   },
 
   export: {

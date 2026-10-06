@@ -120,6 +120,8 @@ export const api = {
 
   // Your own account: it answers for anyone, whether let in or not, so a person who is waiting
   // (or blocked) can still leave. An admin who is the last one of the class gets a 409.
+  updateMyName: ({ name }) => request('/profile/name', { method: 'POST', body: { name } }),
+
   deleteMyAccount: () => request('/profile/delete', { method: 'POST' }),
 
   createNote: ({ content, format = 'text', nodeId = null, forFiles = false, keepalive }) =>
