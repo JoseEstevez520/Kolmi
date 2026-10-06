@@ -181,17 +181,6 @@ a GitHub repo and writes the class's notes in Kolmi.
   the conversation wide. The bubble keeps the current session and gets "open in full"; on
   `/chat` it hides. In elastic-ui: room for actions in `ChatMorph`'s header, an action proposal
   card, a session list item and an activity line (see whether `AgentStep` will do).
-- [ ] **Chat sessions** — today the model gets only the question on its own, so "and how is that
-  set up?" doesn't know what "that" is, and a reload starts over.
-  - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
-    one message a row (`session_id`, `role`, `content`, `parts jsonb`), the rows there today
-    moved into an "earlier" session per user.
-  - Only their owner sees them: no admin action reads them. The owner can delete them; they stay
-    until then.
-  - The model gets the last turns plus a summary kept on the session; `complete_with_tools` takes
-    a list of messages. It also gets the page the user has open, so "explain this" works.
-  - A title from a cheap call. The daily cap counts the user's messages, not tool rounds; none
-    for admins.
 - [ ] **Chat pass 2: streaming and interactive answers** — an answer can be the page catalogue's
   own parts (`frontend/src/lib/openui`, `docs/page-format.md`): `Text`, `Table`, `Chart`, `Steps`,
   `Callout`, `Cards`, `CodeBlock`; no `Diagram` or `Artifact` at first, as both need a second,
@@ -253,6 +242,17 @@ Same tools, same loop, another trigger.
 
 ## Later
 
+- [ ] **Chat sessions** — today the model gets only the question on its own, so "and how is that
+  set up?" doesn't know what "that" is, and a reload starts over.
+  - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
+    one message a row (`session_id`, `role`, `content`, `parts jsonb`), the rows there today
+    moved into an "earlier" session per user.
+  - Only their owner sees them: no admin action reads them. The owner can delete them; they stay
+    until then.
+  - The model gets the last turns plus a summary kept on the session; `complete_with_tools` takes
+    a list of messages. It also gets the page the user has open, so "explain this" works.
+  - A title from a cheap call. The daily cap counts the user's messages, not tool rounds; none
+    for admins.
 - [ ] **Better pages** — some notes that would suit a drawing come out with none (a flow got a
   diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
   so a file only gets judged by its name. Decide whether the Gateway's web model is worth
