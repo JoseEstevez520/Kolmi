@@ -149,7 +149,7 @@ def view_node(ctx: Context, params: ViewNodeParams):
 @action(
     name="create_node",
     tool=True,
-    mcp=False,
+    mcp=True,
     description="Add a section (it groups other nodes) or a page (it holds content) at the end of its parent's children. Admin only. A page starts empty: its content comes from the notes, not from here. To place it elsewhere, follow with move_node.",
     params=CreateNodeParams,
     path="/node",
@@ -164,7 +164,7 @@ def create_node(ctx: Context, params: CreateNodeParams):
 @action(
     name="update_node",
     tool=True,
-    mcp=False,
+    mcp=True,
     description="Change a node's title, description, icon, colour or whether it is on the home screen. Only the fields given change. Admin only. It doesn't change a page's content, nor where it sits: that is move_node.",
     params=UpdateNodeParams,
     path="/node/update",
@@ -202,7 +202,7 @@ def update_node(ctx: Context, params: UpdateNodeParams):
 @action(
     name="move_node",
     tool=True,
-    mcp=False,
+    mcp=True,
     description="Move a node under another parent, or to another place among its siblings: first, right after one of them, or last. Admin only. Everything under it moves with it.",
     params=MoveNodeParams,
     path="/node/move",
@@ -267,7 +267,7 @@ def reorder_nodes(ctx: Context, params: ReorderNodesParams):
 @action(
     name="delete_node",
     tool=True,
-    mcp=False,
+    mcp=True,
     description="Delete a node and everything under it: its sections and pages, their content and their files. Admin only, confirmed, and it can't be undone. To only get it out of the way, move it.",
     params=NodeIdParams,
     path="/node/delete",

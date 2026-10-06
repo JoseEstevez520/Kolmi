@@ -27,11 +27,8 @@ STUDENT_MCP = {
     "create_note", "update_note", "my_notes", "delete_note",
 }
 STUDENT_CHAT = STUDENT_MCP | {"get_settings", "update_my_name"}
-SCHEDULE_WRITES = {"create_schedule_event", "update_schedule_event", "delete_schedule_event"}
 # The class's people are managed in the app and the chat, never over the MCP.
 PEOPLE = {"list_users", "set_role", "set_status", "delete_user", "update_my_name"}
-# The tree is reshaped in the app and the chat; an admin's AI writes pages, not the tree.
-TREE = {"create_node", "update_node", "move_node", "delete_node"}
 
 
 def test_what_a_student_is_offered():
@@ -43,8 +40,8 @@ def test_what_an_admin_is_offered():
     every_tool = {a.name for a in get_registry().values() if a.tool}
     assert len(every_tool) == 30
     assert _names("admin", "chat") == every_tool
-    assert _names("admin", "mcp") == every_tool - {"get_settings"} - SCHEDULE_WRITES - PEOPLE - TREE
-    assert len(_names("admin", "mcp")) == 17
+    assert _names("admin", "mcp") == every_tool - {"get_settings"} - PEOPLE
+    assert len(_names("admin", "mcp")) == 24
 
 
 def test_the_mcp_only_offers_tools():

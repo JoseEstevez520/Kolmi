@@ -66,6 +66,7 @@ def list_schedule_events(ctx: Context, params: None):
 @action(
     name="create_schedule_event",
     tool=True,
+    mcp=True,
     description="Add a slot to the class's weekly timetable: a day, start and end hours, and optionally a title, a detail and the page it is for. Admin only. day is an index into get_settings's schedule_days, 0 the first.",
     params=CreateEventParams,
     path="/schedule/events",
@@ -79,6 +80,7 @@ def create_schedule_event(ctx: Context, params: CreateEventParams):
 @action(
     name="update_schedule_event",
     tool=True,
+    mcp=True,
     description="Change a timetable slot's day, hours, title, detail, colour or linked page. Only the fields given change. Admin only. Find the slot's id with list_schedule_events.",
     params=UpdateEventParams,
     path="/schedule/events/update",
@@ -102,6 +104,7 @@ def update_schedule_event(ctx: Context, params: UpdateEventParams):
 @action(
     name="delete_schedule_event",
     tool=True,
+    mcp=True,
     requires_confirmation=True,
     description="Remove a slot from the class's weekly timetable. Admin only, confirmed, and it can't be undone. Find the slot's id with list_schedule_events.",
     params=EventIdParams,

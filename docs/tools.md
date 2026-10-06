@@ -120,7 +120,7 @@ The web follows the Markdown: the page's next rebuild draws it again from there.
 ## Decisions taken
 
 - `approved` stays in the handlers until the user status replaces it.
-- The timetable's writes are chat tools but not MCP ones.
+- The tree's and the timetable's writes are chat tools and, for an admin, MCP ones too: an admin's own AI can lay out the class from outside. Users and settings stay in the app and the chat.
 - `update_settings` is not a tool for now.
 - `update_settings`'s own admin check went: `invoke` covers it.
 - Tool answers are capped at 12,000 characters.

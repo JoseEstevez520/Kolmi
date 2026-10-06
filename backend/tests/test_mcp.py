@@ -258,7 +258,9 @@ def test_losing_access_revokes_every_token(client):
 
 STUDENT = {"list_nodes", "view_node", "search_pages", "list_schedule_events", "create_note", "update_note", "my_notes", "delete_note"}
 ADMIN_ALSO = {"write_page", "write_page_web", "rebuild_page", "list_versions", "restore_version",
-              "list_notes", "view_ai_log", "list_passes", "run_pass"}
+              "list_notes", "view_ai_log", "list_passes", "run_pass",
+              "create_node", "update_node", "move_node", "delete_node",
+              "create_schedule_event", "update_schedule_event", "delete_schedule_event"}
 
 
 def test_a_student_sees_the_student_tools(http, client):
@@ -384,7 +386,7 @@ def test_someone_else_s_note_stays(http, client):
         ("create_my_token", {"name": "another"}),
         ("revoke_my_token", {"token_id": 1}),
         ("delete_my_account", {}),
-        ("create_node", {"kind": "page", "title": "x"}),
+        ("set_role", {"user_id": "s1", "role": "admin"}),
     ],
 )
 def test_a_token_cannot_reach_what_is_kept_off_the_mcp(client, name, args):
