@@ -6,7 +6,10 @@ create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   role text not null default 'student' check (role in ('student', 'admin')),
-  approved boolean not null default true,
+  approved boolean not null default true,  -- no longer read: status took over
+  -- What they may do, apart from their role: active, pending (waiting for an admin) or blocked.
+  -- Also in migrations/20261007120000_users.sql.
+  status text not null default 'active' check (status in ('active', 'pending', 'blocked')),
   created_at timestamptz not null default now()
 );
 
@@ -61,7 +64,9 @@ create table if not exists files (
   size bigint not null,
   mime text not null default 'application/octet-stream',
   path text not null,  -- the object's key in the `files` bucket
-  user_id uuid not null references profiles(id) on delete cascade,
+  -- Who added it. A file on a shared page stays when its author's account goes, with no author;
+  -- a note's files go with the note. Also in migrations/20261007120000_users.sql.
+  user_id uuid references profiles(id) on delete set null,
   created_at timestamptz not null default now(),
   -- A file belongs to a page or to a note, never both: the pass moves it from one to the other.
   constraint files_belongs_check check (num_nonnulls(node_id, note_id) = 1)
@@ -140,6 +145,10 @@ alter table settings add column if not exists schedule_session_minutes smallint 
 -- Also in migrations/20261004140000_chat.sql.
 alter table settings add column if not exists chat_enabled boolean not null default false;
 alter table settings add column if not exists chat_daily_limit smallint not null default 20;
+
+-- For when the class code leaks: new sign-ups wait for an admin. Also in
+-- migrations/20261007120000_users.sql.
+alter table settings add column if not exists signups_need_approval boolean not null default false;
 
 -- One slot in the week: a class, a shift, a meeting. `node_id` links it to a page or section
 -- (its title and colour are used when the slot has none of its own); null for a slot with no
