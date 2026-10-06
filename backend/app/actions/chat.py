@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -15,7 +15,7 @@ from ..files import node_files
 from ..passes.schedule import TIMEZONE, today_start
 from ..rag import search
 from .content import LIST_COLUMNS
-from .registry import action, get_action, invoke
+from .registry import action, check, get_action, invoke
 from .schedule import _resolve
 from .tools import answer as tool_answer
 from .tools import chat_tool, offered, schemas
@@ -219,6 +219,27 @@ def _set_proposal(
     return rows
 
 
+# A confirmation that never came back (a crash mid-run) must not leave a proposal stuck: past
+# this long a `running` one counts as pending again.
+STALE_RUNNING = timedelta(minutes=2)
+
+
+def _release_stale(ctx: Context, row: dict[str, Any]) -> None:
+    if row.get("status") != "running" or not row.get("decided_at"):
+        return
+    started = datetime.fromisoformat(str(row["decided_at"]).replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) - started < STALE_RUNNING:
+        return
+    (
+        ctx.client.table("chat_proposals")
+        .update({"status": "pending"})
+        .eq("id", row["id"])
+        .eq("user_id", ctx.user_id)
+        .eq("status", "running")
+        .execute()
+    )
+
+
 class ConfirmChatProposalParams(BaseModel):
     proposal_id: int
     args: dict[str, Any] | None = None
@@ -246,7 +267,15 @@ def confirm_chat_proposal(ctx: Context, params: ConfirmChatProposalParams):
     if found is None:
         raise HTTPException(403, f"You can't run {row['tool']} from the chat")
     args = params.args if params.args is not None else row.get("args") or {}
-    _set_proposal(ctx, params.proposal_id, {"status": "running"}, pending=True)
+    # Validated before claiming it too, so a bad edit or a blocked asker never flips the proposal.
+    try:
+        checked = check(found, ctx, args)
+    except HTTPException as exc:
+        _set_proposal(ctx, params.proposal_id, {"result": f"Error {exc.status_code}: {exc.detail}"})
+        raise
+    args = checked.model_dump(mode="json", exclude_unset=True) if checked is not None else {}
+    _release_stale(ctx, row)
+    _set_proposal(ctx, params.proposal_id, {"status": "running", "decided_at": _now()}, pending=True)
     try:
         value = invoke(found, ctx, args)
     except HTTPException as exc:

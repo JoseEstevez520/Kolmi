@@ -32,6 +32,8 @@ def schemas(ctx: Context, surface: Surface) -> list[dict[str, Any]]:
 TOOL_ANSWER_CHARS = 12_000
 # Fields a model never needs: the page as the web draws it is large and unreadable to it.
 HEAVY_KEYS = frozenset({"content_web"})
+# How many changes the chat may propose on one answer: a flood is a model gone wrong.
+MAX_PROPOSALS = 5
 
 
 def light(value: Any, keep: frozenset[str] = frozenset()) -> Any:
@@ -103,6 +105,11 @@ def chat_tool(
         dumped = params.model_dump(mode="json", exclude_unset=True) if params is not None else {}
         proposal = {"tool": name, "args": dumped}
         if proposal not in proposals:
+            if len(proposals) >= MAX_PROPOSALS:
+                return (
+                    f"Not proposed: there are already {MAX_PROPOSALS} proposals on this answer. "
+                    "Say what is left to do and let the person ask again."
+                )
             proposals.append(proposal)
         return (
             f"Proposed, not done: {name} has not run. The person sees it as a card to Confirm, "

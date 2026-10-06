@@ -13,6 +13,7 @@ from fastapi import HTTPException
 from app.actions import get_registry
 from app.actions.registry import get_action, invoke
 from app.auth import Context
+from app.actions.tools import chat_tool
 from tests.fakes import FakeLLM
 
 ANSWER = {"answer": "Done.", "sources": []}
@@ -404,3 +405,45 @@ def test_edited_args_are_validated_and_the_proposal_waits(monkeypatch):
     # Still there to confirm, as proposed.
     _confirm(client, proposal_id)
     assert len(client.rows("notes")) == 1
+
+
+# --- A confirmation that never came back, and a flood of proposals ---------------------------
+
+
+def test_a_stuck_running_proposal_is_released_after_a_while(monkeypatch):
+    client = _Client()
+    proposal_id = _propose_note(monkeypatch, client)
+    row = client.rows("chat_proposals")[0]
+    row["status"] = "running"
+    row["decided_at"] = "2020-01-01T00:00:00+00:00"
+
+    _confirm(client, proposal_id)
+
+    assert len(client.rows("notes")) == 1
+    assert client.rows("chat_proposals")[0]["status"] == "done"
+
+
+def test_a_recent_running_proposal_is_not_claimed_twice(monkeypatch):
+    client = _Client()
+    proposal_id = _propose_note(monkeypatch, client)
+    row = client.rows("chat_proposals")[0]
+    row["status"] = "running"
+    row["decided_at"] = datetime.now(timezone.utc).isoformat()
+
+    with pytest.raises(HTTPException) as error:
+        _confirm(client, proposal_id)
+
+    assert error.value.status_code == 409
+    assert client.rows("notes") == []
+
+
+def test_the_chat_proposes_at_most_a_few_changes_on_one_answer():
+    from app.actions.tools import MAX_PROPOSALS
+
+    proposals: list = []
+    ctx = _ctx(_Client())
+    run = chat_tool(ctx, proposals)
+    for i in range(MAX_PROPOSALS + 2):
+        run("create_note", {"content": f"note {i}"})
+
+    assert len(proposals) == MAX_PROPOSALS
