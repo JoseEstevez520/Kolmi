@@ -1,8 +1,8 @@
 from fastapi import HTTPException
+from postgrest.exceptions import APIError
 from pydantic import BaseModel
 
 from ..auth import Context
-from ..class_settings import read_settings
 from ..config import get_settings
 from .registry import action
 
@@ -39,19 +39,17 @@ def register_profile(ctx: Context, params: RegisterProfileParams):
     if params.code != get_settings().class_code:
         raise HTTPException(403, "Wrong class code")
 
-    # An address in ADMIN_EMAILS signs up as an admin, let in at once: that is how a class gets
-    # its first one. Anyone else waits for an admin while the class asks for approval.
-    if (ctx.email or "").strip().lower() in get_settings().admin_emails_set:
-        row = {"role": "admin", "status": "active"}
-    elif read_settings(ctx.client).get("signups_need_approval"):
-        row = {"role": "student", "status": "pending"}
-    else:
-        row = {"role": "student", "status": "active"}
-
-    rows = (
-        ctx.client.table("profiles")
-        .insert({"id": ctx.user_id, "name": params.name, **row})
-        .execute()
-        .data
-    )
-    return rows[0]
+    # The database decides the role and status, in one step under a lock: whoever signs up first
+    # on an instance with no admin becomes one, let in at once; anyone else is a student, pending
+    # while the class asks for approval. Two sign-ups at once can't both be the first admin.
+    try:
+        created = (
+            ctx.client.rpc("sign_up_profile", {"p_id": ctx.user_id, "p_name": params.name})
+            .execute()
+            .data
+        )
+    except APIError as exc:
+        if exc.code == "23505":  # the same account signing up twice at once
+            raise HTTPException(409, "Profile already exists") from exc
+        raise
+    return created[0] if isinstance(created, list) else created

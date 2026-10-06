@@ -221,6 +221,44 @@ drop policy if exists "settings_admin_update" on settings;
 create policy "settings_admin_update" on settings
   for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
+-- Signing up: whoever signs up first on an instance with no admin becomes one, let in at once;
+-- anyone else is a student, pending while the class asks for approval. One function decides and
+-- inserts under a lock, so two sign-ups at once can't both become the first admin. Also in
+-- migrations/20261008120000_first_admin.sql.
+create or replace function sign_up_profile(p_id uuid, p_name text)
+returns profiles
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  created profiles;
+begin
+  perform pg_advisory_xact_lock(hashtext('kolmi.sign_up_profile'));
+  if not exists (select 1 from profiles where role = 'admin') then
+    insert into profiles (id, name, role, status)
+    values (p_id, p_name, 'admin', 'active')
+    returning * into created;
+  else
+    insert into profiles (id, name, role, status)
+    values (
+      p_id,
+      p_name,
+      'student',
+      case
+        when coalesce((select signups_need_approval from settings where id = 1), false) then 'pending'
+        else 'active'
+      end
+    )
+    returning * into created;
+  end if;
+  return created;
+end;
+$$;
+
+-- Only the backend calls it, with the service role.
+revoke all on function sign_up_profile(uuid, text) from public, anon, authenticated;
+
 -- Private bucket: the backend uploads, and hands out short-lived signed links to download.
 insert into storage.buckets (id, name, public) values ('files', 'files', false)
 on conflict (id) do nothing;
