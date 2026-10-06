@@ -94,13 +94,6 @@ What we're building and what's next. Open to whatever the class needs.
 - [ ] **Timetable: dragging onto an occupied slot** — today a dropped block just lands where it's
   let go, even over another one. The usual calendar feel is for what's already there to shift
   aside (or refuse the drop); decide which, and build it.
-- [ ] **Bug: the place picker's tree sometimes opens with no text** — in the note editor, the first
-  time "Where does it go?" is opened the panel shows, but its rows have no text until the pointer
-  goes over each one. Seen in Chromium, now and then, not every time. Not reproduced in headless
-  Chromium, where a first opening and a later one run the same animations. The likely cause is a
-  stale paint after the tree's `blur-in` (its filter animation): hovering a row changes its colour
-  and repaints it. Check first whether it still happens with animations off in Settings; if it
-  doesn't, the fix is in elastic-ui (`PopoverMorph`'s content wave, or `blur-in` itself).
 
 ## Next: actions as tools, users and the MCP
 
