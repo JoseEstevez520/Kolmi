@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from ..auth import Context
 from ..files import node_files
+from ..store import place_among
 from .registry import action
 
 
@@ -36,6 +37,10 @@ class UpdateNodeParams(BaseModel):
 class MoveNodeParams(BaseModel):
     node_id: int
     parent_id: int | None = None
+    # Where among the new siblings. Left out, only the parent changes (the web moves, then
+    # reorders).
+    placement: Literal["first", "after", "last"] | None = None
+    after_node_id: int | None = None
 
 
 class ReorderNodesParams(BaseModel):
@@ -199,13 +204,38 @@ def update_node(ctx: Context, params: UpdateNodeParams):
     min_role="admin",
 )
 def move_node(ctx: Context, params: MoveNodeParams):
-    rows = (
-        ctx.client.table("nodes")
-        .update({"parent_id": params.parent_id})
-        .eq("id", params.node_id)
-        .execute()
-        .data
-    )
+    nodes = ctx.client.table("nodes").select("id, parent_id, position").execute().data
+    by_id = {n["id"]: n for n in nodes}
+    if params.node_id not in by_id:
+        raise HTTPException(404, "Node not found")
+    if params.parent_id is not None and params.parent_id not in by_id:
+        raise HTTPException(404, "Node not found")
+
+    # Walking up from the new parent must not reach the node: it would end up inside itself.
+    cursor = params.parent_id
+    while cursor is not None:
+        if cursor == params.node_id:
+            raise HTTPException(422, "A node can't go inside itself or one of its own children")
+        cursor = by_id[cursor]["parent_id"]
+
+    if params.placement is None:
+        data = {"parent_id": params.parent_id}
+    else:
+        siblings = [
+            n for n in nodes
+            if n["parent_id"] == params.parent_id and n["id"] != params.node_id
+        ]
+        if params.placement == "after" and params.after_node_id not in {s["id"] for s in siblings}:
+            raise HTTPException(
+                422,
+                f"Node {params.after_node_id} is not under that parent; list_nodes shows the tree",
+            )
+        slot, moves = place_among(siblings, params.placement, params.after_node_id)
+        for sibling_id, position in moves.items():
+            ctx.client.table("nodes").update({"position": position}).eq("id", sibling_id).execute()
+        data = {"parent_id": params.parent_id, "position": slot}
+
+    rows = ctx.client.table("nodes").update(data).eq("id", params.node_id).execute().data
     if not rows:
         raise HTTPException(404, "Node not found")
     return rows[0]
