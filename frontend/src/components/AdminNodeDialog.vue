@@ -90,7 +90,7 @@ async function save(close) {
           <DialogMorphClose as-child>
             <Button variant="ghost">{{ t('common.cancel') }}</Button>
           </DialogMorphClose>
-          <Button @click="save(close)">{{ t('common.save') }}</Button>
+          <Button variant="ghost" @click="save(close)">{{ t('common.save') }}</Button>
         </div>
       </div>
     </template>

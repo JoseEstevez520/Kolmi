@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
           autocomplete="off"
           required
         />
-        <Button type="submit" :loading="creating" :disabled="!name.trim()">
+        <Button variant="ghost" type="submit" :loading="creating" :disabled="!name.trim()">
           {{ t('settings.connect.create') }}
         </Button>
       </div>

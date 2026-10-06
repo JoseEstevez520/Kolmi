@@ -136,7 +136,7 @@ async function create(close) {
           <DialogMorphClose as-child>
             <Button variant="ghost">{{ t('common.cancel') }}</Button>
           </DialogMorphClose>
-          <Button :disabled="!title.trim()" @click="create(close)">{{ t('common.add') }}</Button>
+          <Button variant="ghost" :disabled="!title.trim()" @click="create(close)">{{ t('common.add') }}</Button>
         </div>
       </div>
     </template>
