@@ -143,6 +143,7 @@ export default {
   },
 
   chat: {
+    openFull: 'Open in full',
     label: 'Ask the hive',
     title: 'Kolmi',
     placeholder: 'Ask something about the class…',

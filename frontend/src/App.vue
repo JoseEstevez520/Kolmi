@@ -3,14 +3,17 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { MotionConfig } from 'motion-v'
+import { Maximize2 } from '@lucide/vue'
 import {
   ChatComposer,
   ChatMorph,
+  chatMorphActionClass,
   PageTransition,
   ScrollIndicator,
   SidebarLayout,
   SidebarLayoutHeader,
   ThemeToggle,
+  Tooltip,
   Tour,
   TourStep,
 } from 'elastic-ui'
@@ -129,6 +132,18 @@ const indicator = ref(null)
       :settled="settled"
       :activity="activity"
     >
+      <template #actions="{ close }">
+        <Tooltip :content="t('chat.openFull')">
+          <button
+            type="button"
+            :aria-label="t('chat.openFull')"
+            :class="chatMorphActionClass"
+            @click="() => { router.push({ name: 'chat' }); close() }"
+          >
+            <Maximize2 class="size-4" />
+          </button>
+        </Tooltip>
+      </template>
       <ChatConversation />
       <ChatComposer :placeholder="t('chat.placeholder')" :responding="responding" @send="send" />
     </ChatMorph>

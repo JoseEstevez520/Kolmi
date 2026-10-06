@@ -140,6 +140,7 @@ export default {
   },
 
   chat: {
+    openFull: 'Abrir a pantalla completa',
     label: 'Pregunta a la colmena',
     title: 'Kolmi',
     placeholder: 'Pregunta algo sobre la clase…',
