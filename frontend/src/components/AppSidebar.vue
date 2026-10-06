@@ -35,6 +35,8 @@ const active = computed(() => {
     const root = trailTo(route.params.id, nodes.value)[0]?.node
     if (root) return `/node/${root.id}`
   }
+  // The admin's three pages keep the Admin tab lit (the AI log has its own).
+  if (route.path.startsWith('/admin/') && route.path !== '/admin/log') return '/admin'
   return route.path
 })
 

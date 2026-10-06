@@ -11,7 +11,8 @@ What we're building and what's next. Open to whatever the class needs.
 - [x] **Notes** — leave a note and list "my notes".
 - [x] **Content tree and admin panel** — one tree of nodes (a section groups, a page holds
   content), with a home screen and an admin panel (create, rename, edit icon and colour, move,
-  reorder, delete).
+  reorder, delete). The panel is three pages behind a selector: `/admin/content` (the tree),
+  `/admin/people` and `/admin/class`; `/admin` goes to the content.
 - [x] **Daily pass** — a cron wakes the agent team (gatekeeper → notes → web) once a day, with
   a log (`ai_log`, `ai_passes`) and page versions.
 - [x] **AI log in the admin panel** — the recent passes, what the AI did with each note or
@@ -107,7 +108,7 @@ a GitHub repo and writes the class's notes in Kolmi.
   elastic-ui and the catalogue first.
 - [x] **Users from the admin panel** — two roles, `student` and `admin`, and a status apart from
   the role (`active`, `pending`, `blocked`) in place of `approved`, checked once in `invoke` (and
-  in the upload and export routes). An admin's Users block in `/admin` (`list_users`, `set_role`,
+  in the upload and export routes). An admin's users page, `/admin/people` (`list_users`, `set_role`,
   `set_status`, `delete_user`) and the class setting "New sign-ups need approval", with a waiting
   screen for whoever is pending or blocked; anyone changes their name and deletes their account in
   Settings. The first to sign up on an instance with no admin becomes one; the last active admin

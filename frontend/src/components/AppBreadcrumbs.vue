@@ -15,7 +15,9 @@ const SCREENS = {
   notes: 'sidebar.notes',
   note: 'sidebar.notes',
   settings: 'sidebar.settings',
-  admin: 'sidebar.admin',
+  'admin-content': 'sidebar.admin',
+  'admin-people': 'sidebar.admin',
+  'admin-class': 'sidebar.admin',
   'admin-log': 'sidebar.aiLog',
 }
 

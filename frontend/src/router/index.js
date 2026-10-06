@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authReady, isWaiting, loadProfile, session } from '../lib/auth.js'
 import AdminLogView from '../views/AdminLogView.vue'
+import AdminClassView from '../views/AdminClassView.vue'
+import AdminContentView from '../views/AdminContentView.vue'
+import AdminPeopleView from '../views/AdminPeopleView.vue'
 import AdminView from '../views/AdminView.vue'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
@@ -34,7 +37,20 @@ const routes = [
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
   { path: '/schedule', name: 'schedule', component: ScheduleView, meta: { layout: 'app' } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { layout: 'app' } },
-  { path: '/admin', name: 'admin', component: AdminView, meta: { layout: 'app', admin: true } },
+  // The admin panel is three pages under one shell (title and selector): /admin itself is the
+  // content, so old links and `{ name: 'admin' }` keep working. `meta.page` keeps the shell
+  // still while the pages inside it change.
+  {
+    path: '/admin',
+    component: AdminView,
+    meta: { layout: 'app', admin: true, page: 'admin' },
+    children: [
+      { path: '', name: 'admin', redirect: { name: 'admin-content' } },
+      { path: 'content', name: 'admin-content', component: AdminContentView },
+      { path: 'people', name: 'admin-people', component: AdminPeopleView },
+      { path: 'class', name: 'admin-class', component: AdminClassView },
+    ],
+  },
   {
     path: '/admin/log',
     name: 'admin-log',

@@ -87,7 +87,7 @@ export default {
     notesTab: { title: 'Notes', body: 'This tab takes you there.' },
     notes: { title: 'Leave a note', body: 'Write whatever you want the hive to know; it saves itself as you go.' },
     adminTab: { title: 'Admin', body: 'This tab takes you there.' },
-    admin: { title: 'Admin', body: 'Only you see this: the whole tree, and the class settings.' },
+    admin: { title: 'Admin', body: 'Only you see this: the content tree, the people and the class settings.' },
     settingsTab: { title: 'Settings', body: 'This tab takes you there.' },
     settings: { title: 'Settings', body: 'Your language and animations, kept in this browser.' },
   },
@@ -248,7 +248,11 @@ export default {
 
   admin: {
     title: 'Admin',
-    lead: 'Create, rename, edit, move, reorder and delete the content tree.',
+    sections: {
+      content: { tab: 'Content', lead: 'Create, rename, edit, move, reorder and delete the content tree.' },
+      people: { tab: 'Users', lead: 'Let people in, change their roles, and block or remove them.' },
+      class: { tab: 'The class', lead: 'The language, the daily pass, the chat and the sign-ups of this class.' },
+    },
     addTop: 'Add at the top level',
     addInside: 'Add inside',
     addInsideOf: 'Add inside “{title}”',
@@ -272,10 +276,7 @@ export default {
     noIcon: 'No icon',
     color: 'Colour',
     onHome: 'Show on the home',
-    classSettings: 'The class',
-    content: 'Content',
     users: {
-      title: 'Users',
       hint: 'Who is in the class. Pending people wait here until you let them in.',
       loading: 'Loading the people…',
       loadError: 'Could not load the people.',

@@ -84,7 +84,7 @@ export default {
     notesTab: { title: 'Notas', body: 'Esta pestaña te lleva allí.' },
     notes: { title: 'Deja una nota', body: 'Escribe lo que quieras que sepa la colmena; se guarda sola mientras escribes.' },
     adminTab: { title: 'Administración', body: 'Esta pestaña te lleva allí.' },
-    admin: { title: 'Administración', body: 'Solo tú ves esto: todo el árbol, y los ajustes de la clase.' },
+    admin: { title: 'Administración', body: 'Solo tú ves esto: el árbol de contenido, las personas y los ajustes de la clase.' },
     settingsTab: { title: 'Ajustes', body: 'Esta pestaña te lleva allí.' },
     settings: { title: 'Ajustes', body: 'Tu idioma y las animaciones, guardados en este navegador.' },
   },
@@ -245,7 +245,11 @@ export default {
 
   admin: {
     title: 'Administración',
-    lead: 'Crea, renombra, edita, mueve, ordena y borra el árbol de contenido.',
+    sections: {
+      content: { tab: 'Contenido', lead: 'Crea, renombra, edita, mueve, ordena y borra el árbol de contenido.' },
+      people: { tab: 'Personas', lead: 'Deja entrar a quien espera, cambia roles y bloquea o elimina personas.' },
+      class: { tab: 'La clase', lead: 'El idioma, el repaso diario, el chat y los registros de esta clase.' },
+    },
     addTop: 'Añadir al nivel principal',
     addInside: 'Añadir dentro',
     addInsideOf: 'Añadir dentro de «{title}»',
@@ -269,10 +273,7 @@ export default {
     noIcon: 'Sin icono',
     color: 'Color',
     onHome: 'Mostrar en el inicio',
-    classSettings: 'La clase',
-    content: 'Contenido',
     users: {
-      title: 'Personas',
       hint: 'Quién está en la clase. Quienes están pendientes esperan aquí hasta que los dejes entrar.',
       loading: 'Cargando a las personas…',
       loadError: 'No se pudo cargar a las personas.',
