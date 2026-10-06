@@ -161,6 +161,7 @@ const indicator = ref(null)
                 :icon="toolIcon(p.tool)"
                 :args="p.args"
                 :state="proposalState(p)"
+                v-model:open="p.open"
                 :destructive="p.destructive"
                 @confirm="(args) => confirmProposal(p, args)"
                 @cancel="cancelProposal(p)"

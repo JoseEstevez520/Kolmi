@@ -79,9 +79,10 @@ export async function send(text) {
 }
 
 // A proposal as the backend sends it, plus what only this browser knows: `busy` while a confirm
-// or cancel is in flight, and `error` after one failed.
+// or cancel is in flight, `error` after one failed, and `open` for its result (a failure opens
+// by itself, so the reason is not hidden).
 function withLocalState(p) {
-  return { ...p, busy: false, error: '' }
+  return { ...p, busy: false, error: '', open: false }
 }
 
 // What ChatProposal's `state` is for a proposal: `running` is `working`, `pending` is
@@ -101,6 +102,7 @@ function settle(p, answer) {
   p.args = answer.args ?? p.args
   p.result = answer.result ?? ''
   p.error = answer.status === 'pending' && answer.result ? answer.result : ''
+  p.open = Boolean(p.error)
 }
 
 async function decide(p, request) {
@@ -111,6 +113,7 @@ async function decide(p, request) {
     settle(p, await request())
   } catch (e) {
     p.error = e.message || t('chat.proposal.failed')
+    p.open = true
   } finally {
     p.busy = false
   }
