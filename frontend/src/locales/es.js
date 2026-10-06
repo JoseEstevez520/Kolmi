@@ -45,6 +45,7 @@ export default {
   sidebar: {
     home: 'Inicio',
     notes: 'Notas',
+    chat: 'Chat',
     schedule: 'Horario',
     admin: 'Administración',
     aiLog: 'Registro de la IA',
