@@ -1,7 +1,7 @@
 import { accessToken } from './auth.js'
 import { t } from './i18n.js'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export class ApiError extends Error {
   constructor(status, message) {
@@ -123,6 +123,14 @@ export const api = {
   updateMyName: ({ name }) => request('/profile/name', { method: 'POST', body: { name } }),
 
   deleteMyAccount: () => request('/profile/delete', { method: 'POST' }),
+
+  // Personal tokens for connecting your own AI over the MCP. `createToken` is the only answer that
+  // carries the token itself; the list never does.
+  createToken: ({ name }) => request('/tokens', { method: 'POST', body: { name } }),
+
+  tokens: () => request('/tokens'),
+
+  revokeToken: ({ tokenId }) => request('/tokens/revoke', { method: 'POST', body: { token_id: tokenId } }),
 
   createNote: ({ content, format = 'text', nodeId = null, forFiles = false, keepalive }) =>
     request('/notes', {

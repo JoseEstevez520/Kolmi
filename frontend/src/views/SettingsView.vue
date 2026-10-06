@@ -15,6 +15,7 @@ import {
   StatusText,
   Switch,
 } from 'elastic-ui'
+import ConnectAI from '../components/ConnectAI.vue'
 import FlagIcon from '../components/FlagIcon.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
@@ -165,6 +166,8 @@ function showTourAgain() {
           />
           <StatusText v-if="deleteError" class="w-full" :text="deleteError" error />
         </section>
+
+        <ConnectAI />
       </div>
     </PageLayout>
   </main>

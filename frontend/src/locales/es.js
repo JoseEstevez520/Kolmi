@@ -71,6 +71,46 @@ export default {
     deleteHint:
       'Se van tus apuntes y tu chat. Lo que la colmena ya escribió en las páginas se queda.',
     deleteConfirm: 'Borrar',
+    connect: {
+      title: 'Conecta tu IA',
+      make: 'Crear una conexión',
+      makeHint: 'Deja que la IA que ya usas lea las páginas de la clase y deje apuntes como tú.',
+      nameLabel: 'Nombre de la conexión',
+      namePlaceholder: 'el editor de mi portátil',
+      create: 'Crear',
+      ready: '«{name}» está lista',
+      once: 'Solo se muestra esta vez. Cópialo ahora.',
+      secret: 'El texto de abajo es como una contraseña: no lo pegues en chats compartidos ni en capturas.',
+      done: 'Hecho',
+      tabs: { cli: 'Terminal', other: 'Otro cliente', agent: 'Tu agente' },
+      clients: {
+        claude: { name: 'Claude Code', note: 'Añade --scope user para tenerlo en todos los proyectos.' },
+        gemini: { name: 'Gemini CLI', note: 'Ejecútalo en tu terminal.' },
+        codex: {
+          name: 'Codex CLI',
+          note: 'Codex lee el token de una variable de entorno: KOLMI_TOKEN tiene que estar definida donde se ejecute Codex.',
+        },
+      },
+      other: {
+        address: 'Dirección',
+        header: 'Cabecera',
+        file: 'Archivo mcpServers',
+        chatApps: 'Las apps de chat (Claude, ChatGPT) piden iniciar sesión con OAuth, que Kolmi aún no tiene.',
+      },
+      agent: {
+        hint: 'Pégalo en un agente que pueda ejecutar comandos y él mismo añade Kolmi.',
+        text: 'Añade a tu configuración un servidor MCP llamado kolmi: habla HTTP streamable en {url} y necesita la cabecera {header}. Usa tu propio comando para añadir servidores MCP (en Claude Code: claude mcp add --transport http kolmi {url} --header "{header}"). No me devuelvas el token escrito y no lo guardes en ningún sitio que no sea la configuración de MCP.',
+      },
+      yours: 'Tus conexiones',
+      loading: 'Cargando tus conexiones…',
+      loadError: 'No se han podido cargar tus conexiones.',
+      none: 'Aún no tienes conexiones.',
+      columns: { name: 'Nombre', token: 'Token', created: 'Creada', lastUsed: 'Último uso', actions: 'Acciones' },
+      never: 'nunca',
+      revoked: 'revocada',
+      revoke: 'Revocar {name}',
+      revokeConfirm: 'Revocar',
+    },
   },
 
   export: {

@@ -74,6 +74,46 @@ export default {
     deleteHint:
       'Your notes and your chat go with it. What the hive already wrote into the pages stays.',
     deleteConfirm: 'Delete',
+    connect: {
+      title: 'Connect your AI',
+      make: 'Make a connection',
+      makeHint: "Lets the AI you already use read the class's pages and leave notes as you.",
+      nameLabel: 'Name of the connection',
+      namePlaceholder: "my laptop's editor",
+      create: 'Make it',
+      ready: '"{name}" is ready',
+      once: 'This is the only time it shows. Copy it now.',
+      secret: "The text below is like a password: keep it out of shared chats and screenshots.",
+      done: 'Done',
+      tabs: { cli: 'Command line', other: 'Any other client', agent: 'Tell your agent' },
+      clients: {
+        claude: { name: 'Claude Code', note: 'Add --scope user to have it in every project.' },
+        gemini: { name: 'Gemini CLI', note: 'Run it in your terminal.' },
+        codex: {
+          name: 'Codex CLI',
+          note: 'Codex reads the token from an environment variable: KOLMI_TOKEN must be set wherever Codex runs.',
+        },
+      },
+      other: {
+        address: 'Address',
+        header: 'Header',
+        file: 'mcpServers file',
+        chatApps: "Chat apps (Claude, ChatGPT) need an OAuth sign-in, which Kolmi doesn't have yet.",
+      },
+      agent: {
+        hint: 'Paste this into an agent that can run commands, and it adds Kolmi itself.',
+        text: "Add an MCP server called kolmi to your config: it speaks streamable HTTP at {url} and needs the header {header}. Use your own command for adding MCP servers (for Claude Code: claude mcp add --transport http kolmi {url} --header \"{header}\"). Don't print the token back, and don't save it anywhere but the MCP config.",
+      },
+      yours: 'Your connections',
+      loading: 'Loading your connections…',
+      loadError: 'Could not load your connections.',
+      none: 'No connections yet.',
+      columns: { name: 'Name', token: 'Token', created: 'Made', lastUsed: 'Last used', actions: 'Actions' },
+      never: 'never',
+      revoked: 'revoked',
+      revoke: 'Revoke {name}',
+      revokeConfirm: 'Revoke',
+    },
   },
 
   export: {
