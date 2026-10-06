@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.47.0",
-    "elastic-ui": "file:../frontend/vendor/elastic-ui-0.17.11.tgz",
+    "elastic-ui": "file:../frontend/vendor/elastic-ui-0.17.12.tgz",
     "motion-v": "^2.4.4",
     "simple-icons": "^16.33.0",
     "vue": "^3.5.42"

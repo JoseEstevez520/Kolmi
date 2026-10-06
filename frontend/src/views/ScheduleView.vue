@@ -62,7 +62,10 @@ async function save(patch) {
   saveError.value = ''
   saving = true
   try {
-    apply(await api.updateSettings(patch))
+    const answer = await api.updateSettings(patch)
+    // A change made while this one was saving comes next: its answer is the one to show, so this
+    // one's, older, would put back for a moment what was just changed.
+    if (!queued) apply(answer)
   } catch (e) {
     ;({ enabled: enabled.value, days: days.value, start: start.value, end: end.value, sessionMinutes: sessionMinutes.value, breaks: breaks.value } = before)
     saveError.value = e.message || t('common.somethingWrongLong')
