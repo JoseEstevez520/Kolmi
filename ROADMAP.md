@@ -115,6 +115,15 @@ a GitHub repo and writes the class's notes in Kolmi.
   and log who and from where. Left:
   - The page showing it is being rebuilt.
   - A version history with a restore button in the UI.
+- [ ] **An admin tool to edit a page's web** — admin only. `write_page` takes Markdown and the
+  web is always rebuilt from it by the web agent; there's no way to hand a page its drawing
+  directly. For when an admin wants a livelier page than the agent makes (say, asking their own AI
+  over the MCP for a richer component), a tool that sets a page's OpenUI Lang (`content_web`)
+  as written: validated against the catalogue before saving, the version before kept, logged with
+  who and from where, and the Markdown left as it is. Open: whether that's enough or the admin
+  also needs raw Vue; raw Vue was dropped once (it needs a sandbox, loses the TOC and links, and a
+  Vue that doesn't compile gives a blank page), so a missing piece goes into elastic-ui and the
+  catalogue first.
 - [ ] **Users from the admin panel** — today there is no user management at all: the first admin
   is set by hand in Supabase and `approved` only stops notes, files and the export.
   - Two roles, `student` and `admin`, and a status apart from the role: `active` | `pending` |
