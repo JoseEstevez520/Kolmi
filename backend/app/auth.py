@@ -5,6 +5,7 @@ from typing import Any, Literal
 from fastapi import Depends, Header, HTTPException, status
 from supabase import Client
 
+from . import tokens
 from .supabase_client import get_client
 
 
@@ -55,10 +56,11 @@ def forget_profile(user_id: str) -> None:
     _profiles.pop(user_id, None)
 
 
-def on_access_lost(user_id: str) -> None:
+def on_access_lost(user_id: str, client: Client) -> None:
     """Someone lost their access: demoted, blocked or deleted. The one place that cuts it off
-    everywhere. Today that is the cached profile; the MCP adds revoking their tokens here."""
+    everywhere: their cached profile goes, and so do their tokens, so their AI is out at once."""
     forget_profile(user_id)
+    tokens.revoke_all(client, user_id)
 
 
 def status_of(profile: dict[str, Any] | None) -> str | None:
@@ -82,6 +84,22 @@ def check_active(ctx: "Context") -> None:
     raise HTTPException(403, "Your account is blocked: ask an admin of the class")
 
 
+def token_context(client: Client, token: str) -> "Context | None":
+    """The context of a personal token's owner, as the MCP acts for them; None for a token that
+    is unknown or revoked. Their role and status apply as they would in the app."""
+    user_id = tokens.owner(client, token)
+    if not user_id:
+        return None
+    return Context(user_id=user_id, email=None, profile=_profile(client, user_id), client=client, source="mcp")
+
+
+def app_only(ctx: "Context") -> None:
+    """Refuse a personal token: what it calls is only the MCP's tools, whatever the route. Making
+    tokens, managing people or the account, uploading files: those are done in the app."""
+    if ctx.source == "mcp":
+        raise HTTPException(403, "Not with a personal token: do this in the app")
+
+
 def get_context(
     authorization: str | None = Header(default=None),
     client: Client = Depends(get_client),
@@ -93,6 +111,11 @@ def get_context(
     old way (HS256) still goes to Supabase.
     """
     token = _bearer_token(authorization)
+    if tokens.is_token(token):
+        ctx = token_context(client, token)
+        if ctx is None:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
+        return ctx
 
     try:
         response = client.auth.get_claims(token)

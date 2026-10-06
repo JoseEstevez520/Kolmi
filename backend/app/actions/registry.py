@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, ValidationError
 
-from ..auth import Context, check_active
+from ..auth import Context, app_only, check_active
 
 Handler = Callable[[Context, Optional[BaseModel]], Any]
 
@@ -112,6 +112,9 @@ def _check_status(ctx: Context, action: Action) -> None:
     for the few actions a pending or blocked one still needs."""
     if not action.any_status:
         check_active(ctx)
+    # A personal token reaches only what is offered over the MCP, through /mcp or any route.
+    if not action.mcp:
+        app_only(ctx)
 
 
 def _invalid(exc: ValidationError) -> str:

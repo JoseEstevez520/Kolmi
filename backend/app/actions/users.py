@@ -99,7 +99,7 @@ def _delete_account(client, user_id: str) -> None:
     except Exception as exc:
         raise HTTPException(502, "Could not remove their notes' files, so nothing was deleted; try again") from exc
 
-    on_access_lost(user_id)
+    on_access_lost(user_id, client)
     try:
         client.auth.admin.delete_user(user_id)
     except Exception as exc:
@@ -143,7 +143,7 @@ def set_role(ctx: Context, params: SetRoleParams):
         _keep_an_admin(ctx.client, target, "made a student")
     rows = ctx.client.table("profiles").update({"role": params.role}).eq("id", params.user_id).execute().data
     if params.role == "student":
-        on_access_lost(params.user_id)
+        on_access_lost(params.user_id, ctx.client)
     else:
         forget_profile(params.user_id)
     return rows[0] if rows else {**target, "role": params.role}
@@ -167,7 +167,7 @@ def set_status(ctx: Context, params: SetStatusParams):
     if params.status == "active":
         forget_profile(params.user_id)
     else:
-        on_access_lost(params.user_id)
+        on_access_lost(params.user_id, ctx.client)
     return rows[0] if rows else {**target, "status": params.status}
 
 
