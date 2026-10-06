@@ -108,6 +108,7 @@ def test_saving_the_schedule():
     [
         {"pass_times": ["3am"]},
         {"pass_times": ["24:00"]},
+        {"pass_times": ["15:30"]},
         {"pass_days": [0]},
         {"pass_days": [8]},
         {"pass_times": []},

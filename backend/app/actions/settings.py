@@ -10,6 +10,7 @@ from .registry import action
 
 
 TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+ON_THE_HOUR = re.compile(r"^([01]\d|2[0-3]):00$")
 
 
 class ScheduleBreak(BaseModel):
@@ -68,6 +69,10 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
     if params.pass_times is not None:
         if any(not TIME.match(t) for t in params.pass_times):
             raise HTTPException(422, "Times must be HH:MM, from 00:00 to 23:59")
+        # The host cron wakes the pass once an hour, so a time between hours would only run at
+        # the next one.
+        if any(not ON_THE_HOUR.match(t) for t in params.pass_times):
+            raise HTTPException(422, "Times must be on the hour, like 15:00")
         row["pass_times"] = sorted(set(params.pass_times))
     if params.pass_days is not None:
         if any(d < 1 or d > 7 for d in params.pass_days):

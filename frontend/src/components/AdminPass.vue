@@ -153,6 +153,7 @@ onMounted(load)
           <h4 class="m-0 text-label text-fg">{{ t('admin.pass.times') }}</h4>
           <DayStrip
             v-model="times"
+            :step="60"
             :label="t('admin.pass.times')"
             :add-label="t('admin.pass.addTime')"
             @changed="setTimes"
