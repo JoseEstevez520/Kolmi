@@ -13,6 +13,7 @@ class RegisterProfileParams(BaseModel):
 
 @action(
     name="get_profile",
+    read_only=True,
     description="Get the current user's profile. 404 if it doesn't exist yet.",
     method="GET",
     path="/profile",

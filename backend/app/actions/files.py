@@ -37,6 +37,7 @@ def _file(ctx: Context, file_id: int) -> dict:
 
 @action(
     name="note_files",
+    read_only=True,
     description="List the files attached to one of your notes.",
     params=NoteFilesParams,
     method="GET",
@@ -61,6 +62,7 @@ def note_files(ctx: Context, params: NoteFilesParams):
 
 @action(
     name="download_file",
+    read_only=True,
     description="A short-lived link to download a file.",
     params=FileIdParams,
     method="GET",

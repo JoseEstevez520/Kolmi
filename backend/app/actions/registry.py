@@ -29,6 +29,10 @@ class Action:
     path: Optional[str] = None
     requires_confirmation: bool = False
     min_role: str = "student"
+    # Whether it only reads, and where it is offered as a tool: to the chat, and to the MCP.
+    read_only: bool = False
+    tool: bool = False
+    mcp: bool = False
 
     @property
     def http_path(self) -> str:
@@ -63,6 +67,9 @@ def action(
     path: Optional[str] = None,
     requires_confirmation: bool = False,
     min_role: str = "student",
+    read_only: bool = False,
+    tool: bool = False,
+    mcp: bool = False,
 ):
     def decorator(fn: Handler) -> Handler:
         _REGISTRY[name] = Action(
@@ -74,6 +81,9 @@ def action(
             path=path,
             requires_confirmation=requires_confirmation,
             min_role=min_role,
+            read_only=read_only,
+            tool=tool,
+            mcp=mcp,
         )
         return fn
 

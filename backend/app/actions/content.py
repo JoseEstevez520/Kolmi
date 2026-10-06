@@ -77,6 +77,9 @@ def _tree(rows: list[dict]) -> list[dict]:
 
 @action(
     name="list_nodes",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="List the whole content tree, nodes nested with their children.",
     method="GET",
     path="/nodes",
@@ -94,6 +97,9 @@ def list_nodes(ctx: Context, params: None):
 
 @action(
     name="view_node",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="Get a node with its children and, for pages, its content.",
     params=ViewNodeParams,
     method="GET",
@@ -132,6 +138,8 @@ def view_node(ctx: Context, params: ViewNodeParams):
 
 @action(
     name="create_node",
+    tool=True,
+    mcp=True,
     description="Create a node at the end of its siblings.",
     params=CreateNodeParams,
     path="/node",
@@ -145,6 +153,8 @@ def create_node(ctx: Context, params: CreateNodeParams):
 
 @action(
     name="update_node",
+    tool=True,
+    mcp=True,
     description="Update the fields of a node that are given.",
     params=UpdateNodeParams,
     path="/node/update",
@@ -181,6 +191,8 @@ def update_node(ctx: Context, params: UpdateNodeParams):
 
 @action(
     name="move_node",
+    tool=True,
+    mcp=True,
     description="Change the parent of a node.",
     params=MoveNodeParams,
     path="/node/move",
@@ -216,6 +228,8 @@ def reorder_nodes(ctx: Context, params: ReorderNodesParams):
 
 @action(
     name="delete_node",
+    tool=True,
+    mcp=True,
     description="Delete a node and everything under it.",
     params=NodeIdParams,
     path="/node/delete",

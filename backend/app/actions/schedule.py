@@ -44,6 +44,9 @@ def _resolve(event: dict, nodes_by_id: dict[int, dict]) -> dict:
 
 @action(
     name="list_schedule_events",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="The class timetable's slots, each with its day, hours and what it's for.",
     method="GET",
     path="/schedule/events",
@@ -62,6 +65,7 @@ def list_schedule_events(ctx: Context, params: None):
 
 @action(
     name="create_schedule_event",
+    tool=True,
     description="Add a slot to the class timetable.",
     params=CreateEventParams,
     path="/schedule/events",
@@ -74,6 +78,7 @@ def create_schedule_event(ctx: Context, params: CreateEventParams):
 
 @action(
     name="update_schedule_event",
+    tool=True,
     description="Change a timetable slot's day, hours, title, colour or linked page.",
     params=UpdateEventParams,
     path="/schedule/events/update",
@@ -96,6 +101,8 @@ def update_schedule_event(ctx: Context, params: UpdateEventParams):
 
 @action(
     name="delete_schedule_event",
+    tool=True,
+    requires_confirmation=True,
     description="Remove a slot from the class timetable.",
     params=EventIdParams,
     path="/schedule/events/delete",

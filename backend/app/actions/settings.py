@@ -35,6 +35,8 @@ class UpdateSettingsParams(BaseModel):
 
 @action(
     name="get_settings",
+    read_only=True,
+    tool=True,
     description="The class settings: the AI's language, when its daily pass runs, the class timetable, and the chat.",
     method="GET",
     path="/settings",

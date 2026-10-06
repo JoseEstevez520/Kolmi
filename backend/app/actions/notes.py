@@ -78,6 +78,8 @@ class MyNotesParams(BaseModel):
 
 @action(
     name="create_note",
+    tool=True,
+    mcp=True,
     description="Leave a note. It stays private until the daily pass.",
     params=CreateNoteParams,
     path="/notes",
@@ -100,6 +102,8 @@ def create_note(ctx: Context, params: CreateNoteParams):
 
 @action(
     name="update_note",
+    tool=True,
+    mcp=True,
     description="Rewrite one of your notes. Only until the daily pass takes it.",
     params=UpdateNoteParams,
     path="/notes/update",
@@ -133,6 +137,9 @@ def update_note(ctx: Context, params: UpdateNoteParams):
 
 @action(
     name="my_notes",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="List the current user's notes, newest first.",
     params=MyNotesParams,
     method="GET",

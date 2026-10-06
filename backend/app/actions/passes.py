@@ -35,6 +35,8 @@ def _run_in_background() -> None:
 
 @action(
     name="run_pass",
+    tool=True,
+    mcp=True,
     description="Start the AI pass now, in the background, instead of waiting for its schedule.",
     path="/pass/run",
     requires_confirmation=True,
@@ -54,6 +56,9 @@ def run_pass(ctx: Context, params: None):
 
 @action(
     name="list_passes",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="The recent AI passes, with their status and stats, newest first.",
     params=ListPassesParams,
     method="GET",
@@ -74,6 +79,9 @@ def list_passes(ctx: Context, params: ListPassesParams | None):
 
 @action(
     name="view_ai_log",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="What the AI did: which notes it processed, which pages it changed or flagged.",
     params=ViewAiLogParams,
     method="GET",
@@ -92,6 +100,9 @@ def view_ai_log(ctx: Context, params: ViewAiLogParams | None):
 
 @action(
     name="list_notes",
+    read_only=True,
+    tool=True,
+    mcp=True,
     description="List the notes students have left, with their status.",
     params=ListNotesParams,
     method="GET",
