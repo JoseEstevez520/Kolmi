@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..agents import get_chat_llm, run_chat
 from ..auth import Context
@@ -67,8 +67,34 @@ def _schedule_text(client, settings: dict, language: str) -> str:
     return "\n".join(lines)
 
 
+# What the chat remembers of the conversation so far: the last few turns, as the web sent them.
+# The browser isn't trusted, so the count and each text are capped here too.
+HISTORY_TURNS = 6
+HISTORY_CHARS = 1500
+
+
+def _search_query(history: list[dict[str, str]], question: str) -> str:
+    asked = [m["text"] for m in history if m["role"] == "user"][-1:]
+    return " ".join([*asked, question])
+
+
+class HistoryMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str
+
+
 class AskChatParams(BaseModel):
     question: str
+    history: list[HistoryMessage] = Field(
+        default_factory=list,
+        max_length=40,
+        description="The conversation so far, oldest first: only the last turns are used.",
+    )
+
+
+def _recent(history: list[HistoryMessage]) -> list[dict[str, str]]:
+    turns = [{"role": m.role, "text": m.text.strip()[:HISTORY_CHARS]} for m in history if m.text.strip()]
+    return turns[-HISTORY_TURNS:]
 
 
 def _proposal(row: dict[str, Any]) -> dict[str, Any]:
@@ -133,6 +159,7 @@ def ask_chat(ctx: Context, params: AskChatParams):
 
     nodes = ctx.client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
     language = class_language(ctx.client)
+    history = _recent(params.history)
     # The asker's own tools, with their role: reads run in the loop, writes are only proposed.
     proposed: list[dict[str, Any]] = []
     answer = run_chat(
@@ -145,8 +172,11 @@ def ask_chat(ctx: Context, params: AskChatParams):
         schedule=_schedule_text(ctx.client, settings, language),
         actions=schemas(ctx, "chat"),
         run_action=chat_tool(ctx, proposed),
-        # The parts of the pages closest to the question; none with the search index off.
-        passages=search(ctx.client, question),
+        history=history,
+        # The parts of the pages closest to the question; none with the search index off. A
+        # follow-up ("and how is that set up?") says little alone, so it is searched with what
+        # the person asked just before.
+        passages=search(ctx.client, _search_query(history, question)),
     )
     if answer.from_index:
         # The loop failed: what it proposed on the way goes with it.

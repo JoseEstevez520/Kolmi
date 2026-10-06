@@ -45,6 +45,7 @@ def run_chat(
     actions: list[dict[str, Any]] | None = None,
     run_action: Callable[[str, dict[str, Any]], str] | None = None,
     passages: list[dict[str, Any]] | None = None,
+    history: list[dict[str, str]] | None = None,
 ) -> ChatAnswer:
     """Answer a student's question from the class's own content, same shape as the gatekeeper:
     the tree as an index, and the pages it wants with the `read_page` tool. With a model that has
@@ -79,7 +80,11 @@ def run_chat(
             label = " › ".join(part for part in (title, heading) if part)
             parts.append(f"[{p['node_id']} · {label}]\n{p['content']}")
         found = "\n\nPassages:\n\n" + "\n\n".join(parts)
-    user = f"Tree:\n{index}{when}{timetable}{found}\n\nQuestion: {question}"
+    said = ""
+    if history:
+        lines = [f"{'Student' if m['role'] == 'user' else 'You'}: {m['text']}" for m in history]
+        said = "\n\nThe conversation so far, last message at the end:\n" + "\n".join(lines)
+    user = f"Tree:\n{index}{when}{timetable}{found}{said}\n\nQuestion: {question}"
 
     # The actions are told about only to the loop that can offer them: the answer from the index
     # alone has none, and would claim to have proposed what it can't.

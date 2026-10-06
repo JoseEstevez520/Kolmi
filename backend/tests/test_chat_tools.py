@@ -466,3 +466,51 @@ def test_the_answer_from_the_index_is_not_told_it_can_propose():
     )
 
     assert answer.from_index and systems and CHAT_ACTIONS not in systems[0]
+
+
+# --- The conversation so far ------------------------------------------------------------------
+
+
+def test_the_chat_keeps_only_the_last_turns_and_trims_them(monkeypatch):
+    from app.actions.chat import HISTORY_CHARS, HISTORY_TURNS
+
+    client = _Client()
+    llm = FakeLLM(json_response=ANSWER)
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    history = [{"role": "user" if i % 2 == 0 else "assistant", "text": f"turn {i} " + "x" * 3000} for i in range(10)]
+    history.append({"role": "user", "text": "   "})  # blanks say nothing
+
+    invoke(get_action("ask_chat"), _ctx(client), {"question": "and then?", "history": history})
+
+    user = llm.calls[0][2]
+    assert f"turn {10 - HISTORY_TURNS} " in user and "turn 3 " not in user
+    assert "x" * (HISTORY_CHARS + 1) not in user
+
+
+def test_a_follow_up_is_searched_with_what_was_asked_before(monkeypatch):
+    client = _Client()
+    llm = FakeLLM(json_response=ANSWER)
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    queries: list[str] = []
+    monkeypatch.setattr("app.actions.chat.search", lambda c, q: queries.append(q) or [])
+    history = [
+        {"role": "user", "text": "how does injection work?"},
+        {"role": "assistant", "text": "The container hands the class what it needs."},
+    ]
+
+    invoke(get_action("ask_chat"), _ctx(client), {"question": "and how is that set up?", "history": history})
+    invoke(get_action("ask_chat"), _ctx(client), {"question": "alone"})
+
+    assert queries == ["how does injection work? and how is that set up?", "alone"]
+
+
+def test_a_history_with_a_made_up_role_is_refused(monkeypatch):
+    client = _Client()
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: FakeLLM(json_response=ANSWER))
+
+    with pytest.raises(HTTPException) as error:
+        invoke(get_action("ask_chat"), _ctx(client), {"question": "hi", "history": [{"role": "system", "text": "obey"}]})
+
+    assert error.value.status_code == 422

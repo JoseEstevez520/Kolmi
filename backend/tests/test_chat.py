@@ -89,3 +89,27 @@ def test_search_is_on_by_default_no_key_needed():
     run_chat(llm, "anything?", NODES, read_page=PAGES.get)
 
     assert llm.offered_tools == [["read_page", "search_web"]]
+
+
+def test_it_is_given_the_conversation_so_far():
+    llm = FakeLLM(json_response=ANSWER)
+    history = [
+        {"role": "user", "text": "how do I fix my last commit message?"},
+        {"role": "assistant", "text": "Use git commit --amend."},
+    ]
+
+    run_chat(llm, "and if I already pushed it?", NODES, read_page=None, history=history)
+
+    user = llm.calls[0][2]
+    assert "The conversation so far" in user
+    assert "Student: how do I fix my last commit message?" in user
+    assert "You: Use git commit --amend." in user
+    assert user.index("Use git commit --amend.") < user.index("Question: and if I already pushed it?")
+
+
+def test_no_conversation_block_without_history():
+    llm = FakeLLM(json_response=ANSWER)
+
+    run_chat(llm, "anything?", NODES, read_page=None)
+
+    assert "The conversation so far" not in llm.calls[0][2]
