@@ -150,6 +150,25 @@ alter table settings add column if not exists chat_daily_limit smallint not null
 -- migrations/20261007120000_users.sql.
 alter table settings add column if not exists signups_need_approval boolean not null default false;
 
+-- How many notes a student may leave a day through their AI (the MCP); admins have no cap. Also in
+-- migrations/20261009120000_api_tokens.sql.
+alter table settings add column if not exists mcp_daily_notes smallint not null default 30;
+
+-- Personal tokens, for the MCP: `kolmi_` and a random string, shown once; only its SHA-256 hash is
+-- kept. Also in migrations/20261009120000_api_tokens.sql.
+create table if not exists api_tokens (
+  id bigserial primary key,
+  user_id uuid not null references profiles(id) on delete cascade,
+  name text not null,
+  token_hash text not null unique,
+  prefix text not null,
+  last_used_at timestamptz,
+  created_at timestamptz not null default now(),
+  revoked_at timestamptz
+);
+
+create index if not exists api_tokens_user_id_idx on api_tokens (user_id);
+
 -- One slot in the week: a class, a shift, a meeting. `node_id` links it to a page or section
 -- (its title and colour are used when the slot has none of its own); null for a slot with no
 -- page, such as a subject the class notes don't cover.
@@ -206,6 +225,7 @@ alter table settings enable row level security;
 alter table files enable row level security;
 alter table schedule_events enable row level security;
 alter table chat_messages enable row level security;
+alter table api_tokens enable row level security;
 
 -- settings is the one exception: everyone signed in reads it, only admins write it. The
 -- backend still goes through the service role.
