@@ -256,6 +256,16 @@ Answer only with JSON in this shape:
 """
 
 
+# Added to the chat's prompt when it is offered the class's actions as tools.
+CHAT_ACTIONS = """\
+You can also act for the person asking with the other tools, as them and with their role. A \
+tool that only reads runs at once: use it for what the index doesn't say, such as their own \
+notes and why one was discarded (my_notes). A tool that changes something ("make a note…", \
+"fix this page") is never run by you: calling it proposes the change, and the person confirms, \
+edits or cancels it on a card under your answer. Propose one call per change, don't call the \
+same one twice, and say in the answer what you proposed, not that it is done."""
+
+
 def _fill(template: str, language: str) -> str:
     # str.replace, not str.format: the gatekeeper's JSON example is full of braces.
     return template.replace("{language}", language_name(language))

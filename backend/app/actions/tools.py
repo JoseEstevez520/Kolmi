@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Literal
+from dataclasses import replace
+from typing import Any, Callable, Literal
 
 from fastapi import HTTPException
 from pydantic import BaseModel
 
 from ..auth import Context
-from .registry import Action, get_registry, has_role, invoke
+from .registry import Action, check, get_registry, has_role, invoke
 
 # Where a tool is offered: the in-app chat, or an outside client through the MCP.
 Surface = Literal["chat", "mcp"]
@@ -79,3 +80,33 @@ def run_tool(ctx: Context, name: str, args: dict[str, Any] | None, surface: Surf
         return answer(invoke(found, ctx, args), keep)
     except HTTPException as exc:
         return f"Error {exc.status_code}: {exc.detail}"
+
+
+def chat_tool(
+    ctx: Context, proposals: list[dict[str, Any]]
+) -> Callable[[str, dict[str, Any]], str]:
+    """The registry's tools for the in-app chat, acting as the asker. A read runs at once; a write
+    is only checked and proposed, in `proposals`, for the person to confirm, edit or cancel.
+    """
+    ctx = replace(ctx, source="chat")
+
+    def run(name: str, args: dict[str, Any]) -> str:
+        found = next((a for a in offered(ctx, "chat") if a.name == name), None)
+        if found is None:
+            return f"There is no tool {name}. The tools you have are the ones listed."
+        if found.read_only:
+            return run_tool(ctx, name, args, "chat")
+        try:
+            params = check(found, ctx, args)
+        except HTTPException as exc:
+            return f"Error {exc.status_code}: {exc.detail}"
+        dumped = params.model_dump(mode="json", exclude_unset=True) if params is not None else {}
+        proposal = {"tool": name, "args": dumped}
+        if proposal not in proposals:
+            proposals.append(proposal)
+        return (
+            f"Proposed, not done: {name} has not run. The person sees it as a card to Confirm, "
+            "Edit or Cancel. Don't call it again; say in your answer what you proposed."
+        )
+
+    return run

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from ..class_settings import FALLBACK_LANGUAGE
 from .client import LLM
-from .prompts import chat_system
+from .prompts import CHAT_ACTIONS, chat_system
 from .schemas import ChatAnswer
 from .search import SEARCH_WEB_TOOL, WebSearch, search_tool, web_search
 from .tree import READ_PAGE_TOOL, PageReader, build_index, read_page_tool
@@ -13,14 +13,17 @@ from .tree import READ_PAGE_TOOL, PageReader, build_index, read_page_tool
 log = logging.getLogger(__name__)
 
 
-def _combined_tool(read_page_run, search_run):
-    """Dispatches a tool call to whichever of `read_page` and `search_web` is wired up."""
+def _combined_tool(read_page_run, search_run, action_run=None):
+    """Dispatches a tool call to whichever of `read_page` and `search_web` is wired up, and any
+    other to the registry's actions when given."""
 
     def run(name: str, args: dict[str, Any]) -> str:
         if name == "read_page":
             return read_page_run(name, args)
         if search_run is not None and name == "search_web":
             return search_run(name, args)
+        if action_run is not None:
+            return action_run(name, args)
         return f"There is no tool called {name}."
 
     return run
@@ -36,15 +39,18 @@ def run_chat(
     today: str = "",
     schedule: str = "",
     search: WebSearch | None = web_search,
+    actions: list[dict[str, Any]] | None = None,
+    run_action: Callable[[str, dict[str, Any]], str] | None = None,
 ) -> ChatAnswer:
     """Answer a student's question from the class's own content, same shape as the gatekeeper:
     the tree as an index, and the pages it wants with the `read_page` tool. With a model that has
     no tools, or if that loop fails, it answers from the index alone. `schedule` is the week's
     timetable as plain text, already resolved against the tree's titles, and `today` its weekday
     and date; both empty when the class hasn't set a timetable up. `search` is a `search_web`
-    reader, DuckDuckGo (needs no key) by default; pass `None` to turn it off.
+    reader, DuckDuckGo (needs no key) by default; pass `None` to turn it off. `actions` are the
+    registry's tool schemas the asker is offered, and `run_action` runs or proposes one of them.
     """
-    system = chat_system(language)
+    system = chat_system(language) + (f"\n\n{CHAT_ACTIONS}" if actions else "")
     when = f"\n\nToday: {today}" if today else ""
     timetable = f"\n\nTimetable:\n{schedule}" if schedule else ""
     user = f"Tree:\n{build_index(nodes)}{when}{timetable}\n\nQuestion: {question}"
@@ -54,8 +60,9 @@ def run_chat(
         reads: list[int] = []
         queries: list[str] = []
         tools = [READ_PAGE_TOOL] + ([SEARCH_WEB_TOOL] if search is not None else [])
+        tools += actions or []
         run_search = search_tool(search, queries) if search is not None else None
-        run_tool = _combined_tool(read_page_tool(nodes, read_page, reads), run_search)
+        run_tool = _combined_tool(read_page_tool(nodes, read_page, reads), run_search, run_action)
         try:
             raw = with_tools(system, user, tools, run_tool)
             return ChatAnswer.model_validate(raw)
@@ -63,4 +70,4 @@ def run_chat(
             log.warning("chat tool loop failed, answering from the index: %s", exc)
 
     raw = llm.complete_json(system, user)
-    return ChatAnswer.model_validate(raw)
+    return ChatAnswer.model_validate(raw).model_copy(update={"from_index": True})

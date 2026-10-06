@@ -124,18 +124,23 @@ def _invalid(exc: ValidationError) -> str:
     return "Invalid params. " + "; ".join(parts)
 
 
-def invoke(action: Action, ctx: Context, args: dict[str, Any] | None = None) -> Any:
-    """Run an action for a caller: the web, the chat and the MCP all come through here."""
+def check(action: Action, ctx: Context, args: dict[str, Any] | None = None) -> BaseModel | None:
+    """Whether this caller may run the action with these args, without running it: the status,
+    the role and the params. Returns the validated params; the chat uses it to propose a write."""
     _check_status(ctx, action)
     if not has_role(ctx, action.min_role):
         raise HTTPException(403, "Admin only")
-    params = None
-    if action.params is not None:
-        try:
-            params = action.params.model_validate(args or {})
-        except ValidationError as exc:
-            raise HTTPException(422, _invalid(exc)) from exc
-    return action.handler(ctx, params)
+    if action.params is None:
+        return None
+    try:
+        return action.params.model_validate(args or {})
+    except ValidationError as exc:
+        raise HTTPException(422, _invalid(exc)) from exc
+
+
+def invoke(action: Action, ctx: Context, args: dict[str, Any] | None = None) -> Any:
+    """Run an action for a caller: the web, the chat and the MCP all come through here."""
+    return action.handler(ctx, check(action, ctx, args))
 
 
 def get_action(name: str) -> Action | None:

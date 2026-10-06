@@ -50,3 +50,6 @@ class ChatAnswer(BaseModel):
     answer: str
     # The pages the answer actually rests on, so the app can show them as its sources.
     sources: list[int] = Field(default_factory=list)
+    # Answered from the index alone, after the tool loop failed or with a model without tools;
+    # filled in by the chat, not by the model.
+    from_index: bool = Field(default=False, exclude=True)

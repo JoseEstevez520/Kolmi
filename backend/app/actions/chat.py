@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
+from dataclasses import replace
+from datetime import datetime, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -13,8 +14,10 @@ from ..class_settings import class_language, read_settings
 from ..files import node_files
 from ..passes.schedule import TIMEZONE, today_start
 from .content import LIST_COLUMNS
-from .registry import action
+from .registry import action, get_action, invoke
 from .schedule import _resolve
+from .tools import answer as tool_answer
+from .tools import chat_tool, offered, schemas
 
 _DAY_NAMES = {
     "es": {1: "Lunes", 2: "Martes", 3: "Miércoles", 4: "Jueves", 5: "Viernes", 6: "Sábado", 7: "Domingo"},
@@ -67,6 +70,19 @@ class AskChatParams(BaseModel):
     question: str
 
 
+def _proposal(row: dict[str, Any]) -> dict[str, Any]:
+    """A proposal as the web shows it: whether it destroys something comes from its action."""
+    found = get_action(row["tool"])
+    return {
+        "id": row["id"],
+        "tool": row["tool"],
+        "args": row.get("args") or {},
+        "status": row["status"],
+        "destructive": bool(found and found.requires_confirmation),
+        "result": row.get("result"),
+    }
+
+
 def _messages_today(client, user_id: str) -> int:
     rows = (
         client.table("chat_messages")
@@ -116,6 +132,8 @@ def ask_chat(ctx: Context, params: AskChatParams):
 
     nodes = ctx.client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
     language = class_language(ctx.client)
+    # The asker's own tools, with their role: reads run in the loop, writes are only proposed.
+    proposed: list[dict[str, Any]] = []
     answer = run_chat(
         get_llm(),
         question,
@@ -124,15 +142,132 @@ def ask_chat(ctx: Context, params: AskChatParams):
         language=language,
         today=_today_text(language),
         schedule=_schedule_text(ctx.client, settings, language),
+        actions=schemas(ctx, "chat"),
+        run_action=chat_tool(ctx, proposed),
+    )
+    if answer.from_index:
+        # The loop failed: what it proposed on the way goes with it.
+        proposed = []
+
+    message = (
+        ctx.client.table("chat_messages")
+        .insert(
+            {
+                "user_id": ctx.user_id,
+                "question": question,
+                "answer": answer.answer,
+                "sources": answer.sources,
+            }
+        )
+        .execute()
+        .data[0]
+    )
+    rows = (
+        ctx.client.table("chat_proposals")
+        .insert([{**p, "message_id": message["id"], "user_id": ctx.user_id} for p in proposed])
+        .execute()
+        .data
+        if proposed
+        else []
     )
 
-    ctx.client.table("chat_messages").insert(
-        {
-            "user_id": ctx.user_id,
-            "question": question,
-            "answer": answer.answer,
-            "sources": answer.sources,
-        }
-    ).execute()
+    return {
+        **answer.model_dump(),
+        "message_id": message["id"],
+        "proposals": [_proposal(row) for row in rows],
+    }
 
-    return answer.model_dump()
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _own_proposal(ctx: Context, proposal_id: int) -> dict[str, Any]:
+    rows = (
+        ctx.client.table("chat_proposals")
+        .select("*")
+        .eq("id", proposal_id)
+        .eq("user_id", ctx.user_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not rows:
+        raise HTTPException(404, f"You have no chat proposal {proposal_id}")
+    return rows[0]
+
+
+def _set_proposal(
+    ctx: Context, proposal_id: int, fields: dict[str, Any], *, pending: bool = False
+) -> list[dict[str, Any]]:
+    """Update one of the caller's proposals; with `pending`, only while it still is, so two
+    clicks can't both claim it."""
+    query = (
+        ctx.client.table("chat_proposals")
+        .update(fields)
+        .eq("id", proposal_id)
+        .eq("user_id", ctx.user_id)
+    )
+    if pending:
+        query = query.eq("status", "pending")
+    rows = query.execute().data
+    if pending and not rows:
+        raise HTTPException(409, "This proposal was already confirmed or cancelled")
+    return rows
+
+
+class ConfirmChatProposalParams(BaseModel):
+    proposal_id: int
+    args: dict[str, Any] | None = None
+
+
+class CancelChatProposalParams(BaseModel):
+    proposal_id: int
+
+
+@action(
+    name="confirm_chat_proposal",
+    description=(
+        "Run a change the chat proposed to you, as you and with your role. Without args it runs "
+        "as proposed; with args, it runs with those instead (an edited proposal). A proposal runs "
+        "once: one already confirmed or cancelled can't be."
+    ),
+    params=ConfirmChatProposalParams,
+    path="/chat/confirm",
+)
+def confirm_chat_proposal(ctx: Context, params: ConfirmChatProposalParams):
+    row = _own_proposal(ctx, params.proposal_id)
+    ctx = replace(ctx, source="chat")
+    # Checked before claiming it: a tool the caller has lost leaves the proposal as it was.
+    found = next((a for a in offered(ctx, "chat") if a.name == row["tool"]), None)
+    if found is None:
+        raise HTTPException(403, f"You can't run {row['tool']} from the chat")
+    args = params.args if params.args is not None else row.get("args") or {}
+    _set_proposal(ctx, params.proposal_id, {"status": "running"}, pending=True)
+    try:
+        value = invoke(found, ctx, args)
+    except HTTPException as exc:
+        error = f"Error {exc.status_code}: {exc.detail}"
+        _set_proposal(ctx, params.proposal_id, {"status": "pending", "result": error})
+        raise
+    except Exception:
+        _set_proposal(ctx, params.proposal_id, {"status": "pending"})
+        raise
+    done = {"status": "done", "result": tool_answer(value), "decided_at": _now(), "args": args}
+    rows = _set_proposal(ctx, params.proposal_id, done)
+    return _proposal(rows[0] if rows else {**row, **done})
+
+
+@action(
+    name="cancel_chat_proposal",
+    description=(
+        "Cancel a change the chat proposed to you, so it never runs. Only a pending one can be."
+    ),
+    params=CancelChatProposalParams,
+    path="/chat/cancel",
+)
+def cancel_chat_proposal(ctx: Context, params: CancelChatProposalParams):
+    row = _own_proposal(ctx, params.proposal_id)
+    cancelled = {"status": "cancelled", "decided_at": _now()}
+    rows = _set_proposal(ctx, params.proposal_id, cancelled, pending=True)
+    return _proposal(rows[0] if rows else {**row, **cancelled})
