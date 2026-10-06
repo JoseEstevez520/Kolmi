@@ -66,6 +66,12 @@ so the suite spends no tokens and touches no network.
 `LLM_BASE_URL`, `LLM_MODEL`) and, optionally, the web model (`WEB_*`), `CORS_ORIGINS` and
 `CLASS_LANGUAGE`. In `.env`, never in git.
 
+For search by meaning (see below), `EMBEDDING_API_KEY` and, optionally, `EMBEDDING_BASE_URL` (any
+OpenAI-compatible endpoint, OpenAI by default) and `EMBEDDING_MODEL` (default
+`text-embedding-3-small`, 1536 dimensions through `dimensions`, $0.02 per 1M tokens). DeepSeek, the
+default chat provider, has no embeddings endpoint. A model must give 1536 dimensions or accept
+`dimensions`.
+
 A class gets its first admin by signing up first: on an instance with no admin, the first
 sign-up becomes one (see `docs/authentication.md`). Roles change from the admin panel after that.
 
@@ -138,6 +144,21 @@ a `flagged` row in `ai_log`, so the next pass tries it again. The third pass tha
 skips it marks it `discarded` and logs why (`MAX_SKIPPED_PASSES` in
 `app/passes/daily.py`). `--dry-run` lists those notes under `would_give_up` and
 changes nothing.
+
+## Search by meaning
+
+Pages are chunked at their headings and embedded into `page_chunks` (pgvector, created by
+[`../supabase/migrations/20261010130000_page_chunks.sql`](../supabase/migrations/20261010130000_page_chunks.sql);
+apply it before deploying). The daily pass and the page writes keep it current; the chat and
+`search_pages` use a hybrid search (full text and vectors) over it. Without `EMBEDDING_API_KEY` the
+index stays empty and both work as before, with the tree and plain word matching.
+
+Index every page once, after setting the key (`--force` ignores the stored hashes):
+
+```bash
+.venv/bin/python -m app.rag reindex
+.venv/bin/python -m app.rag reindex --force
+```
 
 ## Routes
 

@@ -69,15 +69,23 @@ It costs cents a day.
 A chatbot that answers by asking the notes, not by what the model remembers. RAG is that:
 find the chunks that talk about the topic first and answer only with them.
 
-- **Store**: with pgvector (a Postgres extension that stores vectors) on Supabase, a table of
-  chunks with tags, metadata and embeddings (the numbers that represent the meaning of each
-  chunk).
-- **Index**: at the end of the daily pass, only the pages that changed.
-- **Answer**: on each question, find the similar chunks and the LLM answers only with them,
-  citing the page.
+- **Store**: pgvector (a Postgres extension that stores vectors) on Supabase: a `page_chunks`
+  table with each chunk's page, heading breadcrumb ("H1 › H2"), text and embedding (the numbers
+  that represent its meaning), plus a full-text column. Chunks are cut from the page's Markdown at
+  its headings with a real CommonMark parser (markdown-it-py), so code and tables stay whole.
+- **Index**: at the end of the daily pass (only the pages it wrote) and after a page is written
+  from outside, rebuilt or restored. A hash of the Markdown skips a page that didn't change.
+  Embeddings come from any OpenAI-compatible endpoint; without a key the index stays empty and
+  everything works as before.
+- **Answer**: on each question, a hybrid search (full text and vectors, merged by Reciprocal
+  Rank Fusion) finds the closest chunks, and they go to the model with their page and heading
+  before the question. It cites the page, and can still read a whole one.
 
-The first version skips the vectors: the model gets the tree as an index and reads the pages it
-needs. Search by meaning is the next step, for when the notebook outgrows that (see the roadmap).
+Hybrid, not vectors alone: exact terms (a command, a class name) matter in class notes and pure
+vectors miss them. `search_pages` uses the same search.
+
+The first version skipped the vectors: the model got the tree as an index and read the pages it
+needed. That still works with no index.
 
 ## Open questions
 
