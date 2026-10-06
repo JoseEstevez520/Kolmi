@@ -219,7 +219,8 @@ export const api = {
   runPass: () => request('/pass/run', { method: 'POST' }),
 
   // Ask the hive a question; it answers from the class's own content, with the pages it used.
-  askChat: (question) => request('/chat', { method: 'POST', body: { question } }),
+  askChat: (question, history = []) =>
+    request('/chat', { method: 'POST', body: { question, history } }),
 
   // A change the chat proposed: confirm it (with `args` only when the person edited them) or
   // cancel it. Both answer with the proposal, as /chat lists it.
