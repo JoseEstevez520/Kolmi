@@ -12,6 +12,7 @@ from ..agents import openui
 from ..agents.web import build_page, page_problems
 from ..auth import Context
 from ..class_settings import class_language
+from ..rag import index_pages
 from ..store import NODE_COLUMNS, SupabaseStore
 from .registry import action
 
@@ -146,6 +147,8 @@ def rewrite_page(
         if existing_md.strip() or existing_web.strip():
             store.save_version(node_id, existing_md, existing_web)
         store.write_page(node_id, content_md=md, content_web=written.content_web)
+        # A rebuild keeps the Markdown, so its hash matches and nothing is embedded again.
+        index_pages(client, [node_id])
 
         if mode == "rebuild":
             reason = "Rebuilt from its Markdown"
@@ -278,6 +281,7 @@ def restore_version(ctx: Context, params: VersionIdParams):
         content_md=version.get("content_md") or "",
         content_web=version.get("content_web") or "",
     )
+    index_pages(ctx.client, [node_id])
     _log(ctx.client, node_id, "updated", f"Restored version {params.version_id}", ctx.user_id, ctx.source)
     return ctx.client.table("nodes").select(NODE_COLUMNS).eq("id", node_id).limit(1).execute().data[0]
 

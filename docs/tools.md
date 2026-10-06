@@ -133,6 +133,20 @@ previous content in `node_versions`; `list_versions` lists them (a preview, neve
 an admin sees the same list as a page's History (`PageHistory.vue`, in the page's top bar), and
 restores from it through the same two actions.
 
+## Searching the pages
+
+`search_pages` (read only, over the MCP) runs the same hybrid search as the chat's passages
+(`app/rag/`): full text and vectors over `page_chunks`, merged with Reciprocal Rank Fusion, one
+result per page in the usual `{id, title, snippet}` shape. Without an index (no embedding key, or
+nothing indexed yet) it falls back to plain word matching, so the tool never goes dark.
+
+The index is kept by hooks, never by the caller. `app/rag/index.py` re-chunks and embeds a page at
+the end of the daily pass (only the pages it wrote), after `write_page` (replace and merge),
+`rebuild_page` and `restore_version`. Not `write_page_web`: the Markdown is unchanged. A page whose
+Markdown hash matches its chunks is skipped, deleting a node deletes its chunks by cascade, and a
+failure is logged and never fails the write. Apply
+`supabase/migrations/20261010130000_page_chunks.sql` before deploying this.
+
 ## A page's web as written
 
 `write_page_web` (admin, confirmed) sets a page's OpenUI Lang (`content_web`) exactly as given,

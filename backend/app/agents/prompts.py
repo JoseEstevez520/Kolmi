@@ -265,6 +265,16 @@ notes and why one was discarded (my_notes). A tool that changes something ("make
 edits or cancels it on a card under your answer. Propose one call per change, don't call the \
 same one twice, and say in the answer what you proposed, not that it is done."""
 
+# What the chat is told when it gets passages, the parts of the pages a search by meaning found
+# closest to the question.
+CHAT_PASSAGES = """\
+Passages: before the question you also get the parts of the class's pages closest to it, each \
+headed [page id · page title › heading]. Answer from them first; put the id of each page whose \
+passage your answer rests on in "sources". Call read_page only when you need the whole page (a \
+passage is cut short, or the question spans the page), and don't read a page just to confirm \
+what a passage already says. If the passages don't answer the question, go on as usual with \
+the index."""
+
 
 def _fill(template: str, language: str) -> str:
     # str.replace, not str.format: the gatekeeper's JSON example is full of braces.

@@ -183,21 +183,34 @@ a GitHub repo and writes the class's notes in Kolmi.
     with these three pages", "move Maven out of Spring Boot", "put this text as the CI/CD
     page", "go back to yesterday's Docker page", "what did last night's pass do?", "approve the
     three pending users".
-- [ ] **Real RAG: search by meaning, so it scales** — today the chat gets the tree as an index and
-  reads whole pages with `read_page`. That works for a small class, but the index stops fitting
-  in the model's context as the notebook grows, and the model can miss a page it never opens.
-  Retrieval by meaning keeps it working at any size.
-  - pgvector on Supabase (the plan in [docs/idea.md](docs/idea.md)): a table of chunks per page,
-    each with its page, its heading, the text and its embedding.
-  - Chunk by heading, so a chunk keeps its place in the page; tables and code stay whole.
-  - Index at the end of the daily pass (only the pages that changed), and again when a page is
-    written from outside, restored or rebuilt, so the index never lags the Markdown.
-  - On a question: find the closest chunks, hand them over with their page and heading, and keep
-    `read_page` for when the whole page is needed. The answer cites the page as it does now.
-  - The same search can back `search_pages` over the MCP, which is plain text today.
-  - Open: the embedding model (any OpenAI-compatible endpoint, set in `.env` like the others; look
-    at what the instance's own provider offers before adding another), and how much the search
-    costs per question. Look at existing chunkers and the Supabase docs before building any.
+- [x] **Real RAG: search by meaning, so it scales** — the chat no longer depends on the tree
+  fitting in the model's context: a hybrid search finds the closest chunks and hands them over.
+  - pgvector on Supabase: `page_chunks` (node, position, heading breadcrumb, text, a hash of the
+    page's Markdown, `vector(1536)` embedding, a generated full-text column), an HNSW cosine index,
+    a GIN one on the text and the `match_page_chunks` RPC: Supabase's hybrid search (full text and
+    vectors, Reciprocal Rank Fusion). **Apply
+    `supabase/migrations/20261010130000_page_chunks.sql` before deploying.**
+  - Chunking (`app/rag/chunker.py`): over `content_md`, split at headings with markdown-it-py's
+    tokens (a real CommonMark parser), so code fences and tables are whole blocks; a long section
+    splits between blocks (~1500 characters). Looked at LangChain's `MarkdownHeaderTextSplitter`
+    (line-based fences, no table awareness, its size pass cuts code) and LlamaIndex's
+    `MarkdownNodeParser` (heavy, backticks only); neither fit.
+  - Indexing (`app/rag/index.py`): at the end of the daily pass (only the pages it wrote), after
+    `write_page`, `rebuild_page` and `restore_version`; not `write_page_web`. An unchanged hash is
+    skipped, a deleted node takes its chunks by cascade, and a failure is logged, never fails a
+    write. Reindex everything once with `python -m app.rag reindex` (`--force` ignores hashes).
+  - Embeddings: any OpenAI-compatible endpoint (`EMBEDDING_API_KEY`, `EMBEDDING_BASE_URL`,
+    `EMBEDDING_MODEL`, default `text-embedding-3-small`, $0.02 per 1M tokens). DeepSeek has none.
+    Without the key the index stays empty and the chat and `search_pages` work as before.
+  - The chat gets the closest chunks for the question with their page and heading, before the
+    question; `read_page` stays for a whole page and the answer cites pages as before. With
+    passages, the tree index keeps to 6,000 characters: past it, it drops the descriptions, then
+    the pages (a section's are one `read_page` away).
+  - `search_pages` (over the MCP) uses the same search, one result per page, same shape; plain
+    word matching without an index. Hybrid because exact terms (a command, a class name) matter in
+    class notes and pure vectors miss them.
+  - Sources: Supabase's AI guides (semantic search, hybrid search, HNSW indexes) and OpenAI's
+    embeddings model page.
 - [ ] **A chat page** — `/chat` first, with the conversation wide, and `/chat/:sessionId` once sessions exist: sessions on the left (a `Sheet` on a phone),
   the conversation wide. The bubble keeps the current session and gets "open in full"; on
   `/chat` it hides. In elastic-ui: room for actions in `ChatMorph`'s header, an action proposal
