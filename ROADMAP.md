@@ -306,6 +306,5 @@ Same tools, same loop, another trigger.
 
 ## Ideas, not committed
 
-- A teacher dashboard (what the hive did this week).
 - Export the notes to PDF.
 - Link a topic to NotebookLM, so a section's notes can be studied there too.
