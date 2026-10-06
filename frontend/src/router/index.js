@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { chatEnabled, loadChatEnabled } from '../lib/chat.js'
 import { authReady, isWaiting, loadProfile, session } from '../lib/auth.js'
 import AdminLogView from '../views/AdminLogView.vue'
 import AdminClassView from '../views/AdminClassView.vue'
 import AdminContentView from '../views/AdminContentView.vue'
 import AdminPeopleView from '../views/AdminPeopleView.vue'
+import ChatView from '../views/ChatView.vue'
 import AdminView from '../views/AdminView.vue'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
@@ -35,6 +37,9 @@ const routes = [
   },
   // One screen for a section and one for a page: the node says which.
   { path: '/node/:id', name: 'node', component: NodeView, meta: { layout: 'app' } },
+  // The conversation full screen: the same one as the bubble's (lib/chat.js). Only where the
+  // admin turned the chat on.
+  { path: '/chat', name: 'chat', component: ChatView, meta: { layout: 'app', chat: true } },
   { path: '/schedule', name: 'schedule', component: ScheduleView, meta: { layout: 'app' } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { layout: 'app' } },
   // The admin panel is three pages under one shell (title and selector): /admin itself is the
@@ -103,6 +108,10 @@ router.beforeEach(async (to) => {
   }
   if (to.meta.admin && current.role !== 'admin') {
     return { name: 'home' }
+  }
+  if (to.meta.chat) {
+    if (chatEnabled.value === null) await loadChatEnabled()
+    if (!chatEnabled.value) return { name: 'home' }
   }
   return true
 })
