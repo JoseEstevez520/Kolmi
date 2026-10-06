@@ -163,3 +163,15 @@ def test_a_missing_parent_is_a_404():
         _move(_tree(), node_id=2, parent_id=99)
 
     assert exc.value.status_code == 404
+
+
+def test_a_page_s_content_cannot_be_set_through_update_node():
+    profile = {"id": "u1", "role": "admin", "approved": True}
+    ctx = Context(user_id="u1", email=None, profile=profile, client=_Client(_tree()))
+
+    for field in ("content_md", "content_web"):
+        with pytest.raises(HTTPException) as exc:
+            invoke(get_registry()["update_node"], ctx, {"node_id": 1, field: "x"})
+
+        assert exc.value.status_code == 422
+        assert field in exc.value.detail

@@ -1,7 +1,7 @@
 from typing import Literal
 
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..auth import Context
 from ..files import node_files
@@ -24,14 +24,15 @@ class CreateNodeParams(BaseModel):
 
 
 class UpdateNodeParams(BaseModel):
+    # A page's content is the daily pass's to write, not an edit: sending it is refused.
+    model_config = ConfigDict(extra="forbid")
+
     node_id: int = Field(..., description="The node to change, from list_nodes.")
     title: str | None = Field(None, description="New title, as the sidebar shows it.")
     description: str | None = Field(None, description="New one-line description. The AI reads it to decide where notes go.")
     icon: str | None = Field(None, description="A Lucide icon name, such as BookOpen.")
     color: str | None = Field(None, description="Its colour: \"\" for the app's grey, or one of #2563eb (blue), #0d9488 (teal), #7c3aed (violet), #d97706 (amber), #c026d3 (fuchsia), #65a30d (lime), #e11d48 (rose).")
     on_home: bool | None = Field(None, description="Whether it shows on the home screen.")
-    content_md: str | None = Field(None, description="A page's Markdown. Normally written by the daily pass, not by hand.")
-    content_web: str | None = Field(None, description="A page's web content. Normally written by the daily pass, not by hand.")
 
 
 class MoveNodeParams(BaseModel):
