@@ -130,7 +130,8 @@ a GitHub repo and writes the class's notes in Kolmi.
   - The registry's tools through `invoke`, per role (`read_only` as `readOnlyHint`,
     `requires_confirmation` as `destructiveHint`): a student reads the tree, pages and timetable,
     searches (`search_pages`) and creates, edits, lists and deletes their own notes (`delete_note`);
-    an admin also writes pages, their web, versions, received notes, the AI log and `run_pass`.
+    an admin also writes pages, their web, versions, received notes, the AI log and `run_pass`,
+    and shapes the tree and the timetable (users and settings stay in the app and the chat).
   - Notes through the MCP with `source = 'mcp'` and their `source_url`; a daily cap per student
     (`mcp_daily_notes`, 30), none for admins. Text only.
   - Apply `supabase/migrations/20261009120000_api_tokens.sql` before deploying it.
