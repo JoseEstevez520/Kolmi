@@ -210,10 +210,16 @@ a GitHub repo and writes the class's notes in Kolmi.
     class notes and pure vectors miss them.
   - Sources: Supabase's AI guides (semantic search, hybrid search, HNSW indexes) and OpenAI's
     embeddings model page.
-- [ ] **A chat page** — `/chat` first, with the conversation wide, and `/chat/:sessionId` once sessions exist: sessions on the left (a `Sheet` on a phone),
-  the conversation wide. The bubble keeps the current session and gets "open in full"; on
-  `/chat` it hides. In elastic-ui: room for actions in `ChatMorph`'s header, an action proposal
-  card, a session list item and an activity line (see whether `AgentStep` will do).
+- [x] **A chat page** — `/chat`, with the conversation wide and centred on the app's own
+  background, and a "Chat" entry in the sidebar when the chat is on. It is the same conversation as
+  the bubble's (one state, one `ChatConversation` component for both); the bubble hides on
+  `/chat` and has an "open in full" icon in its corner (elastic-ui's `ChatMorph` `#actions` slot).
+  Sessions on the left come with the sessions below.
+- [x] **The chat remembers the conversation (light)** — a stopgap short of sessions: the web
+  sends the last six turns with each question, so "and how is that set up?" is understood (the
+  follow-up is searched with what came before), and the conversation is kept in `sessionStorage`,
+  so a reload doesn't lose it and a new tab starts clean; sign-out clears it. Nothing is saved on
+  the server beyond the log of questions.
 - [ ] **Chat pass 2: streaming and interactive answers** — an answer can be the page catalogue's
   own parts (`frontend/src/lib/openui`, `docs/page-format.md`): `Text`, `Table`, `Chart`, `Steps`,
   `Callout`, `Cards`, `CodeBlock`; no `Diagram` or `Artifact` at first, as both need a second,
@@ -275,8 +281,8 @@ Same tools, same loop, another trigger.
 
 ## Later
 
-- [ ] **Chat sessions** — today the model gets only the question on its own, so "and how is that
-  set up?" doesn't know what "that" is, and a reload starts over.
+- [ ] **Chat sessions** — the light memory above lasts as long as the browser tab; sessions keep
+  conversations on the server, listed and reopenable, from any device.
   - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
     one message a row (`session_id`, `role`, `content`, `parts jsonb`), the rows there today
     moved into an "earlier" session per user.
