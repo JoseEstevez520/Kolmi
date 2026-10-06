@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from app.actions import get_registry
-from app.actions.tools import offered, schemas
+import json
+
+from pydantic import BaseModel
+
+from app.actions import Action, get_registry
+from app.actions.tools import TOOL_ANSWER_CHARS, answer, light, offered, run_tool, schemas
 from app.auth import Context
 
 
@@ -70,3 +74,56 @@ def test_every_tool_is_described_for_a_model():
             continue
         for field, schema in action.params.model_json_schema()["properties"].items():
             assert schema.get("description"), f"{action.name}.{field}"
+
+
+# -- what goes back to the model -----------------------------------------------------
+
+
+class _Out(BaseModel):
+    id: int
+    content_web: str = "big"
+
+
+def test_light_drops_the_web_content_at_any_depth():
+    value = [{"id": 1, "content_web": "x", "kids": [{"content_web": "y", "title": "T"}]}, _Out(id=2)]
+
+    assert light(value) == [{"id": 1, "kids": [{"title": "T"}]}, {"id": 2}]
+
+
+def test_a_short_answer_is_json_as_it_is():
+    assert answer({"title": "Introducción"}) == '{"title": "Introducción"}'
+
+
+def test_a_long_answer_is_cut_and_says_how_to_ask_for_less():
+    value = {"content_md": "x" * (TOOL_ANSWER_CHARS + 500)}
+    full = len(json.dumps(value))
+    text = answer(value)
+
+    assert text.startswith('{"content_md": "xxx')
+    body, note = text.split("\n[Cut: ")
+    assert len(body) == TOOL_ANSWER_CHARS
+    assert note.startswith(f"{full - TOOL_ANSWER_CHARS} more characters. Ask for less")
+
+
+def test_run_tool_answers_with_the_light_json():
+    registry = get_registry()
+    probe = Action(
+        name="probe", description="d", handler=lambda _c, _p: {"id": 1, "content_web": "x"}, tool=True
+    )
+    registry["probe"] = probe
+    try:
+        assert run_tool(_ctx("student"), "probe", None, "chat") == '{"id": 1}'  # type: ignore[arg-type]
+    finally:
+        del registry["probe"]
+
+
+def test_run_tool_refuses_what_is_not_offered():
+    for name in ("delete_node", "update_settings", "nope"):
+        text = run_tool(_ctx("student"), name, {}, "chat")  # type: ignore[arg-type]
+        assert text == f"There is no tool {name}. The tools you have are the ones listed."
+
+
+def test_run_tool_turns_an_error_into_text():
+    text = run_tool(_ctx("student"), "view_node", {"node_id": "abc"}, "chat")  # type: ignore[arg-type]
+
+    assert text.startswith("Error 422: Invalid params. node_id")
