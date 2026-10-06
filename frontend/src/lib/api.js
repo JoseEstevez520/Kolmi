@@ -106,6 +106,18 @@ export const api = {
 
   register: ({ code, name }) => request('/register', { method: 'POST', body: { code, name } }),
 
+  // The class's people (admin): who they are, their role and whether they were let in. A change
+  // answers with the updated row; one that would leave the class with no active admin is a 409.
+  users: () => request('/users'),
+
+  setUserRole: ({ userId, role }) =>
+    request('/users/role', { method: 'POST', body: { user_id: userId, role } }),
+
+  setUserStatus: ({ userId, status }) =>
+    request('/users/status', { method: 'POST', body: { user_id: userId, status } }),
+
+  deleteUser: ({ userId }) => request('/users/delete', { method: 'POST', body: { user_id: userId } }),
+
   // Your own account: it answers for anyone, whether let in or not, so a person who is waiting
   // (or blocked) can still leave. An admin who is the last one of the class gets a 409.
   deleteMyAccount: () => request('/profile/delete', { method: 'POST' }),
@@ -172,6 +184,7 @@ export const api = {
     scheduleSessionMinutes,
     chatEnabled,
     chatDailyLimit,
+    signupsNeedApproval,
   }) =>
     request('/settings', {
       method: 'POST',
@@ -188,6 +201,7 @@ export const api = {
         schedule_session_minutes: scheduleSessionMinutes,
         chat_enabled: chatEnabled,
         chat_daily_limit: chatDailyLimit,
+        signups_need_approval: signupsNeedApproval,
       },
     }),
 

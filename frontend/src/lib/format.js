@@ -21,6 +21,12 @@ export function formatDate(value) {
   return date ? formatter('long', { dateStyle: 'medium', timeStyle: 'short' }).format(date) : ''
 }
 
+// Just the day, for when someone joined.
+export function formatDay(value) {
+  const date = toDate(value)
+  return date ? formatter('day', { dateStyle: 'medium' }).format(date) : ''
+}
+
 // For narrow cells (the AI log): day, short month and the time, no year.
 export function formatShortDate(value) {
   const date = toDate(value)

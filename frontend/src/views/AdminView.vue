@@ -7,6 +7,8 @@ import AdminChat from '../components/AdminChat.vue'
 import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminPass from '../components/AdminPass.vue'
+import AdminSignups from '../components/AdminSignups.vue'
+import AdminUsers from '../components/AdminUsers.vue'
 import AdminNode from '../components/AdminNode.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
@@ -125,6 +127,13 @@ onMounted(loadTree)
           </CollapsibleContent>
         </Collapsible>
 
+        <Collapsible id="users" default-open class="not-prose mt-8">
+          <CollapsibleTrigger>{{ t('admin.users.title') }}</CollapsibleTrigger>
+          <CollapsibleContent>
+            <AdminUsers />
+          </CollapsibleContent>
+        </Collapsible>
+
         <!-- With the tree, not before it: shown while the tree loads, it was pushed down. -->
         <Collapsible id="class" default-open class="not-prose mt-8">
           <CollapsibleTrigger>{{ t('admin.classSettings') }}</CollapsibleTrigger>
@@ -133,6 +142,7 @@ onMounted(loadTree)
               <AdminClassLanguage />
               <AdminPass />
               <AdminChat />
+              <AdminSignups />
             </div>
           </CollapsibleContent>
         </Collapsible>
