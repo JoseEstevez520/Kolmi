@@ -221,6 +221,17 @@ export const api = {
   // Ask the hive a question; it answers from the class's own content, with the pages it used.
   askChat: (question) => request('/chat', { method: 'POST', body: { question } }),
 
+  // A change the chat proposed: confirm it (with `args` only when the person edited them) or
+  // cancel it. Both answer with the proposal, as /chat lists it.
+  confirmChatProposal: (proposalId, args) => {
+    const body = { proposal_id: proposalId }
+    if (args !== undefined) body.args = args
+    return request('/chat/confirm', { method: 'POST', body })
+  },
+
+  cancelChatProposal: (proposalId) =>
+    request('/chat/cancel', { method: 'POST', body: { proposal_id: proposalId } }),
+
   // The timetable's slots. Anyone signed in reads them; only an admin writes them.
   scheduleEvents: () => request('/schedule/events'),
 

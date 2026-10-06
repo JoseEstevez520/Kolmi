@@ -64,6 +64,7 @@ export async function send(text) {
     if (reply) {
       reply.text = result.answer
       reply.sources = result.sources ?? []
+      reply.proposals = (result.proposals ?? []).map(withLocalState)
       reply.status = ''
     }
   } catch (e) {
@@ -75,4 +76,52 @@ export async function send(text) {
   } finally {
     responding.value = false
   }
+}
+
+// A proposal as the backend sends it, plus what only this browser knows: `busy` while a confirm
+// or cancel is in flight, and `error` after one failed.
+function withLocalState(p) {
+  return { ...p, busy: false, error: '' }
+}
+
+// What ChatProposal's `state` is for a proposal: `running` is `working`, `pending` is
+// `proposed`, and a failed request shows as `error`, which keeps Confirm and Cancel on offer.
+export function proposalState(p) {
+  if (p.busy || p.status === 'running') return 'working'
+  if (p.error) return 'error'
+  if (p.status === 'done') return 'done'
+  if (p.status === 'cancelled') return 'cancelled'
+  return 'proposed'
+}
+
+// Takes what a confirm or cancel answered. A proposal back to `pending` with a result is a
+// confirm that failed: the result is the error.
+function settle(p, answer) {
+  p.status = answer.status
+  p.args = answer.args ?? p.args
+  p.result = answer.result ?? ''
+  p.error = answer.status === 'pending' && answer.result ? answer.result : ''
+}
+
+async function decide(p, request) {
+  if (p.busy) return
+  p.busy = true
+  p.error = ''
+  try {
+    settle(p, await request())
+  } catch (e) {
+    p.error = e.message || t('chat.proposal.failed')
+  } finally {
+    p.busy = false
+  }
+}
+
+// `args` is sent only when the person changed them, as the endpoint expects.
+export function confirmProposal(p, args) {
+  const edited = JSON.stringify(args) !== JSON.stringify(p.args)
+  return decide(p, () => api.confirmChatProposal(p.id, edited ? args : undefined))
+}
+
+export function cancelProposal(p) {
+  return decide(p, () => api.cancelChatProposal(p.id))
 }
