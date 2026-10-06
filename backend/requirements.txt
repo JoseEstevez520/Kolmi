@@ -6,3 +6,4 @@ pydantic-settings
 python-dotenv
 openai
 ddgs
+mcp>=2.3,<3
