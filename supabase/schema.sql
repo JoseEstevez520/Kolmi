@@ -45,6 +45,10 @@ create table if not exists notes (
   node_id bigint references nodes(id) on delete set null,
   status text not null default 'pending'
     check (status in ('pending', 'processed', 'discarded')),
+  -- Where it was left from, and the page it came from if it was a link. Also in
+  -- migrations/20261006120000_sources.sql.
+  source text not null default 'web' check (source in ('web', 'chat', 'mcp')),
+  source_url text,
   created_at timestamptz not null default now()
 );
 
@@ -86,6 +90,10 @@ create table if not exists ai_log (
   node_id bigint references nodes(id) on delete set null,
   action text not null check (action in ('created', 'updated', 'discarded', 'flagged')),
   reason text not null default '',
+  -- Who asked and through what; the daily pass has no user. Also in
+  -- migrations/20261006120000_sources.sql.
+  user_id uuid references profiles(id) on delete set null,
+  source text not null default 'pass' check (source in ('pass', 'chat', 'mcp', 'web')),
   created_at timestamptz not null default now()
 );
 

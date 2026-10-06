@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import Depends, Header, HTTPException, status
 from supabase import Client
@@ -20,6 +20,8 @@ class Context:
     email: str | None
     profile: dict[str, Any] | None
     client: Client
+    # Where the call came from: the web, the in-app chat or an outside client through the MCP.
+    source: Literal["web", "chat", "mcp"] = "web"
 
 
 def _bearer_token(authorization: str | None) -> str:

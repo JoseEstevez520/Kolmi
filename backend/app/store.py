@@ -260,6 +260,7 @@ class SupabaseStore:
                 "node_id": node_id,
                 "action": action,
                 "reason": reason,
+                "source": "pass",
             }
         ).execute()
 

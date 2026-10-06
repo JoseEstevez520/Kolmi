@@ -21,6 +21,7 @@ class CreateNoteParams(BaseModel):
     for_files: bool = Field(False, description="Leave it false: only the web sets it, to create an empty note its files follow.")
     format: NoteFormat = Field("text", description="markdown or text.")
     node_id: int | None = Field(None, description="Optional: the section or page it seems to belong to, from list_nodes. A hint, not an order.")
+    source_url: str | None = Field(None, description="Optional: the address of the page or document the note comes from, if it does.")
 
 
 class UpdateNoteParams(BaseModel):
@@ -96,7 +97,10 @@ def create_note(ctx: Context, params: CreateNoteParams):
         "content": params.content,
         "format": params.format,
         "node_id": params.node_id,
+        "source": ctx.source,
     }
+    if params.source_url:
+        row["source_url"] = params.source_url
     return ctx.client.table("notes").insert(row).execute().data[0]
 
 

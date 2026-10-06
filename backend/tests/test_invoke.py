@@ -105,3 +105,37 @@ def test_the_routes_go_through_invoke():
         assert isinstance(response.json()["detail"], str)
     finally:
         app.dependency_overrides.clear()
+
+
+class _Notes:
+    def __init__(self) -> None:
+        self.rows: list[dict[str, Any]] = []
+
+    def table(self, name: str) -> Any:
+        assert name == "notes"
+        outer = self
+
+        class _Insert:
+            def insert(self, row: dict[str, Any]) -> Any:
+                outer.rows.append(row)
+                return self
+
+            def execute(self) -> Any:
+                from types import SimpleNamespace
+
+                return SimpleNamespace(data=[outer.rows[-1]])
+
+        return _Insert()
+
+
+def test_a_note_keeps_where_it_was_left_from():
+    client = _Notes()
+    profile = {"id": "u1", "role": "student", "approved": True}
+    ctx = Context(user_id="u1", email=None, profile=profile, client=client, source="mcp")  # type: ignore[arg-type]
+
+    invoke(get_registry()["create_note"], ctx, {"content": "hi", "source_url": "https://a.dev"})
+    invoke(get_registry()["create_note"], ctx, {"content": "again"})
+
+    assert client.rows[0]["source"] == "mcp"
+    assert client.rows[0]["source_url"] == "https://a.dev"
+    assert "source_url" not in client.rows[1]
