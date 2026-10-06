@@ -1,7 +1,7 @@
 # Actions as tools
 
-How Kolmi's actions become tools for a model: the chat's, and anyone's own AI over the MCP. This
-is the base the ROADMAP's "Next" builds on; the chat and the MCP themselves come later.
+How Kolmi's actions become tools for a model: the chat's, and anyone's own AI over the MCP. The
+MCP server itself, its tokens and what each role gets over it are in [mcp.md](mcp.md).
 
 ## One way in: `invoke`
 
@@ -55,6 +55,9 @@ so there is no way in around it.
 
 The class's people (`list_users`, `set_role`, `set_status`, `delete_user`, `update_my_name`) are
 chat tools for whoever may use them and never MCP ones; `delete_my_account` is no tool at all.
+
+A personal token (the MCP's) reaches only the actions offered over the MCP: `invoke` refuses any
+other with a token, whatever the route, so an AI can't go round the MCP's list through the API.
 
 ## Light answers
 

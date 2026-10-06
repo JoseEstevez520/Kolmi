@@ -121,22 +121,25 @@ a GitHub repo and writes the class's notes in Kolmi.
     blocking 403 in one place in the API client and send them there.
   - Drop the `approved` column in its own migration, once the status has run stable for a while.
 - [ ] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
-  (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class.
-  - Personal tokens: `api_tokens(id, user_id, name, token_hash, prefix, last_used_at,
-    created_at, revoked_at)`, shown once, revocable. `get_context` takes a Supabase session or a
-    `kolmi_...` token.
-  - Tools from the registry through `invoke`: `read_only` becomes `readOnlyHint`,
-    `requires_confirmation` becomes `destructiveHint`. A student reads the tree, pages and
-    timetable, searches, and creates, edits, lists and deletes their own notes; an admin also has
-    the tree, `write_page`, `rebuild_page`, versions, received notes, the AI log and `run_pass`.
-    Never users, settings or `ask_chat` (the client brings its own model).
+  (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class. See
+  [docs/mcp.md](docs/mcp.md). Done, in a first batch:
+  - Personal tokens (`api_tokens`, only the hash kept), shown once and revocable, made from the
+    web; `get_context` takes a Supabase session or a `kolmi_...` token, which reaches only the
+    MCP's tools on any route. `on_access_lost` revokes someone's tokens.
+  - The registry's tools through `invoke`, per role (`read_only` as `readOnlyHint`,
+    `requires_confirmation` as `destructiveHint`): a student reads the tree, pages and timetable,
+    searches (`search_pages`) and creates, edits, lists and deletes their own notes (`delete_note`);
+    an admin also writes pages, their web, versions, received notes, the AI log and `run_pass`.
+  - Notes through the MCP with `source = 'mcp'` and their `source_url`; a daily cap per student
+    (`mcp_daily_notes`, 30), none for admins. Text only.
+  - Apply `supabase/migrations/20261009120000_api_tokens.sql` before deploying it.
+
+  Left, in a second batch:
   - Pages as resources (`kolmi://page/{id}`), from the export's Markdown.
   - A prompt, "turn this material into class notes": read the tree first, decide where each thing
     goes, one note per topic, each with its `source_url`; for an admin, `merge` into the page.
-  - A daily cap on notes per student (each one costs a gatekeeper call); none for admins.
-  - Text only at first; files over the MCP come later.
   - A first set of evals with a real client: do the descriptions lead it to the right tool.
-  - Docs: `docs/mcp.md`, and the Moodle + GitHub + Kolmi case in both READMEs.
+  - The Moodle + GitHub + Kolmi case in both READMEs.
 - [ ] **"Connect your AI" in Settings** — each person sees their own instructions, with their
   class's address and their own token already in them.
   - Make a connection with a name ("my laptop's editor"); the token shows once, and that is when
