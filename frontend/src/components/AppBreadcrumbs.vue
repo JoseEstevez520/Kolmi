@@ -14,6 +14,7 @@ const { t } = useI18n()
 const SCREENS = {
   notes: 'sidebar.notes',
   note: 'sidebar.notes',
+  chat: 'chat.title',
   settings: 'sidebar.settings',
   'admin-content': 'sidebar.admin',
   'admin-people': 'sidebar.admin',
