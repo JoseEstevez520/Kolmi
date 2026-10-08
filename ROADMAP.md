@@ -285,7 +285,8 @@ Same tools, same loop, another trigger.
   notes and the rest watch them appear in real time, to keep up when they get lost, miss a moment
   or aren't there. It's a new space next to the notes, not a replacement for them, and the note
   doesn't vanish when the class ends: it stays as a record and also goes through the normal daily
-  pass. It grows in steps, each useful on its own and tried in a real class before the next:
+  pass. A sketch of the screens is in [docs/live-notes.md](docs/live-notes.md). It grows in
+  steps, each useful on its own and tried in a real class before the next:
   - **Watch, in plain text.** One person writes, the others open the note and see it fill up,
     read-only. A "share live" switch, off by default, and a label saying whose notes they are and
     that nobody has checked them. A session per class, tied to the timetable (the one on now is
