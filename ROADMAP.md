@@ -281,6 +281,43 @@ Same tools, same loop, another trigger.
 
 ## Later
 
+- [ ] **Live notes: follow the class through someone's notes** — during a class, one person takes
+  notes and the rest watch them appear in real time, to keep up when they get lost, miss a moment
+  or aren't there. It's a new space next to the notes, not a replacement for them, and the note
+  doesn't vanish when the class ends: it stays as a record and also goes through the normal daily
+  pass. It grows in steps, each useful on its own and tried in a real class before the next:
+  - **Watch, in plain text.** One person writes, the others open the note and see it fill up,
+    read-only. A "share live" switch, off by default, and a label saying whose notes they are and
+    that nobody has checked them. A session per class, tied to the timetable (the one on now is
+    the one that opens). A list screen with what's being written right now on top (who, which
+    class) and the earlier sessions below, reopenable, and a note view that is read-only for a
+    watcher and the editor for the writer; the author can delete a session. As actions
+    (`save_live_note`, `read_live_note`, `list_live_notes`) with their own table, so the web, the
+    chat and the MCP all use them; the web polls every few seconds with `updated_at`, so an
+    unchanged note costs nothing, and SSE from FastAPI (`fetch`-based, shared with the chat's
+    streaming) only if that feels slow. One writer per note, last save wins, a warning if it's open
+    in two tabs.
+  - **Into the pass.** When the session ends, its text becomes an ordinary note (`source =
+    'live'`), and the gatekeeper judges it like any other: it can merge it into a page, discard
+    the filler. The live note itself stays as it was. The editor is Tiptap, but the document is
+    kept as Tiptap JSON (generated blocks won't fit in Markdown) and the Markdown is derived
+    for the pass.
+  - **Generative notes.** The interface shows up without selecting anything: when a paragraph
+    closes, a small cheap model decides whether it deserves a section or an artifact and offers it
+    as a quiet chip under the paragraph (AuraNote's "ambient suggestions"); selecting a passage and
+    asking stays as the manual way. Opt-in, off by default, the model strict so most paragraphs
+    get nothing. The chip is still one click; generating with none needs a fast model of our own.
+    Blocks live in the writer's document, so they're generated once and everyone sees them. From
+    [AuraNote](https://github.com/JoseEstevez520/AuraNote), which has the router (section or
+    artifact) and both renderers over `@openuidev/vue-lang`; Kolmi uses the same catalogue, so most
+    of it should be reuse. Each generation is a model call, so it counts against a daily cap like
+    the chat. Parts that are missing go into elastic-ui first.
+  - **See who's here**, a count and the names of who is following a note.
+  - **Later, maybe.** Letting a reader turn a passage into a diagram in their own view, without
+    touching the writer's note (a call per reader, so a cap per person); writing together, with
+    Hocuspocus or Tiptap's provider on Yjs (the Supabase ones, `y-supabase`, are alpha).
+  - Open: its entry in the sidebar, who may watch, whether anyone can be the one writing or the
+    admin picks, and what the pass does with a note whose blocks it can't read (it reads the text).
 - [ ] **Chat sessions** — the light memory above lasts as long as the browser tab; sessions keep
   conversations on the server, listed and reopenable, from any device.
   - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
