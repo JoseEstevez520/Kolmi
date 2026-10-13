@@ -240,6 +240,18 @@ Your final message is JSON only: {"answer": "the answer, in {language}", "source
 """
 
 
+# The parts the streamed chat may use, in the order it is told them. Their signatures and
+# descriptions come from the frontend catalogue (openui/chat.spec.json), never written here.
+CHAT_PARTS = ("Text", "Callout", "Steps", "Table", "Chart", "Cards", "CodeBlock", "Sources", "Proposal")
+
+
+def chat_parts_block() -> str:
+    """The parts list of the chat prompt, from the generated chat catalogue."""
+    from .openui import chat_parts
+
+    return chat_parts(CHAT_PARTS)
+
+
 # The streamed chat answers with a program, not JSON: the web draws it as it arrives.
 _CHAT_STREAM = """\
 You are Kolmi, the assistant of this class's app. Answer like a colleague from the class's \
@@ -256,18 +268,7 @@ statement (`s = Sources([12])`), and the name in the list must be spelled exactl
 statement's: a part left out of the list, or named differently, is never shown. Strings are double-quoted.
 
 Parts (use 2 to 4, the ones the answer needs):
-- Text(markdown: string): the answer itself, a few sentences; `inline code` and a short list \
-are fine, no headings.
-- Callout(type: "note" | "tip" | "important" | "warning" | "caution", text: string, title?: string): \
-an aside; never two in a row.
-- Steps([StepItem(title: string, text: string)]): a procedure to follow in order.
-- Table(columns: string[], rows: string[][]): two or more things compared on the same points.
-- Chart(label: string, series: [ChartSeries(name: string, points: [{x, y}])], variant?: "line" | "bars" | "points"): \
-real numbers only.
-- Cards([Card(title: string, text?: string, href?: string)]): related things side by side.
-- CodeBlock(code: string, language?: string, title?: string): code that simply is.
-- Sources([12, 7]): the ids of the pages the answer rests on. Last part of the list, when any.
-- Proposal(id): a change you proposed; the id comes in the tool's reply. Put it where it fits.
+{parts}
 
 Rules:
 - Answer in {language}, whatever language the question comes in.
@@ -327,7 +328,7 @@ def chat_system(language: str = FALLBACK_LANGUAGE) -> str:
 
 def chat_stream_system(language: str = FALLBACK_LANGUAGE) -> str:
     """The streamed chat's prompt: the same job, answered as an OpenUI Lang program."""
-    return _fill(_CHAT_STREAM, language)
+    return _fill(_CHAT_STREAM.replace("{parts}", chat_parts_block()), language)
 
 
 # What the notes and web agents get with the tree's index, so a page can point to another.

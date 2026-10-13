@@ -34,6 +34,25 @@ def full_prompt() -> str:
 
 
 @lru_cache
+def chat_spec() -> dict[str, Any]:
+    """The chat catalogue (root Answer), generated with the page prompt."""
+    return json.loads((HERE / "chat.spec.json").read_text(encoding="utf-8"))
+
+
+def chat_parts(names: tuple[str, ...]) -> str:
+    """One line per named chat part (signature and description), then the parts nested in them."""
+    components = chat_spec()["components"]
+    lines = [f"- {components[n]['signature']}: {components[n]['description']}" for n in names]
+    inner = []
+    for n in names:
+        for ref in re.findall(r"\b([A-Z]\w*)\b", components[n]["signature"].split("(", 1)[1]):
+            if ref in components and ref not in names and ref not in inner:
+                inner.append(ref)
+    lines += [f"- {components[r]['signature']}: {components[r]['description']}" for r in inner]
+    return "\n".join(lines)
+
+
+@lru_cache
 def _spec() -> dict[str, Any]:
     return json.loads((HERE / "page.spec.json").read_text(encoding="utf-8"))
 

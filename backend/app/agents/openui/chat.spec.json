@@ -1,0 +1,890 @@
+{
+  "root": "Answer",
+  "components": {
+    "Answer": {
+      "signature": "Answer(blocks: (Text | CodeBlock | CodeDiff | Callout | Steps | Table | DescriptionList | Accordion | Cards | Chart | Figure | Sources | Proposal)[])",
+      "description": "The whole chat answer: its blocks, top to bottom. Always the root. Short: lead with the answer in a Text, add a visual only when it says it better than a sentence."
+    },
+    "Text": {
+      "signature": "Text(markdown: string)",
+      "description": "Running text in Markdown: paragraphs, short lists (up to 5 points), **bold**, `inline code` and links. No headings, no code fences and no tables here."
+    },
+    "CodeBlock": {
+      "signature": "CodeBlock(code: string, language?: string, title?: string)",
+      "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose. Long code that is only read goes here too, not in a CodeWalkthrough."
+    },
+    "CodeDiff": {
+      "signature": "CodeDiff(before: string, after: string, file?: string)",
+      "description": "A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed."
+    },
+    "Callout": {
+      "signature": "Callout(type: \"note\" | \"tip\" | \"important\" | \"warning\" | \"caution\", text: string, title?: string)",
+      "description": "An aside set apart from the text: note, tip, important, warning or caution, one kind per thing. Its text is Markdown. Never two in a row, and never for the main idea."
+    },
+    "Steps": {
+      "signature": "Steps(items: StepItem[])",
+      "description": "Numbered steps for a procedure the reader follows in order (install, configure, run). For code that grows step by step, use CodeWalkthrough; for commands and their output, TerminalReplay."
+    },
+    "StepItem": {
+      "signature": "StepItem(title: string, text: string)",
+      "description": "One step: a short title and its explanation in Markdown."
+    },
+    "Table": {
+      "signature": "Table(columns: string[], rows: string[][], caption?: string)",
+      "description": "A comparison or structured facts: column headers and rows of short cells (Markdown inline: `code`, **bold**). Use it whenever two or more things are compared on the same points."
+    },
+    "DescriptionList": {
+      "signature": "DescriptionList(items: DescriptionItem[])",
+      "description": "Terms and their one-sentence definitions, or a record of key and value (G: groupId, A: artifactId). Only for terms the page uses; never a loose glossary."
+    },
+    "DescriptionItem": {
+      "signature": "DescriptionItem(term: string, text: string)",
+      "description": "One term and what it is, in a sentence (Markdown)."
+    },
+    "Accordion": {
+      "signature": "Accordion(items: AccordionItem[])",
+      "description": "Secondary detail that not everyone needs, folded away (special cases, troubleshooting, long reference). Nothing essential goes here: the page must make sense with every section closed."
+    },
+    "AccordionItem": {
+      "signature": "AccordionItem(title: string, text: string)",
+      "description": "One folded section: its title and its content in Markdown."
+    },
+    "Cards": {
+      "signature": "Cards(items: Card[])",
+      "description": "A grid of cards for related things side by side: pages to go to, tools, or the references the page comes from (a book, a talk, a project), each a card with its link. Two columns, one on a phone."
+    },
+    "Card": {
+      "signature": "Card(title: string, text?: string, href?: string, image?: string)",
+      "description": "One card: a title, an optional line, an optional link (the whole card opens it) and an optional image URL."
+    },
+    "Chart": {
+      "signature": "Chart(label: string, series: ChartSeries[], variant?: \"line\" | \"bars\" | \"points\", x?: {title?: string, unit?: string, scale?: \"linear\" | \"log\", min?: number, max?: number}, y?: {title?: string, unit?: string, scale?: \"linear\" | \"log\", min?: number, max?: number}, caption?: string)",
+      "description": "Real numbers on real axes: a line for something that changes along x, bars to compare categories, points for two measures of the same things (cost against score). Write the data from the notes, never invented. One series stays grey; several get a legend. Label only the points the text talks about. One y axis: two units are two charts. The label says what it shows and its conclusion."
+    },
+    "ChartSeries": {
+      "signature": "ChartSeries(name: string, points: {x: number | string, y: number, label?: string}[], color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\")",
+      "description": "One series of a Chart: its name, its points ({x, y, label?}) and, only when it is the same concept elsewhere on the page, a colour."
+    },
+    "Figure": {
+      "signature": "Figure(label: string, parts: (Area | Chip | Label | Arrow | Group)[], layout?: \"row\" | \"column\" | \"grid\", caption?: string)",
+      "description": "A drawing composed from tinted parts, for pieces that fit together or a flow: Areas, Chips, Labels and Arrows laid out in a row, a column or a grid, on a soft background. The label says in words what it shows. The way to draw most ideas; one colour per concept, the same in the whole page."
+    },
+    "Group": {
+      "signature": "Group(parts: (Area | Chip | Label | Arrow)[], layout?: \"row\" | \"column\" | \"grid\")",
+      "description": "Lays out parts in a row, a column or a grid inside a Figure, with no tint of its own: two Areas stacked at the end of a row, or four Areas in a grid. A row turns into a column on a phone."
+    },
+    "Area": {
+      "signature": "Area(title: string, parts: (Chip | Label | Arrow)[], color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\", icon?: string, note?: string, layout?: \"row\" | \"column\" | \"grid\")",
+      "description": "A larger tinted group with a title: a concept that holds others (Chips and Labels), as the harness round a model. Never an Area inside an Area."
+    },
+    "Chip": {
+      "signature": "Chip(text: string, color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\", icon?: string, note?: string)",
+      "description": "A tinted part of a figure: a short name, an optional icon and an optional quieter note after it."
+    },
+    "Label": {
+      "signature": "Label(text: string, icon?: string, color?: \"blue\" | \"violet\" | \"cyan\" | \"pink\" | \"yellow\" | \"grey\" | \"green\" | \"amber\" | \"red\")",
+      "description": "A plain line in a figure, no tint: an icon and a short text, as one item of a list inside an Area. Its colour, if any, is for the text and icon (green/amber/red for yes/ask/no)."
+    },
+    "Arrow": {
+      "signature": "Arrow(label?: string, both?: boolean)",
+      "description": "A connector between the parts before and after it: an arrow that points along the layout (down on a phone), with an optional word on it (\"calls\")."
+    },
+    "Sources": {
+      "signature": "Sources(ids: number[])",
+      "description": "The pages the answer is drawn from, by id (the ids you were given). The app loads each title and links it, so never copy a title or content. Last block, only when pages were used."
+    },
+    "Proposal": {
+      "signature": "Proposal(id: string)",
+      "description": "A change you propose, by the id of the proposal you just created with a tool. The app draws it with Confirm and Cancel; the person decides. Never describe the change in prose as well."
+    }
+  },
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "Answer": {
+        "$ref": "#/$defs/Answer"
+      },
+      "Text": {
+        "$ref": "#/$defs/Text"
+      },
+      "CodeBlock": {
+        "$ref": "#/$defs/CodeBlock"
+      },
+      "CodeDiff": {
+        "$ref": "#/$defs/CodeDiff"
+      },
+      "Callout": {
+        "$ref": "#/$defs/Callout"
+      },
+      "Steps": {
+        "$ref": "#/$defs/Steps"
+      },
+      "StepItem": {
+        "$ref": "#/$defs/StepItem"
+      },
+      "Table": {
+        "$ref": "#/$defs/Table"
+      },
+      "DescriptionList": {
+        "$ref": "#/$defs/DescriptionList"
+      },
+      "DescriptionItem": {
+        "$ref": "#/$defs/DescriptionItem"
+      },
+      "Accordion": {
+        "$ref": "#/$defs/Accordion"
+      },
+      "AccordionItem": {
+        "$ref": "#/$defs/AccordionItem"
+      },
+      "Cards": {
+        "$ref": "#/$defs/Cards"
+      },
+      "Card": {
+        "$ref": "#/$defs/Card"
+      },
+      "Chart": {
+        "$ref": "#/$defs/Chart"
+      },
+      "ChartSeries": {
+        "$ref": "#/$defs/ChartSeries"
+      },
+      "Figure": {
+        "$ref": "#/$defs/Figure"
+      },
+      "Group": {
+        "$ref": "#/$defs/Group"
+      },
+      "Area": {
+        "$ref": "#/$defs/Area"
+      },
+      "Chip": {
+        "$ref": "#/$defs/Chip"
+      },
+      "Label": {
+        "$ref": "#/$defs/Label"
+      },
+      "Arrow": {
+        "$ref": "#/$defs/Arrow"
+      },
+      "Sources": {
+        "$ref": "#/$defs/Sources"
+      },
+      "Proposal": {
+        "$ref": "#/$defs/Proposal"
+      }
+    },
+    "required": [
+      "Answer",
+      "Text",
+      "CodeBlock",
+      "CodeDiff",
+      "Callout",
+      "Steps",
+      "StepItem",
+      "Table",
+      "DescriptionList",
+      "DescriptionItem",
+      "Accordion",
+      "AccordionItem",
+      "Cards",
+      "Card",
+      "Chart",
+      "ChartSeries",
+      "Figure",
+      "Group",
+      "Area",
+      "Chip",
+      "Label",
+      "Arrow",
+      "Sources",
+      "Proposal"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+      "Answer": {
+        "type": "object",
+        "properties": {
+          "blocks": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Text"
+                },
+                {
+                  "$ref": "#/$defs/CodeBlock"
+                },
+                {
+                  "$ref": "#/$defs/CodeDiff"
+                },
+                {
+                  "$ref": "#/$defs/Callout"
+                },
+                {
+                  "$ref": "#/$defs/Steps"
+                },
+                {
+                  "$ref": "#/$defs/Table"
+                },
+                {
+                  "$ref": "#/$defs/DescriptionList"
+                },
+                {
+                  "$ref": "#/$defs/Accordion"
+                },
+                {
+                  "$ref": "#/$defs/Cards"
+                },
+                {
+                  "$ref": "#/$defs/Chart"
+                },
+                {
+                  "$ref": "#/$defs/Figure"
+                },
+                {
+                  "$ref": "#/$defs/Sources"
+                },
+                {
+                  "$ref": "#/$defs/Proposal"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "blocks"
+        ],
+        "additionalProperties": false,
+        "description": "The whole chat answer: its blocks, top to bottom. Always the root. Short: lead with the answer in a Text, add a visual only when it says it better than a sentence."
+      },
+      "Text": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown"
+        ],
+        "additionalProperties": false,
+        "description": "Running text in Markdown: paragraphs, short lists (up to 5 points), **bold**, `inline code` and links. No headings, no code fences and no tables here."
+      },
+      "CodeBlock": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false,
+        "description": "Code that simply is: a file, a command, a folder tree. Name it by its file (title) when it is one. Paste the real code; never describe code in prose. Long code that is only read goes here too, not in a CodeWalkthrough."
+      },
+      "CodeDiff": {
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "string"
+          },
+          "after": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "before",
+          "after"
+        ],
+        "additionalProperties": false,
+        "description": "A change to a file: the code before and after, played as an edit. Use it instead of two CodeBlocks when the point is what changed."
+      },
+      "Callout": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "note",
+              "tip",
+              "important",
+              "warning",
+              "caution"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "An aside set apart from the text: note, tip, important, warning or caution, one kind per thing. Its text is Markdown. Never two in a row, and never for the main idea."
+      },
+      "Steps": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/StepItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "Numbered steps for a procedure the reader follows in order (install, configure, run). For code that grows step by step, use CodeWalkthrough; for commands and their output, TerminalReplay."
+      },
+      "StepItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One step: a short title and its explanation in Markdown."
+      },
+      "Table": {
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "columns",
+          "rows"
+        ],
+        "additionalProperties": false,
+        "description": "A comparison or structured facts: column headers and rows of short cells (Markdown inline: `code`, **bold**). Use it whenever two or more things are compared on the same points."
+      },
+      "DescriptionList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/DescriptionItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "Terms and their one-sentence definitions, or a record of key and value (G: groupId, A: artifactId). Only for terms the page uses; never a loose glossary."
+      },
+      "DescriptionItem": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "term",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One term and what it is, in a sentence (Markdown)."
+      },
+      "Accordion": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/AccordionItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "Secondary detail that not everyone needs, folded away (special cases, troubleshooting, long reference). Nothing essential goes here: the page must make sense with every section closed."
+      },
+      "AccordionItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "One folded section: its title and its content in Markdown."
+      },
+      "Cards": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Card"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "description": "A grid of cards for related things side by side: pages to go to, tools, or the references the page comes from (a book, a talk, a project), each a card with its link. Two columns, one on a phone."
+      },
+      "Card": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false,
+        "description": "One card: a title, an optional line, an optional link (the whole card opens it) and an optional image URL."
+      },
+      "Chart": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ChartSeries"
+            }
+          },
+          "variant": {
+            "type": "string",
+            "enum": [
+              "line",
+              "bars",
+              "points"
+            ]
+          },
+          "x": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "scale": {
+                "type": "string",
+                "enum": [
+                  "linear",
+                  "log"
+                ]
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "y": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "scale": {
+                "type": "string",
+                "enum": [
+                  "linear",
+                  "log"
+                ]
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "series"
+        ],
+        "additionalProperties": false,
+        "description": "Real numbers on real axes: a line for something that changes along x, bars to compare categories, points for two measures of the same things (cost against score). Write the data from the notes, never invented. One series stays grey; several get a legend. Label only the points the text talks about. One y axis: two units are two charts. The label says what it shows and its conclusion."
+      },
+      "ChartSeries": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "y": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "points"
+        ],
+        "additionalProperties": false,
+        "description": "One series of a Chart: its name, its points ({x, y, label?}) and, only when it is the same concept elsewhere on the page, a colour."
+      },
+      "Figure": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Area"
+                },
+                {
+                  "$ref": "#/$defs/Chip"
+                },
+                {
+                  "$ref": "#/$defs/Label"
+                },
+                {
+                  "$ref": "#/$defs/Arrow"
+                },
+                {
+                  "$ref": "#/$defs/Group"
+                }
+              ]
+            }
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "row",
+              "column",
+              "grid"
+            ]
+          },
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "parts"
+        ],
+        "additionalProperties": false,
+        "description": "A drawing composed from tinted parts, for pieces that fit together or a flow: Areas, Chips, Labels and Arrows laid out in a row, a column or a grid, on a soft background. The label says in words what it shows. The way to draw most ideas; one colour per concept, the same in the whole page."
+      },
+      "Area": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Chip"
+                },
+                {
+                  "$ref": "#/$defs/Label"
+                },
+                {
+                  "$ref": "#/$defs/Arrow"
+                }
+              ]
+            }
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "row",
+              "column",
+              "grid"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "parts"
+        ],
+        "additionalProperties": false,
+        "description": "A larger tinted group with a title: a concept that holds others (Chips and Labels), as the harness round a model. Never an Area inside an Area."
+      },
+      "Chip": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "A tinted part of a figure: a short name, an optional icon and an optional quieter note after it."
+      },
+      "Label": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "blue",
+              "violet",
+              "cyan",
+              "pink",
+              "yellow",
+              "grey",
+              "green",
+              "amber",
+              "red"
+            ]
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "description": "A plain line in a figure, no tint: an icon and a short text, as one item of a list inside an Area. Its colour, if any, is for the text and icon (green/amber/red for yes/ask/no)."
+      },
+      "Arrow": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "both": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A connector between the parts before and after it: an arrow that points along the layout (down on a phone), with an optional word on it (\"calls\")."
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "parts": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Area"
+                },
+                {
+                  "$ref": "#/$defs/Chip"
+                },
+                {
+                  "$ref": "#/$defs/Label"
+                },
+                {
+                  "$ref": "#/$defs/Arrow"
+                }
+              ]
+            }
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "row",
+              "column",
+              "grid"
+            ]
+          }
+        },
+        "required": [
+          "parts"
+        ],
+        "additionalProperties": false,
+        "description": "Lays out parts in a row, a column or a grid inside a Figure, with no tint of its own: two Areas stacked at the end of a row, or four Areas in a grid. A row turns into a column on a phone."
+      },
+      "Sources": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "additionalProperties": false,
+        "description": "The pages the answer is drawn from, by id (the ids you were given). The app loads each title and links it, so never copy a title or content. Last block, only when pages were used."
+      },
+      "Proposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "description": "A change you propose, by the id of the proposal you just created with a tool. The app draws it with Confirm and Cancel; the person decides. Never describe the change in prose as well."
+      }
+    }
+  }
+}
