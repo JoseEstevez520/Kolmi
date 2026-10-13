@@ -154,6 +154,28 @@ alter table settings add column if not exists signups_need_approval boolean not 
 -- migrations/20261009120000_api_tokens.sql.
 alter table settings add column if not exists mcp_daily_notes smallint not null default 30;
 
+-- How many bug reports a student may send a day; admins have no cap. Also in
+-- migrations/20261013120000_bug_reports.sql.
+alter table settings add column if not exists bug_report_daily_limit smallint not null default 5;
+
+-- Bug reports: a student reports a problem with the app, an agent judges it and a genuine one
+-- becomes a GitHub issue. Also in migrations/20261013120000_bug_reports.sql.
+create table if not exists bug_reports (
+  id bigserial primary key,
+  user_id uuid references profiles(id) on delete set null,
+  title text not null,
+  body text not null,
+  page_path text,
+  -- pending: judged and waiting (or not judged yet); issue: filed; discarded: judged not genuine.
+  status text not null default 'pending' check (status in ('pending', 'issue', 'discarded', 'failed')),
+  -- {genuine, severity, title, body, reason}, or {error} when it failed
+  verdict jsonb,
+  issue_url text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists bug_reports_user_id_idx on bug_reports (user_id, created_at desc);
+
 -- Personal tokens, for the MCP: `kolmi_` and a random string, shown once; only its SHA-256 hash is
 -- kept. Also in migrations/20261009120000_api_tokens.sql.
 create table if not exists api_tokens (
@@ -321,6 +343,7 @@ alter table chat_messages enable row level security;
 alter table chat_proposals enable row level security;
 alter table page_chunks enable row level security;
 alter table api_tokens enable row level security;
+alter table bug_reports enable row level security;
 
 -- settings is the one exception: everyone signed in reads it, only admins write it. The
 -- backend still goes through the service role.

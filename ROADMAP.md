@@ -244,7 +244,7 @@ a GitHub repo and writes the class's notes in Kolmi.
 
 Same tools, same loop, another trigger.
 
-- [ ] **Report a bug in the app, watched by an agent** — for the app itself, to this repo's
+- [x] **Report a bug in the app, watched by an agent** — for the app itself, to this repo's
   maintainer, not the teacher: a quiet link in Settings (not the sidebar — this is rare and
   technical), logged, judged by an agent before it becomes a real GitHub issue: genuine or a
   troll, how serious (no duplicate check against open issues yet, that needs read access and more
@@ -254,8 +254,11 @@ Same tools, same loop, another trigger.
   the same kind of daily cap per student the chat does, to keep spam cheap to shrug off. The
   backend holds the GitHub token (issues-write only, scoped to this repo); it never reaches the
   browser. One call that judges a report, no loop. Small and apart from the chat, so it can come
-  earlier. Open: does a report also let its author see where it ended up, or is it
-  fire-and-forget.
+  earlier. Done: the author sees where each report ended up (status, reason, issue link) in the
+  same dialog. See [docs/tools.md](docs/tools.md#bug-reports). Apply
+  `supabase/migrations/20261013120000_bug_reports.sql` before deploying, and set `GITHUB_TOKEN`
+  and `GITHUB_REPO` to file issues. Left: a duplicate check against open issues, an admin view of
+  reports waiting without a token, and the daily cap in the admin panel.
 - [ ] **A forum** — one shared space for the class (not per page: a class is small, scattered
   threads get no traffic), for doubts and requests alike, not just notes. Kolmi is a participant
   in it, not a separate bolted-on checker: a role ("you are Kolmi, you help this class"), given

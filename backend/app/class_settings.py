@@ -63,6 +63,10 @@ ACCESS_COLUMNS = ", ".join(DEFAULT_ACCESS)
 DEFAULT_MCP = {"mcp_daily_notes": 30}
 MCP_COLUMNS = ", ".join(DEFAULT_MCP)
 
+# How many bug reports a student may send a day: each one costs a model call. Admins have no cap.
+DEFAULT_BUGS = {"bug_report_daily_limit": 5}
+BUGS_COLUMNS = ", ".join(DEFAULT_BUGS)
+
 
 def default_language() -> str:
     """`CLASS_LANGUAGE` from the environment, or English when it is not a supported code."""
@@ -83,6 +87,8 @@ def _select(client, columns: str) -> list[dict[str, Any]]:
 # The columns the settings row may have, newest first: an instance whose migrations are behind
 # reads what it has, and the rest takes its default.
 _COLUMN_SETS = [
+    f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}, {ACCESS_COLUMNS}, "
+    f"{MCP_COLUMNS}, {BUGS_COLUMNS}",
     f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}, {ACCESS_COLUMNS}, "
     f"{MCP_COLUMNS}",
     f"class_language, updated_at, {PASS_COLUMNS}, {SCHEDULE_COLUMNS}, {CHAT_COLUMNS}, {ACCESS_COLUMNS}",
@@ -119,6 +125,7 @@ def read_settings(client) -> dict[str, Any]:
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_CHAT.items()},
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_ACCESS.items()},
         **{key: (row or {}).get(key, default) for key, default in DEFAULT_MCP.items()},
+        **{key: (row or {}).get(key, default) for key, default in DEFAULT_BUGS.items()},
         "timezone": "Europe/Madrid",
         "languages": [{"code": code, "name": name} for code, name in LANGUAGES.items()],
     }

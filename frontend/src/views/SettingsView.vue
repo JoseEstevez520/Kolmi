@@ -15,6 +15,7 @@ import {
   StatusText,
   Switch,
 } from 'elastic-ui'
+import BugReport from '../components/BugReport.vue'
 import ConnectAI from '../components/ConnectAI.vue'
 import FlagIcon from '../components/FlagIcon.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -168,6 +169,16 @@ function showTourAgain() {
         </section>
 
         <ConnectAI />
+
+        <Separator />
+
+        <section class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5">
+          <div class="flex min-w-0 max-w-sm flex-col gap-1">
+            <h3 class="text-label font-medium text-fg">{{ t('bug.heading') }}</h3>
+            <p class="text-label text-fg-secondary">{{ t('bug.hint') }}</p>
+          </div>
+          <BugReport />
+        </section>
       </div>
     </PageLayout>
   </main>

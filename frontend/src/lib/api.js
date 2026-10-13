@@ -164,6 +164,12 @@ export const api = {
 
   myNotes: () => request('/notes/mine'),
 
+  // Report a problem with the app; it is judged in the background. myBugReports shows where
+  // each of the person's reports ended up.
+  reportBug: ({ title, body, page_path }) =>
+    request('/bugs', { method: 'POST', body: { title, body, page_path } }),
+  myBugReports: () => request('/bugs/mine'),
+
   // Browsing: the whole tree, and one node with its children (and, for a page,
   // its text).
   nodes: () => request('/nodes'),

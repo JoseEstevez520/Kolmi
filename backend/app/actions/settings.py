@@ -34,6 +34,7 @@ class UpdateSettingsParams(BaseModel):
     chat_daily_limit: int | None = None
     signups_need_approval: bool | None = None
     mcp_daily_notes: int | None = None
+    bug_report_daily_limit: int | None = None
 
 
 @action(
@@ -127,6 +128,11 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
         if params.mcp_daily_notes <= 0:
             raise HTTPException(422, "mcp_daily_notes must be a positive number")
         row["mcp_daily_notes"] = params.mcp_daily_notes
+
+    if params.bug_report_daily_limit is not None:
+        if params.bug_report_daily_limit <= 0:
+            raise HTTPException(422, "bug_report_daily_limit must be a positive number")
+        row["bug_report_daily_limit"] = params.bug_report_daily_limit
 
     row["updated_at"] = datetime.now(timezone.utc).isoformat()
     try:

@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     embedding_base_url: str = "https://api.openai.com/v1"
     embedding_model: str = "text-embedding-3-small"
 
+    # Bug reports (app/bugs.py), optional: a token that may write issues on one repo (nothing
+    # else), and that repo as owner/name. Without them a judged report waits for an admin.
+    github_token: str = ""
+    github_repo: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

@@ -191,6 +191,32 @@ Nothing is saved unless the page holds up, and a page is never left blank. `page
 
 The web follows the Markdown: the page's next rebuild draws it again from there.
 
+## Bug reports
+
+`report_bug` (any active member, web only, never a tool or an MCP action) takes a title, a
+description and the page the person was on. It saves a row in `bug_reports` at once and judges it
+in the background, like `write_page`: one model call, no loop (`app/bugs.py`), on the instance's
+own key (`get_llm()`). The verdict is `{genuine, severity, title, body, reason}`: the title and
+body are rewritten for a developer without personal data, and the reason is kept. The row's
+`status` says where it ended up:
+
+| Status | Means |
+|---|---|
+| `pending` | Not judged yet, or judged genuine while GitHub isn't set up: an admin sees the verdict and files it. |
+| `issue` | Filed: `issue_url` has the link. |
+| `discarded` | Judged not genuine (trolling, noise, not about the app); the reason stays. |
+| `failed` | The model or GitHub failed; the report is kept. |
+
+A genuine report becomes an issue through GitHub's REST API (`POST /repos/{owner}/{repo}/issues`,
+plain `httpx`), labelled `bug-report` and `severity:low|medium|high`. Set `GITHUB_TOKEN` (a
+fine-grained token with only "Issues: read and write" on that repo) and `GITHUB_REPO`
+(`owner/name`) in the server's `.env`; they never reach the browser. A student may send
+`bug_report_daily_limit` reports a day (default 5, set in `settings`); admins have no cap.
+`my_bug_reports` (read only, not a tool) lists the caller's own reports with status, reason and
+issue link. No duplicate check against open issues yet.
+
+Apply `supabase/migrations/20261013120000_bug_reports.sql` before deploying.
+
 ## Decisions taken
 
 - `approved` stays in the handlers until the user status replaces it.
