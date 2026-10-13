@@ -212,6 +212,11 @@ export default {
       set_role: 'Cambiar el rol de una persona',
       delete_user: 'Quitar a una persona',
       write_page_web: 'Escribir la web de una página',
+      report_bug: 'Reportar un problema',
+      my_bug_reports: 'Mis reportes',
+      list_bug_reports: 'Reportes de problemas',
+      file_bug_report: 'Crear la issue de un reporte',
+      discard_bug_report: 'Descartar un reporte',
       write_page: 'Escribir una página',
     },
     titles: {

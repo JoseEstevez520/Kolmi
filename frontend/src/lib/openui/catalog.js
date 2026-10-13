@@ -387,7 +387,7 @@ export function buildLibrary(renderers, { chat = false } = {}) {
   )
   const Proposal = component(
     'Proposal',
-    z.object({ id: z.string().describe('The id of the proposal a tool returned') }),
+    z.object({ id: z.union([z.string(), z.number()]).describe('The id of the proposal a tool returned') }),
   )
   const ChatBlock = z.union([
     Text.ref,

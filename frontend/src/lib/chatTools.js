@@ -6,6 +6,7 @@ import {
   FileX,
   FolderInput,
   History,
+  Bug,
   Pencil,
   Play,
   RefreshCw,
@@ -35,6 +36,9 @@ const ICONS = {
   restore_version: History,
   set_status: FileText,
   write_page_web: Pencil,
+  report_bug: Bug,
+  file_bug_report: Bug,
+  discard_bug_report: Trash2,
 }
 
 export const toolIcon = (tool) => ICONS[tool] ?? Wrench

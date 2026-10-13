@@ -26,7 +26,10 @@ STUDENT_MCP = {
     "list_nodes", "view_node", "search_pages", "list_schedule_events",
     "create_note", "update_note", "my_notes", "delete_note",
 }
-STUDENT_CHAT = STUDENT_MCP | {"get_settings", "update_my_name"}
+# Reporting a problem is for the web and the chat; a personal token never reaches it.
+BUGS_MEMBER = {"report_bug", "my_bug_reports"}
+BUGS_ADMIN = {"list_bug_reports", "file_bug_report", "discard_bug_report"}
+STUDENT_CHAT = STUDENT_MCP | {"get_settings", "update_my_name"} | BUGS_MEMBER
 # The class's people are managed in the app and the chat, never over the MCP.
 PEOPLE = {"list_users", "set_role", "set_status", "delete_user", "update_my_name"}
 
@@ -38,9 +41,9 @@ def test_what_a_student_is_offered():
 
 def test_what_an_admin_is_offered():
     every_tool = {a.name for a in get_registry().values() if a.tool}
-    assert len(every_tool) == 30
+    assert len(every_tool) == 35
     assert _names("admin", "chat") == every_tool
-    assert _names("admin", "mcp") == every_tool - {"get_settings"} - PEOPLE
+    assert _names("admin", "mcp") == every_tool - {"get_settings"} - PEOPLE - BUGS_MEMBER - BUGS_ADMIN
     assert len(_names("admin", "mcp")) == 24
 
 
@@ -50,8 +53,12 @@ def test_the_mcp_only_offers_tools():
 
 def test_some_actions_are_never_tools():
     registry = get_registry()
-    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account", "report_bug", "my_bug_reports", "list_bug_reports", "file_bug_report", "discard_bug_report"):
+    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account"):
         assert not registry[name].tool
+        assert not registry[name].mcp
+    # The bug reports are chat tools, never MCP ones.
+    for name in BUGS_MEMBER | BUGS_ADMIN:
+        assert registry[name].tool
         assert not registry[name].mcp
     for name in ("update_settings", "get_settings", "register_profile", "get_profile"):
         assert not registry[name].mcp

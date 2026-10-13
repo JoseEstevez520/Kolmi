@@ -216,6 +216,11 @@ export default {
       delete_user: 'Remove a person',
       write_page_web: 'Write a page\'s web',
       write_page: 'Write a page',
+      report_bug: 'Report a problem',
+      my_bug_reports: 'My problem reports',
+      list_bug_reports: 'Problem reports',
+      file_bug_report: 'File a report as an issue',
+      discard_bug_report: 'Discard a report',
     },
     titles: {
       page: 'page',

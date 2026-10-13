@@ -94,7 +94,7 @@
       "description": "The pages the answer is drawn from, by id (the ids you were given). The app loads each title and links it, so never copy a title or content. Last block, only when pages were used."
     },
     "Proposal": {
-      "signature": "Proposal(id: string)",
+      "signature": "Proposal(id: string | number)",
       "description": "A change you propose, by the id of the proposal you just created with a tool. The app draws it with Confirm and Cancel; the person decides. Never describe the change in prose as well."
     }
   },
@@ -876,7 +876,10 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": [
+              "string",
+              "number"
+            ]
           }
         },
         "required": [

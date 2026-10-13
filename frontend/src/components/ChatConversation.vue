@@ -22,6 +22,16 @@ const suggestions = computed(() => {
   const all = tm(`chat.suggestions.${role}`).map((s) => ({ title: rt(s.title), text: rt(s.text) }))
   return all.slice(0, full.value ? 4 : 2)
 })
+
+// The cards the answer didn't place itself. An OpenUI answer draws a proposal where it wrote
+// `Proposal(id)`; the rest go under it once it is whole (so none shows twice, and none is lost
+// when the model forgets to write the part). Older answers have no program: all go under.
+function unplaced(m) {
+  const all = m.proposals ?? []
+  if (m.format !== 'openui') return all
+  if (m.streaming) return []
+  return all.filter((p) => !new RegExp(`Proposal\\(\\s*["']?${p.id}["']?\\s*\\)`).test(m.text ?? ''))
+}
 </script>
 
 <template>
@@ -43,8 +53,8 @@ const suggestions = computed(() => {
         <ChatAnswer v-else-if="m.format === 'openui'" :text="m.text" :streaming="Boolean(m.streaming)" />
         <Markdown v-else :source="m.text" />
         <!-- What the assistant wants to change: one card each, decided by the person. -->
-        <template v-if="m.proposals?.length" #after>
-          <ActionProposal v-for="p in m.proposals" :key="p.id" :proposal="p" />
+        <template v-if="unplaced(m).length" #after>
+          <ActionProposal v-for="p in unplaced(m)" :key="p.id" :proposal="p" />
         </template>
       </ChatMessage>
       <p v-if="m.sources?.length" class="m-0 text-meta text-fg-faint">

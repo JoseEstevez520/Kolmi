@@ -37,6 +37,7 @@ def _within_the_cap(ctx: Context) -> None:
 
 @action(
     name="report_bug",
+    tool=True,
     description="Report a problem with the app itself. It is judged in the background and, if genuine, becomes an issue for the maintainer. Answers at once with the report's id; my_bug_reports shows where it ended up.",
     params=ReportBugParams,
     path="/bugs",
@@ -80,6 +81,7 @@ def _report(row: dict[str, Any]) -> dict[str, Any]:
 
 @action(
     name="my_bug_reports",
+    tool=True,
     read_only=True,
     description="Your own bug reports, newest first, each with its status (pending, issue, discarded or failed), the reason it was judged that way and the issue link when there is one.",
     method="GET",
@@ -115,6 +117,7 @@ def _author(row: dict[str, Any]) -> str | None:
 
 @action(
     name="list_bug_reports",
+    tool=True,
     read_only=True,
     description="Every bug report from the class, any status, newest first: the author's name, title, what they wrote, status (pending, issue, discarded or failed), the judge's reason and the issue link. Admin only.",
     method="GET",
@@ -142,6 +145,7 @@ def _find(ctx: Context, report_id: int) -> dict[str, Any]:
 
 @action(
     name="file_bug_report",
+    tool=True,
     description="File a pending, failed or discarded bug report as a GitHub issue now, without the genuine check (or as a comment on the open issue it repeats). Admin only, confirmed.",
     params=ReportIdParams,
     path="/bugs/file",
@@ -163,6 +167,7 @@ def file_bug_report(ctx: Context, params: ReportIdParams):
 
 @action(
     name="discard_bug_report",
+    tool=True,
     description="Discard a bug report that is not an issue to file. The author sees the status and the reason. Admin only, confirmed. A filed report can't be discarded.",
     params=DiscardReportParams,
     path="/bugs/discard",
