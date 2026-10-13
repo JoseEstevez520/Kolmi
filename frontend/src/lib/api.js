@@ -1,4 +1,4 @@
-import { accessToken } from './auth.js'
+import { accessToken, isWaiting, profile } from './auth.js'
 import { t } from './i18n.js'
 
 export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -8,6 +8,21 @@ export class ApiError extends Error {
     super(message)
     this.name = 'ApiError'
     this.status = status
+  }
+}
+
+// A 403 may mean the person was blocked (or put back to pending) while the app was open. Ask
+// who they are now; if they are no longer let in, the router's own rule sends them to the
+// waiting screen at once instead of on their next navigation.
+async function checkAccess() {
+  try {
+    const current = await request('/profile')
+    if (!isWaiting(current)) return
+    profile.value = current
+    const { default: router } = await import('../router/index.js')
+    if (router.currentRoute.value.name !== 'waiting') router.push({ name: 'waiting' })
+  } catch {
+    /* the original error is what the caller sees */
   }
 }
 
@@ -43,6 +58,7 @@ async function request(path, { method = 'GET', body, keepalive = false } = {}) {
   if (!response.ok) {
     const message =
       (data && typeof data === 'object' && data.detail) || response.statusText || t('api.failed')
+    if (response.status === 403 && path !== '/profile') await checkAccess()
     throw new ApiError(response.status, message)
   }
 
