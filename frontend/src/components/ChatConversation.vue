@@ -1,13 +1,27 @@
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChatMessage, ChatThread, Markdown, StatusText } from 'elastic-ui'
-import { messages, sourceTitles } from '../lib/chat.js'
+import { Button, ChatMessage, ChatThread, Markdown, StatusText } from 'elastic-ui'
+import { profile } from '../lib/auth.js'
+import { messages, send, sourceTitles } from '../lib/chat.js'
+import { chatSize } from '../lib/chatPanel.js'
 import ActionProposal from './ActionProposal.vue'
 import ChatAnswer from './ChatAnswer.vue'
 
 // The conversation's messages, drawn once for both places that show it: the floating bubble and
 // the full page. The state is the one in lib/chat.js, so both show the same thread.
-const { t } = useI18n()
+const { t, tm, rt } = useI18n()
+
+// Before the first question (only the greeting is there) a few ideas to start from, for the
+// person's role. Quiet buttons in both sizes; the wide one
+// shows four, the small bubble two so it doesn't look cramped.
+const full = computed(() => chatSize.value === 'wide')
+const empty = computed(() => messages.value.length === 1 && messages.value[0].greeting)
+const suggestions = computed(() => {
+  const role = profile.value?.role === 'admin' ? 'admin' : 'student'
+  const all = tm(`chat.suggestions.${role}`).map((s) => ({ title: rt(s.title), text: rt(s.text) }))
+  return all.slice(0, full.value ? 4 : 2)
+})
 </script>
 
 <template>
@@ -36,6 +50,18 @@ const { t } = useI18n()
       <p v-if="m.sources?.length" class="m-0 text-meta text-fg-faint">
         {{ t('chat.sources', { pages: sourceTitles(m.sources) }) }}
       </p>
+    </div>
+    <div v-if="empty && suggestions.length" class="flex flex-col items-start gap-1">
+      <Button
+        v-for="s in suggestions"
+        :key="s.title"
+        variant="ghost"
+        size="sm"
+        class="h-auto max-w-full justify-start whitespace-normal py-1.5 text-left font-normal text-fg-secondary"
+        @click="send(s.text)"
+      >
+        {{ s.text }}
+      </Button>
     </div>
   </ChatThread>
 </template>

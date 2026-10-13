@@ -3,17 +3,14 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { MotionConfig } from 'motion-v'
-import { Maximize2 } from '@lucide/vue'
 import {
   ChatComposer,
   ChatMorph,
-  chatMorphActionClass,
   PageTransition,
   ScrollIndicator,
   SidebarLayout,
   SidebarLayoutHeader,
   ThemeToggle,
-  Tooltip,
   Tour,
   TourStep,
 } from 'elastic-ui'
@@ -31,6 +28,7 @@ import {
   send,
   settled,
 } from './lib/chat.js'
+import { chatSize } from './lib/chatPanel.js'
 import { libraryLabels } from './lib/i18n.js'
 import { motionOn } from './lib/motion.js'
 import { tocShown } from './lib/toc.js'
@@ -125,25 +123,15 @@ const indicator = ref(null)
     <!-- Honey, not the library's default: --aurora-1 to -4 are Kolmi's own, in style.css.
          Floats over every screen; an answer is whole, never streamed, so no ChatTool step. -->
     <ChatMorph
-      v-if="withSidebar && chatEnabled && route.name !== 'chat'"
+      v-if="withSidebar && chatEnabled"
       v-model:open="chatOpen"
+      v-model:size="chatSize"
+      resizable
       :label="t('chat.label')"
       :title="t('chat.title')"
       :settled="settled"
       :activity="activity"
     >
-      <template #actions="{ close }">
-        <Tooltip :content="t('chat.openFull')">
-          <button
-            type="button"
-            :aria-label="t('chat.openFull')"
-            :class="chatMorphActionClass"
-            @click="() => { router.push({ name: 'chat' }); close() }"
-          >
-            <Maximize2 class="size-4" />
-          </button>
-        </Tooltip>
-      </template>
       <ChatConversation />
       <ChatComposer :placeholder="t('chat.placeholder')" :responding="responding" @send="send" />
     </ChatMorph>

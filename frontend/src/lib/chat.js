@@ -31,6 +31,13 @@ export const open = ref(false)
 export const messages = ref([])
 export const responding = ref(false)
 
+// The page the person is on (`/node/:id`), set by the router after each navigation; null on any
+// other screen. A question carries it, so "explain this" has something to point at.
+let pageId = null
+export function setChatPage(id) {
+  pageId = Number.isInteger(id) ? id : null
+}
+
 let nextId = 1
 
 const STORAGE_KEY = 'kolmi.chat'
@@ -174,7 +181,7 @@ export async function send(text) {
         reply.text += data.text
       } else if (name === 'proposal') reply.proposals.push(withLocalState(data))
       else if (name === 'error') failure = data.message || t('chat.error')
-    })
+    }, pageId)
     const reply = live()
     if (reply) {
       reply.streaming = false

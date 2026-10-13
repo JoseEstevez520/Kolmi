@@ -235,13 +235,13 @@ export const api = {
   runPass: () => request('/pass/run', { method: 'POST' }),
 
   // Ask the hive a question; it answers from the class's own content, with the pages it used.
-  askChat: (question, history = []) =>
-    request('/chat', { method: 'POST', body: { question, history } }),
+  askChat: (question, history = [], nodeId = null) =>
+    request('/chat', { method: 'POST', body: { question, history, node_id: nodeId } }),
 
   // The same question as a stream of server-sent events (`status`, `token`, `proposal`, `done`,
   // `error`), each handed to `onEvent(name, data)`. Read with `fetch`, as `EventSource` can't
   // send the session header. A refusal before the stream starts (limit, chat off) throws.
-  async streamChat(question, history, onEvent) {
+  async streamChat(question, history, onEvent, nodeId = null) {
     const token = accessToken()
     let response
     try {
@@ -251,7 +251,7 @@ export const api = {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ question, history }),
+        body: JSON.stringify({ question, history, node_id: nodeId }),
       })
     } catch {
       throw new ApiError(0, t('api.unreachable'))
