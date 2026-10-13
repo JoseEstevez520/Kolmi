@@ -3,8 +3,11 @@ import CreateNodePreview from './CreateNodePreview.vue'
 import DeletePreview from './DeletePreview.vue'
 import MoveNodePreview from './MoveNodePreview.vue'
 import ScheduleEventPreview from './ScheduleEventPreview.vue'
+import RestoreVersionPreview from './RestoreVersionPreview.vue'
+import RunPassPreview from './RunPassPreview.vue'
 import UserChangePreview from './UserChangePreview.vue'
 import WritePagePreview from './WritePagePreview.vue'
+import WritePageWebPreview from './WritePageWebPreview.vue'
 
 // A proposal's tool → the picture of what it would do, drawn under its card. Each component
 // gets `tool` and `args` and builds the picture from data the app already has (lib/previewData.js);
@@ -23,6 +26,9 @@ const PREVIEWS = {
   set_role: UserChangePreview,
   delete_node: DeletePreview,
   delete_user: DeletePreview,
+  restore_version: RestoreVersionPreview,
+  write_page_web: WritePageWebPreview,
+  run_pass: RunPassPreview,
 }
 
 export const previewFor = (tool) => PREVIEWS[tool] ?? null

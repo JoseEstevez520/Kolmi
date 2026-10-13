@@ -75,8 +75,15 @@ const staticData = {
     person('9', 'Ines Vega', 'student', 'pending', 0),
   ]),
   ensure: { nodes: noop, page: noop, schedule: noop, users: noop },
+  loadVersion: async () => ({ id: 31, node_id: 131, created_at: '2026-10-09T17:20:00Z', preview: pageBefore.replace('/25', '/26') }),
+  loadPassState: async () => ({ running: false, enabled: true }),
   // The notes list a delete preview counts from.
-  loadNotes: async () => [{ node_id: 131 }, { node_id: 131 }, { node_id: 132 }, { node_id: 12 }],
+  loadNotes: async () => [
+    { node_id: 131, status: 'pending' },
+    { node_id: 131, status: 'pending' },
+    { node_id: 132, status: 'pending' },
+    { node_id: 12, status: 'processed' },
+  ],
 }
 provide(PREVIEW_DATA, staticData)
 
@@ -162,6 +169,24 @@ const cases = [
     tool: 'delete_user',
     args: { user_id: '8' },
     destructive: true,
+  },
+  {
+    title: '8a. restore_version',
+    say: 'The page was better before the last rewrite, so I would bring that version back.',
+    tool: 'restore_version',
+    args: { version_id: 31 },
+  },
+  {
+    title: '8b. write_page_web',
+    say: 'I drew the page again with a chart.',
+    tool: 'write_page_web',
+    args: { node_id: 131, content_web: 'root = Page([\n  Heading("Subnetting"),\n  Text("A mask splits an address."),\n  Chart(data)\n])\n' },
+  },
+  {
+    title: '8c. run_pass',
+    say: 'Three notes are waiting, so I would run the pass now.',
+    tool: 'run_pass',
+    args: {},
   },
 ]
 </script>

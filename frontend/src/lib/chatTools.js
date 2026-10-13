@@ -34,6 +34,7 @@ const ICONS = {
   run_pass: Play,
   restore_version: History,
   set_status: FileText,
+  write_page_web: Pencil,
 }
 
 export const toolIcon = (tool) => ICONS[tool] ?? Wrench
@@ -43,6 +44,8 @@ const generic = (tool) => (te(`chat.tools.${tool}`) ? t(`chat.tools.${tool}`) : 
 const NEEDS = {
   move_node: 'nodes',
   write_page: 'nodes',
+  write_page_web: 'nodes',
+  restore_version: 'nodes',
   update_node: 'nodes',
   delete_node: 'nodes',
   create_node: 'nodes',
@@ -79,6 +82,9 @@ export function toolLabel(tool, args = {}, data = null) {
   } else if (tool === 'write_page' || tool === 'update_node') {
     const node = nodeOf(data, a.node_id)
     if (node) out = title(tool === 'write_page' ? 'writePage' : 'updateNode', { node: node.title })
+  } else if (tool === 'write_page_web') {
+    const node = nodeOf(data, a.node_id)
+    if (node) out = title('writePageWeb', { node: node.title })
   } else if (tool === 'delete_node') {
     const node = nodeOf(data, a.node_id)
     if (node) out = title('deleteNode', { node: node.title, kind: t(`chat.titles.${kindKey(node.kind)}`) })
