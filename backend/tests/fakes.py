@@ -27,6 +27,8 @@ class FakeLLM:
         self.text_response = list(text_response) if isinstance(text_response, list) else text_response
         self.tool_rounds = tool_rounds or []
         self.tool_error = tool_error
+        self.stream_tokens: list[str] = []
+        self.stream_error: Exception | None = None
         self.tool_results: list[str] = []
         self.calls: list[tuple[str, str, str]] = []
         self.offered_tools: list[list[str]] = []
@@ -43,6 +45,20 @@ class FakeLLM:
         for round_ in self.tool_rounds:
             self.tool_results += [run_tool(name, args) for name, args in round_]
         return self.json_response
+
+    def stream_with_tools(self, system, user, tools, run_tool):
+        """Runs the tool rounds, then streams `stream_tokens` (a stream that ends in
+        `stream_error`, when set, is cut there)."""
+        self.calls.append(("stream", system, user))
+        self.offered_tools.append([t["function"]["name"] for t in tools])
+        for round_ in self.tool_rounds:
+            for name, args in round_:
+                yield {"type": "status", "text": f"Using {name}..."}
+                self.tool_results.append(run_tool(name, args))
+        for piece in self.stream_tokens:
+            yield {"type": "token", "text": piece}
+        if self.stream_error:
+            raise self.stream_error
 
     def complete_text(self, system: str, user: str) -> str:
         self.calls.append(("text", system, user))

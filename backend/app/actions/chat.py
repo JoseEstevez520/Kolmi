@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import logging
+import re
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
@@ -9,6 +12,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
 from ..agents import get_chat_llm, run_chat
+from ..agents.chat import run_chat_stream
 from ..auth import Context
 from ..class_settings import class_language, read_settings
 from ..files import node_files
@@ -138,13 +142,9 @@ def _read_page(client):
     return read
 
 
-@action(
-    name="ask_chat",
-    description="Ask the hive a question; it answers from the class's shared content.",
-    params=AskChatParams,
-    path="/chat",
-)
-def ask_chat(ctx: Context, params: AskChatParams):
+def _gate(ctx: Context, params: AskChatParams) -> tuple[dict[str, Any], str]:
+    """The checks before a question is answered, the same for both ways in: the class's settings,
+    the daily limit and a question to answer."""
     settings = read_settings(ctx.client)
     if not settings.get("chat_enabled"):
         raise HTTPException(403, "The chat is off for this class")
@@ -156,6 +156,17 @@ def ask_chat(ctx: Context, params: AskChatParams):
     question = params.question.strip()
     if not question:
         raise HTTPException(422, "Ask something first")
+    return settings, question
+
+
+@action(
+    name="ask_chat",
+    description="Ask the hive a question; it answers from the class's shared content.",
+    params=AskChatParams,
+    path="/chat",
+)
+def ask_chat(ctx: Context, params: AskChatParams):
+    settings, question = _gate(ctx, params)
 
     nodes = ctx.client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
     language = class_language(ctx.client)
@@ -333,3 +344,105 @@ def cancel_chat_proposal(ctx: Context, params: CancelChatProposalParams):
     cancelled = {"status": "cancelled", "decided_at": _now()}
     rows = _set_proposal(ctx, params.proposal_id, cancelled, pending=True)
     return _proposal(rows[0] if rows else {**row, **cancelled})
+
+
+# --- The streamed chat ------------------------------------------------------------------------
+
+log = logging.getLogger(__name__)
+
+_SOURCES = re.compile(r"Sources\(\s*\[([^\]]*)\]")
+
+
+def _cited(program: str) -> list[int]:
+    """The page ids the answer's `Sources([...])` part names, for the chat's history."""
+    ids = [int(n) for found in _SOURCES.findall(program) for n in re.findall(r"\d+", found)]
+    return list(dict.fromkeys(ids))
+
+
+def sse(event: str, data: dict[str, Any]) -> str:
+    """One server-sent event."""
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def stream_chat(ctx: Context, params: AskChatParams):
+    """`ask_chat` as a stream of server-sent events (`status`, `token`, `proposal`, then `done`,
+    or `error`). The checks run first and fail as plain HTTP errors, before anything streams. As
+    in `ask_chat`, a write is only proposed, in `chat_proposals`, never run; here it is stored
+    the moment the model proposes it, so the model can put `Proposal(id)` in its answer.
+    """
+    check(get_action("ask_chat"), ctx, params.model_dump())
+    settings, question = _gate(ctx, params)
+    client = ctx.client
+    nodes = client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
+    language = class_language(client)
+    history = _recent(params.history)
+    passages = search(client, _search_query(history, question))
+    message = (
+        client.table("chat_messages")
+        .insert({"user_id": ctx.user_id, "question": question, "answer": "", "sources": []})
+        .execute()
+        .data[0]
+    )
+
+    proposed: list[dict[str, Any]] = []
+    stored: list[dict[str, Any]] = []
+    inner = chat_tool(ctx, proposed)
+
+    def run_action(name: str, args: dict[str, Any]) -> str:
+        before = len(proposed)
+        reply = inner(name, args)
+        if len(proposed) > before:
+            row = (
+                client.table("chat_proposals")
+                .insert({**proposed[-1], "message_id": message["id"], "user_id": ctx.user_id})
+                .execute()
+                .data[0]
+            )
+            stored.append(row)
+            reply += f" Its card is Proposal({row['id']}): put that part in your answer."
+        return reply
+
+    def events():
+        program = ""
+        sent = 0
+        try:
+            for event in run_chat_stream(
+                get_chat_llm(),
+                question,
+                nodes,
+                read_page=_read_page(client),
+                language=language,
+                today=_today_text(language),
+                schedule=_schedule_text(client, settings, language),
+                actions=schemas(ctx, "chat"),
+                run_action=run_action,
+                history=history,
+                passages=passages,
+            ):
+                if event["type"] == "token":
+                    program += event["text"]
+                    yield sse("token", {"text": event["text"]})
+                else:
+                    yield sse("status", {"text": event["text"]})
+                while sent < len(stored):
+                    yield sse("proposal", _proposal(stored[sent]))
+                    sent += 1
+            while sent < len(stored):
+                yield sse("proposal", _proposal(stored[sent]))
+                sent += 1
+            if not program.strip():
+                raise ValueError("the model answered with nothing")
+            yield sse("done", {})
+        except Exception as exc:
+            log.warning("streamed chat failed: %s", exc)
+            yield sse("error", {"message": "The chat couldn't answer. Try again."})
+        finally:
+            # Also when the reader leaves midway: what was written is kept.
+            try:
+                client.table("chat_messages").update(
+                    {"answer": program, "sources": _cited(program)}
+                ).eq("id", message["id"]).execute()
+            except Exception as exc:
+                log.warning("couldn't save the streamed answer: %s", exc)
+
+    return events()

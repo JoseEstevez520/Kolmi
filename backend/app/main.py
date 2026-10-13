@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .actions import get_registry  # noqa: F401  (imports the action modules)
 from .api import register_routes
+from .chat_api import router as chat_router
 from .config import get_settings
 from .export_api import router as export_router
 from .files_api import router as files_router
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 
 register_routes(app)
+app.include_router(chat_router)
 app.include_router(files_router)
 app.include_router(export_router)
 # Anyone's own AI, with a personal token: see app/mcp_server.py and docs/mcp.md.

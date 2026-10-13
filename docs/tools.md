@@ -102,6 +102,28 @@ the client's history, keyed by its own id, with editable args like LangGraph's r
 paused run: a turn ends with proposals and confirming is a new request, as AGENTS.md says. No
 LangGraph.
 
+### Streaming: `POST /chat/stream`
+
+Same body as `ask_chat` (`{question, history?}`) and the same checks (status, chat on, daily
+limit, empty question), which fail as plain HTTP errors before anything streams. The answer is
+`text/event-stream` (`StreamingResponse`, no new dependency), each event `event: <name>` and
+`data: <json>`:
+
+| Event | Data |
+|---|---|
+| `status` | `{"text": "Reading page 20..."}`, when a tool runs |
+| `token` | `{"text": "..."}`, a piece of the answer |
+| `proposal` | `{id, tool, args, status, destructive, result}`, as in `ask_chat`'s `proposals` |
+| `done` | `{}`, always last on success |
+| `error` | `{"message": "..."}`, the stream ends here (no `done`) |
+
+The tokens add up to an OpenUI Lang program (`root = Answer([...])`) of Text, Callout, Steps,
+Table, Chart, Cards, CodeBlock, `Sources([ids])` and `Proposal(id)`, not JSON. A write is stored
+as a `pending` proposal the moment the model proposes it (never run) and the tool's reply gives
+the model its id for `Proposal(id)`. The message is saved at the end (or when the reader leaves),
+with the ids in `Sources` as its sources. `ask_chat` is unchanged. The model side is
+`stream_with_tools` in `agents/client.py`; the route is `app/chat_api.py`.
+
 Evals: `backend/evals/chat_tools.json`, run with `.venv/bin/python -m evals.run_chat_evals` from
 `backend/` (same flags as `run_mcp_evals`: `--role`, `--repeat`, `--only`, `--verbose`).
 

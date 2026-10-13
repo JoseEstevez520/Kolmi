@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from functools import lru_cache
-from typing import Any, Callable, Protocol
+from typing import Any, Callable, Iterator, Protocol
 
 from ..config import get_settings
 
@@ -27,6 +27,18 @@ class LLM(Protocol):
         """Let the model call `tools` (each answered by `run_tool`) until it answers JSON."""
         ...
 
+    def stream_with_tools(
+        self,
+        system: str,
+        user: str,
+        tools: list[dict[str, Any]],
+        run_tool: Callable[[str, dict[str, Any]], str],
+    ) -> Iterator[dict[str, str]]:
+        """Like `complete_with_tools`, but the answer is plain text, streamed. Yields
+        `{"type": "status", "text": ...}` when a tool runs and `{"type": "token", "text": ...}`
+        for each piece of the answer."""
+        ...
+
 
 # A guard against a loop that never ends, not a budget: normal use never gets near it. Past it,
 # the model is asked to answer with what it has.
@@ -37,6 +49,19 @@ EMPTY_ANSWER = (
     "Your last message had no answer in it. Call a tool if you still need one, or answer now "
     "with the JSON object."
 )
+STOP_TOOLS_TEXT = "No more tool calls. Answer now, with what you have."
+EMPTY_ANSWER_TEXT = (
+    "Your last message had no answer in it. Call a tool if you still need one, or answer now."
+)
+
+
+def tool_status(name: str, args: dict[str, Any]) -> str:
+    """A short line for the person about the tool the model is running."""
+    if name == "read_page":
+        return f"Reading page {args['node_id']}..." if "node_id" in args else "Reading a page..."
+    if name == "search_web":
+        return "Searching the web..."
+    return f"Using {name.replace('_', ' ')}..."
 
 
 def _json_object(content: str | None) -> dict[str, Any] | None:
@@ -129,6 +154,85 @@ class OpenAILLM:
             temperature=0.2,
         )
         return json.loads(response.choices[0].message.content or "{}")
+
+    def stream_with_tools(
+        self,
+        system: str,
+        user: str,
+        tools: list[dict[str, Any]],
+        run_tool: Callable[[str, dict[str, Any]], str],
+    ) -> Iterator[dict[str, str]]:
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]
+        empty_answers = 0
+        for _ in range(MAX_TOOL_ROUNDS):
+            stream = self._client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=tools,
+                temperature=0.2,
+                stream=True,
+            )
+            text = ""
+            calls: dict[int, dict[str, str]] = {}
+            for chunk in stream:
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta
+                # Tool calls arrive in pieces, told apart by their index.
+                for piece in getattr(delta, "tool_calls", None) or []:
+                    call = calls.setdefault(piece.index, {"id": "", "name": "", "arguments": ""})
+                    call["id"] = piece.id or call["id"]
+                    if piece.function:
+                        call["name"] += piece.function.name or ""
+                        call["arguments"] += piece.function.arguments or ""
+                if delta.content and not calls:
+                    text += delta.content
+                    yield {"type": "token", "text": delta.content}
+            if not calls:
+                if text.strip():
+                    return
+                empty_answers += 1
+                if empty_answers > MAX_EMPTY_ANSWERS:
+                    raise ValueError("the model answered with nothing")
+                messages.append({"role": "user", "content": EMPTY_ANSWER_TEXT})
+                continue
+            ordered = [calls[i] for i in sorted(calls)]
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": text or None,
+                    "tool_calls": [
+                        {
+                            "id": c["id"],
+                            "type": "function",
+                            "function": {"name": c["name"], "arguments": c["arguments"]},
+                        }
+                        for c in ordered
+                    ],
+                }
+            )
+            for call in ordered:
+                try:
+                    args = json.loads(call["arguments"] or "{}")
+                except ValueError:
+                    args = {}
+                if not isinstance(args, dict):
+                    args = {}
+                yield {"type": "status", "text": tool_status(call["name"], args)}
+                messages.append(
+                    {"role": "tool", "tool_call_id": call["id"], "content": run_tool(call["name"], args)}
+                )
+        log.warning("still calling tools after %d rounds; asking for the answer", MAX_TOOL_ROUNDS)
+        messages.append({"role": "user", "content": STOP_TOOLS_TEXT})
+        final = self._client.chat.completions.create(
+            model=self.model, messages=messages, temperature=0.2, stream=True
+        )
+        for chunk in final:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield {"type": "token", "text": chunk.choices[0].delta.content}
 
     def complete_text(self, system: str, user: str) -> str:
         response = self._client.chat.completions.create(
