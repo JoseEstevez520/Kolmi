@@ -21,6 +21,9 @@ const real = {
   pages,
   schedule,
   users,
+  // The notes students have left (admin's list_notes, through GET /notes), read fresh each
+  // time: it is asked for only when a delete preview shows, to count what points at a node.
+  loadNotes: () => api.adminNotes(),
   ensure: {
     nodes: () => loadNodes().catch(quiet),
     page: (id) => loadNode(id).catch(quiet),

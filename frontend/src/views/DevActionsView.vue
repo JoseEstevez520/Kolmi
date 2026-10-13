@@ -38,22 +38,21 @@ Use the mask to find the network address.
 192.168.1.77/26 belongs to the network 192.168.1.64.
 `
 
+const leaf = (id, title) => ({ id, kind: 'page', title, children: [] })
 const tree = [
   {
     id: 12,
     kind: 'section',
     title: 'Unit 1',
-    children: [
-      { id: 131, kind: 'page', title: 'Networks', children: [] },
-      { id: 132, kind: 'page', title: 'SQL basics', children: [] },
-    ],
+    children: [leaf(131, 'Networks'), leaf(132, 'SQL basics'), leaf(134, 'Indexes'), leaf(135, 'Joins'), leaf(136, 'Views')],
   },
-  { id: 13, kind: 'section', title: 'Unit 2', children: [{ id: 133, kind: 'page', title: 'ORMs', children: [] }] },
+  { id: 13, kind: 'section', title: 'Unit 2', children: [leaf(133, 'ORMs'), leaf(137, 'Hibernate'), leaf(138, 'JPA'), leaf(139, 'Spring Data')] },
+  { id: 14, kind: 'section', title: 'Extra', children: [leaf(141, 'Docker'), leaf(142, 'Thymeleaf'), leaf(143, 'Git'), leaf(144, 'CI')] },
 ]
 
 const person = (id, name, role, status, notes) => ({ id, name, role, status, notes, email: `${name.split(' ')[0].toLowerCase()}@example.com` })
 
-provide(PREVIEW_DATA, {
+const staticData = {
   nodes: ref(tree),
   pages: ref({ 131: { id: 131, content_md: pageBefore } }),
   schedule: ref({
@@ -73,9 +72,13 @@ provide(PREVIEW_DATA, {
   users: ref([
     person('7', 'Lucia Prado', 'student', 'pending', 3),
     person('8', 'Mateo Rey', 'student', 'active', 12),
+    person('9', 'Ines Vega', 'student', 'pending', 0),
   ]),
   ensure: { nodes: noop, page: noop, schedule: noop, users: noop },
-})
+  // The notes list a delete preview counts from.
+  loadNotes: async () => [{ node_id: 131 }, { node_id: 131 }, { node_id: 132 }, { node_id: 12 }],
+}
+provide(PREVIEW_DATA, staticData)
 
 // Mock proposals: the same tool names and args the backend sends.
 const cases = [
@@ -87,9 +90,9 @@ const cases = [
   },
   {
     title: '2. move_node',
-    say: 'Networks fits better inside Unit 2, so I would move it there.',
+    say: 'Thymeleaf fits better next to the ORMs, so I would move it into Unit 2.',
     tool: 'move_node',
-    args: { node_id: 131, parent_id: 13 },
+    args: { node_id: 142, parent_id: 13 },
   },
   {
     title: '3a. write_page / replace',
@@ -107,7 +110,13 @@ const cases = [
     title: '4. create_node',
     say: 'The notes cover a topic that has no place yet.',
     tool: 'create_node',
-    args: { parent_id: 13, kind: 'section', title: 'Security' },
+    args: { parent_id: null, kind: 'section', title: 'Security', children: [{ title: 'Firewalls' }, { title: 'TLS' }, { title: 'Hardening' }] },
+  },
+  {
+    title: '4b. create_node (page in a long section)',
+    say: 'Subnetting has no page yet.',
+    tool: 'create_node',
+    args: { parent_id: 13, kind: 'page', title: 'Subnetting' },
   },
   {
     title: '5. create_schedule_event',
@@ -127,6 +136,12 @@ const cases = [
     say: 'Lucia is waiting to get in.',
     tool: 'set_status',
     args: { user_id: '7', status: 'active' },
+  },
+  {
+    title: '6a2. set_status (several people)',
+    say: 'Three people are waiting to get in.',
+    tool: 'set_status',
+    args: { user_ids: ['7', '8', '9'], status: 'active' },
   },
   {
     title: '6b. set_role',
@@ -166,7 +181,7 @@ const cases = [
             {{ c.say }}
             <template #after>
               <ChatProposal
-                :label="toolLabel(c.tool)"
+                :label="toolLabel(c.tool, c.args, staticData)"
                 :icon="toolIcon(c.tool)"
                 :args="c.args"
                 :details="previewFor(c.tool) ? 'edit' : 'always'"

@@ -4,8 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeGroup, NavTreeItem } from 'elastic-ui'
 import { flatten, trailTo } from '../../lib/content.js'
 import { usePreviewData } from '../../lib/previewData.js'
+import { trimAround } from '../../lib/treeContext.js'
 
-// move_node: the sections the node leaves and enters, before and after, with the node lit.
+// move_node: the sections the node leaves and enters, before and after, with the node marked as moved in the "after" column.
+// Only context is drawn: the two parents, and at most two siblings around the node in each.
 const props = defineProps({ args: { type: Object, default: () => ({}) } })
 const { t } = useI18n()
 const data = usePreviewData()
@@ -44,21 +46,39 @@ const labelOf = (parentId) =>
 // Both parents must be known to draw the move; otherwise the plain card stays.
 const known = computed(() => node.value && parentIds.value.every((id) => id == null || labelOf(id)))
 
-const columns = computed(() => [
-  { key: 'before', label: t('chat.preview.before'), list: (id) => childrenOf(id) },
-  { key: 'after', label: t('chat.preview.after'), list: placed },
-])
+const sources = [
+  { key: 'before', label: 'chat.preview.before', list: (id) => childrenOf(id) },
+  { key: 'after', label: 'chat.preview.after', list: placed },
+]
+// Each column: its parents with the trimmed siblings, and how many were left out in all.
+const columns = computed(() =>
+  sources.map((column) => {
+    const groups = parentIds.value.map((id) => {
+      const full = column.list(id)
+      const { items, hidden } = trimAround(full, full.findIndex((n) => n.id === node.value.id))
+      return { id, items, hidden }
+    })
+    return { key: column.key, label: t(column.label), groups, hidden: groups.reduce((sum, g) => sum + g.hidden, 0) }
+  }),
+)
 </script>
 
 <template>
   <div v-if="known" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div v-for="column in columns" :key="column.key">
       <p class="m-0 mb-1 text-meta text-fg-faint">{{ column.label }}</p>
-      <NavTree :model-value="node.id" :label="column.label">
-        <NavTreeGroup v-for="id in parentIds" :key="id ?? 'top'" :label="labelOf(id)" default-open>
-          <NavTreeItem v-for="n in column.list(id)" :key="n.id" :value="n.id">{{ n.title }}</NavTreeItem>
+      <NavTree static :label="column.label">
+        <NavTreeGroup v-for="g in column.groups" :key="g.id ?? 'top'" :label="labelOf(g.id)" default-open>
+          <NavTreeItem
+            v-for="n in g.items"
+            :key="n.id"
+            :value="n.id"
+            :mark="column.key === 'after' && n.id === node.id ? 'moved' : undefined"
+            >{{ n.title }}</NavTreeItem
+          >
         </NavTreeGroup>
       </NavTree>
+      <p v-if="column.hidden" class="m-0 mt-1 text-meta text-fg-faint">{{ t('chat.preview.more', { n: column.hidden }) }}</p>
     </div>
   </div>
 </template>
