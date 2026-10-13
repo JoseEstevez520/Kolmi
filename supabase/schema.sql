@@ -166,6 +166,8 @@ create table if not exists bug_reports (
   title text not null,
   body text not null,
   page_path text,
+  -- browser, screen width, theme and language, sent by the app; nothing that identifies the person
+  environment text,
   -- pending: judged and waiting (or not judged yet); issue: filed; discarded: judged not genuine.
   status text not null default 'pending' check (status in ('pending', 'issue', 'discarded', 'failed')),
   -- {genuine, severity, title, body, reason}, or {error} when it failed
@@ -175,6 +177,9 @@ create table if not exists bug_reports (
 );
 
 create index if not exists bug_reports_user_id_idx on bug_reports (user_id, created_at desc);
+
+-- Where a report came from, for the issue. Also in migrations/20261013140000_bug_report_environment.sql.
+alter table bug_reports add column if not exists environment text;
 
 -- Personal tokens, for the MCP: `kolmi_` and a random string, shown once; only its SHA-256 hash is
 -- kept. Also in migrations/20261009120000_api_tokens.sql.

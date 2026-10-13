@@ -194,9 +194,12 @@ The web follows the Markdown: the page's next rebuild draws it again from there.
 ## Bug reports
 
 `report_bug` (any active member, web only, never a tool or an MCP action) takes a title, a
-description and the page the person was on. It saves a row in `bug_reports` at once and judges it
+description, the page the person was on and, sent by the app itself, a short environment line
+(browser, screen width, theme, language; nothing that identifies the person, 300 characters at
+most). The Settings dialog adds it on its own; the chat adds it when the person confirms the
+proposal, since the model can't know the browser. It saves a row in `bug_reports` at once and judges it
 in the background, like `write_page`: one model call, no loop (`app/bugs.py`), on the instance's
-own key (`get_llm()`). The verdict is `{genuine, severity, title, body, reason}`: the title and
+own key (`get_llm()`). The verdict is `{genuine, severity, kind, title, body, reason}`, where `kind` is `bug` or `enhancement` (a feature request or an idea): the title and
 body are rewritten for a developer without personal data, and the reason is kept. The row's
 `status` says where it ended up:
 
@@ -208,7 +211,7 @@ body are rewritten for a developer without personal data, and the reason is kept
 | `failed` | The model or GitHub failed; the report is kept. |
 
 A genuine report becomes an issue through GitHub's REST API (`POST /repos/{owner}/{repo}/issues`,
-plain `httpx`), labelled `bug-report` and `severity:low|medium|high`. Set `GITHUB_TOKEN` (a
+plain `httpx`), labelled `bug-report`, `severity:low|medium|high` and `bug` or `enhancement`, with an `Environment:` line next to the page. The judge sees the environment as context. Set `GITHUB_TOKEN` (a
 fine-grained token with only "Issues: read and write" on that repo) and `GITHUB_REPO`
 (`owner/name`) in the server's `.env`; they never reach the browser. A student may send
 `bug_report_daily_limit` reports a day (default 5, set in `settings`); admins have no cap.
@@ -219,7 +222,8 @@ Before judging, the backend lists the repo's open issues (`GET /repos/{owner}/{r
 requests skipped, at most 30 titles) and hands them to the same judging call, which answers
 `duplicate_of`: the number of an issue that is the same problem, or null. A duplicate is not
 opened again: a short comment goes on the existing issue ("Another person reported this: ...",
-never a name or an email), and the report is `issue` with that issue's link and
+never a name or an email) that also says how many people have reported it, counted from our own
+table ("Reported by 3 people so far."), and the report is `issue` with that issue's link and
 `verdict.duplicate_of`. If the list can't be fetched, the report is filed normally. The token
 needs only Issues read and write.
 
@@ -230,7 +234,7 @@ pending, failed or discarded report now, skipping the genuine check, through the
 (a discarded or failed one with no write-up is judged once more for a clean title and body), or
 discard it; a filed report can't be filed again or discarded. The UI is `/admin/reports`.
 
-Apply `supabase/migrations/20261013120000_bug_reports.sql` before deploying.
+Apply `supabase/migrations/20261013120000_bug_reports.sql` and `supabase/migrations/20261013140000_bug_report_environment.sql` before deploying.
 
 ## Decisions taken
 

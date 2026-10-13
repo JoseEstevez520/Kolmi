@@ -166,8 +166,8 @@ export const api = {
 
   // Report a problem with the app; it is judged in the background. myBugReports shows where
   // each of the person's reports ended up.
-  reportBug: ({ title, body, page_path }) =>
-    request('/bugs', { method: 'POST', body: { title, body, page_path } }),
+  reportBug: ({ title, body, page_path, environment }) =>
+    request('/bugs', { method: 'POST', body: { title, body, page_path, environment } }),
   myBugReports: () => request('/bugs/mine'),
   // The admin's queue of every report.
   adminBugReports: () => request('/bugs/reports'),

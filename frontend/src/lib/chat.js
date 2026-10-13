@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { api } from './api.js'
 import { ready, session } from './auth.js'
 import { flatten } from './content.js'
+import { describeEnvironment } from './environment.js'
 import { t } from './i18n.js'
 
 // The titles of the pages an answer cites, for its "From: ..." line; the tree is already kept
@@ -242,7 +243,10 @@ async function decide(p, request) {
 }
 
 // `args` is sent only when the person changed them, as the endpoint expects.
+// The model can't know the browser, so a bug report gets its environment here, at confirm time,
+// the way an edit would: the backend validates and runs those args instead of the stored ones.
 export function confirmProposal(p, args) {
+  if (p.tool === 'report_bug') args = { ...args, environment: describeEnvironment() }
   const edited = JSON.stringify(args) !== JSON.stringify(p.args)
   return decide(p, () => api.confirmChatProposal(p.id, edited ? args : undefined))
 }

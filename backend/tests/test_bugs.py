@@ -122,7 +122,7 @@ def test_a_genuine_report_becomes_an_issue_with_its_severity():
     assert row["issue_url"] == "https://github.com/o/r/issues/7"
     url, kw = http.calls[0]
     assert url == "https://api.github.com/repos/o/r/issues"
-    assert "severity:high" in kw["json"]["labels"]
+    assert kw["json"]["labels"] == ["bug-report", "severity:high", "bug"]
     assert kw["headers"]["Authorization"] == "Bearer t0k"
     assert row["verdict"]["reason"] == "Clear steps."
 
@@ -237,7 +237,7 @@ def test_an_admin_files_a_pending_report_and_a_discarded_one_through_the_judge(m
     http = _Http(open_issues=[])
     monkeypatch.setattr(bugs, "open_issues", lambda h=None: [])
     monkeypatch.setattr(bugs, "get_llm", lambda: FakeLLM(json_response={**GENUINE, "title": "Clean", "body": "Clean body"}))
-    monkeypatch.setattr(bugs, "create_issue", lambda v, p, h=None: http.calls.append(v.title) or "https://github.com/o/r/issues/9")
+    monkeypatch.setattr(bugs, "create_issue", lambda v, p, h=None, environment=None: http.calls.append(v.title) or "https://github.com/o/r/issues/9")
     client = _admin_client()
     admin = _ctx(client, "admin")
     out = invoke(get_registry()["file_bug_report"], admin, {"id": 2})
@@ -266,3 +266,65 @@ def test_an_admin_discards_with_a_reason_but_not_a_filed_report():
     with pytest.raises(HTTPException) as err:
         invoke(get_registry()["discard_bug_report"], admin, {"id": 3})
     assert err.value.status_code == 409
+
+
+def test_the_environment_is_stored_on_one_line_and_reaches_the_judge_and_the_issue():
+    client, http, seen = _Client(), _Http(), []
+    invoke(get_registry()["report_bug"], _ctx(client), {
+        "title": "T", "body": "B", "page_path": "/node/2",
+        "environment": "Chrome 130 on Linux,\n390px, dark theme, en",
+    })
+    assert client.reports[0]["environment"] == "Chrome 130 on Linux, 390px, dark theme, en"
+    llm = FakeLLM(json_response=GENUINE)
+    orig = llm.complete_json
+    llm.complete_json = lambda system, user: (seen.append(user), orig(system, user))[1]
+    bugs.process_report(client, 1, title="T", body="B", page_path="/node/2",
+                        environment=client.reports[0]["environment"], llm=llm, http=http)
+    assert "Environment: Chrome 130 on Linux, 390px, dark theme, en" in seen[0]
+    assert "Environment: Chrome 130 on Linux, 390px, dark theme, en" in http.calls[0][1]["json"]["body"]
+
+
+def test_without_an_environment_the_issue_has_no_such_line():
+    client, http = _Client(), _Http()
+    _report(client)
+    _process(client, GENUINE, http)
+    assert "Environment:" not in http.calls[0][1]["json"]["body"]
+
+
+def test_an_enhancement_is_labelled_so_and_an_unknown_kind_is_not_accepted():
+    client, http = _Client(), _Http()
+    _report(client)
+    _process(client, {**GENUINE, "kind": "enhancement"}, http)
+    assert http.calls[0][1]["json"]["labels"][-1] == "enhancement"
+    assert bugs.Verdict.model_validate({"genuine": True}).kind == "bug"
+    with pytest.raises(Exception):
+        bugs.Verdict.model_validate({"genuine": True, "kind": "praise"})
+
+
+def test_a_duplicate_comment_says_how_many_people_reported_it():
+    url = "https://github.com/o/r/issues/3"
+    client = _Client([
+        {"id": 1, "user_id": "u2", "issue_url": url, "status": "issue"},
+        {"id": 2, "user_id": "u3", "issue_url": url, "status": "issue"},
+        {"id": 3, "user_id": "u4", "issue_url": "https://github.com/o/r/issues/8", "status": "issue"},
+    ])
+    http = _Http(open_issues=OPEN)
+    invoke(get_registry()["report_bug"], _ctx(client), {"title": "T", "body": "B"})
+    bugs.process_report(client, 4, title="T", body="B", page_path=None, llm=FakeLLM(json_response={**GENUINE, "duplicate_of": 3}), http=http)
+    body = http.calls[0][1]["json"]["body"]
+    assert body.endswith("Reported by 3 people so far.")
+    assert "u1" not in body and "@" not in body
+
+
+def test_the_first_duplicate_has_no_count_and_the_admin_path_counts_too(monkeypatch):
+    url = "https://github.com/o/r/issues/3"
+    client, http = _Client(), _Http(open_issues=OPEN)
+    _report(client)
+    _process(client, {**GENUINE, "duplicate_of": 3}, http)
+    assert "Reported by" not in http.calls[0][1]["json"]["body"]
+    # Another report of the same problem, filed by an admin.
+    client.reports.append({"id": 2, "user_id": "u2", "title": "B", "body": "raw", "status": "pending",
+                           "verdict": {**GENUINE, "duplicate_of": 3}})
+    bugs.file_by_admin(client, client.reports[1], http=http)
+    assert http.calls[-1][1]["json"]["body"].endswith("Reported by 2 people so far.")
+    assert client.reports[1]["issue_url"] == url

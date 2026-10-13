@@ -9,13 +9,14 @@ from ..class_settings import read_settings
 from ..passes.schedule import today_start
 from .registry import action
 
-REPORT_COLUMNS = "id, title, status, page_path, verdict, issue_url, created_at"
+REPORT_COLUMNS = "id, title, status, page_path, environment, verdict, issue_url, created_at"
 
 
 class ReportBugParams(BaseModel):
     title: str = Field(..., min_length=1, max_length=200, description="A short title for the problem.")
     body: str = Field(..., min_length=1, max_length=5000, description="What happened, what was expected and the steps to see it.")
     page_path: str | None = Field(None, max_length=500, description="The page of the app the person was on, like /node/12.")
+    environment: str | None = Field(None, max_length=300, description="Browser, screen width, theme and language, sent by the web app itself; leave it out.")
 
 
 def _within_the_cap(ctx: Context) -> None:
@@ -47,6 +48,8 @@ def report_bug(ctx: Context, params: ReportBugParams):
     if not title or not body:
         raise HTTPException(422, "Add a title and a description")
     _within_the_cap(ctx)
+    # One line, so it can't add markdown or a second paragraph to the issue.
+    environment = " ".join((params.environment or "").split()) or None
     row = (
         ctx.client.table("bug_reports")
         .insert(
@@ -55,13 +58,16 @@ def report_bug(ctx: Context, params: ReportBugParams):
                 "title": title,
                 "body": body,
                 "page_path": params.page_path,
+                "environment": environment,
                 "status": "pending",
             }
         )
         .execute()
         .data[0]
     )
-    start_report(ctx.client, row["id"], title=title, body=body, page_path=params.page_path)
+    start_report(
+        ctx.client, row["id"], title=title, body=body, page_path=params.page_path, environment=environment
+    )
     return {"id": row["id"], "status": "queued"}
 
 
@@ -75,6 +81,7 @@ def _report(row: dict[str, Any]) -> dict[str, Any]:
         "reason": verdict.get("reason"),
         "issue_url": row.get("issue_url"),
         "page_path": row.get("page_path"),
+        "environment": row.get("environment"),
         "created_at": row.get("created_at"),
     }
 

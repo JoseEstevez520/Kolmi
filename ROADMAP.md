@@ -255,10 +255,12 @@ Same tools, same loop, another trigger.
   browser. One call that judges a report, no loop. Small and apart from the chat, so it can come
   earlier. Done: the author sees where each report ended up (status, reason, issue link) in the
   same dialog. See [docs/tools.md](docs/tools.md#bug-reports). Apply
-  `supabase/migrations/20261013120000_bug_reports.sql` before deploying, and set `GITHUB_TOKEN`
+  `supabase/migrations/20261013120000_bug_reports.sql` and
+  `20261013140000_bug_report_environment.sql` before deploying, and set `GITHUB_TOKEN`
   and `GITHUB_REPO` to file issues. Also done: a duplicate check (the judge sees up
   to 30 open issue titles; a duplicate becomes a comment on the existing issue), and an admin
-  queue at `/admin/reports` to issue or discard any report. Left: the daily cap in the admin
+  queue at `/admin/reports` to issue or discard any report. Issues also carry the browser environment, a bug/enhancement label and, on a
+  duplicate, how many people reported it. Left: the daily cap in the admin
   panel.
 - [ ] **A forum** — one shared space for the class (not per page: a class is small, scattered
   threads get no traffic), for doubts and requests alike, not just notes. Kolmi is a participant

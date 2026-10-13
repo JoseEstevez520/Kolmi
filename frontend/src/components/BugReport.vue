@@ -13,6 +13,7 @@ import {
   Textarea,
 } from 'elastic-ui'
 import { api } from '../lib/api.js'
+import { describeEnvironment } from '../lib/environment.js'
 
 // Report a problem with the app. Rare and technical, so it hangs off Settings, not the sidebar.
 // A report is judged in the background; the person's own reports below show where each ended up.
@@ -77,6 +78,7 @@ async function send() {
     await api.reportBug({
       title: title.value.trim(),
       body: body.value.trim(),
+      environment: describeEnvironment(),
     })
     sent.value = true
     title.value = ''
