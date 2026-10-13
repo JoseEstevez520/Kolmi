@@ -144,14 +144,16 @@ def _read_page(client):
 
 def _gate(ctx: Context, params: AskChatParams) -> tuple[dict[str, Any], str]:
     """The checks before a question is answered, the same for both ways in: the class's settings,
-    the daily limit and a question to answer."""
+    the daily limit (not for admins) and a question to answer."""
     settings = read_settings(ctx.client)
     if not settings.get("chat_enabled"):
         raise HTTPException(403, "The chat is off for this class")
 
-    limit = settings.get("chat_daily_limit", 20)
-    if _messages_today(ctx.client, ctx.user_id) >= limit:
-        raise HTTPException(429, "You've reached today's limit for the chat")
+    # The limit keeps the class's key from running up; an admin runs the instance and has none.
+    if (ctx.profile or {}).get("role") != "admin":
+        limit = settings.get("chat_daily_limit", 20)
+        if _messages_today(ctx.client, ctx.user_id) >= limit:
+            raise HTTPException(429, "You've reached today's limit for the chat")
 
     question = params.question.strip()
     if not question:

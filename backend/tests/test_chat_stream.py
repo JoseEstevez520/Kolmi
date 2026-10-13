@@ -93,6 +93,12 @@ def test_the_checks_fail_before_anything_streams(monkeypatch):
         _stream(monkeypatch, client, FakeLLM())
     assert limit.value.status_code == 429
 
+    # An admin has no limit.
+    client = _Client()
+    client.rows("settings")[0]["chat_daily_limit"] = 0
+    admin = _stream(monkeypatch, client, FakeLLM(), role="admin")
+    assert admin[-1][0] in ("done", "error")
+
     client = _Client()
     client.rows("settings")[0]["chat_enabled"] = False
     with pytest.raises(HTTPException) as off:
