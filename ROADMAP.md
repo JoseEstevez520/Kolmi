@@ -117,9 +117,8 @@ a GitHub repo and writes the class's notes in Kolmi.
   Supabase Auth; the files on shared pages stay. Apply `supabase/migrations/20261007120000_users.sql`
   and `20261008120000_first_admin.sql` before deploying it. See
   [docs/authentication.md](docs/authentication.md).
-- [ ] **Users, what's left** — two small things:
-  - A blocked person with the app open sees the waiting screen only when they navigate; handle a
-    blocking 403 in one place in the API client and send them there.
+- [ ] **Users, what's left** — one small thing (a blocked person with the app open now goes to
+  the waiting screen on their next 403, from the API client; downloads and uploads don't yet):
   - Drop the `approved` column in its own migration, once the status has run stable for a while.
 - [x] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
   (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class. See
@@ -220,17 +219,19 @@ a GitHub repo and writes the class's notes in Kolmi.
   follow-up is searched with what came before), and the conversation is kept in `sessionStorage`,
   so a reload doesn't lose it and a new tab starts clean; sign-out clears it. Nothing is saved on
   the server beyond the log of questions.
-- [ ] **Chat pass 2: streaming and interactive answers** — an answer can be the page catalogue's
-  own parts (`frontend/src/lib/openui`, `docs/page-format.md`): `Text`, `Table`, `Chart`, `Steps`,
-  `Callout`, `Cards`, `CodeBlock`; no `Diagram` or `Artifact` at first, as both need a second,
-  slower call to draw. Plus `Sources` and `Proposal`, the tool card from above, on `onAction`.
-  - The transport first, as `<Renderer :is-streaming>` is only the drawing half: a streaming
-    method with tools on `LLM`, an async `POST /chat/stream` over SSE (`status`, `token`,
-    `proposal`, `done`, `error`) and a frontend reading it with `fetch` (`EventSource` can't send
-    the auth header).
-  - Settle with a small test first how `Query()` and a `toolProvider` of real Kolmi reads behave.
-  - If the OpenUI Lang doesn't parse, the answer shows as Markdown. The session keeps the source,
-    to draw it again.
+- [x] **Chat pass 2: streaming and interactive answers** — an answer is an OpenUI Lang program
+  (`root = Answer([...])`) drawn as it streams, from the page catalogue's own parts: `Text`,
+  `Callout`, `Steps`, `Table`, `Chart`, `Cards`, `CodeBlock`; no `Diagram` or `Artifact`, as both
+  need a second, slower call. Parts carry references, never copied content: `Sources([ids])` loads
+  each page by id and links it, `Proposal(id)` is the tool card (`ChatProposal`). Looked at
+  `Query()` and a `toolProvider` first; parts that load their own data by id are simpler and the
+  model never copies content.
+  - `POST /chat/stream` over SSE (`status`, `token`, `proposal`, `done`, `error`), read in the
+    browser with `fetch`, as `EventSource` can't send the auth header. `/chat` stays as it was.
+  - If the program doesn't parse or has no `Answer` root, the answer shows as Markdown.
+  - Left: try it with a real model on a few phrasings (only fakes cover it so far), keep the
+    session's source to draw it again, and add `Answer`, `Sources` and `Proposal` to
+    `page.spec.json` so the prompt and the catalogue come from one place.
 
 ## After: new agents on the same base
 
