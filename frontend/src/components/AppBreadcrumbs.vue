@@ -19,6 +19,7 @@ const SCREENS = {
   'admin-content': 'sidebar.admin',
   'admin-people': 'sidebar.admin',
   'admin-class': 'sidebar.admin',
+  'admin-reports': 'sidebar.admin',
   'admin-log': 'sidebar.aiLog',
 }
 

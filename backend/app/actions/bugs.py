@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
 from ..auth import Context
-from ..bugs import start_report
+from ..bugs import file_by_admin, github_configured, start_report
 from ..class_settings import read_settings
 from ..passes.schedule import today_start
 from .registry import action
@@ -96,3 +96,83 @@ def my_bug_reports(ctx: Context, params: None):
         .data
     )
     return [_report(r) for r in rows]
+
+
+class ReportIdParams(BaseModel):
+    id: int = Field(..., description="The bug report's id, from list_bug_reports.")
+
+
+class DiscardReportParams(ReportIdParams):
+    reason: str | None = Field(None, max_length=500, description="Why it is discarded; the author sees it.")
+
+
+def _author(row: dict[str, Any]) -> str | None:
+    profile = row.get("profiles")
+    if isinstance(profile, list):
+        profile = profile[0] if profile else None
+    return (profile or {}).get("name")
+
+
+@action(
+    name="list_bug_reports",
+    read_only=True,
+    description="Every bug report from the class, any status, newest first: the author's name, title, what they wrote, status (pending, issue, discarded or failed), the judge's reason and the issue link. Admin only.",
+    method="GET",
+    path="/bugs/reports",
+    min_role="admin",
+)
+def list_bug_reports(ctx: Context, params: None):
+    rows = (
+        ctx.client.table("bug_reports")
+        .select(f"{REPORT_COLUMNS}, body, profiles(name)")
+        .order("created_at", desc=True)
+        .limit(200)
+        .execute()
+        .data
+    )
+    return [{**_report(r), "author": _author(r), "body": r.get("body")} for r in rows]
+
+
+def _find(ctx: Context, report_id: int) -> dict[str, Any]:
+    rows = ctx.client.table("bug_reports").select("*").eq("id", report_id).execute().data
+    if not rows:
+        raise HTTPException(404, "No such bug report")
+    return rows[0]
+
+
+@action(
+    name="file_bug_report",
+    description="File a pending, failed or discarded bug report as a GitHub issue now, without the genuine check (or as a comment on the open issue it repeats). Admin only, confirmed.",
+    params=ReportIdParams,
+    path="/bugs/file",
+    requires_confirmation=True,
+    min_role="admin",
+)
+def file_bug_report(ctx: Context, params: ReportIdParams):
+    row = _find(ctx, params.id)
+    if row["status"] == "issue":
+        raise HTTPException(409, "That report is already filed")
+    if not github_configured():
+        raise HTTPException(409, "GitHub isn't set up on this server: add GITHUB_TOKEN and GITHUB_REPO")
+    try:
+        url = file_by_admin(ctx.client, row)
+    except Exception as exc:
+        raise HTTPException(502, "Could not file the report; try again later") from exc
+    return {"id": row["id"], "status": "issue", "issue_url": url}
+
+
+@action(
+    name="discard_bug_report",
+    description="Discard a bug report that is not an issue to file. The author sees the status and the reason. Admin only, confirmed. A filed report can't be discarded.",
+    params=DiscardReportParams,
+    path="/bugs/discard",
+    requires_confirmation=True,
+    min_role="admin",
+)
+def discard_bug_report(ctx: Context, params: DiscardReportParams):
+    row = _find(ctx, params.id)
+    if row["status"] == "issue":
+        raise HTTPException(409, "That report is already filed")
+    verdict = {**(row.get("verdict") or {}), "reason": (params.reason or "").strip() or "Discarded by an admin."}
+    ctx.client.table("bug_reports").update({"status": "discarded", "verdict": verdict}).eq("id", row["id"]).execute()
+    return {"id": row["id"], "status": "discarded"}

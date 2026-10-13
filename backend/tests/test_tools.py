@@ -50,7 +50,7 @@ def test_the_mcp_only_offers_tools():
 
 def test_some_actions_are_never_tools():
     registry = get_registry()
-    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account", "report_bug", "my_bug_reports"):
+    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account", "report_bug", "my_bug_reports", "list_bug_reports", "file_bug_report", "discard_bug_report"):
         assert not registry[name].tool
         assert not registry[name].mcp
     for name in ("update_settings", "get_settings", "register_profile", "get_profile"):

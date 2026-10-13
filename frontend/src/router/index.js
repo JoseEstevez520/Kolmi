@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { chatEnabled, loadChatEnabled, setChatPage } from '../lib/chat.js'
 import { openChatWide } from '../lib/chatPanel.js'
 import { authReady, isWaiting, loadProfile, session } from '../lib/auth.js'
+import AdminReportsView from '../views/AdminReportsView.vue'
 import AdminLogView from '../views/AdminLogView.vue'
 import AdminClassView from '../views/AdminClassView.vue'
 import AdminContentView from '../views/AdminContentView.vue'
@@ -65,6 +66,7 @@ const routes = [
       { path: 'content', name: 'admin-content', component: AdminContentView },
       { path: 'people', name: 'admin-people', component: AdminPeopleView },
       { path: 'class', name: 'admin-class', component: AdminClassView },
+      { path: 'reports', name: 'admin-reports', component: AdminReportsView },
     ],
   },
   {

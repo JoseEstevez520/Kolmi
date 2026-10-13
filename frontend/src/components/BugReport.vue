@@ -119,6 +119,8 @@ async function send() {
           <Input v-model="pagePath" maxlength="500" />
         </Field>
 
+        <p class="m-0 text-meta text-fg-faint">{{ t('bug.privacy') }}</p>
+
         <StatusText v-if="sent" :text="t('bug.sent')" />
         <StatusText v-if="error" :text="error" error />
 

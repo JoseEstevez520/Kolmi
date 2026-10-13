@@ -5,14 +5,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { PageTransition, Tabs, TabsList, TabsTrigger } from 'elastic-ui'
 import PageLayout from '../components/PageLayout.vue'
 
-// The admin panel: a title, a selector for its three pages (content, users, the class) and the
+// The admin panel: a title, a selector for its pages (content, users, the class, bug reports) and the
 // page itself below. Each page is its own route, so it can be linked and Back works; the selector
 // is bound to the route, so it follows the address in both directions.
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const SECTIONS = ['content', 'people', 'class']
+const SECTIONS = ['content', 'people', 'class', 'reports']
 
 const section = computed({
   get: () => String(route.name).replace('admin-', ''),

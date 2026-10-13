@@ -247,8 +247,7 @@ Same tools, same loop, another trigger.
 - [x] **Report a bug in the app, watched by an agent** — for the app itself, to this repo's
   maintainer, not the teacher: a quiet link in Settings (not the sidebar — this is rare and
   technical), logged, judged by an agent before it becomes a real GitHub issue: genuine or a
-  troll, how serious (no duplicate check against open issues yet, that needs read access and more
-  context; skip it for a first cut). The same shape as the gatekeeper's pass (a row, an agent's
+  troll, how serious, and whether it repeats an open issue. The same shape as the gatekeeper's pass (a row, an agent's
   verdict, the reason kept) — a discarded report is `Status` "discarded" in grey, not an error.
   Runs on the instance's own model key (the gatekeeper's), not the optional chat key, so it needs
   the same kind of daily cap per student the chat does, to keep spam cheap to shrug off. The
@@ -257,8 +256,10 @@ Same tools, same loop, another trigger.
   earlier. Done: the author sees where each report ended up (status, reason, issue link) in the
   same dialog. See [docs/tools.md](docs/tools.md#bug-reports). Apply
   `supabase/migrations/20261013120000_bug_reports.sql` before deploying, and set `GITHUB_TOKEN`
-  and `GITHUB_REPO` to file issues. Left: a duplicate check against open issues, an admin view of
-  reports waiting without a token, and the daily cap in the admin panel.
+  and `GITHUB_REPO` to file issues. Also done: a duplicate check (the judge sees up
+  to 30 open issue titles; a duplicate becomes a comment on the existing issue), and an admin
+  queue at `/admin/reports` to issue or discard any report. Left: the daily cap in the admin
+  panel.
 - [ ] **A forum** — one shared space for the class (not per page: a class is small, scattered
   threads get no traffic), for doubts and requests alike, not just notes. Kolmi is a participant
   in it, not a separate bolted-on checker: a role ("you are Kolmi, you help this class"), given

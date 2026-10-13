@@ -213,7 +213,22 @@ fine-grained token with only "Issues: read and write" on that repo) and `GITHUB_
 (`owner/name`) in the server's `.env`; they never reach the browser. A student may send
 `bug_report_daily_limit` reports a day (default 5, set in `settings`); admins have no cap.
 `my_bug_reports` (read only, not a tool) lists the caller's own reports with status, reason and
-issue link. No duplicate check against open issues yet.
+issue link.
+
+Before judging, the backend lists the repo's open issues (`GET /repos/{owner}/{repo}/issues`, pull
+requests skipped, at most 30 titles) and hands them to the same judging call, which answers
+`duplicate_of`: the number of an issue that is the same problem, or null. A duplicate is not
+opened again: a short comment goes on the existing issue ("Another person reported this: ...",
+never a name or an email), and the report is `issue` with that issue's link and
+`verdict.duplicate_of`. If the list can't be fetched, the report is filed normally. The token
+needs only Issues read and write.
+
+Admins see the whole queue. `list_bug_reports` (read only, admin, not a tool) returns every report
+with its author's name, status, reason and issue link. `file_bug_report(id)` and
+`discard_bug_report(id, reason?)` (admin, confirmed, web only, never a tool or MCP) file a
+pending, failed or discarded report now, skipping the genuine check, through the same filing path
+(a discarded or failed one with no write-up is judged once more for a clean title and body), or
+discard it; a filed report can't be filed again or discarded. The UI is `/admin/reports`.
 
 Apply `supabase/migrations/20261013120000_bug_reports.sql` before deploying.
 

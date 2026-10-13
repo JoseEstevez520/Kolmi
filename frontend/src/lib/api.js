@@ -169,6 +169,10 @@ export const api = {
   reportBug: ({ title, body, page_path }) =>
     request('/bugs', { method: 'POST', body: { title, body, page_path } }),
   myBugReports: () => request('/bugs/mine'),
+  // The admin's queue of every report.
+  adminBugReports: () => request('/bugs/reports'),
+  fileBugReport: ({ id }) => request('/bugs/file', { method: 'POST', body: { id } }),
+  discardBugReport: ({ id, reason }) => request('/bugs/discard', { method: 'POST', body: { id, reason } }),
 
   // Browsing: the whole tree, and one node with its children (and, for a page,
   // its text).

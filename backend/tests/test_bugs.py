@@ -52,14 +52,27 @@ class _Table:
 
 
 class _Http:
-    def __init__(self, status=201):
-        self.status, self.calls = status, []
+    def __init__(self, status=201, open_issues=None, list_status=200):
+        self.status, self.calls, self.gets = status, [], []
+        self.open_issues, self.list_status = open_issues, list_status
+
+    def get(self, url, **kw):
+        self.gets.append((url, kw))
+        if self.open_issues is None:
+            raise RuntimeError("network down")
+        return SimpleNamespace(status_code=self.list_status, json=lambda: self.open_issues)
 
     def post(self, url, **kw):
         self.calls.append((url, kw))
         return SimpleNamespace(
             status_code=self.status, json=lambda: {"html_url": "https://github.com/o/r/issues/7"}
         )
+
+
+OPEN = [
+    {"number": 3, "title": "Saving fails", "html_url": "https://github.com/o/r/issues/3"},
+    {"number": 4, "title": "A pull request", "html_url": "x", "pull_request": {}},
+]
 
 
 GENUINE = {"genuine": True, "severity": "high", "title": "Save fails", "body": "Saving a note fails.", "reason": "Clear steps."}
@@ -158,3 +171,98 @@ def test_my_reports_show_where_each_ended_up():
     ])
     out = invoke(get_registry()["my_bug_reports"], _ctx(client), None)
     assert [(r["id"], r["status"], r["reason"]) for r in out] == [(1, "discarded", "Joke")]
+
+
+def test_a_duplicate_comments_on_the_existing_issue():
+    client, http = _Client(), _Http(open_issues=OPEN)
+    _report(client)
+    row = _process(client, {**GENUINE, "duplicate_of": 3}, http)
+    assert row["status"] == "issue" and row["issue_url"] == "https://github.com/o/r/issues/3"
+    assert row["verdict"]["duplicate_of"] == 3
+    url, kw = http.calls[0]
+    assert url == "https://api.github.com/repos/o/r/issues/3/comments" and len(http.calls) == 1
+    assert kw["json"]["body"].startswith("Another person reported this: Save fails.")
+
+
+def test_the_judge_only_sees_issues_not_pull_requests_and_an_unknown_number_is_ignored():
+    seen = []
+    llm = FakeLLM(json_response={**GENUINE, "duplicate_of": 99})
+    orig = llm.complete_json
+    llm.complete_json = lambda system, user: (seen.append(user), orig(system, user))[1]
+    client, http = _Client(), _Http(open_issues=OPEN)
+    _report(client)
+    bugs.process_report(client, 1, title="T", body="B", page_path=None, llm=llm, http=http)
+    assert "#3: Saving fails" in seen[0] and "pull request" not in seen[0]
+    assert client.reports[0]["verdict"]["duplicate_of"] is None
+    assert http.calls[0][0].endswith("/repos/o/r/issues")
+
+
+def test_if_the_candidates_cannot_be_fetched_it_files_normally():
+    for http in (_Http(), _Http(open_issues=[], list_status=403)):
+        client = _Client()
+        _report(client)
+        row = _process(client, GENUINE, http)
+        assert row["status"] == "issue" and http.calls[0][0].endswith("/repos/o/r/issues")
+
+
+def test_the_candidates_are_capped():
+    many = [{"number": n, "title": f"T{n}", "html_url": "u"} for n in range(1, 50)]
+    assert len(bugs.open_issues(_Http(open_issues=many))) == bugs.MAX_CANDIDATES
+
+
+def _admin_client():
+    return _Client([
+        {"id": 1, "user_id": "u1", "title": "A", "body": "raw A", "status": "discarded", "verdict": {"reason": "Joke"}, "profiles": {"name": "Ana"}},
+        {"id": 2, "user_id": "u2", "title": "B", "body": "raw B", "status": "pending",
+         "verdict": {**GENUINE}, "profiles": [{"name": "Bo"}]},
+        {"id": 3, "user_id": "u2", "title": "C", "body": "raw C", "status": "issue", "issue_url": "u"},
+    ])
+
+
+def test_only_an_admin_lists_files_or_discards():
+    client = _admin_client()
+    for name, args in (("list_bug_reports", None), ("file_bug_report", {"id": 2}), ("discard_bug_report", {"id": 2})):
+        with pytest.raises(HTTPException) as err:
+            invoke(get_registry()[name], _ctx(client), args)
+        assert err.value.status_code == 403
+
+
+def test_an_admin_lists_every_report_with_its_author():
+    out = invoke(get_registry()["list_bug_reports"], _ctx(_admin_client(), "admin"), None)
+    assert [(r["id"], r["author"], r["status"]) for r in out] == [(1, "Ana", "discarded"), (2, "Bo", "pending"), (3, None, "issue")]
+    assert out[0]["reason"] == "Joke"
+
+
+def test_an_admin_files_a_pending_report_and_a_discarded_one_through_the_judge(monkeypatch):
+    http = _Http(open_issues=[])
+    monkeypatch.setattr(bugs, "open_issues", lambda h=None: [])
+    monkeypatch.setattr(bugs, "get_llm", lambda: FakeLLM(json_response={**GENUINE, "title": "Clean", "body": "Clean body"}))
+    monkeypatch.setattr(bugs, "create_issue", lambda v, p, h=None: http.calls.append(v.title) or "https://github.com/o/r/issues/9")
+    client = _admin_client()
+    admin = _ctx(client, "admin")
+    out = invoke(get_registry()["file_bug_report"], admin, {"id": 2})
+    assert out["issue_url"].endswith("/9") and client.reports[1]["status"] == "issue"
+    invoke(get_registry()["file_bug_report"], admin, {"id": 1})
+    assert http.calls == ["Save fails", "Clean"]
+    assert client.reports[0]["status"] == "issue"
+    with pytest.raises(HTTPException) as err:
+        invoke(get_registry()["file_bug_report"], admin, {"id": 3})
+    assert err.value.status_code == 409
+
+
+def test_filing_by_hand_needs_github(monkeypatch):
+    monkeypatch.setattr(bug_actions, "github_configured", lambda: False)
+    with pytest.raises(HTTPException) as err:
+        invoke(get_registry()["file_bug_report"], _ctx(_admin_client(), "admin"), {"id": 2})
+    assert err.value.status_code == 409
+
+
+def test_an_admin_discards_with_a_reason_but_not_a_filed_report():
+    client = _admin_client()
+    admin = _ctx(client, "admin")
+    invoke(get_registry()["discard_bug_report"], admin, {"id": 2, "reason": "Not ours"})
+    assert client.reports[1]["status"] == "discarded" and client.reports[1]["verdict"]["reason"] == "Not ours"
+    assert client.reports[1]["verdict"]["severity"] == "high"
+    with pytest.raises(HTTPException) as err:
+        invoke(get_registry()["discard_bug_report"], admin, {"id": 3})
+    assert err.value.status_code == 409
