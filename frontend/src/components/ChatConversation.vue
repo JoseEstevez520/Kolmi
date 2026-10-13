@@ -8,6 +8,7 @@ import {
   proposalState,
   sourceTitles,
 } from '../lib/chat.js'
+import ChatAnswer from './ChatAnswer.vue'
 import { toolIcon, toolLabel } from '../lib/chatTools.js'
 
 // The conversation's messages, drawn once for both places that show it: the floating bubble and
@@ -29,6 +30,9 @@ const { t } = useI18n()
           <span class="text-[color:var(--color-danger)]">{{ m.error }}</span>
         </template>
         <StatusText v-else-if="!m.text" :text="m.status" working />
+        <!-- An answer the backend marks `openui` is an OpenUI Lang program (the chat catalogue),
+             drawn as it streams; anything else is Markdown, as before. -->
+        <ChatAnswer v-else-if="m.format === 'openui'" :text="m.text" :streaming="Boolean(m.streaming)" />
         <Markdown v-else :source="m.text" />
         <!-- What the assistant wants to change: one card each, decided by the person. -->
         <template v-if="m.proposals?.length" #after>

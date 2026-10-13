@@ -238,6 +238,58 @@ export const api = {
   askChat: (question, history = []) =>
     request('/chat', { method: 'POST', body: { question, history } }),
 
+  // The same question as a stream of server-sent events (`status`, `token`, `proposal`, `done`,
+  // `error`), each handed to `onEvent(name, data)`. Read with `fetch`, as `EventSource` can't
+  // send the session header. A refusal before the stream starts (limit, chat off) throws.
+  async streamChat(question, history, onEvent) {
+    const token = accessToken()
+    let response
+    try {
+      response = await fetch(`${BASE_URL}/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ question, history }),
+      })
+    } catch {
+      throw new ApiError(0, t('api.unreachable'))
+    }
+    if (!response.ok || !response.body) {
+      let detail = ''
+      try {
+        detail = (await response.json()).detail
+      } catch {
+        /* no body */
+      }
+      if (response.status === 403) await checkAccess()
+      throw new ApiError(response.status, (typeof detail === 'string' && detail) || t('api.failed'))
+    }
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+    let pending = ''
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      pending += value
+      const events = pending.split('\n\n')
+      pending = events.pop() ?? ''
+      for (const raw of events) {
+        let name = 'message'
+        let data = ''
+        for (const line of raw.split('\n')) {
+          if (line.startsWith('event:')) name = line.slice(6).trim()
+          else if (line.startsWith('data:')) data += line.slice(5).trim()
+        }
+        try {
+          onEvent(name, data ? JSON.parse(data) : {})
+        } catch {
+          /* a malformed event is skipped */
+        }
+      }
+    }
+  },
+
   // A change the chat proposed: confirm it (with `args` only when the person edited them) or
   // cancel it. Both answer with the proposal, as /chat lists it.
   confirmChatProposal: (proposalId, args) => {

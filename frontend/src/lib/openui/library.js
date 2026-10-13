@@ -104,7 +104,7 @@ const lineRanges = (value) => (/^\s*\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*\s
 
 // -- the renderers ---------------------------------------------------------------------------
 
-const renderers = {
+export const renderers = {
   Page: renderer((props, renderNode) => h(Prose, null, () => renderNode(props.blocks ?? []))),
 
   Heading: renderer(({ text = '', level }) =>

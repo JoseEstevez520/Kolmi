@@ -75,6 +75,7 @@ function restore(m) {
   if (m.role === 'assistant' && !m.text && !m.error) {
     return { ...m, status: '', error: t('chat.error') }
   }
+  if (m.streaming) m = { ...m, streaming: false }
   if (!m.proposals) return m
   const proposals = m.proposals.map((p) => ({
     ...p,
@@ -156,18 +157,35 @@ export async function send(text) {
   // mutation as reactive when it goes through the array's own reactive reference, not a plain
   // object held across the await.
   try {
-    const result = await api.askChat(question, history)
-    const reply = messages.value.find((m) => m.id === replyId)
+    const live = () => messages.value.find((m) => m.id === replyId)
+    const first = live()
+    if (first) {
+      first.format = 'openui'
+      first.streaming = true
+      first.proposals = []
+    }
+    let failure = ''
+    await api.streamChat(question, history, (name, data) => {
+      const reply = live()
+      if (!reply) return
+      if (name === 'status') reply.status = data.text
+      else if (name === 'token') {
+        reply.status = ''
+        reply.text += data.text
+      } else if (name === 'proposal') reply.proposals.push(withLocalState(data))
+      else if (name === 'error') failure = data.message || t('chat.error')
+    })
+    const reply = live()
     if (reply) {
-      reply.text = result.answer
-      reply.sources = result.sources ?? []
-      reply.proposals = (result.proposals ?? []).map(withLocalState)
+      reply.streaming = false
       reply.status = ''
+      if (failure) reply.error = failure
     }
   } catch (e) {
     const reply = messages.value.find((m) => m.id === replyId)
     if (reply) {
       reply.status = ''
+      reply.streaming = false
       reply.error = e.message || t('chat.error')
     }
   } finally {

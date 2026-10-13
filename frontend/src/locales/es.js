@@ -148,6 +148,7 @@ export default {
     thinking: 'Pensando…',
     error: 'No se pudo responder',
     sources: 'De: {pages}',
+    sourcesLabel: 'De:',
     greeting: 'Soy Kolmi. Pregúntame lo que quieras sobre la clase.',
     proposal: { failed: 'No se pudo hacer' },
     tools: {

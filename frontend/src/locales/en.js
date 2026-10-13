@@ -151,6 +151,7 @@ export default {
     thinking: 'Thinking…',
     error: "Couldn't answer",
     sources: 'From: {pages}',
+    sourcesLabel: 'From:',
     greeting: "I'm Kolmi. Ask me anything about the class.",
     proposal: { failed: "Couldn't do it" },
     tools: {

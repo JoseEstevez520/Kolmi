@@ -15,8 +15,16 @@ import { COLORS } from './colors.js'
 // (backend/app/agents/web.py): an SVG, and a small Vue piece made of the library's parts.
 
 export const ROOT = 'Page'
+// The root of a chat answer: a smaller catalogue (see CHAT_BLOCKS), same renderers.
+export const CHAT_ROOT = 'Answer'
 
 const DESCRIPTIONS = {
+  Answer:
+    'The whole chat answer: its blocks, top to bottom. Always the root. Short: lead with the answer in a Text, add a visual only when it says it better than a sentence.',
+  Sources:
+    'The pages the answer is drawn from, by id (the ids you were given). The app loads each title and links it, so never copy a title or content. Last block, only when pages were used.',
+  Proposal:
+    'A change you propose, by the id of the proposal you just created with a tool. The app draws it with Confirm and Cancel; the person decides. Never describe the change in prose as well.',
   Page: 'The whole page: its blocks, top to bottom, in one column. Always the root.',
   Heading:
     'A section heading. The page title is shown already, so level 2 for sections and 3 for subsections. Prefer role headings that say what kind of section it is.',
@@ -82,7 +90,7 @@ const icon = z.string().optional().describe('An icon name from the icon set')
 const layout = z.enum(['row', 'column', 'grid']).optional()
 
 /** Build the catalogue's library with a renderer for each component, by name. */
-export function buildLibrary(renderers) {
+export function buildLibrary(renderers, { chat = false } = {}) {
   const component = (name, props) =>
     defineComponent({ name, props, description: DESCRIPTIONS[name], component: renderers[name] })
 
@@ -370,6 +378,44 @@ export function buildLibrary(renderers) {
   ])
 
   const Page = component('Page', z.object({ blocks: z.array(Block) }))
+
+  // The chat's own parts, and the answer's root: a subset of the blocks above (no Diagram or
+  // Artifact, which a second model draws after the page is written) plus Sources and Proposal.
+  const Sources = component(
+    'Sources',
+    z.object({ ids: z.array(z.number()).describe('The ids of the pages the answer comes from') }),
+  )
+  const Proposal = component(
+    'Proposal',
+    z.object({ id: z.string().describe('The id of the proposal a tool returned') }),
+  )
+  const ChatBlock = z.union([
+    Text.ref,
+    CodeBlock.ref,
+    CodeDiff.ref,
+    Callout.ref,
+    Steps.ref,
+    Table.ref,
+    DescriptionList.ref,
+    Accordion.ref,
+    Cards.ref,
+    Chart.ref,
+    Figure.ref,
+    Sources.ref,
+    Proposal.ref,
+  ])
+  const Answer = component('Answer', z.object({ blocks: z.array(ChatBlock) }))
+
+  if (chat) {
+    return createLibrary({
+      root: CHAT_ROOT,
+      components: [
+        Answer, Text, CodeBlock, CodeDiff, Callout, Steps, StepItem, Table, DescriptionList,
+        DescriptionItem, Accordion, AccordionItem, Cards, Card, Chart, ChartSeries, Figure, Group,
+        Area, Chip, Label, Arrow, Sources, Proposal,
+      ],
+    })
+  }
 
   return createLibrary({
     root: ROOT,
