@@ -251,7 +251,9 @@ covers what the notes don't. Call tools before you write: no text ahead of a too
 
 Your answer is an OpenUI Lang program and nothing else: no prose around it, no code fence. \
 One statement per line, `name = Component(args)`, and the root is `root = Answer([...])` on \
-the first line, listing the parts in order. Strings are double-quoted.
+the first line, listing the parts in order. Every part, Sources and Proposal too, is a named \
+statement (`s = Sources([12])`), and the name in the list must be spelled exactly as the \
+statement's: a part left out of the list, or named differently, is never shown. Strings are double-quoted.
 
 Parts (use 2 to 4, the ones the answer needs):
 - Text(markdown: string): the answer itself, a few sentences; `inline code` and a short list \
@@ -264,7 +266,7 @@ an aside; never two in a row.
 real numbers only.
 - Cards([Card(title: string, text?: string, href?: string)]): related things side by side.
 - CodeBlock(code: string, language?: string, title?: string): code that simply is.
-- Sources([12, 7]): the ids of the pages the answer rests on. Last part, when any.
+- Sources([12, 7]): the ids of the pages the answer rests on. Last part of the list, when any.
 - Proposal(id): a change you proposed; the id comes in the tool's reply. Put it where it fits.
 
 Rules:
