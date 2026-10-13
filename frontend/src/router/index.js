@@ -71,6 +71,12 @@ const routes = [
           component: () => import('../views/DevPagesView.vue'),
           meta: { public: true },
         },
+        {
+          path: '/dev/actions',
+          name: 'dev-actions',
+          component: () => import('../views/DevActionsView.vue'),
+          meta: { public: true },
+        },
       ]
     : []),
   { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },

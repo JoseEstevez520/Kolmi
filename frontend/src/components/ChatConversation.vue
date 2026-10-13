@@ -1,15 +1,9 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { ChatMessage, ChatProposal, ChatThread, Markdown, StatusText } from 'elastic-ui'
-import {
-  cancelProposal,
-  confirmProposal,
-  messages,
-  proposalState,
-  sourceTitles,
-} from '../lib/chat.js'
+import { ChatMessage, ChatThread, Markdown, StatusText } from 'elastic-ui'
+import { messages, sourceTitles } from '../lib/chat.js'
+import ActionProposal from './ActionProposal.vue'
 import ChatAnswer from './ChatAnswer.vue'
-import { toolIcon, toolLabel } from '../lib/chatTools.js'
 
 // The conversation's messages, drawn once for both places that show it: the floating bubble and
 // the full page. The state is the one in lib/chat.js, so both show the same thread.
@@ -36,20 +30,7 @@ const { t } = useI18n()
         <Markdown v-else :source="m.text" />
         <!-- What the assistant wants to change: one card each, decided by the person. -->
         <template v-if="m.proposals?.length" #after>
-          <ChatProposal
-            v-for="p in m.proposals"
-            :key="p.id"
-            :label="toolLabel(p.tool)"
-            :icon="toolIcon(p.tool)"
-            :args="p.args"
-            :state="proposalState(p)"
-            v-model:open="p.open"
-            :destructive="p.destructive"
-            @confirm="(args) => confirmProposal(p, args)"
-            @cancel="cancelProposal(p)"
-          >
-            {{ p.error || p.result }}
-          </ChatProposal>
+          <ActionProposal v-for="p in m.proposals" :key="p.id" :proposal="p" />
         </template>
       </ChatMessage>
       <p v-if="m.sources?.length" class="m-0 text-meta text-fg-faint">

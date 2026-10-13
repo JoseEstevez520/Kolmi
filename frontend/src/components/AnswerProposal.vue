@@ -1,8 +1,7 @@
 <script setup>
 import { computed } from 'vue'
-import { ChatProposal } from 'elastic-ui'
-import { cancelProposal, confirmProposal, messages, proposalState } from '../lib/chat.js'
-import { toolIcon, toolLabel } from '../lib/chatTools.js'
+import { messages } from '../lib/chat.js'
+import ActionProposal from './ActionProposal.vue'
 
 // A proposal the answer points at by id: the same card, state and handlers as the ones the
 // conversation draws from `m.proposals` (ChatConversation.vue). Nothing is drawn until the
@@ -14,17 +13,5 @@ const proposal = computed(() =>
 </script>
 
 <template>
-  <ChatProposal
-    v-if="proposal"
-    :label="toolLabel(proposal.tool)"
-    :icon="toolIcon(proposal.tool)"
-    :args="proposal.args"
-    :state="proposalState(proposal)"
-    v-model:open="proposal.open"
-    :destructive="proposal.destructive"
-    @confirm="(args) => confirmProposal(proposal, args)"
-    @cancel="cancelProposal(proposal)"
-  >
-    {{ proposal.error || proposal.result }}
-  </ChatProposal>
+  <ActionProposal v-if="proposal" :proposal="proposal" />
 </template>
