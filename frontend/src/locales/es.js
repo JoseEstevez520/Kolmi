@@ -148,7 +148,6 @@ export default {
     fieldTitle: 'Qué ha fallado',
     fieldBody: 'Detalles',
     bodyPlaceholder: 'Qué hiciste, qué esperabas y qué pasó.',
-    fieldPage: 'Página',
     send: 'Enviar',
     sent: 'Enviado. Se está leyendo ahora; la lista de abajo muestra en qué queda.',
     limit: 'Ya has enviado bastantes informes por hoy.',

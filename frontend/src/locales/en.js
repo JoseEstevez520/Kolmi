@@ -151,7 +151,6 @@ export default {
     fieldTitle: 'What went wrong',
     fieldBody: 'Details',
     bodyPlaceholder: 'What you did, what you expected and what happened.',
-    fieldPage: 'Page',
     send: 'Send',
     sent: 'Sent. It is being read now; the list below shows what came of it.',
     limit: "You've sent enough reports for today.",

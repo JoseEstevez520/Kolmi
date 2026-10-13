@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 import {
   Button,
   DialogMorph,
@@ -14,34 +13,20 @@ import {
   Textarea,
 } from 'elastic-ui'
 import { api } from '../lib/api.js'
-import { flatten } from '../lib/content.js'
 
 // Report a problem with the app. Rare and technical, so it hangs off Settings, not the sidebar.
 // A report is judged in the background; the person's own reports below show where each ended up.
 const { t } = useI18n()
-const route = useRoute()
 
 const open = ref(false)
 const title = ref('')
 const body = ref('')
-const pagePath = ref('')
 const sending = ref(false)
 const sent = ref(false)
 const error = ref('')
 const reports = ref([])
 const loadError = ref('')
 let timer = null
-
-// The page the person came from is the one they mean, not Settings.
-function currentPath() {
-  return window.history.state?.back || route.fullPath
-}
-
-// The page by name when it is a note, so the person reads "Subnetting" and not "/node/12".
-const pageLabel = computed(() => {
-  const id = Number(/^\/node\/(\d+)/.exec(pagePath.value)?.[1])
-  return flatten().find((node) => node.id === id)?.title || pagePath.value
-})
 
 // A report with no verdict yet is still being judged; one judged and waiting for an admin is
 // flagged. Discarded is a decision, not an error: grey.
@@ -77,7 +62,6 @@ watch(open, (isOpen) => {
   if (!isOpen) return clearTimeout(timer)
   title.value = ''
   body.value = ''
-  pagePath.value = currentPath()
   sent.value = false
   error.value = ''
   load().then(() => judging.value && watchJudging())
@@ -93,7 +77,6 @@ async function send() {
     await api.reportBug({
       title: title.value.trim(),
       body: body.value.trim(),
-      page_path: pagePath.value.trim() || null,
     })
     sent.value = true
     title.value = ''
@@ -121,9 +104,6 @@ async function send() {
         </Field>
         <Field :label="t('bug.fieldBody')">
           <Textarea v-model="body" rows="4" maxlength="5000" :placeholder="t('bug.bodyPlaceholder')" required />
-        </Field>
-        <Field :label="t('bug.fieldPage')">
-          <p class="m-0 text-ui text-fg-muted">{{ pageLabel || '-' }}</p>
         </Field>
 
         <p class="m-0 text-meta text-fg-faint">{{ t('bug.privacy') }}</p>
