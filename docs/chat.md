@@ -49,6 +49,12 @@ slower call to draw.
 4. The web draws the parts as the program arrives. It reads the stream with `fetch`, since
    `EventSource` can't send the auth header.
 
+When the person has a page open (`/node/:id`), the web adds its id to the question as `node_id`.
+The API checks it against the tree it already loaded for that person and puts one line in the
+user part of the prompt: the page's title and id, and a reminder to read it with `read_page` if
+the question is about it. The content is not sent. An id that doesn't exist, or that the person
+can't see, is dropped without a word.
+
 A change is never run by the model. It becomes a row in `chat_proposals` and a card; Confirm is a
 new request. See [tools.md](tools.md).
 

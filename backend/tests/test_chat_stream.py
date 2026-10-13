@@ -108,3 +108,25 @@ def test_the_checks_fail_before_anything_streams(monkeypatch):
     with pytest.raises(HTTPException) as empty:
         _stream(monkeypatch, _Client(), FakeLLM(), question="  ")
     assert empty.value.status_code == 422
+
+
+def _asked(monkeypatch, node_id):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    params = AskChatParams(question="explain this", node_id=node_id)
+    list(stream_chat(_ctx(client), params))
+    return llm.calls[0][2]
+
+
+def test_the_open_page_is_named_not_inlined(monkeypatch):
+    user = _asked(monkeypatch, 20)
+    assert "The person has this page open: Git (id 20). Read it with read_page" in user
+    assert "# Git" not in user
+
+
+def test_an_unknown_page_is_ignored(monkeypatch):
+    assert "has this page open" not in _asked(monkeypatch, 999)
+    assert "has this page open" not in _asked(monkeypatch, None)

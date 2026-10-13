@@ -94,6 +94,10 @@ class AskChatParams(BaseModel):
         max_length=40,
         description="The conversation so far, oldest first: only the last turns are used.",
     )
+    node_id: int | None = Field(
+        default=None,
+        description="The page the person has open, if any. Ignored when it doesn't exist or isn't theirs to see.",
+    )
 
 
 def _recent(history: list[HistoryMessage]) -> list[dict[str, str]]:
@@ -142,6 +146,14 @@ def _read_page(client):
     return read
 
 
+def _open_page(nodes: list[dict[str, Any]], node_id: int | None) -> dict[str, Any] | None:
+    """The page the person has open, from the tree already loaded for them (so one they can't
+    see is simply not there); None when there is none or it isn't in the tree."""
+    if node_id is None:
+        return None
+    return next((n for n in nodes if n["id"] == node_id), None)
+
+
 def _gate(ctx: Context, params: AskChatParams) -> tuple[dict[str, Any], str]:
     """The checks before a question is answered, the same for both ways in: the class's settings,
     the daily limit (not for admins) and a question to answer."""
@@ -186,6 +198,7 @@ def ask_chat(ctx: Context, params: AskChatParams):
         actions=schemas(ctx, "chat"),
         run_action=chat_tool(ctx, proposed),
         history=history,
+        page=_open_page(nodes, params.node_id),
         # The parts of the pages closest to the question; none with the search index off. A
         # follow-up ("and how is that set up?") says little alone, so it is searched with what
         # the person asked just before.
@@ -419,6 +432,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 actions=schemas(ctx, "chat"),
                 run_action=run_action,
                 history=history,
+                page=_open_page(nodes, params.node_id),
                 passages=passages,
             ):
                 if event["type"] == "token":
