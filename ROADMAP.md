@@ -327,7 +327,9 @@ Same tools, same loop, another trigger.
     Hocuspocus or Tiptap's provider on Yjs (the Supabase ones, `y-supabase`, are alpha).
   - Open: its entry in the sidebar, who may watch, whether anyone can be the one writing or the
     admin picks, and what the pass does with a note whose blocks it can't read (it reads the text).
-- [ ] **Chat sessions** — the light memory above lasts as long as the browser tab; sessions keep
+- [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there
+  to ask again. Worth building if it becomes one (saved conversations, answers kept as study
+  material). The light memory above lasts as long as the browser tab; sessions keep
   conversations on the server, listed and reopenable, from any device.
   - `chat_sessions(id, user_id, title, summary, created_at, updated_at)`; `chat_messages` becomes
     one message a row (`session_id`, `role`, `content`, `parts jsonb`), the rows there today
