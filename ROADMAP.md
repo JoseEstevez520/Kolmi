@@ -229,9 +229,16 @@ a GitHub repo and writes the class's notes in Kolmi.
   - `POST /chat/stream` over SSE (`status`, `token`, `proposal`, `done`, `error`), read in the
     browser with `fetch`, as `EventSource` can't send the auth header. `/chat` stays as it was.
   - If the program doesn't parse or has no `Answer` root, the answer shows as Markdown.
-  - Left: try it with a real model on a few phrasings (only fakes cover it so far), keep the
-    session's source to draw it again, and add `Answer`, `Sources` and `Proposal` to
-    `page.spec.json` so the prompt and the catalogue come from one place.
+  - Tried with a real model on the class's own tree. The prompt's parts come from the frontend
+    catalogue (`chat.spec.json`), so they can't drift. The chat's model answers without reasoning
+    (`CHAT_THINKING`), about 15 seconds instead of 40. See [docs/chat.md](docs/chat.md).
+- [x] **A preview for each action** — a proposal shows what it would change inside its card, not
+  a list of arguments: the tree before and after for a move, a diff for a page, the week for a
+  timetable slot, people and their new status, what a delete takes with it. Titles name what they
+  touch. Built on elastic-ui's `ChatProposal` `preview` slot, `NavTree` read-only with `new` and
+  `moved` marks, and its `change` event. Left: previews for the actions that still show the plain
+  card (`write_page_web`, `restore_version`, `run_pass`), and a summary-of-impact part in
+  elastic-ui if it earns its place.
 
 ## After: new agents on the same base
 
