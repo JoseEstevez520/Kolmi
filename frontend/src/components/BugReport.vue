@@ -14,6 +14,7 @@ import {
   Textarea,
 } from 'elastic-ui'
 import { api } from '../lib/api.js'
+import { flatten } from '../lib/content.js'
 
 // Report a problem with the app. Rare and technical, so it hangs off Settings, not the sidebar.
 // A report is judged in the background; the person's own reports below show where each ended up.
@@ -35,6 +36,12 @@ let timer = null
 function currentPath() {
   return window.history.state?.back || route.fullPath
 }
+
+// The page by name when it is a note, so the person reads "Subnetting" and not "/node/12".
+const pageLabel = computed(() => {
+  const id = Number(/^\/node\/(\d+)/.exec(pagePath.value)?.[1])
+  return flatten().find((node) => node.id === id)?.title || pagePath.value
+})
 
 // A report with no verdict yet is still being judged; one judged and waiting for an admin is
 // flagged. Discarded is a decision, not an error: grey.
@@ -116,7 +123,7 @@ async function send() {
           <Textarea v-model="body" rows="4" maxlength="5000" :placeholder="t('bug.bodyPlaceholder')" required />
         </Field>
         <Field :label="t('bug.fieldPage')">
-          <Input v-model="pagePath" maxlength="500" />
+          <p class="m-0 text-ui text-fg-muted">{{ pageLabel || '-' }}</p>
         </Field>
 
         <p class="m-0 text-meta text-fg-faint">{{ t('bug.privacy') }}</p>
