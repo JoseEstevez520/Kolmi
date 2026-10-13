@@ -258,7 +258,7 @@ Parts (use 2 to 4, the ones the answer needs):
 are fine, no headings.
 - Callout(type: "note" | "tip" | "important" | "warning" | "caution", text: string, title?: string): \
 an aside; never two in a row.
-- Steps([Step(title: string, text: string)]): a procedure to follow in order.
+- Steps([StepItem(title: string, text: string)]): a procedure to follow in order.
 - Table(columns: string[], rows: string[][]): two or more things compared on the same points.
 - Chart(label: string, series: [ChartSeries(name: string, points: [{x, y}])], variant?: "line" | "bars" | "points"): \
 real numbers only.
