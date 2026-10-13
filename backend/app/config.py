@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # The chat's own model, optional: a student waits on it, so a faster one may suit it better
     # than the pass's. Same endpoint and key as above; empty, the chat uses `llm_model`.
     chat_model: str = ""
+    # Whether the chat's model reasons before it answers (DeepSeek's `thinking`). Off by default:
+    # most of a 10 to 25 second answer was reasoning, and the chat's answers are short.
+    chat_thinking: bool = False
 
     # The web model, optional: it writes the pages as OpenUI Lang, and when it fails, or isn't
     # set, the model above writes them instead. Any OpenAI-compatible endpoint. web_prompt is

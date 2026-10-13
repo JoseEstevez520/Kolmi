@@ -80,11 +80,17 @@ class OpenAILLM:
     OpenUI Gateway) instead of being sent the whole catalogue.
     """
 
-    def __init__(self, *, api_key: str, base_url: str, model: str, gateway: bool = False) -> None:
+    def __init__(
+        self, *, api_key: str, base_url: str, model: str, gateway: bool = False, thinking: bool = True
+    ) -> None:
         from openai import OpenAI
 
         self.model = model
         self.gateway = gateway
+        # Only DeepSeek's endpoint knows the `thinking` switch; another one would reject it.
+        self._no_thinking = (
+            {"thinking": {"type": "disabled"}} if not thinking and "deepseek" in base_url else None
+        )
         self._client = OpenAI(api_key=api_key, base_url=base_url)
 
     def complete_json(self, system: str, user: str) -> dict[str, Any]:
@@ -174,6 +180,7 @@ class OpenAILLM:
                 tools=tools,
                 temperature=0.2,
                 stream=True,
+                extra_body=self._no_thinking,
             )
             text = ""
             calls: dict[int, dict[str, str]] = {}
@@ -186,6 +193,9 @@ class OpenAILLM:
                     call = calls.setdefault(piece.index, {"id": "", "name": "", "arguments": ""})
                     call["id"] = piece.id or call["id"]
                     if piece.function:
+                        if piece.function.name and not call["name"]:
+                            # Said as soon as the model picks a tool, not when its round ends.
+                            yield {"type": "status", "text": tool_status(piece.function.name, {})}
                         call["name"] += piece.function.name or ""
                         call["arguments"] += piece.function.arguments or ""
                 if delta.content and not calls:
@@ -228,7 +238,11 @@ class OpenAILLM:
         log.warning("still calling tools after %d rounds; asking for the answer", MAX_TOOL_ROUNDS)
         messages.append({"role": "user", "content": STOP_TOOLS_TEXT})
         final = self._client.chat.completions.create(
-            model=self.model, messages=messages, temperature=0.2, stream=True
+            model=self.model,
+            messages=messages,
+            temperature=0.2,
+            stream=True,
+            extra_body=self._no_thinking,
         )
         for chunk in final:
             if chunk.choices and chunk.choices[0].delta.content:
@@ -264,6 +278,7 @@ def get_chat_llm() -> LLM:
         api_key=settings.llm_api_key,
         base_url=settings.llm_base_url,
         model=settings.chat_model or settings.llm_model,
+        thinking=settings.chat_thinking,
     )
 
 
