@@ -13,7 +13,13 @@ the landing shows the real thing, built from the app's own parts:
 |---|---|
 | `before-after` | the two notes as cards with their status, and the page the pass wrote from them, with its diagram |
 | How it works | an `AgentReplay` of that night's pass (made up and shortened, and it says so), then the table |
-| `diagram`, `chart` | one small `Diagram`: loose notes in, an organized page out, with the pieces it may hold |
+| `chat` | a made-up conversation drawn with `ChatMessage` and `ChatProposal`; the card works (Confirm and Cancel move it through its states) with nothing behind it |
+| Your own AI, connected | one small `Diagram` (material read by your AI, notes left in Kolmi) and the command for a client |
+| Around the notes | six small cards |
+
+The README's `page` image has no live part: it is a plain screenshot of invented content. The
+README's `chat.*.png` is a capture of the landing's own chat part, cropped, so it contains no
+class data.
 
 The texts live in `src/locales/en.js` and `es.js`, taken from `README.md` and `README.es.md`.
 When the README changes, the landing changes in the same commit, in both languages.

@@ -7,20 +7,21 @@ export default {
   meta: {
     title: 'Kolmi · Aprende en colmena',
     description:
-      'Kolmi es un cuaderno que escribe toda la clase entre todos: cada uno deja sus apuntes y la IA los convierte en páginas ordenadas.',
+      'Kolmi es donde una clase junta sus apuntes: cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.',
   },
 
   nav: {
     label: 'Secciones',
     how: 'Cómo funciona',
-    pages: 'Páginas',
+    chat: 'Chat',
+    ai: 'Tu IA',
     code: 'Código',
     switchLocale: 'Read in English',
   },
 
   hero: {
     slogan: 'Aprende en colmena.',
-    lead: 'Un cuaderno que escribe toda la clase entre todos. Cada uno deja sus apuntes y, de noche, la IA los convierte en páginas ordenadas, con diagramas, gráficas y piezas interactivas.',
+    lead: 'Los apuntes de la clase están repartidos entre chats y carpetas en la nube, y nadie sabe de cuáles fiarse. Kolmi los junta en un sitio: cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.',
     scope: 'Para una clase, en su propio servidor.',
     primary: 'Móntalo en tu clase',
   },
@@ -57,16 +58,15 @@ export default {
   what: {
     title: '¿Qué es Kolmi?',
     body: [
-      'En una clase cada uno toma sus propios apuntes y nadie tiene el cuaderno entero. Kolmi lo hace entre todos.',
-      'Cada persona deja lo que tiene, con sus palabras y sin formato. De noche trabaja la colmena: una IA lee lo nuevo, junta lo que va unido y escribe las páginas de la clase. Cada página se organiza como una buena guía de estudio, con un diagrama donde una idea tiene partes, una gráfica donde importan los números y piezas interactivas para probar cosas.',
+      'Todas las clases acaban igual. Los apuntes están en chats, en carpetas en la nube y en fotos de la pizarra. Dos personas apuntaron lo mismo de forma distinta, nadie sabe qué versión es la buena, y lo que necesitas antes del examen está en el cuaderno de otro.',
+      'En Kolmi cada uno deja lo que tiene, con sus palabras y sin formato. Cada noche la colmena lee lo nuevo y juzga cada nota: la junta con lo que la clase ya tiene, quita nombres y datos privados y descarta lo que no aporta. Lo que queda se convierte en las páginas de la clase, organizadas como una guía de estudio, con un diagrama donde una idea tiene partes y una tabla o gráfica donde importan los números. La nota en bruto sigue siendo privada.',
     ],
-    quote: 'Cada uno pone una gota; la clase se queda con un panal.',
-    scope: 'Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos.',
+    scope: 'Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos. Un admin es un estudiante que cuida de la clase; no hay cuenta de profesor.',
   },
 
   how: {
     title: 'Cómo funciona',
-    body: 'Un equipo de agentes trabaja una vez al día. El **portero** lee cada nota nueva, quita nombres y datos privados, descarta lo que no aporta y decide a qué página va. El **agente de notas** escribe lo que el portero deja pasar, y el **agente web** la maqueta como página.',
+    body: 'Un equipo de agentes trabaja una vez al día, con el horario que fija un admin. El **portero** lee cada nota nueva, quita nombres y datos privados, descarta lo que no aporta y decide a qué página va. El motivo de cada decisión queda en el registro de la IA. El **agente de notas** escribe lo que el portero deja pasar, y el **agente web** la maqueta como página.',
     lead: 'Mira una pasada con las dos notas de arriba. Es una sesión inventada y resumida.',
     intro: 'De noche la pasada se despierta y recoge lo nuevo.',
     events: [
@@ -124,41 +124,59 @@ export default {
     },
   },
 
+  ask: {
+    title: 'Pregunta a los apuntes',
+    body: 'El chat responde con las páginas de la clase, no con lo que un modelo recuerda. Busca los pasajes más cercanos a tu pregunta, responde con ellos y dice qué páginas usó. Si pides una tabla o los pasos de un procedimiento, la dibuja.',
+    label: 'Una conversación inventada: una pregunta respondida con los apuntes, con sus fuentes, y una nota que el chat propone crear, a la espera de confirmación',
+    question: '¿Qué dicen los apuntes sobre los scopes de un bean?',
+    answer: 'Un scope decide cuándo crea Spring un bean y cuánto tiempo se reutiliza. Casi todos son `singleton`, uno para toda la aplicación. Usa `request` cuando el bean guarda estado de una sola petición.',
+    sources: 'Fuentes: Scopes de un bean',
+    request: 'Apunta que el examen llega hasta la unidad 4.',
+    reply: 'Aquí tienes la nota. No se guarda nada hasta que la confirmes.',
+    proposal: {
+      label: 'Crear una nota',
+      done: 'Nota creada',
+      args: { Título: 'Examen', Texto: 'El examen llega hasta la unidad 4.' },
+      result: 'Nota enviada. Esta noche la colmena la lee.',
+    },
+    caption: 'Una conversación inventada. La tarjeta funciona, sin nada detrás.',
+    acts: 'El chat puede actuar, pero nunca por su cuenta. Todo lo que cambia algo vuelve como una tarjeta que enseña qué cambiaría, y ocurre cuando lo confirmas. Un estudiante puede dejar y editar sus notas así. Un admin además puede mover páginas, editar el horario y cuidar de la gente de la clase. También puede avisar de un problema de la app. Un admin enciende el chat y fija un límite diario por estudiante.',
+  },
+
+  ai: {
+    title: 'Tu propia IA, conectada',
+    body: 'Kolmi también es un servidor MCP, así que la IA que ya usas puede trabajar con los apuntes de la clase en tu nombre. Pongamos que el curso está en Moodle y el código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo asistente, le pides que lea el material de esta semana y lo pase a limpio. Lee primero el árbol de la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.',
+    label: 'Tu asistente de IA lee Moodle y un repo de GitHub, y deja notas en Kolmi',
+    material: 'Tu material',
+    moodle: 'Moodle',
+    repo: 'repo de GitHub',
+    reads: 'lee',
+    assistant: 'tu IA',
+    leaves: 'deja',
+    notes: 'notas en Kolmi',
+    connect: 'En Ajustes, en **Conecta tu IA**, le pones nombre a la conexión y recibes un token, que se muestra una sola vez, y el comando para tu cliente con la dirección de tu instancia ya puesta. Para Claude Code tiene esta forma:',
+    command: 'claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"',
+    limits: 'Hay instrucciones para Claude Code, Gemini CLI y Codex CLI, y para cualquier otro cliente que acepte un token de portador. Las apps de chat cuyos conectores piden iniciar sesión con OAuth aún no se admiten. Leer es libre. Tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta antes.',
+  },
+
   today: {
-    title: 'Qué puedes hacer hoy',
-    student: {
-      title: 'Como estudiante',
-      items: [
-        { title: 'Dejar una nota', text: 'En texto libre, con archivos, cuando tengas algo que aportar.' },
-        { title: 'Leer las páginas de la clase', text: 'Diagramas, gráficas, tablas, reproducciones y piezas interactivas.' },
-        { title: 'Moverte', text: 'Un árbol de contenido, una tabla de contenidos, la página anterior y la siguiente.' },
-        { title: 'Consultar el horario', text: 'La semana de la clase, de un vistazo.' },
-        { title: 'Hacer un recorrido corto', text: 'La primera vez que entras.' },
-        { title: 'Llevarte el cuaderno', text: 'Todas las páginas en Markdown, para guardarlas o subirlas a NotebookLM.' },
-      ],
-    },
-    admin: {
-      title: 'Como admin',
-      items: [
-        { title: 'Lanzar la pasada nocturna', text: 'Con un horario, o al momento con “Run now”.' },
-        { title: 'Revisar qué hizo la IA', text: 'Qué leyó, qué cambió y de qué notas partió.' },
-        { title: 'Organizar el árbol', text: 'Crear, renombrar, mover, reordenar y borrar.' },
-        { title: 'Fijar horario e idioma', text: 'La semana de la clase, en español o inglés.' },
-      ],
-    },
+    title: 'Alrededor de los apuntes',
+    items: [
+      { title: 'Apuntes en directo', text: 'Durante una clase, alguien comparte lo que escribe y el resto lo sigue según aparece. La nota sigue siendo una nota normal y pasa por la pasada nocturna.' },
+      { title: 'El horario', text: 'La semana de la clase en una pantalla. Un admin la edita arrastrando sobre la cuadrícula.' },
+      { title: 'Descargas', text: 'Cualquier sección como archivos Markdown, para guardarla o subirla a NotebookLM. Las páginas también pueden llevar archivos para descargar.' },
+      { title: 'El registro de la IA', text: 'Qué leyó cada pasada, qué cambió y por qué descartó una nota.' },
+      { title: 'Los admins son estudiantes', text: 'Un estudiante con más permisos: lanza la pasada, organiza el árbol y deja entrar a gente nueva.' },
+      { title: 'Una interfaz tranquila', text: 'Poco texto, iconos que dicen su nombre al pasar el ratón, y la app en español o inglés.' },
+    ],
   },
 
-  pages: {
-    title: 'Qué cabe en una página',
-    lead: 'El agente web organiza cada página como una buena guía de estudio: por secciones, con la pieza justa para cada idea.',
-    label: 'Las notas sueltas pasan al agente web, que las convierte en una página organizada con secciones, diagramas, gráficas, tablas, código, reproducciones y piezas interactivas',
-    notes: 'Notas sueltas',
-    agent: 'agente web',
-    page: 'Una página organizada',
-    pieces: ['Secciones', 'Diagramas', 'Gráficas', 'Tablas', 'Código', 'Reproducciones', 'Piezas interactivas'],
-    conclusion: 'Una pieza donde ayuda, y texto donde basta con texto.',
+  run: {
+    title: 'Móntalo en tu clase',
+    body: 'Necesitas Python 3, Node 20 o superior, un proyecto de Supabase y una clave de API de un modelo. El backend se publica como imagen de Docker, y la pasada nocturna es una tarea de cron en el mismo servidor. Los pasos están en el README y en el del backend (en inglés).',
+    scope: 'Cada clase lleva su propia instancia, con su propio proyecto de Supabase y su propio servidor. No se comparte nada entre clases, y las claves se quedan en tu `.env`.',
+    cta: 'Leer los pasos',
   },
-
 
   docs: {
     title: 'Documentación',
@@ -166,6 +184,10 @@ export default {
       { title: 'La idea', text: 'El problema, el equipo de agentes y por qué las notas en bruto son privadas.', href: `${blob}/docs/idea.md` },
       { title: 'Autenticación y usuarios', text: 'Cuentas, roles y el código de clase.', href: `${blob}/docs/authentication.md` },
       { title: 'Funciones y acciones', text: 'Qué hace la app y cómo se construye cada acción.', href: `${blob}/docs/features.md` },
+      { title: 'El chat', text: 'Qué escribe el modelo, cómo viaja una pregunta y cómo se propone un cambio.', href: `${blob}/docs/chat.md` },
+      { title: 'El MCP', text: 'Conectar tu propia IA: tokens, recursos, prompt y evals.', href: `${blob}/docs/mcp.md` },
+      { title: 'Acciones como herramientas', text: 'Cómo cada función es una acción que comparten la web, el chat y el MCP.', href: `${blob}/docs/tools.md` },
+      { title: 'Apuntes en directo', text: 'Seguir una clase a través de los apuntes de alguien.', href: `${blob}/docs/live-notes.md` },
       { title: 'Formato de página', text: 'Cómo llega una página de la pasada a la pantalla.', href: `${blob}/docs/page-format.md` },
       { title: 'Pruebas con casos reales', text: 'El plan para probarlo antes de que lo use la clase.', href: `${blob}/docs/testing.md` },
       { title: 'Datos y privacidad', text: 'Qué se guarda, quién lo ve y qué sale de la instancia.', href: `${blob}/docs/privacy.md` },
@@ -192,6 +214,7 @@ export default {
   links: {
     repo,
     linkedin: 'https://www.linkedin.com/in/jose-est%C3%A9vez-b9b761388',
+    run: `${blob}/README.es.md#en-local`,
     license: `${blob}/LICENSE`,
     security: `${blob}/SECURITY.md`,
   },

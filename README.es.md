@@ -5,7 +5,7 @@
 <h1 align="center">Kolmi</h1>
 
 <p align="center">
-  <strong>Kolmi es un cuaderno que escribe toda la clase entre todos: cada uno deja sus apuntes y la IA los convierte en páginas ordenadas, con diagramas, gráficas y piezas interactivas.</strong>
+  <strong>Kolmi es donde una clase junta sus apuntes. Cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.</strong>
 </p>
 
 <p align="center">
@@ -30,23 +30,25 @@
 
 ## ¿Qué es Kolmi?
 
-En una clase cada uno toma sus propios apuntes y nadie tiene el cuaderno entero. Kolmi lo hace
-entre todos.
+Todas las clases acaban igual. Los apuntes están en chats, en carpetas en la nube y en fotos de la
+pizarra. Dos personas apuntaron lo mismo de forma distinta, nadie sabe qué versión es la buena, y lo
+que necesitas antes del examen está en el cuaderno de otro.
 
-Cada persona deja lo que tiene, con sus palabras y sin formato. De noche trabaja la colmena: una
-IA lee lo nuevo, junta lo que va unido y escribe las páginas de la clase. Cada página se organiza
-como una buena guía de estudio, con un diagrama donde una idea tiene partes, una gráfica donde
-importan los números y piezas interactivas para probar cosas.
+En Kolmi cada uno deja lo que tiene, con sus palabras y sin formato. Cada noche la colmena lee lo
+nuevo y juzga cada nota: la junta con lo que la clase ya tiene, quita nombres y datos privados y
+descarta lo que no aporta. Lo que queda se convierte en las páginas de la clase, organizadas como
+una guía de estudio, con un diagrama donde una idea tiene partes y una tabla o gráfica donde
+importan los números. La nota en bruto sigue siendo privada.
 
-> Cada uno pone una gota; la clase se queda con un panal.
-
-Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos.
+Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos. Un admin es un
+estudiante que cuida de la clase; no hay cuenta de profesor.
 
 ## Cómo funciona
 
-Un equipo de agentes trabaja una vez al día. El portero lee cada nota nueva, quita nombres y
-datos privados, descarta lo que no aporta y decide a qué página va. El agente de notas escribe lo
-que el portero deja pasar, y el agente web la maqueta como página.
+Un equipo de agentes trabaja una vez al día, con el horario que fija un admin. El portero lee cada
+nota nueva, quita nombres y datos privados, descarta lo que no aporta y decide a qué página va. El
+motivo de cada decisión queda en el registro de la IA. El agente de notas escribe lo que el portero
+deja pasar, y el agente web lo maqueta como página.
 
 | | Nota en bruto | Página compartida |
 |---|---|---|
@@ -54,48 +56,55 @@ que el portero deja pasar, y el agente web la maqueta como página.
 | Cómo es | texto libre y archivos | organizada, con diagramas, tablas, gráficas y piezas interactivas |
 | Nombres y datos privados | lo que hayas escrito | eliminados |
 
-## Qué puedes hacer hoy
-
-**Como estudiante**
-
-- **Dejar una nota** en texto libre, con archivos adjuntos, cuando tengas algo que aportar.
-- **Leer las páginas de la clase**: diagramas, gráficas, tablas, reproducciones paso a paso de
-  sesiones de agentes y piezas interactivas.
-- **Moverte** con el árbol de contenido, una tabla de contenidos y enlaces a la página anterior
-  y a la siguiente.
-- **Consultar el horario de la clase.**
-- **Hacer un recorrido corto** la primera vez que entras.
-- **Llevarte el cuaderno**: descargar las páginas de una sección como archivos Markdown, para
-  guardarlas o subirlas a NotebookLM.
-- **Cuidar de tu cuenta**: cambiar tu nombre o borrarla.
-
-**Como admin**
-
-- **Lanzar la pasada nocturna** con un horario, o cuando quieras con "Run now".
-- **Revisar qué hizo la IA** en el registro: qué leyó, qué cambió y de qué notas partió.
-- **Organizar el árbol** a mano: crear, renombrar, mover, reordenar y borrar.
-- **Fijar el horario y el idioma de la clase**, español o inglés.
-- **Cuidar de la gente de la clase**: aprobar las altas nuevas, hacer admin a alguien, bloquear o
-  quitar a alguien.
-
 <p align="center">
-  <img src="assets/readme/diagram.png" alt="Una página escrita por Kolmi, con un diagrama de cuatro roles de agente y lo que puede hacer cada uno" width="100%">
+  <img src="assets/readme/page.en.png" alt="Parte de una página escrita por Kolmi: una explicación corta, un archivo YAML en un bloque de código y un aviso" width="720">
 </p>
 
-<p align="center"><sub>Una página puede llevar más que texto. El diagrama es parte de la página.</sub></p>
+<p align="center"><sub>Una página puede llevar más que texto: diagramas, código que se copia, pasos numerados. (Esta está en inglés.)</sub></p>
+
+## Pregunta a los apuntes
+
+El chat responde con las páginas de la clase, no con lo que un modelo recuerda. Busca los pasajes
+más cercanos a tu pregunta, responde con ellos y dice qué páginas usó. Si pides una tabla o los
+pasos de un procedimiento, la dibuja.
+
+<p align="center">
+  <img src="assets/readme/chat.es.png" alt="Una pregunta sobre los scopes de un bean respondida con los apuntes y su fuente, y una tarjeta que propone crear una nota, con Confirmar, Editar y Cancelar" width="720">
+</p>
+
+<p align="center"><sub>Una conversación inventada, dibujada con las piezas de la propia app.</sub></p>
+
+El chat puede actuar, pero nunca por su cuenta. Todo lo que cambia algo vuelve como una tarjeta que
+enseña qué cambiaría, y ocurre cuando lo confirmas. Un estudiante puede dejar y editar sus notas
+así. Un admin además puede mover páginas, editar el horario y cuidar de la gente de la clase.
+También puede avisar de un problema de la app. Un admin enciende el chat y fija un límite diario
+por estudiante. Más en [docs/chat.md](docs/chat.md) (en inglés).
 
 ## Tu propia IA, conectada
 
 Kolmi también es un servidor MCP, así que la IA que ya usas (un agente de programación, un editor)
-puede trabajar con el cuaderno de la clase en tu nombre. Pongamos que el curso está en Moodle y el
-código de las prácticas en un repo de GitHub: con Moodle, GitHub y Kolmi conectados al mismo
-asistente, le pides que lea el material de esta semana y lo pase a limpio, y lee primero el árbol de
+puede trabajar con los apuntes de la clase en tu nombre. Pongamos que el curso está en Moodle y el
+código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo
+asistente, le pides que lea el material de esta semana y lo pase a limpio. Lee primero el árbol de
 la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde
 salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.
 
-La conectas desde Ajustes → Conecta tu IA: le pones un nombre a la conexión, copias el comando de tu
-cliente y listo. Leer es libre; tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta
-antes. Más en [docs/mcp.md](docs/mcp.md).
+En Ajustes, en Conecta tu IA, le pones nombre a la conexión y recibes un token, que se muestra una
+sola vez, y el comando para tu cliente con la dirección de tu instancia ya puesta. Hay instrucciones
+para Claude Code, Gemini CLI y Codex CLI, y para cualquier otro cliente que acepte un token de
+portador. Las apps de chat cuyos conectores piden iniciar sesión con OAuth aún no se admiten. Leer
+es libre. Tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta antes. Más en
+[docs/mcp.md](docs/mcp.md).
+
+## Alrededor de los apuntes
+
+- Apuntes en directo: durante una clase, alguien comparte lo que escribe y el resto lo sigue según
+  aparece. La nota sigue siendo una nota normal y pasa por la pasada nocturna.
+- El horario de la clase, que un admin edita arrastrando sobre la cuadrícula.
+- Cualquier sección se descarga como archivos Markdown, para guardarla o subirla a NotebookLM. Las
+  páginas también pueden llevar archivos para descargar.
+- La interfaz es tranquila a propósito: poco texto, iconos que dicen su nombre al pasar el ratón,
+  y la app en español o inglés.
 
 ## En local
 
@@ -121,8 +130,9 @@ de git. Cada clase lleva su propia instancia, y el backend se publica como image
 cómo construirla, ejecutarla y programar la pasada está en [backend/README.md](backend/README.md)
 (en inglés).
 
-> **Estado: en desarrollo.** Lo siguiente es "Pregunta a la colmena", un chat con los apuntes, y
-> foros. Mira [ROADMAP.md](ROADMAP.md) (en inglés).
+> **Estado: en desarrollo.** La pasada, el chat, el MCP y los apuntes en directo ya están hechos.
+> Lo siguiente son un foro y el inicio de sesión con OAuth para las apps de chat. Mira
+> [ROADMAP.md](ROADMAP.md) (en inglés).
 
 ## Documentación
 
@@ -131,6 +141,9 @@ La documentación está en inglés.
 - [La idea](docs/idea.md): el problema, el equipo de agentes y por qué las notas en bruto son privadas.
 - [Autenticación y usuarios](docs/authentication.md): cuentas, roles y el código de clase.
 - [Funciones y acciones](docs/features.md): qué hace la app y cómo se construye cada acción.
+- [El chat](docs/chat.md): qué escribe el modelo, cómo viaja una pregunta y cómo se propone un cambio.
+- [Acciones como herramientas](docs/tools.md): cómo una acción sirve a la web, al chat y al MCP.
+- [Apuntes en directo](docs/live-notes.md): seguir una clase a través de los apuntes de alguien.
 - [Formato de página](docs/page-format.md): cómo llega una página de la pasada a la pantalla.
 - [El MCP](docs/mcp.md): conectar tu propia IA, sus tokens, recursos, prompt y evals.
 - [Pruebas con casos reales](docs/testing.md): el plan para probarlo antes de que lo use la clase.

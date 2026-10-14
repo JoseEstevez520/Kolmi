@@ -9,20 +9,21 @@ export default {
   meta: {
     title: 'Kolmi · Learn as a hive',
     description:
-      'Kolmi is a notebook a whole class writes together: everyone drops their notes, and an AI turns them into organized pages.',
+      'Kolmi is where a class keeps its notes together: everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.',
   },
 
   nav: {
     label: 'Sections',
     how: 'How it works',
-    pages: 'Pages',
+    chat: 'Chat',
+    ai: 'Your AI',
     code: 'Code',
     switchLocale: 'Leer en español',
   },
 
   hero: {
     slogan: 'Learn as a hive.',
-    lead: 'A notebook a whole class writes together. Everyone drops their notes, and at night an AI turns them into organized pages with diagrams, charts and interactive pieces.',
+    lead: 'The class’s notes are scattered across chats and drives, and nobody knows which to trust. Kolmi keeps them in one place: everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.',
     scope: 'For one class, self-hosted.',
     primary: 'Run it for your class',
   },
@@ -59,16 +60,15 @@ export default {
   what: {
     title: 'What is Kolmi?',
     body: [
-      'In a class, everyone takes their own notes, and nobody has the whole notebook. Kolmi makes one, together.',
-      'Everyone drops what they have, in their own words and in no particular format. At night the hive works: an AI reads what is new, joins what belongs together and writes the class’s pages. Each page is laid out like a good study guide, with a diagram where an idea has parts, a chart where numbers matter and small interactive pieces to try things out.',
+      'Every class ends up with the same mess. The notes sit in chats, personal drives and photos of the whiteboard. Two people wrote the same thing down differently, nobody knows which version is right, and what you need before the exam is in someone else’s notebook.',
+      'In Kolmi everyone leaves what they have, in their own words and in no particular format. Each night the hive reads what is new and judges every note: it joins it with what the class already has, strips names and private data and drops what adds nothing. What is left becomes the class’s pages, laid out like a study guide, with a diagram where an idea has parts and a table or chart where the numbers matter. The raw note stays private.',
     ],
-    quote: 'Everyone adds a drop; the class ends up with honeycomb.',
-    scope: 'Kolmi is for one class. Each class runs its own copy, with its own data.',
+    scope: 'Kolmi is for one class. Each class runs its own copy, with its own data. An admin is a student who looks after the class; there is no teacher account.',
   },
 
   how: {
     title: 'How it works',
-    body: 'A team of agents runs once a day. The **gatekeeper** reads each new note, strips names and private data, discards what adds nothing and decides which page it belongs to. The **notes agent** writes what the gatekeeper lets through, and the **web agent** lays it out as a page.',
+    body: 'A team of agents runs once a day, on the schedule an admin sets. The **gatekeeper** reads each new note, strips names and private data, discards what adds nothing and decides which page it belongs to. The reason for each decision is kept in the AI log. The **notes agent** writes what the gatekeeper lets through, and the **web agent** lays it out as a page.',
     lead: 'Watch one pass take the two notes from above. It is a made-up session, shortened.',
     intro: 'At night the pass wakes up and takes what is new.',
     events: [
@@ -126,41 +126,59 @@ export default {
     },
   },
 
+  ask: {
+    title: 'Ask the notes',
+    body: 'The chat answers from the class’s own pages, not from what a model remembers. It finds the passages closest to your question, answers with them and says which pages it used. Ask for a table or the steps of a procedure and it draws one.',
+    label: 'A made-up conversation: a question answered from the notes, with its sources, and a note the chat proposes to make, waiting for a confirmation',
+    question: 'What do the notes say about bean scopes?',
+    answer: 'A scope decides when Spring creates a bean and how long it is reused. Most beans are `singleton`, one for the whole app. Use `request` when the bean holds state for a single request.',
+    sources: 'Sources: Bean scopes',
+    request: 'Make a note that the exam covers up to unit 4.',
+    reply: 'Here is the note. Nothing is saved until you confirm it.',
+    proposal: {
+      label: 'Create a note',
+      done: 'Created a note',
+      args: { Title: 'Exam', Text: 'The exam covers up to unit 4.' },
+      result: 'Note sent. Tonight the hive reads it.',
+    },
+    caption: 'A made-up conversation. The card works, with nothing behind it.',
+    acts: 'The chat can act, but never on its own. Anything that changes something comes back as a card showing what would change, and it happens when you confirm. A student can leave and edit their own notes this way. An admin can also move pages, edit the timetable and look after the class’s people. It can report a problem with the app too. An admin turns the chat on and sets a daily limit per student.',
+  },
+
+  ai: {
+    title: 'Your own AI, connected',
+    body: 'Kolmi is also an MCP server, so the AI you already use can work with the class’s notes as you. Say your course is on Moodle and the practice code is in a GitHub repo. With Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week’s material and write it up. It reads the class’s tree first, sees what the pages already say and leaves one note per topic, each with the link it came from. An admin’s AI can fold the material straight into a page instead.',
+    label: 'Moodle and a GitHub repo are read by your AI assistant, which leaves notes in Kolmi',
+    material: 'Your material',
+    moodle: 'Moodle',
+    repo: 'GitHub repo',
+    reads: 'reads',
+    assistant: 'your AI',
+    leaves: 'leaves',
+    notes: 'notes in Kolmi',
+    connect: 'In Settings, under **Connect your AI**, you name the connection and get a token, shown once, and the command for your client with your instance’s address already in it. For Claude Code it has this shape:',
+    command: 'claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"',
+    limits: 'There are instructions for Claude Code, Gemini CLI and Codex CLI, and for any other client that takes a bearer token. Chat apps whose connectors need an OAuth sign-in are not supported yet. Reading is free. Your AI acts with your role, and anything that changes something asks you first.',
+  },
+
   today: {
-    title: 'What you can do today',
-    student: {
-      title: 'As a student',
-      items: [
-        { title: 'Drop a note', text: 'In free text, with files, whenever you have something to add.' },
-        { title: 'Read the class’s pages', text: 'Diagrams, charts, tables, replays and interactive pieces.' },
-        { title: 'Find your way', text: 'A content tree, a table of contents, the previous and next page.' },
-        { title: 'Check the timetable', text: 'The class’s week, at a glance.' },
-        { title: 'Take a short tour', text: 'The first time you sign in.' },
-        { title: 'Take the notebook with you', text: 'Every page as Markdown, to keep or upload to NotebookLM.' },
-      ],
-    },
-    admin: {
-      title: 'As an admin',
-      items: [
-        { title: 'Run the nightly pass', text: 'On a schedule, or right now with “Run now”.' },
-        { title: 'Check what the AI did', text: 'What it read, what it changed and the notes it worked from.' },
-        { title: 'Organize the tree', text: 'Create, rename, move, reorder and delete.' },
-        { title: 'Set timetable and language', text: 'The class’s week, in Spanish or English.' },
-      ],
-    },
+    title: 'Around the notes',
+    items: [
+      { title: 'Live notes', text: 'During a class, someone shares what they are writing and the rest follow it as it appears. The note stays an ordinary note and goes through the nightly pass.' },
+      { title: 'The timetable', text: 'The class’s week on one screen. An admin edits it by dragging on the grid.' },
+      { title: 'Downloads', text: 'Any section as Markdown files, to keep or to upload to NotebookLM. Pages can carry files to download too.' },
+      { title: 'The AI log', text: 'What each pass read, what it changed and why it discarded a note.' },
+      { title: 'Admins are students', text: 'A student with more permissions: runs the pass, shapes the tree and lets new people in.' },
+      { title: 'A quiet interface', text: 'Little text, icons that say their name on hover, and the app in English or Spanish.' },
+    ],
   },
 
-  pages: {
-    title: 'What a page can hold',
-    lead: 'The web agent lays each page out like a good study guide: in sections, with the right piece for each idea.',
-    label: 'Loose notes go to the web agent, which turns them into an organized page with sections, diagrams, charts, tables, code, replays and interactive pieces',
-    notes: 'Loose notes',
-    agent: 'web agent',
-    page: 'An organized page',
-    pieces: ['Sections', 'Diagrams', 'Charts', 'Tables', 'Code', 'Replays', 'Interactive pieces'],
-    conclusion: 'A piece where it helps, and plain text where text is enough.',
+  run: {
+    title: 'Run it for your class',
+    body: 'You need Python 3, Node 20 or higher, a Supabase project and an API key for a model. The backend ships as a Docker image, and the nightly pass is a cron job on the same server. The steps are in the README and in the backend’s README.',
+    scope: 'Each class runs its own instance, with its own Supabase project and server. Nothing is shared between classes, and the keys stay in your `.env`.',
+    cta: 'Read the steps',
   },
-
 
   docs: {
     title: 'Documentation',
@@ -168,6 +186,10 @@ export default {
       { title: 'The idea', text: 'The problem, the team of agents and why raw notes stay private.', href: `${blob}/docs/idea.md` },
       { title: 'Authentication and users', text: 'Accounts, roles and the class code.', href: `${blob}/docs/authentication.md` },
       { title: 'Features and actions', text: 'What the app does and how each action is built.', href: `${blob}/docs/features.md` },
+      { title: 'The chat', text: 'What the model writes, how a question travels and how a change is proposed.', href: `${blob}/docs/chat.md` },
+      { title: 'The MCP', text: 'Connecting your own AI: tokens, resources, prompt and evals.', href: `${blob}/docs/mcp.md` },
+      { title: 'Actions as tools', text: 'How every feature is one action that the web, the chat and the MCP share.', href: `${blob}/docs/tools.md` },
+      { title: 'Live notes', text: 'Following a class through someone’s notes.', href: `${blob}/docs/live-notes.md` },
       { title: 'Page format', text: 'How a page goes from the pass to the screen.', href: `${blob}/docs/page-format.md` },
       { title: 'Testing with real cases', text: 'The plan for trying it before the class does.', href: `${blob}/docs/testing.md` },
       { title: 'Data and privacy', text: 'What is stored, who sees it and what leaves the instance.', href: `${blob}/docs/privacy.md` },
@@ -194,6 +216,7 @@ export default {
   links: {
     repo,
     linkedin: 'https://www.linkedin.com/in/jose-est%C3%A9vez-b9b761388',
+    run: `${blob}/README.md#run-it-locally`,
     license: `${blob}/LICENSE`,
     security: `${blob}/SECURITY.md`,
   },
