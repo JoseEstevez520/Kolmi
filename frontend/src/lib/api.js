@@ -287,10 +287,15 @@ export const api = {
       for (const raw of events) {
         let name = 'message'
         let data = ''
+        let named = false
         for (const line of raw.split('\n')) {
-          if (line.startsWith('event:')) name = line.slice(6).trim()
-          else if (line.startsWith('data:')) data += line.slice(5).trim()
+          if (line.startsWith('event:')) {
+            name = line.slice(6).trim()
+            named = true
+          } else if (line.startsWith('data:')) data += line.slice(5).trim()
         }
+        // A block of only comment lines (the server's keep-alive ping) is no event.
+        if (!named && !data) continue
         try {
           onEvent(name, data ? JSON.parse(data) : {})
         } catch {

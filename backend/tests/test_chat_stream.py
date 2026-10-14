@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import threading
+import time
 
 import pytest
 from fastapi import HTTPException
 
-from app.actions.chat import AskChatParams, stream_chat
+from app.actions.chat import PING, AskChatParams, stream_chat, with_heartbeat
 from tests.fakes import FakeLLM
 from tests.test_chat_tools import _Client, _ctx
 
@@ -36,8 +38,8 @@ def test_tokens_stream_then_done(monkeypatch):
     llm.stream_tokens = PROGRAM
     events = _stream(monkeypatch, client, llm)
 
-    assert [name for name, _ in events] == ["token"] * 3 + ["done"]
-    assert events[0][1] == {"text": PROGRAM[0]}
+    assert [name for name, _ in events] == ["status"] + ["token"] * 3 + ["done"]
+    assert events[1][1] == {"text": PROGRAM[0]}
     assert events[-1] == ("done", {})
     [message] = client.rows("chat_messages")
     assert message["answer"] == "".join(PROGRAM)
@@ -53,11 +55,11 @@ def test_a_write_is_proposed_with_its_id_and_never_run(monkeypatch):
     events = _stream(monkeypatch, client, llm)
 
     names = [name for name, _ in events]
-    assert names == ["status", "token", "proposal", "done"]
+    assert names == ["status", "status", "token", "proposal", "done"]
     [row] = client.rows("chat_proposals")
     assert row["status"] == "pending"
     assert client.rows("notes") == []
-    assert events[2][1] == {
+    assert events[3][1] == {
         "id": row["id"],
         "tool": "create_note",
         "args": {"content": "git stash keeps my changes"},
@@ -75,7 +77,7 @@ def test_a_failure_ends_with_error_and_keeps_what_was_written(monkeypatch):
     llm.stream_error = RuntimeError("boom")
     events = _stream(monkeypatch, client, llm)
 
-    assert [name for name, _ in events] == ["token", "error"]
+    assert [name for name, _ in events] == ["status", "token", "error"]
     assert "message" in events[-1][1]
     assert "boom" not in events[-1][1]["message"]
     assert client.rows("chat_messages")[0]["answer"] == "root = Answer(["
@@ -83,7 +85,7 @@ def test_a_failure_ends_with_error_and_keeps_what_was_written(monkeypatch):
 
 def test_an_empty_answer_is_an_error(monkeypatch):
     events = _stream(monkeypatch, _Client(), FakeLLM())
-    assert [name for name, _ in events] == ["error"]
+    assert [name for name, _ in events] == ["status", "error"]
 
 
 def test_the_checks_fail_before_anything_streams(monkeypatch):
@@ -130,3 +132,74 @@ def test_the_open_page_is_named_not_inlined(monkeypatch):
 def test_an_unknown_page_is_ignored(monkeypatch):
     assert "has this page open" not in _asked(monkeypatch, 999)
     assert "has this page open" not in _asked(monkeypatch, None)
+
+
+def test_the_first_event_is_a_status_before_the_model_is_called(monkeypatch):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    stream = stream_chat(_ctx(client), AskChatParams(question="help me"))
+
+    name, data = _events([next(stream)])[0]
+    assert name == "status" and data["text"]
+    assert llm.calls == []
+    assert client.rows("chat_messages") == []
+    stream.close()
+
+
+def test_a_failed_preparation_is_an_error_event_and_leaves_no_row(monkeypatch):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("embedding down")
+
+    monkeypatch.setattr("app.actions.chat.search", boom)
+    events = _stream(monkeypatch, client, llm)
+
+    assert [name for name, _ in events] == ["status", "error"]
+    assert "embedding down" not in events[-1][1]["message"]
+    assert client.rows("chat_messages") == []
+    assert llm.calls == []
+
+
+def test_the_chat_is_not_offered_the_tools_its_prompt_already_covers(monkeypatch):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    _stream(monkeypatch, client, llm)
+    assert "list_nodes" not in llm.offered_tools[0]
+    assert "search_pages" not in llm.offered_tools[0]
+    assert "read_page" in llm.offered_tools[0]
+
+
+def test_the_heartbeat_pings_on_silence_and_passes_the_rest():
+    def slow():
+        yield "a"
+        time.sleep(0.25)
+        yield "b"
+
+    out = list(with_heartbeat(slow(), interval=0.05))
+    assert out[0] == "a" and out[-1] == "b"
+    assert PING in out
+    assert set(out) <= {"a", "b", PING}
+
+
+def test_the_heartbeat_closes_the_source_when_the_reader_leaves():
+    closed = threading.Event()
+
+    def source():
+        try:
+            for i in range(1000):
+                yield f"{i}"
+                time.sleep(0.01)
+        finally:
+            closed.set()
+
+    stream = with_heartbeat(source(), interval=0.05)
+    assert next(stream) == "0"
+    stream.close()
+    assert closed.wait(2)

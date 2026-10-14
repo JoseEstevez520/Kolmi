@@ -291,7 +291,8 @@ You can also act for the person with the other tools, with their role. A tool th
 runs at once (my_notes, for their own notes). A tool that changes something is never run by \
 you: calling it proposes it, and the person confirms, edits or cancels it on a card. To propose \
 you must call the tool in this turn; never say you proposed something you didn't call. One call \
-per change. Say what you proposed, not that it is done."""
+per change. Say what you proposed, not that it is done. To read a page's content use read_page; view_node \
+is only for a page's web (include_web) when you are changing it."""
 
 # What the chat is told when it gets passages, the parts of the pages a search by meaning found
 # closest to the question.

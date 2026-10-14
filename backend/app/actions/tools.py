@@ -14,13 +14,20 @@ from .registry import Action, check, get_registry, has_role, invoke
 Surface = Literal["chat", "mcp"]
 
 
+# Read-only tools the in-app chat is not given: its prompt already carries the tree index and the
+# passages closest to the question, so these only cost it a round. The MCP still offers them.
+CHAT_LEFT_OUT = frozenset({"list_nodes", "search_pages"})
+
+
 def offered(ctx: Context, surface: Surface) -> list[Action]:
     """The actions this caller is offered as tools on a surface: it never lists what it
     would refuse."""
     return [
         a
         for a in get_registry().values()
-        if a.tool and (surface == "chat" or a.mcp) and has_role(ctx, a.min_role)
+        if a.tool
+        and (a.name not in CHAT_LEFT_OUT if surface == "chat" else a.mcp)
+        and has_role(ctx, a.min_role)
     ]
 
 

@@ -5,7 +5,7 @@ import json
 from pydantic import BaseModel
 
 from app.actions import Action, get_registry
-from app.actions.tools import TOOL_ANSWER_CHARS, answer, light, offered, run_tool, schemas
+from app.actions.tools import CHAT_LEFT_OUT, TOOL_ANSWER_CHARS, answer, light, offered, run_tool, schemas
 from app.auth import Context
 
 
@@ -29,7 +29,7 @@ STUDENT_MCP = {
 # Reporting a problem is for the web and the chat; a personal token never reaches it.
 BUGS_MEMBER = {"report_bug", "my_bug_reports"}
 BUGS_ADMIN = {"list_bug_reports", "file_bug_report", "discard_bug_report"}
-STUDENT_CHAT = STUDENT_MCP | {"get_settings", "update_my_name"} | BUGS_MEMBER
+STUDENT_CHAT = (STUDENT_MCP - CHAT_LEFT_OUT) | {"get_settings", "update_my_name"} | BUGS_MEMBER
 # The class's people are managed in the app and the chat, never over the MCP.
 PEOPLE = {"list_users", "set_role", "set_status", "delete_user", "update_my_name"}
 
@@ -42,7 +42,7 @@ def test_what_a_student_is_offered():
 def test_what_an_admin_is_offered():
     every_tool = {a.name for a in get_registry().values() if a.tool}
     assert len(every_tool) == 35
-    assert _names("admin", "chat") == every_tool
+    assert _names("admin", "chat") == every_tool - CHAT_LEFT_OUT
     assert _names("admin", "mcp") == every_tool - {"get_settings"} - PEOPLE - BUGS_MEMBER - BUGS_ADMIN
     assert len(_names("admin", "mcp")) == 24
 

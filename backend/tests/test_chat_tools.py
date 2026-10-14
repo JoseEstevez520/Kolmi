@@ -207,11 +207,10 @@ def _propose_note(monkeypatch, client: _Client, content: str = "git stash keeps 
 
 def test_a_read_runs_inside_the_loop_and_reaches_the_model(monkeypatch):
     client = _Client()
-    seen = _spy(monkeypatch, "list_nodes")
-    result, llm = _ask(monkeypatch, client, [[("list_nodes", {})]])
+    seen = _spy(monkeypatch, "my_notes")
+    result, llm = _ask(monkeypatch, client, [[("my_notes", {})]])
 
     assert len(seen) == 1
-    assert "Git" in llm.tool_results[0] and "Tools" in llm.tool_results[0]
     assert result["answer"] == ANSWER["answer"]
     assert result["proposals"] == []
     assert client.rows("chat_proposals") == []
@@ -222,7 +221,18 @@ def test_the_model_is_offered_its_reads_and_the_class_actions(monkeypatch):
     _, llm = _ask(monkeypatch, client, [])
 
     offered = set(llm.offered_tools[0])
-    assert {"read_page", "list_nodes", "my_notes", "create_note"} <= offered
+    assert {"read_page", "my_notes", "create_note"} <= offered
+    # The prompt already carries the tree and the passages: these would only cost a round.
+    assert not {"list_nodes", "search_pages"} & offered
+
+
+def test_a_left_out_tool_is_refused_in_the_chat(monkeypatch):
+    client = _Client()
+    seen = _spy(monkeypatch, "list_nodes")
+    _, llm = _ask(monkeypatch, client, [[("list_nodes", {})]])
+
+    assert seen == []
+    assert "There is no tool list_nodes" in llm.tool_results[0]
 
 
 # --- Anything else is a proposal --------------------------------------------------------------

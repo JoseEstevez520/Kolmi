@@ -73,6 +73,19 @@ without it (`CHAT_THINKING=false`, DeepSeek only), which took a typical answer o
 from about 40 seconds to about 15. Turn it on if the answers get careless. `CHAT_MODEL` picks a
 different model for the chat alone.
 
+What the person waits for is cut in other ways too:
+
+- The stream opens with a status ("Searching the notes...") before any preparation, so the first
+  byte no longer waits for the embedding call. The class settings and the daily limit are still
+  checked first and fail as plain HTTP errors.
+- The passages search, the page tree, the class language and the timetable are read at the same
+  time. They share one Supabase client, which is safe across threads.
+- A `: ping` comment goes out after 15 seconds of silence, so a proxy doesn't cut a slow answer.
+  The client ignores it.
+- The chat isn't offered `list_nodes` and `search_pages` (`CHAT_LEFT_OUT` in
+  `backend/app/actions/tools.py`): its prompt already has the tree and the passages. The MCP
+  still offers both.
+
 ## Adding a part
 
 1. Define it in the frontend catalogue (`frontend/src/lib/openui/catalog.js`) with a description

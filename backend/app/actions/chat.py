@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
+import queue
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
@@ -379,48 +382,107 @@ def sse(event: str, data: dict[str, Any]) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
+# Silence on a stream this long and a comment line goes out: a proxy (Cloudflare cuts a response
+# after 100 s without a byte) must not take a slow answer for a dead one.
+HEARTBEAT_SECONDS = 15
+PING = ": ping\n\n"
+_DONE = object()
+
+
+def with_heartbeat(source, interval: float = HEARTBEAT_SECONDS):
+    """`source` (a generator of SSE chunks) with a `PING` comment sent whenever nothing came for
+    `interval` seconds. `source` runs in a worker thread that feeds a queue. When the reader leaves,
+    the worker closes `source` after its current step, so its `finally` still runs, and stops."""
+    items: queue.Queue = queue.Queue()
+    stop = threading.Event()
+
+    def work() -> None:
+        try:
+            for item in source:
+                items.put(item)
+                if stop.is_set():
+                    break
+        except BaseException as exc:  # handed to the reader, which re-raises it
+            items.put(exc)
+        finally:
+            try:
+                source.close()
+            finally:
+                items.put(_DONE)
+
+    threading.Thread(target=work, daemon=True, name="chat-stream").start()
+    try:
+        while True:
+            try:
+                item = items.get(timeout=interval)
+            except queue.Empty:
+                yield PING
+                continue
+            if item is _DONE:
+                return
+            if isinstance(item, BaseException):
+                raise item
+            yield item
+    finally:
+        stop.set()
+
+
 def stream_chat(ctx: Context, params: AskChatParams):
     """`ask_chat` as a stream of server-sent events (`status`, `token`, `proposal`, then `done`,
     or `error`). The checks run first and fail as plain HTTP errors, before anything streams. As
     in `ask_chat`, a write is only proposed, in `chat_proposals`, never run; here it is stored
     the moment the model proposes it, so the model can put `Proposal(id)` in its answer.
+
+    The rest of the preparation runs inside the stream, after a first `status`, so the person sees
+    something at once instead of waiting for the passages search.
     """
     check(get_action("ask_chat"), ctx, params.model_dump())
     settings, question = _gate(ctx, params)
     client = ctx.client
-    nodes = client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
-    language = class_language(client)
-    history = _recent(params.history)
-    passages = search(client, _search_query(history, question))
-    message = (
-        client.table("chat_messages")
-        .insert({"user_id": ctx.user_id, "question": question, "answer": "", "sources": []})
-        .execute()
-        .data[0]
-    )
-
-    proposed: list[dict[str, Any]] = []
-    stored: list[dict[str, Any]] = []
-    inner = chat_tool(ctx, proposed)
-
-    def run_action(name: str, args: dict[str, Any]) -> str:
-        before = len(proposed)
-        reply = inner(name, args)
-        if len(proposed) > before:
-            row = (
-                client.table("chat_proposals")
-                .insert({**proposed[-1], "message_id": message["id"], "user_id": ctx.user_id})
-                .execute()
-                .data[0]
-            )
-            stored.append(row)
-            reply += f" Its card is Proposal({row['id']}): put that part in your answer."
-        return reply
 
     def events():
         program = ""
-        sent = 0
+        message: dict[str, Any] | None = None
         try:
+            yield sse("status", {"text": "Searching the notes..."})
+            history = _recent(params.history)
+            # Independent reads, at the same time. The Supabase client is an httpx client, which
+            # is safe to share across threads; every `.table()` call builds its own request.
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                found = pool.submit(search, client, _search_query(history, question))
+                loaded = pool.submit(
+                    lambda: client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
+                )
+                lang = pool.submit(class_language, client)
+                language = lang.result()
+                schedule = pool.submit(_schedule_text, client, settings, language)
+                nodes, passages, schedule_text = loaded.result(), found.result(), schedule.result()
+            message = (
+                client.table("chat_messages")
+                .insert({"user_id": ctx.user_id, "question": question, "answer": "", "sources": []})
+                .execute()
+                .data[0]
+            )
+
+            proposed: list[dict[str, Any]] = []
+            stored: list[dict[str, Any]] = []
+            inner = chat_tool(ctx, proposed)
+
+            def run_action(name: str, args: dict[str, Any]) -> str:
+                before = len(proposed)
+                reply = inner(name, args)
+                if len(proposed) > before:
+                    row = (
+                        client.table("chat_proposals")
+                        .insert({**proposed[-1], "message_id": message["id"], "user_id": ctx.user_id})
+                        .execute()
+                        .data[0]
+                    )
+                    stored.append(row)
+                    reply += f" Its card is Proposal({row['id']}): put that part in your answer."
+                return reply
+
+            sent = 0
             for event in run_chat_stream(
                 get_chat_llm(),
                 question,
@@ -428,7 +490,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 read_page=_read_page(client),
                 language=language,
                 today=_today_text(language),
-                schedule=_schedule_text(client, settings, language),
+                schedule=schedule_text,
                 actions=schemas(ctx, "chat"),
                 run_action=run_action,
                 history=history,
@@ -453,12 +515,13 @@ def stream_chat(ctx: Context, params: AskChatParams):
             log.warning("streamed chat failed: %s", exc)
             yield sse("error", {"message": "The chat couldn't answer. Try again."})
         finally:
-            # Also when the reader leaves midway: what was written is kept.
-            try:
-                client.table("chat_messages").update(
-                    {"answer": program, "sources": _cited(program)}
-                ).eq("id", message["id"]).execute()
-            except Exception as exc:
-                log.warning("couldn't save the streamed answer: %s", exc)
+            # Also when the reader leaves midway: what was written is kept. No row, nothing to keep.
+            if message is not None:
+                try:
+                    client.table("chat_messages").update(
+                        {"answer": program, "sources": _cited(program)}
+                    ).eq("id", message["id"]).execute()
+                except Exception as exc:
+                    log.warning("couldn't save the streamed answer: %s", exc)
 
-    return events()
+    return with_heartbeat(events())
