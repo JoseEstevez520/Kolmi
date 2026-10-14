@@ -347,7 +347,6 @@ export default {
     notFound: 'Estos apuntes no existen o no están compartidos con la clase.',
     share: 'Compartir en directo',
     titleLabel: 'Título de la sesión',
-    bodyPlaceholder: 'Escribe lo que la clase debería guardar. Escribe / para los bloques.',
     end: 'Terminar sesión',
     ending: 'Terminando…',
     deleteLabel: 'Borrar estos apuntes en directo',

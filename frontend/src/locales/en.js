@@ -350,7 +350,6 @@ export default {
     notFound: 'This live note does not exist, or is not shared with the class.',
     share: 'Share live',
     titleLabel: 'Session title',
-    bodyPlaceholder: 'Write what the class should keep. Type / for blocks.',
     end: 'End session',
     ending: 'Ending…',
     deleteLabel: 'Delete this live note',

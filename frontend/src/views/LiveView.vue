@@ -86,10 +86,10 @@ async function start() {
             :aria-label="t('live.startTitleLabel')"
             autofocus
           />
-          <Button type="submit" size="icon" :icon="Check" :disabled="busy" :aria-label="t('live.startGo')" />
+          <Button type="submit" variant="ghost" size="icon" :icon="Check" :disabled="busy" :aria-label="t('live.startGo')" />
           <Button variant="ghost" size="icon" :icon="X" :disabled="busy" :aria-label="t('common.cancel')" @click="starting = false" />
         </form>
-        <Button v-else size="icon" :icon="Pencil" :aria-label="t('live.start')" @click="openStart" />
+        <Button v-else variant="ghost" size="icon" :icon="Pencil" :aria-label="t('live.start')" @click="openStart" />
         <Callout v-if="startError" type="caution" class="mt-4">{{ startError }}</Callout>
       </div>
 

@@ -2,8 +2,8 @@
 import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave } from 'vue-router'
-import { Button, Input, StatusText, Switch } from 'elastic-ui'
-import { Radio, Square } from '@lucide/vue'
+import { Button, Input, StatusText } from 'elastic-ui'
+import { Eye, EyeOff, Square } from '@lucide/vue'
 import { api } from '../lib/api.js'
 
 // The writer's side of a live note: a title, the editor, a "Share live" switch (off until the
@@ -122,9 +122,16 @@ const statusText = () =>
 <template>
   <div>
     <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-      <Switch :model-value="shared" :disabled="ending" :aria-label="t('live.share')" :title="t('live.share')" @update:model-value="setShared">
-        <Radio class="size-4" aria-hidden="true" />
-      </Switch>
+      <Button
+        variant="ghost"
+        size="icon"
+        :icon="shared ? Eye : EyeOff"
+        :disabled="ending"
+        :aria-pressed="shared"
+        :aria-label="t('live.share')"
+        :title="t('live.share')"
+        @click="setShared(!shared)"
+      />
       <div class="flex items-center gap-2">
         <StatusText
           v-if="status"
@@ -137,6 +144,6 @@ const statusText = () =>
       </div>
     </div>
     <Input v-model="title" bare class="mb-6 text-display" :aria-label="t('live.titleLabel')" />
-    <NoteEditor v-model="body" :label="t('live.titleLabel')" :placeholder="t('live.bodyPlaceholder')" />
+    <NoteEditor v-model="body" :label="t('live.titleLabel')" placeholder="" />
   </div>
 </template>
