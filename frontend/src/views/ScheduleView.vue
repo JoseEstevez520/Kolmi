@@ -1,19 +1,19 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Empty, Field, Input, StatusText, Switch, Timetable, WeekPillbox } from 'elastic-ui'
-import { CalendarDays, Plus, X } from '@lucide/vue'
+import { Button, Callout, Field, Input, Sheet, SheetTitle, StatusText, Switch, Timetable, Toggle, WeekPillbox } from 'elastic-ui'
+import { CalendarDays, Pencil, Plus, SlidersHorizontal, X } from '@lucide/vue'
 import NodePicker from '../components/NodePicker.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { invalidate, useCached } from '../lib/cached.js'
 
-// The class's own weekly timetable (not the daily pass's, in Admin): everyone sees it here; an
-// admin edits it right on the same page, the grid itself (elastic-ui's Timetable, editable): drag
-// an empty cell to lay a class down, drag a block to move it, drag its edge to lengthen or
-// shorten it (snapped to a whole session), click to select it and fill its title, detail or page
-// in the panel below. A gesture only tells what it would change; this is what calls the backend.
+// The class's own weekly timetable (not the daily pass's, in Admin): everyone sees the week and
+// nothing else. An admin has two icons up in the page's actions: the settings (a Sheet) and the
+// edit mode, which makes the grid (elastic-ui's Timetable) editable: drag an empty cell to lay a
+// class down, drag a block to move it, drag its edge to lengthen or shorten it (snapped to a
+// whole session), click to select it and fill its title, detail or page in the panel below. A gesture only tells what it would change; this is what calls the backend.
 const { t, locale } = useI18n()
 const isAdmin = computed(() => profile.value?.role === 'admin')
 
@@ -27,6 +27,8 @@ const sessionMinutes = ref(50)
 const breaks = ref([])
 const events = ref([])
 const saveError = ref('')
+// Edit mode: the grid is read-only until an admin turns it on.
+const editing = ref(false)
 
 // The last answer draws at once and a quiet refetch follows (lib/cached.js). Once the person
 // edits something, the screen's own state is the truth: a late answer no longer replaces it.
@@ -116,6 +118,15 @@ function removeBreak(i) {
   save({ scheduleBreaks: breaks.value })
 }
 
+// A subject's marker: one lightness and chroma for all, only the hue changes, taken from its
+// title so it is the same every time and on every screen.
+function subjectColor(title) {
+  if (!title) return undefined
+  let h = 0
+  for (const ch of title.trim().toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) % 360
+  return `oklch(0.7 0.08 ${h})`
+}
+
 // The slots: the grid is the editor, for an admin. A gesture only tells what it would change.
 const timetableEvents = computed(() =>
   events.value.map((e) => ({
@@ -125,7 +136,7 @@ const timetableEvents = computed(() =>
     end: e.end_time,
     title: e.title || (isAdmin.value ? t('admin.schedule.untitled') : ''),
     detail: e.detail || undefined,
-    color: e.color || undefined,
+    color: subjectColor(e.title),
     to: e.to,
   })),
 )
@@ -198,102 +209,95 @@ onMounted(refresh)
 
 <template>
   <main class="py-16">
-    <PageLayout :title="t('schedule.title')" :lead="t('schedule.lead')">
-      <StatusText v-if="loading" :delay="300" :text="t('common.loadingContent')" working />
-      <Callout v-else-if="error" type="caution" :title="t('common.contentError')">{{ error }}</Callout>
+    <PageLayout :title="t('schedule.title')">
+      <template v-if="isAdmin && !loading && !error" #actions>
+        <div class="flex items-center gap-1">
+          <Toggle v-model="editing" class="size-10" :aria-label="t('admin.schedule.edit')" :title="t('admin.schedule.edit')">
+            <Pencil aria-hidden="true" class="size-4" />
+          </Toggle>
+          <Sheet variant="ghost" size="icon" :trigger-label="t('admin.schedule.settings')">
+            <template #trigger><SlidersHorizontal aria-hidden="true" class="size-4" /></template>
+            <SheetTitle class="sr-only">{{ t('admin.schedule.settings') }}</SheetTitle>
+            <div class="flex flex-col gap-6">
+              <div class="flex items-center gap-3">
+                <CalendarDays aria-hidden="true" class="size-4 text-fg-muted" />
+                <Switch :model-value="enabled" :aria-label="t('admin.schedule.enabled')" :title="t('admin.schedule.enabled')" @update:model-value="(on) => save({ scheduleEnabled: on })" />
+              </div>
 
-      <template v-else>
-        <template v-if="isAdmin">
-          <div class="flex items-center justify-between gap-4">
-            <span class="text-label text-fg">{{ t('admin.schedule.enabled') }}</span>
-            <Switch :model-value="enabled" :aria-label="t('admin.schedule.enabled')" @update:model-value="(on) => save({ scheduleEnabled: on })" />
-          </div>
-        </template>
-
-        <Empty
-          v-if="!enabled && !isAdmin"
-          :title="t('common.nothingHere')"
-          :description="t('schedule.empty')"
-          :icon="CalendarDays"
-        />
-
-        <template v-else-if="enabled || isAdmin">
-          <template v-if="isAdmin">
-            <div class="flex flex-col gap-3">
-              <h3 class="m-0 text-label text-fg">{{ t('admin.schedule.shape') }}</h3>
-              <div class="grid gap-4 sm:grid-cols-3">
+              <div class="grid grid-cols-2 gap-4">
                 <Field :label="t('admin.schedule.start')">
                   <Input type="time" :model-value="start" @change="(e) => save({ scheduleStart: e.target.value })" />
                 </Field>
                 <Field :label="t('admin.schedule.end')">
                   <Input type="time" :model-value="end" @change="(e) => save({ scheduleEnd: e.target.value })" />
                 </Field>
-                <Field :label="t('admin.schedule.sessionMinutes')">
+                <Field class="col-span-2" :label="t('admin.schedule.sessionMinutes')">
                   <Input type="number" min="5" step="5" :model-value="sessionMinutes" @change="(e) => save({ scheduleSessionMinutes: Number(e.target.value) })" />
                 </Field>
               </div>
 
+              <WeekPillbox
+                :model-value="days"
+                :locale="locale"
+                :label="t('admin.schedule.days')"
+                :words="dayWords"
+                @update:model-value="setDays"
+              />
+
               <div class="flex flex-col gap-3">
-                <h4 class="m-0 text-label text-fg">{{ t('admin.schedule.days') }}</h4>
-                <WeekPillbox
-                  :model-value="days"
-                  :locale="locale"
-                  :label="t('admin.schedule.days')"
-                  :words="dayWords"
-                  @update:model-value="setDays"
-                />
+                <div v-for="(b, i) in breaks" :key="i" class="flex flex-wrap items-center gap-2">
+                  <Input type="time" class="min-w-0 flex-1" :model-value="b.start" @change="(e) => setBreak(i, { start: e.target.value })" />
+                  <Input type="time" class="min-w-0 flex-1" :model-value="b.end" @change="(e) => setBreak(i, { end: e.target.value })" />
+                  <Input class="order-last w-full" :placeholder="t('admin.schedule.breakLabel')" :model-value="b.label" @change="(e) => setBreak(i, { label: e.target.value })" />
+                  <Button variant="ghost" size="icon" :icon="X" :aria-label="t('admin.schedule.removeBreak')" @click="removeBreak(i)" />
+                </div>
+                <Button class="self-start" variant="ghost" size="icon" :icon="Plus" :aria-label="t('admin.schedule.addBreak')" :title="t('admin.schedule.addBreak')" @click="addBreak" />
               </div>
+
+              <StatusText v-if="saveError" :text="saveError" error />
             </div>
+          </Sheet>
+        </div>
+      </template>
 
-            <div class="flex flex-col gap-3">
-              <h3 class="m-0 text-label text-fg">{{ t('admin.schedule.breaks') }}</h3>
-              <div v-for="(b, i) in breaks" :key="i" class="flex items-center gap-2">
-                <Input type="time" class="w-28" :model-value="b.start" @change="(e) => setBreak(i, { start: e.target.value })" />
-                <Input type="time" class="w-28" :model-value="b.end" @change="(e) => setBreak(i, { end: e.target.value })" />
-                <Input class="flex-1" :placeholder="t('admin.schedule.breakLabel')" :model-value="b.label" @change="(e) => setBreak(i, { label: e.target.value })" />
-                <Button variant="ghost" size="icon" :icon="X" :aria-label="t('admin.schedule.removeBreak')" @click="removeBreak(i)" />
-              </div>
-              <Button variant="ghost" size="sm" :icon="Plus" @click="addBreak">{{ t('admin.schedule.addBreak') }}</Button>
-            </div>
+      <StatusText v-if="loading" :delay="300" :text="t('common.loadingContent')" working />
+      <Callout v-else-if="error" type="caution" :title="t('common.contentError')">{{ error }}</Callout>
 
-            <p class="m-0 text-ui text-fg-muted">{{ t('admin.schedule.slotsHint') }}</p>
-          </template>
+      <template v-else-if="enabled || isAdmin">
+        <Timetable
+          :days="dayNames"
+          :start="start"
+          :end="end"
+          :events="timetableEvents"
+          :breaks="breaks"
+          :session-minutes="sessionMinutes"
+          :editable="isAdmin && editing"
+          @create="onCreate"
+          @move="onMove"
+          @resize="onResize"
+          @remove="onRemove"
+          @select="(id) => (selectedId = id)"
+        />
 
-          <Timetable
-            :days="dayNames"
-            :start="start"
-            :end="end"
-            :events="timetableEvents"
-            :breaks="breaks"
-            :session-minutes="sessionMinutes"
-            :editable="isAdmin"
-            @create="onCreate"
-            @move="onMove"
-            @resize="onResize"
-            @remove="onRemove"
-            @select="(id) => (selectedId = id)"
+        <div v-if="isAdmin && editing && selected" class="flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] bg-surface-sunk p-3">
+          <NodePicker
+            class="max-w-56"
+            :model-value="selected.node_id"
+            :placeholder="t('admin.schedule.slotPagePlaceholder')"
+            :none-label="t('admin.schedule.slotPageNone')"
+            :label="t('admin.schedule.slotPage')"
+            @update:model-value="(v) => patchSelected({ nodeId: v })"
           />
+          <Field :label="t('admin.schedule.slotTitle')">
+            <Input :model-value="selected.title" @change="(e) => patchSelected({ title: e.target.value || null })" />
+          </Field>
+          <Field :label="t('admin.schedule.slotDetail')">
+            <Input :model-value="selected.detail" @change="(e) => patchSelected({ detail: e.target.value || null })" />
+          </Field>
+          <Button variant="ghost" size="icon" :icon="X" :aria-label="t('admin.schedule.removeSlot')" @click="onRemove(selected.id)" />
+        </div>
 
-          <div v-if="isAdmin && selected" class="flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] bg-surface-sunk p-3">
-            <NodePicker
-              class="max-w-56"
-              :model-value="selected.node_id"
-              :placeholder="t('admin.schedule.slotPagePlaceholder')"
-              :none-label="t('admin.schedule.slotPageNone')"
-              :label="t('admin.schedule.slotPage')"
-              @update:model-value="(v) => patchSelected({ nodeId: v })"
-            />
-            <Field :label="t('admin.schedule.slotTitle')">
-              <Input :model-value="selected.title" @change="(e) => patchSelected({ title: e.target.value || null })" />
-            </Field>
-            <Field :label="t('admin.schedule.slotDetail')">
-              <Input :model-value="selected.detail" @change="(e) => patchSelected({ detail: e.target.value || null })" />
-            </Field>
-            <Button variant="ghost" size="icon" :icon="X" :aria-label="t('admin.schedule.removeSlot')" @click="onRemove(selected.id)" />
-          </div>
-        </template>
-
-        <StatusText v-if="saveError" :text="saveError" error />
+        <StatusText v-if="saveError && !isAdmin" :text="saveError" error />
       </template>
     </PageLayout>
   </main>

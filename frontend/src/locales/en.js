@@ -546,6 +546,8 @@ export default {
       sessionMinutes: 'A session, in minutes',
       slots: 'Slots',
       slotsHint: 'Drag an empty cell to lay a class down; drag a block to move it, or its edge to lengthen or shorten it.',
+      edit: 'Edit the timetable',
+      settings: 'Timetable settings',
       untitled: 'Untitled',
       removeSlot: 'Remove this slot',
       slotPage: 'Linked section or page',

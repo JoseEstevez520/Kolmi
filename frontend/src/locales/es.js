@@ -543,6 +543,8 @@ export default {
       sessionMinutes: 'Una clase, en minutos',
       slots: 'Franjas',
       slotsHint: 'Arrastra una celda vacía para meter una clase; arrastra un bloque para moverlo, o su borde para alargarlo o acortarlo.',
+      edit: 'Editar el horario',
+      settings: 'Ajustes del horario',
       untitled: 'Sin título',
       removeSlot: 'Quitar esta franja',
       slotPage: 'Sección o página enlazada',
