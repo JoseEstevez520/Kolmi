@@ -155,15 +155,15 @@ a GitHub repo and writes the class's notes in Kolmi.
   the header and an `mcpServers` JSON) and a text to tell your agent; then the connections, with
   when each was last used, revocable. Left: the editors' install links (Cursor, VS Code) and
   Windsurf's JSON, once their official formats are checked.
-- [ ] **Sign in over OAuth for chat apps** — parked. The AI chat apps' custom connectors expect OAuth,
-  not a pasted token: the address, then Kolmi's own sign-in in the browser. It is feasible and
-  cheap: Supabase Auth has an OAuth 2.1 server (PKCE, dynamic client registration, discovery,
-  JWKS), so Kolmi would add a consent screen, accept that token on the MCP, serve the
-  protected-resource metadata and route `/.well-known/` from the domain root. It is not worth it
-  while the people it is for can't use it: ChatGPT custom connectors need a paid plan, and the
-  Gemini app's custom apps need an adult, in the US, with a personal Google account and the
-  interface in English. The coding agents and editors already work with a personal token. Worth
-  a look again if a class turns out to have Claude or ChatGPT on paid plans.
+- [ ] **Sign in over OAuth for chat apps** — not built. The AI chat apps' custom connectors expect
+  OAuth, not a pasted token: the address, then Kolmi's own sign-in in the browser. It is feasible
+  and small: Supabase Auth has an OAuth 2.1 server (PKCE, dynamic client registration,
+  discovery, JWKS), so Kolmi would add a consent screen, accept that token on the MCP, serve the
+  protected-resource metadata and route `/.well-known/` from the domain root. What decides it is
+  who can use the connectors: ChatGPT custom connectors need a paid plan, and the Gemini app's
+  custom apps are limited to adults in the US with a personal Google account and the interface
+  in English. The coding agents and editors already work with a personal token. To build when a
+  class has chat apps that accept it.
 - [x] **How agents are built, in `AGENTS.md`** — agents use the OpenAI SDK with their own loop;
   one moves to LangGraph only when it must pause and resume its own reasoning, survive a long run
   or coordinate with other agents. Approval and state in the database are not reasons.
