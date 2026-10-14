@@ -13,6 +13,9 @@ from .registry import action
 # A shared, unended note counts as "being written now" while it was saved this recently. A writer
 # who closes the tab without ending the session drops out of "Now" after this long.
 LIVE_WINDOW = timedelta(minutes=5)
+# A session ends by itself this long after it started: a class is not longer than this, and a
+# writer who forgot to end it must not stay "live" all day.
+MAX_SESSION = timedelta(hours=3)
 # How much of the text the list shows, taken from the end: what was written last.
 PREVIEW_CHARS = 140
 MAX_CONTENT = 200_000
@@ -33,9 +36,17 @@ def _parse(value: str | None) -> datetime | None:
     return datetime.fromisoformat(value) if value else None
 
 
+def is_over(row: dict[str, Any], now: datetime | None = None) -> bool:
+    """Ended by its author, or past MAX_SESSION since it started."""
+    if row.get("ended_at"):
+        return True
+    started = _parse(row.get("created_at"))
+    return started is not None and (now or _now()) - started >= MAX_SESSION
+
+
 def is_live(row: dict[str, Any], now: datetime | None = None) -> bool:
-    """Shared, not ended, and saved within LIVE_WINDOW."""
-    if not row.get("shared") or row.get("ended_at"):
+    """Shared, not over, and saved within LIVE_WINDOW."""
+    if not row.get("shared") or is_over(row, now):
         return False
     saved = _parse(row.get("updated_at"))
     return saved is not None and (now or _now()) - saved <= LIVE_WINDOW
@@ -84,7 +95,7 @@ def _shape(ctx: Context, row: dict[str, Any], now: datetime) -> dict[str, Any]:
         "mine": _is_author(ctx, row),
         "shared": row["shared"],
         "live": is_live(row, now),
-        "ended": bool(row.get("ended_at")),
+        "ended": is_over(row, now),
         "event_id": row.get("event_id"),
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
@@ -154,7 +165,7 @@ class SaveParams(BaseModel):
 
 @action(
     name="save_live_note",
-    description="Save a live note you are writing: its text (the whole text, replacing what was saved), whether it is shared with the class, or its title. Only the author can; the last save wins. An ended note can't be saved to. Call it as the text changes so the class sees it.",
+    description="Save a live note you are writing: its text (the whole text, replacing what was saved), whether it is shared with the class, or its title. Only the author can; the last save wins. An ended note can't be saved to, and a session ends by itself 3 hours after it started. Call it as the text changes so the class sees it.",
     params=SaveParams,
     path="/live/save",
 )
@@ -171,7 +182,11 @@ def save_live_note(ctx: Context, params: SaveParams):
         changes["title"] = params.title.strip()
     if not changes:
         raise HTTPException(422, "Nothing to save: give content, shared or title")
-    if row.get("ended_at"):
+    if is_over(row):
+        if not row.get("ended_at"):
+            # Past its limit: keep the record as ended, at the moment the limit was reached.
+            limit = (_parse(row["created_at"]) + MAX_SESSION).isoformat()
+            ctx.client.table("live_notes").update({"ended_at": limit}).eq("id", params.id).execute()
         raise HTTPException(409, "That session has ended, so it can't be changed; start_live_note opens a new one")
     changes["updated_at"] = _stamp()
     ctx.client.table("live_notes").update(changes).eq("id", params.id).execute()
@@ -190,8 +205,8 @@ class NoteIdParams(BaseModel):
 )
 def end_live_note(ctx: Context, params: NoteIdParams):
     row = _own(ctx, params.id)
-    if row.get("ended_at"):
-        return {"id": params.id, "ended_at": row["ended_at"]}
+    if is_over(row):
+        return {"id": params.id, "ended_at": row.get("ended_at") or (_parse(row["created_at"]) + MAX_SESSION).isoformat()}
     now = _stamp()
     ctx.client.table("live_notes").update({"ended_at": now, "updated_at": now}).eq("id", params.id).execute()
     return {"id": params.id, "ended_at": now}
@@ -219,7 +234,7 @@ def read_live_note(ctx: Context, params: ReadParams):
     now = _now()
     live = is_live(row, now)
     if params.since and params.since == row["updated_at"]:
-        return {"id": row["id"], "unchanged": True, "updated_at": row["updated_at"], "live": live, "ended": bool(row.get("ended_at"))}
+        return {"id": row["id"], "unchanged": True, "updated_at": row["updated_at"], "live": live, "ended": is_over(row, now)}
     return {**_shape(ctx, row, now), "content": row["content"], "unchanged": False}
 
 

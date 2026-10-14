@@ -54,6 +54,12 @@ For the writer it is the editor, with a "Share live" switch (off by default) and
 session" button. Later, ending the session will send the text to the daily pass as an ordinary
 note, and the suggestion chips will appear under the paragraphs.
 
+## Limits
+
+A session ends by itself three hours after it started (`MAX_SESSION`), shared or not: a class is
+not longer, and a writer who forgot to end it must not stay live all day. A shared note also
+drops out of "Now" when it hasn't been saved for five minutes.
+
 ## Getting there
 
 A quiet icon beside "New note" on the Notes screen (live notes are notes, so no sidebar entry of

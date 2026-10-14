@@ -189,6 +189,20 @@ def test_an_ended_note_cannot_be_saved(store):
     assert "start_live_note" in err.value.detail
 
 
+def test_a_session_ends_by_itself_after_three_hours(store):
+    long_ago = live.MAX_SESSION.total_seconds() / 60 + 5
+    _seed(store, created_at=_ago(long_ago), updated_at=_ago(1))
+
+    assert not live.is_live(store["live_notes"][0])
+    shown = run("read_live_note", _ctx(store), {"id": 1})
+    assert shown["ended"] is True and shown["live"] is False
+    with pytest.raises(HTTPException) as err:
+        run("save_live_note", _ctx(store), {"id": 1, "content": "x"})
+    assert err.value.status_code == 409
+    # The record is closed at the moment the limit was reached.
+    assert store["live_notes"][0]["ended_at"] is not None
+
+
 def test_end_sets_ended_at_once(store):
     _seed(store)
 

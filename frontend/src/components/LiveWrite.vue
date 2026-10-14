@@ -49,7 +49,12 @@ async function save(keepalive = false) {
       })
       saved = sent
       status.value = 'saved'
-    } catch {
+    } catch (e) {
+      // The session hit its time limit: it is over, the screen goes to the ended note.
+      if (e.status === 409) {
+        emit('ended')
+        return
+      }
       // The text stays on screen; the next change tries again.
       status.value = 'error'
     } finally {
