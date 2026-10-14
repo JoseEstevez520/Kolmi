@@ -14,7 +14,9 @@ import {
   DiagramGroup,
   LogoList,
   LogoListItem,
+  SandboxFrame,
   Status,
+  Textarea,
   ThemeToggle,
   ToggleGroup,
   ToggleGroupItem,
@@ -69,15 +71,40 @@ const kind = ref('var')
 const chosen = computed(() => kinds[kind.value])
 const sample = computed(() => `if (true) {\n  ${kind.value} x = 1\n  x = 2\n}\nconsole.log(x)`)
 
-// C. What does this print?
-const question = `console.log(a)\nvar a = 1`
-const answers = [
-  { id: 'undefined', text: 'undefined' },
-  { id: 'error', text: 'ReferenceError' },
-  { id: 'one', text: '1' },
+// C. Playground: editable code, run in a closed frame (scripts only, no network, no access to the
+// page). The code goes in as its own inline script so a syntax error cannot break the capture.
+const tries = [
+  { id: 'before', label: 'Before declaring', code: 'console.log(a)\nlet a = 1' },
+  { id: 'const', label: 'Reassign const', code: 'const a = 1\na = 2\nconsole.log(a)' },
+  { id: 'block', label: 'Block, read outside', code: 'if (true) {\n  var a = 1\n  let b = 2\n}\nconsole.log(a)\nconsole.log(b)' },
 ]
-const right = 'undefined'
-const picked = ref(null)
+const code = ref('var a = 1\nvar a = 2\nconsole.log(a)')
+const ran = ref('')
+const runCount = ref(0)
+const capture = `(() => {
+  const out = document.getElementById('out')
+  const show = (v) => typeof v === 'string' ? v : v === undefined ? 'undefined'
+    : v instanceof Error ? v.name + ': ' + v.message
+    : typeof v === 'object' && v !== null ? (() => { try { return JSON.stringify(v) } catch { return String(v) } })()
+    : String(v)
+  const line = (text, bad) => {
+    const el = document.createElement('div')
+    if (bad) el.className = 'bad'
+    el.textContent = text
+    out.appendChild(el)
+  }
+  for (const k of ['log', 'info', 'warn', 'error']) console[k] = (...a) => line(a.map(show).join(' '), k === 'error')
+  addEventListener('error', (e) => line(e.error ? show(e.error) : String(e.message).replace(/^Uncaught /, ''), true))
+})()`
+function frameDoc(source) {
+  const safe = source.replace(/<\/(script)/gi, '<\\/$1').replace(/<!--/g, '<\\!--')
+  return `<style>#out{font-family:var(--font-mono);font-size:13px;white-space:pre-wrap;word-break:break-word}.bad{color:var(--color-danger,var(--color-fg))}</style><div id="out"></div><script>${capture}<\/script><script>${safe}<\/script>`
+}
+const frame = computed(() => (ran.value ? frameDoc(ran.value) : ''))
+function run() {
+  ran.value = code.value
+  runCount.value++
+}
 
 // D. Cheat sheet
 const sheet = [
@@ -138,24 +165,20 @@ const playing = ref({})
     </section>
 
     <section class="flex flex-col gap-3">
-      <h2 class="m-0 text-ui font-semibold">C. What does this print?</h2>
-      <div class="flex flex-col gap-4 rounded-xl bg-bg-muted p-6">
-        <CodeBlock :code="question" language="js" />
-        <div class="flex flex-wrap gap-2">
+      <h2 class="m-0 text-ui font-semibold">C. Playground</h2>
+      <div class="flex flex-col gap-3 rounded-xl bg-bg-muted p-6">
+        <Textarea v-model="code" aria-label="Code" spellcheck="false" class="font-mono text-ui" />
+        <div class="flex flex-wrap items-center gap-2">
+          <Button size="icon" aria-label="Run" title="Run" @click="run"><Play /></Button>
           <Button
-            v-for="a in answers"
-            :key="a.id"
+            v-for="t in tries"
+            :key="t.id"
             variant="ghost"
-            :disabled="picked !== null && picked !== a.id"
-            :aria-pressed="picked === a.id"
-            :class="picked === a.id && 'bg-bg-muted text-fg'"
-            @click="picked = picked === a.id ? null : a.id"
-          >{{ a.text }}</Button>
+            size="sm"
+            @click="code = t.code; run()"
+          >{{ t.label }}</Button>
         </div>
-        <div v-if="picked" class="flex items-center gap-2 text-ui text-fg-secondary">
-          <Status compact :state="picked === right ? 'done' : 'error'" :label="picked === right ? 'Right' : 'Not quite'" />
-          The declaration moves up, the value stays behind: a is undefined.
-        </div>
+        <SandboxFrame v-if="frame" :key="runCount" :html="frame" label="Output" :height="48" />
       </div>
     </section>
 
