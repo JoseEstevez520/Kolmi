@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Callout, Empty, StatusText } from 'elastic-ui'
+import { Callout, Empty } from 'elastic-ui'
 import { Home } from '@lucide/vue'
+import CardGridSkeleton from '../components/CardGridSkeleton.vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -24,7 +25,7 @@ onMounted(() => {
 <template>
   <main class="py-16">
     <PageLayout data-tour="home" title="Kolmi" :lead="t('home.lead')">
-      <StatusText v-if="waiting" :delay="300" :text="t('common.loadingContent')" working />
+      <CardGridSkeleton v-if="waiting" />
       <Callout v-else-if="nodesError" type="caution" :title="t('common.contentError')">
         {{ nodesError }}
       </Callout>

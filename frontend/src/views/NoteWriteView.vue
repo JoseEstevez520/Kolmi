@@ -6,6 +6,7 @@ import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusTex
 import { ArrowLeft, Maximize2, Minimize2, Paperclip, Radio } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import NodePicker from '../components/NodePicker.vue'
+import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
 import { invalidate } from '../lib/cached.js'
 import { loadNodes } from '../lib/content.js'
@@ -354,7 +355,7 @@ onMounted(() => loadNodes().catch(() => {}))
       </div>
     </div>
 
-    <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
+    <TextSkeleton v-if="loading" heading />
 
     <Callout v-else-if="error" type="caution" :title="t('notes.error')">{{ error }}</Callout>
 

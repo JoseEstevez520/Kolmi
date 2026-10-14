@@ -24,14 +24,18 @@ const section = computed({
 
 <template>
   <main class="py-16">
-    <PageLayout data-tour="admin" :title="t('admin.title')" :lead="t(`admin.sections.${section}.lead`)">
-      <Tabs v-model="section" variant="underline" class="not-prose mb-8">
-        <TabsList :aria-label="t('admin.title')">
-          <TabsTrigger v-for="name in SECTIONS" :key="name" :value="name">
-            {{ t(`admin.sections.${name}.tab`) }}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+    <PageLayout data-tour="admin" :title="t('admin.title')" :lead="section === 'content' ? '' : t(`admin.sections.${section}.lead`)">
+      <!-- A page may put its own actions at the end of the selector's row (`#admin-actions`). -->
+      <div class="not-prose mb-8 flex flex-wrap items-center justify-between gap-x-3">
+        <Tabs v-model="section" variant="underline">
+          <TabsList :aria-label="t('admin.title')">
+            <TabsTrigger v-for="name in SECTIONS" :key="name" :value="name">
+              {{ t(`admin.sections.${name}.tab`) }}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div id="admin-actions" class="ml-auto flex items-center gap-1" />
+      </div>
 
       <RouterView v-slot="{ Component, route: current }">
         <PageTransition :page="current.path">

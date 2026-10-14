@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Callout, DescriptionItem, DescriptionList, StatusText } from 'elastic-ui'
+import { Callout, DescriptionItem, DescriptionList } from 'elastic-ui'
 import { usePreviewData } from '../../lib/previewData.js'
 
 // run_pass: how many notes wait for the pass and whether one is already running. Left blank when
@@ -27,7 +27,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <StatusText v-if="pending === null" class="text-meta" :delay="300" :text="t('chat.preview.countingPending')" working />
+  <div v-if="pending === null" aria-busy="true" class="h-9" />
   <div v-else-if="pending !== false" class="flex flex-col gap-2">
     <DescriptionList>
       <DescriptionItem :term="t('chat.preview.pendingNotes', { n: pending }, pending)" class="py-1.5">

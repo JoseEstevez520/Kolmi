@@ -48,7 +48,7 @@ onMounted(load)
 
 <template>
   <AdminSetting :title="t('admin.chat.title')" :description="t('admin.chat.hint')">
-    <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
+    <div v-if="loading" aria-busy="true" class="h-6 w-full" />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>

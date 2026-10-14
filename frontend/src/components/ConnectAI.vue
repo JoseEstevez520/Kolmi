@@ -26,6 +26,7 @@ import { MessageSquareText, SquareTerminal } from '@lucide/vue'
 import { siClaude, siCursor, siGooglegemini, siWindsurf } from 'simple-icons'
 import openaiLogo from '../assets/logos/openai.svg'
 import vscodeLogo from '../assets/logos/vscode.svg'
+import ListSkeleton from './ListSkeleton.vue'
 import { api } from '../lib/api.js'
 import { formatDay } from '../lib/format.js'
 import {
@@ -248,7 +249,7 @@ onBeforeUnmount(() => {
 
     <h3 class="mt-4 text-label font-medium text-fg">{{ t('settings.connect.yours') }}</h3>
     <div class="flex flex-col gap-3 py-4">
-      <StatusText v-if="loading" :delay="300" :text="t('settings.connect.loading')" working />
+      <ListSkeleton v-if="loading" :rows="2" layout="table" :select="false" />
       <StatusText v-else-if="loadError" :text="loadError" error />
       <p v-else-if="tokens.length === 0" class="text-label text-fg-muted">{{ t('settings.connect.none') }}</p>
 

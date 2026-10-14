@@ -18,7 +18,16 @@ const sources = {
     const [settings, events] = await Promise.all([api.settings(), api.scheduleEvents()])
     return { settings, events }
   },
+  // An admin's lists. Never warmed in the background (prefetch below): only the screen asks.
+  adminUsers: () => api.users(),
+  adminReports: async () => {
+    const list = await api.adminBugReports()
+    return Array.isArray(list) ? list : []
+  },
 }
+
+// What the app warms by itself: what everyone opens.
+const WARM = ['notes', 'live', 'schedule']
 
 const entries = new Map()
 let owner = null
@@ -107,7 +116,7 @@ export function refreshCached(key) {
 }
 
 // Warm the lists after a short idle moment, so a first visit is instant too. Silent.
-export function prefetch(keys = Object.keys(sources)) {
+export function prefetch(keys = WARM) {
   const go = () => keys.forEach((key) => run(key, sources[key]))
   if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 3000 })
   else setTimeout(go, 1500)

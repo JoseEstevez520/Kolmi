@@ -95,9 +95,10 @@ Before adding a line of copy to a screen, ask what would be lost without it.
   editor (`FileDropZone`) or pasting one does the same. Attaching works before anything is
   written: the first file creates the note, so a note may hold only files. The admin dialog uses
   the default `FileUpload`.
-- **Admin** (admins only): the whole node tree, each row editable in place (rename, edit,
-  move, reorder) and deleted with a confirmation, with a section or a page added at any
-  level. Below it, the class language: a `Select` in a `Field`, saved as soon as
+- **Admin** (admins only): the node tree beside a panel for the picked node (rename, add
+  inside, edit, move to, delete with a confirmation), with a search and an add at the top
+  level in the tabs' row. The tree starts folded and the picked node is in the address
+  (`?node=ID`). On a phone the panel is a sheet. The class language: a `Select` in a `Field`, saved as soon as
   it's picked; and when the daily AI pass runs: the days in a `WeekPillbox`, the times on a
   `DayStrip`, saved as soon as they are settled.
 
@@ -131,7 +132,9 @@ toggle, and only the content changing between pages.
 | `AuthLayout` | the centred card of Login and Register, with the mark and the theme toggle |
 | `PageLayout` | one article at a single width, with its title and lead line; with `toc`, a `TableOfContents` of its headings at 2xl |
 | `CardGrid` + `PageCard` | a grid of cards, one per node or note: a title and a text, and a footer with a date and a status; a note's text is clamped with a fading end |
-| `AdminNode` + `AdminRow` + `NodeMark` + the two dialogs | the recursive tree inside a `TreeDrag`: one row, quiet at rest (a mark, which folds a section, and the title), with its add, edit and delete coming in when it is pointed at or focused; rows are moved by dragging them (the others make room) or with Alt and the arrows. The dialogs add a node or edit its description, icon and colour (one `IconPicker` field) and `on_home`. A node without an icon of its own shows elastic-ui's `FolderIcon` or `FileIcon`, tinted in its colour (`NodeMark` where a section's open state matters, `defaultMark` elsewhere, such as the sidebar) |
+| `AdminNode` + `AdminRow` + `NodeMark` | the recursive tree inside a `TreeDrag`, folded by default: a row is a chevron where there is something to open, a mark and the title, 32px, the picked one lit by tone, with no actions of its own. It is a WAI-ARIA tree (arrows, Right and Left to open and close, Enter or F2 to rename the picked one); rows are moved by dragging them (the others make room) or with Alt and the arrows. A node without an icon of its own shows elastic-ui's `FolderIcon` or `FileIcon`, tinted in its colour (`NodeMark` where a section's open state matters, `defaultMark` elsewhere, such as the sidebar) |
+| `AdminPanel` + `AdminMovePicker` + the two dialogs | what is done to the picked node: its title written in place, and four icons: add inside (a section), edit, move to (a picker of sections, for the keyboard and touch), delete. The dialogs add a node or edit its description, icon and colour (one `IconPicker` field) and `on_home` |
+| `AdminSearch` | elastic-ui's `CommandPalette`, opened from the search icon or Ctrl/Cmd K: picking a node picks it in the tree and opens the way down to it |
 
 ## Images and handouts
 

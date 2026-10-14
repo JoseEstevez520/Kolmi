@@ -1,13 +1,14 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Field, Input, Sheet, SheetTitle, StatusText, Switch, Timetable, Toggle, WeekPillbox } from 'elastic-ui'
+import { Button, Callout, Field, Input, Sheet, SheetTitle, Skeleton, StatusText, Switch, Timetable, Toggle, WeekPillbox } from 'elastic-ui'
 import { CalendarDays, Pencil, Plus, SlidersHorizontal, X } from '@lucide/vue'
 import NodePicker from '../components/NodePicker.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { invalidate, useCached } from '../lib/cached.js'
+import { useAfter } from '../lib/delayed.js'
 
 // The class's own weekly timetable (not the daily pass's, in Admin): everyone sees the week and
 // nothing else. An admin has two icons up in the page's actions: the settings (a Sheet) and the
@@ -15,6 +16,8 @@ import { invalidate, useCached } from '../lib/cached.js'
 // class down, drag a block to move it, drag its edge to lengthen or shorten it (snapped to a
 // whole session), click to select it and fill its title, detail or page in the panel below. A gesture only tells what it would change; this is what calls the backend.
 const { t, locale } = useI18n()
+// The grid's blank shape, after a short wait, only while the first answer is on its way.
+const slow = useAfter(300)
 const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const enabled = ref(false)
@@ -251,7 +254,9 @@ onMounted(refresh)
         </div>
       </template>
 
-      <StatusText v-if="loading" :delay="300" :text="t('common.loadingContent')" working />
+      <div v-if="loading" aria-busy="true" class="[--skeleton-bg:var(--color-border)]">
+        <Skeleton v-if="slow" class="h-[28rem] w-full rounded-[var(--radius-md)]" />
+      </div>
       <Callout v-else-if="error" type="caution" :title="t('common.contentError')">{{ error }}</Callout>
 
       <template v-else-if="enabled || isAdmin">

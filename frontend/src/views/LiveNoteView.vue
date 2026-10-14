@@ -2,9 +2,10 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { Button, Callout, ConfirmButton, Status, StatusText } from 'elastic-ui'
+import { Button, Callout, ConfirmButton, Status } from 'elastic-ui'
 import { ArrowLeft } from '@lucide/vue'
 import LiveWatch from '../components/LiveWatch.vue'
+import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { invalidate } from '../lib/cached.js'
@@ -81,7 +82,7 @@ async function remove() {
         />
       </div>
 
-      <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
+      <TextSkeleton v-if="loading" heading />
       <Callout v-else-if="error" type="caution" :title="t('live.error')">{{ error }}</Callout>
 
       <template v-else-if="note">

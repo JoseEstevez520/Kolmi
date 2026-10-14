@@ -23,7 +23,9 @@ import {
 } from 'elastic-ui'
 import { Ban, Check, Undo2, Users } from '@lucide/vue'
 import { api } from '../lib/api.js'
+import ListSkeleton from './ListSkeleton.vue'
 import { profile } from '../lib/auth.js'
+import { invalidate, useCached } from '../lib/cached.js'
 import { formatDay } from '../lib/format.js'
 
 // The class's people, as a table: who, whether they were let in, their role (a Select, saved at
@@ -33,9 +35,11 @@ import { formatDay } from '../lib/format.js'
 // table, and the Select goes back to what it was.
 const { t } = useI18n()
 
-const users = ref([])
-const loading = ref(true)
-const loadError = ref('')
+// The last list draws at once and is fetched again quietly; "loading" is only for a first visit.
+// A change of this admin's own is applied to the list and fetched again, so it is never stale.
+const { data, loading, error: failed, refresh } = useCached('adminUsers')
+const users = computed(() => data.value ?? [])
+const loadError = computed(() => (failed.value ? failed.value.trim() || t('admin.users.loadError') : ''))
 const error = ref('')
 // The person a change is running for, so their row's buttons wait.
 const busy = ref(null)
@@ -54,20 +58,8 @@ const sorted = computed(() =>
   ),
 )
 
-async function load() {
-  loading.value = true
-  loadError.value = ''
-  try {
-    users.value = await api.users()
-  } catch (e) {
-    loadError.value = e.message || t('admin.users.loadError')
-  } finally {
-    loading.value = false
-  }
-}
-
 function replace(row) {
-  users.value = users.value.map((u) => (u.id === row.id ? { ...u, ...row } : u))
+  data.value = users.value.map((u) => (u.id === row.id ? { ...u, ...row } : u))
 }
 
 async function change(user, call, onFail) {
@@ -75,6 +67,7 @@ async function change(user, call, onFail) {
   error.value = ''
   try {
     replace(await call())
+    invalidate('adminUsers')
   } catch (e) {
     error.value = e.message || t('common.somethingWrongLong')
     onFail?.()
@@ -103,17 +96,17 @@ function setStatus(user, status) {
 async function remove(user) {
   await change(user, async () => {
     await api.deleteUser({ userId: user.id })
-    users.value = users.value.filter((u) => u.id !== user.id)
+    data.value = users.value.filter((u) => u.id !== user.id)
     return { id: user.id }
   })
 }
 
-onMounted(load)
+onMounted(refresh)
 </script>
 
 <template>
   <div class="flex flex-col gap-4 pt-4">
-    <StatusText v-if="loading" :delay="300" :text="t('admin.users.loading')" working />
+    <ListSkeleton v-if="loading" layout="table" />
     <StatusText v-else-if="loadError" :text="loadError" error />
     <Empty
       v-else-if="users.length === 0"

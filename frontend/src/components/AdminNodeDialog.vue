@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Button,
@@ -18,7 +18,7 @@ import { forgetNode } from '../lib/content.js'
 import { ICONS, NODE_COLORS } from '../lib/icons.js'
 
 // Edit one node: its title, description, icon, colour and whether it is on the
-// home. Where it sits is changed by dragging its row. Opened from the row's button.
+// home. Where it sits is changed in the panel's move picker or by dragging its row. Opened from the panel.
 const props = defineProps({
   node: { type: Object, required: true },
 })
@@ -27,11 +27,22 @@ const admin = inject('adminTree')
 const { t } = useI18n()
 
 
+const open = ref(false)
 const title = ref(props.node.title)
 const description = ref(props.node.description ?? '')
 const icon = ref(props.node.icon || null)
 const color = ref(props.node.color || null)
 const onHome = ref(Boolean(props.node.on_home))
+
+// Opened, it shows the node as it is now, not as it was when the panel drew it.
+watch(open, (isOpen) => {
+  if (!isOpen) return
+  title.value = props.node.title
+  description.value = props.node.description ?? ''
+  icon.value = props.node.icon || null
+  color.value = props.node.color || null
+  onHome.value = Boolean(props.node.on_home)
+})
 
 // The colours on offer, named in the UI's language; grey is the neutral one (no colour).
 const colorOptions = computed(() =>
@@ -51,7 +62,7 @@ async function save(close) {
 </script>
 
 <template>
-  <DialogMorph variant="ghost" size="icon">
+  <DialogMorph v-model:open="open" variant="ghost" size="icon">
     <template #trigger>
       <Settings2 class="size-4" aria-hidden="true" />
       <span class="sr-only">{{ t('admin.edit', { title: node.title }) }}</span>

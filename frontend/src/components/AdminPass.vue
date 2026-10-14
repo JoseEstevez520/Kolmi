@@ -132,7 +132,7 @@ onMounted(load)
 
 <template>
   <section class="flex flex-col gap-8 py-6">
-    <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
+    <div v-if="loading" aria-busy="true" class="min-h-[19rem]" />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>

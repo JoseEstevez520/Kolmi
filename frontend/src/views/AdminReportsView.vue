@@ -1,9 +1,11 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ConfirmButton, Empty, Status, StatusText, TruncatedText } from 'elastic-ui'
 import { Bug } from '@lucide/vue'
 import { api } from '../lib/api.js'
+import ListSkeleton from '../components/ListSkeleton.vue'
+import { invalidate, useCached } from '../lib/cached.js'
 import { formatShortDate } from '../lib/format.js'
 
 // Every bug report of the class, newest first, for an admin: where each ended up and why, and the
@@ -11,9 +13,10 @@ import { formatShortDate } from '../lib/format.js'
 // judge discarded it or GitHub failed), or discard it. A filed one has only its link.
 const { t } = useI18n()
 
-const reports = ref([])
-const loading = ref(true)
-const loadError = ref('')
+// The last list draws at once and is fetched again quietly; "loading" is only for a first visit.
+const { data, loading, error: failed, refresh } = useCached('adminReports')
+const reports = computed(() => data.value ?? [])
+const loadError = computed(() => (failed.value ? failed.value.trim() || t('admin.reports.loadError') : ''))
 const error = ref('')
 // The report a change is running for, so its buttons wait.
 const busy = ref(null)
@@ -26,23 +29,12 @@ function stateOf(report) {
   return report.reason ? 'flagged' : 'working'
 }
 
-async function load() {
-  try {
-    const list = await api.adminBugReports()
-    reports.value = Array.isArray(list) ? list : []
-  } catch (e) {
-    loadError.value = e.message || t('admin.reports.loadError')
-  } finally {
-    loading.value = false
-  }
-}
-
 async function change(report, run) {
   busy.value = report.id
   error.value = ''
   try {
     await run()
-    await load()
+    await invalidate('adminReports')
   } catch (e) {
     error.value = e.message || t('common.somethingWrongLong')
   } finally {
@@ -53,12 +45,12 @@ async function change(report, run) {
 const issueIt = (report) => change(report, () => api.fileBugReport({ id: report.id }))
 const discard = (report) => change(report, () => api.discardBugReport({ id: report.id, reason: t('admin.reports.noReason') }))
 
-onMounted(load)
+onMounted(refresh)
 </script>
 
 <template>
   <div class="not-prose flex flex-col gap-4 pt-4">
-    <StatusText v-if="loading" :delay="300" :text="t('admin.reports.loading')" working />
+    <ListSkeleton v-if="loading" />
     <StatusText v-else-if="loadError" :text="loadError" error />
     <Empty v-else-if="reports.length === 0" :title="t('common.nothingHere')" :description="t('admin.reports.empty')" :icon="Bug" />
 

@@ -61,7 +61,8 @@ onMounted(load)
 
 <template>
   <AdminSetting :title="t('admin.classLanguage.label')">
-    <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
+    <!-- Nothing to say while it comes; the Select's height is kept so the row does not jump. -->
+    <div v-if="loading" aria-busy="true" class="h-9 w-full" />
     <StatusText v-else-if="loadError" :text="loadError" error />
 
     <template v-else>

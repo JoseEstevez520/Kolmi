@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Callout, CodeDiff, DescriptionItem, DescriptionList, StatusText } from 'elastic-ui'
+import { Callout, CodeDiff, DescriptionItem, DescriptionList } from 'elastic-ui'
 import { flatten } from '../../lib/content.js'
 import { formatDate } from '../../lib/format.js'
 import { usePreviewData } from '../../lib/previewData.js'
@@ -32,7 +32,7 @@ const before = computed(() => (partial.value ? current.value?.slice(0, PREVIEW_L
 </script>
 
 <template>
-  <StatusText v-if="version === undefined" class="text-meta" :delay="300" :text="t('chat.preview.loadingVersion')" working />
+  <div v-if="version === undefined" aria-busy="true" class="h-24" />
   <div v-else-if="version && node" class="flex flex-col gap-2">
     <DescriptionList>
       <DescriptionItem :term="node.title" class="py-1.5">{{ t('chat.preview.versionOf', { date: formatDate(version.created_at) }) }}</DescriptionItem>

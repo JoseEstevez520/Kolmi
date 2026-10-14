@@ -51,8 +51,8 @@ const steps = computed(() => {
     const count = pages ? t('chat.preview.pagesGo', { n: pages }, pages) : t('chat.preview.inside', { n: below.length }, below.length)
     out.push({ title: count, body: names + more })
   }
-  if (noteCount.value === null) out.push({ title: '…', body: t('chat.preview.countingNotes'), quiet: true })
-  else if (noteCount.value) out.push({ title: t('chat.preview.notesLose', { n: noteCount.value }, noteCount.value), body: t('chat.preview.notesStay') })
+  // While the count comes (null) the step is simply not there yet: no text says it is counting.
+  if (noteCount.value) out.push({ title: t('chat.preview.notesLose', { n: noteCount.value }, noteCount.value), body: t('chat.preview.notesStay') })
   return out
 })
 </script>
@@ -60,7 +60,7 @@ const steps = computed(() => {
 <template>
   <div v-if="steps" class="flex flex-col gap-2">
     <Steps static>
-      <StepsItem v-for="s in steps" :key="s.title" :title="s.title" :class="{ 'opacity-60': s.quiet }">{{ s.body }}</StepsItem>
+      <StepsItem v-for="s in steps" :key="s.title" :title="s.title">{{ s.body }}</StepsItem>
     </Steps>
     <Callout type="caution" :title="t('chat.preview.noUndoTitle')">{{ t('chat.preview.noUndo') }}</Callout>
   </div>

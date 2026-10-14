@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ConfirmButton, PopoverMorph, StatusText, Timeline, TimelineItem } from 'elastic-ui'
 import { History, RotateCcw } from '@lucide/vue'
+import ListSkeleton from './ListSkeleton.vue'
 import { api } from '../lib/api.js'
 import { forgetNode, loadNode } from '../lib/content.js'
 import { formatShortDate } from '../lib/format.js'
@@ -63,7 +64,7 @@ async function restore(versionId) {
       <span class="max-sm:sr-only">{{ t('history.button') }}</span>
     </template>
 
-    <StatusText v-if="loading && !versions.length" :delay="300" :text="t('history.loading')" working />
+    <ListSkeleton v-if="loading && !versions.length" :rows="3" />
     <StatusText v-else-if="error" class="text-meta" :text="error" error />
     <p v-else-if="!versions.length" class="text-meta text-fg-muted">{{ t('history.none') }}</p>
     <Timeline

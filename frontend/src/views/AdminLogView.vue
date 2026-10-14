@@ -14,6 +14,7 @@ import {
   TruncatedText,
 } from 'elastic-ui'
 import { CircleMinus, FilePen, FilePlus, Flag, History, NotebookPen } from '@lucide/vue'
+import ListSkeleton from '../components/ListSkeleton.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { flatten, loadNodes } from '../lib/content.js'
@@ -156,7 +157,7 @@ onMounted(load)
 <template>
   <main class="py-16">
     <PageLayout :title="t('aiLog.title')" :lead="t('aiLog.lead')">
-      <StatusText v-if="loading" :delay="300" :text="t('aiLog.loading')" working />
+      <ListSkeleton v-if="loading" :rows="5" />
 
       <Callout v-else-if="error" type="caution" :title="t('aiLog.error')">
         {{ error }}
@@ -223,7 +224,7 @@ onMounted(load)
                   {{ pass.error }}
                 </Callout>
 
-                <StatusText v-if="loadingId === String(pass.id)" :delay="300" :text="t('aiLog.loading')" working />
+                <ListSkeleton v-if="loadingId === String(pass.id)" :rows="3" />
                 <StatusText v-else-if="failedId === String(pass.id)" :text="errorText" error />
                 <StatusText v-else-if="pass.status === 'running'" :text="label('passStatus', 'running')" working />
                 <p v-else-if="entriesOf(pass).length === 0 && !pass.error" class="m-0 text-label text-fg-muted">{{ t('aiLog.quiet') }}</p>

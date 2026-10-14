@@ -2,8 +2,10 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ActionButton, Button, Callout, Empty, Markdown, StatusText } from 'elastic-ui'
+import { ActionButton, Button, Callout, Empty, Markdown } from 'elastic-ui'
 import { FileQuestion, FileText, Layers } from '@lucide/vue'
+import CardGridSkeleton from '../components/CardGridSkeleton.vue'
+import TextSkeleton from '../components/TextSkeleton.vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -18,8 +20,8 @@ import { loadPageRenderer } from '../lib/openui/load.js'
 
 // One node at /node/:id. The whole tree is already loaded, so a section paints
 // its children at once; only a page's content needs a fetch, often done already
-// when the link was pointed at (prefetchNode). The title shows meanwhile, and
-// "Loading…" only if the wait is long enough to notice.
+// when the link was pointed at (prefetchNode). The title shows meanwhile, and the shape of
+// the content only if the wait is long enough to notice.
 const route = useRoute()
 const { t } = useI18n()
 const id = computed(() => Number(route.params.id))
@@ -147,12 +149,7 @@ watch(id, load)
       </Callout>
 
       <template v-else-if="isPage">
-        <StatusText
-          v-if="loadingContent || waitingRenderer"
-          :delay="300"
-          :text="t('common.loading')"
-          working
-        />
+        <TextSkeleton v-if="loadingContent || waitingRenderer" />
         <template v-else>
           <component
             :is="openui.Renderer"
@@ -175,7 +172,7 @@ watch(id, load)
       </template>
 
       <template v-else>
-        <StatusText v-if="!node" :delay="300" :text="t('common.loading')" working />
+        <CardGridSkeleton v-if="!node" />
         <template v-else>
           <Empty
             v-if="children.length === 0"
