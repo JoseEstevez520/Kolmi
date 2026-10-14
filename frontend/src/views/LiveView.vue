@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Button, Callout, Input, StatusText } from 'elastic-ui'
@@ -8,6 +8,7 @@ import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
+import { invalidate, useCached } from '../lib/cached.js'
 import { formatAgo } from '../lib/format.js'
 import { setLiveCount } from '../lib/liveCount.js'
 import { usePolling } from '../lib/polling.js'
@@ -17,28 +18,16 @@ import { usePolling } from '../lib/polling.js'
 const { t } = useI18n()
 const router = useRouter()
 
-const notes = ref([])
-const currentClass = ref(null)
-const loading = ref(true)
-const error = ref('')
+// The last list draws at once; the poll below keeps it fresh (lib/cached.js).
+const { data, loading, error, refresh } = useCached('live')
+const notes = computed(() => data.value?.notes ?? [])
+const currentClass = computed(() => data.value?.current_class ?? null)
+watch(data, (answer) => answer && setLiveCount(answer.notes), { immediate: true })
 
 const now = computed(() => notes.value.filter((n) => n.live))
 const earlier = computed(() => notes.value.filter((n) => !n.live))
 
-async function load() {
-  try {
-    const answer = await api.liveNotes()
-    notes.value = answer.notes
-    setLiveCount(answer.notes)
-    currentClass.value = answer.current_class
-    error.value = ''
-  } catch (e) {
-    error.value = e.message || t('live.error')
-  } finally {
-    loading.value = false
-  }
-}
-usePolling(load, 6000)
+usePolling(refresh, 6000)
 
 // A note's state as the library's Status: a ring that turns while it is written.
 function stateOf(note) {
@@ -67,6 +56,7 @@ async function start() {
   startError.value = ''
   try {
     const note = await api.startLiveNote({ title: title.value.trim() || null })
+    invalidate('live')
     router.push({ name: 'live-note', params: { id: note.id } })
   } catch (e) {
     startError.value = e.message || t('live.startError')
@@ -96,7 +86,7 @@ async function start() {
       </div>
 
       <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
-      <Callout v-else-if="error" type="caution" :title="t('live.error')">{{ error }}</Callout>
+      <Callout v-else-if="error" type="caution" :title="t('live.error')">{{ error.trim() || t('live.error') }}</Callout>
       <!-- What is being written now comes first; the state on each card says the rest. -->
       <CardGrid v-else-if="notes.length" class="mt-10">
         <PageCard

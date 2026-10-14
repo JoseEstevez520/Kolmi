@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { api } from './api.js'
 import { isWaiting, profile, session } from './auth.js'
+import { refreshCached } from './cached.js'
 import { usePolling } from './polling.js'
 
 // How many live notes are being written by someone else right now: the number on the Notes tab.
@@ -15,7 +15,8 @@ export function setLiveCount(notes) {
 export async function refreshLiveCount() {
   if (!session.value || !profile.value || isWaiting(profile.value)) return
   try {
-    setLiveCount((await api.liveNotes()).notes)
+    const answer = await refreshCached('live')
+    if (answer) setLiveCount(answer.notes)
   } catch {
     /* keep the last count */
   }

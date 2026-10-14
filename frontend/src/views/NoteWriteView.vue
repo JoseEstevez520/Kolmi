@@ -7,6 +7,7 @@ import { ArrowLeft, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import NodePicker from '../components/NodePicker.vue'
 import { api } from '../lib/api.js'
+import { invalidate } from '../lib/cached.js'
 import { loadNodes } from '../lib/content.js'
 import { joinNote, splitNote } from '../lib/notes.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
@@ -168,9 +169,10 @@ watch([title, body, hintId], () => {
 
 // Leaving the screen, or the tab, saves what is pending. A closing tab can't wait, so that save
 // is sent with keepalive to outlive the page.
-onBeforeRouteLeave(() => {
+onBeforeRouteLeave(async () => {
   leaving = true
-  return save()
+  await save()
+  invalidate('notes')
 })
 function onHide() {
   if (document.visibilityState === 'hidden') save(true)

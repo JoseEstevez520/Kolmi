@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, Callout, Empty, Field, Input, StatusText, Switch, Timetable, WeekPillbox } from 'elastic-ui'
 import { CalendarDays, Plus, X } from '@lucide/vue'
@@ -7,6 +7,7 @@ import NodePicker from '../components/NodePicker.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
+import { invalidate, useCached } from '../lib/cached.js'
 
 // The class's own weekly timetable (not the daily pass's, in Admin): everyone sees it here; an
 // admin edits it right on the same page, the grid itself (elastic-ui's Timetable, editable): drag
@@ -25,21 +26,21 @@ const end = ref('15:20')
 const sessionMinutes = ref(50)
 const breaks = ref([])
 const events = ref([])
-const loading = ref(true)
-const error = ref('')
 const saveError = ref('')
 
-async function load() {
-  try {
-    const [settings, loadedEvents] = await Promise.all([api.settings(), api.scheduleEvents()])
-    apply(settings)
-    events.value = loadedEvents
-  } catch (e) {
-    error.value = e.message || t('common.somethingWrongLong')
-  } finally {
-    loading.value = false
-  }
-}
+// The last answer draws at once and a quiet refetch follows (lib/cached.js). Once the person
+// edits something, the screen's own state is the truth: a late answer no longer replaces it.
+const { data, loading, error, refresh } = useCached('schedule')
+let touched = false
+watch(
+  data,
+  (answer) => {
+    if (!answer || touched) return
+    apply(answer.settings)
+    events.value = answer.events
+  },
+  { immediate: true },
+)
 
 function apply(settings) {
   enabled.value = settings.schedule_enabled
@@ -62,7 +63,9 @@ async function save(patch) {
   saveError.value = ''
   saving = true
   try {
+    touched = true
     const answer = await api.updateSettings(patch)
+    invalidate('schedule')
     // A change made while this one was saving comes next: its answer is the one to show, so this
     // one's, older, would put back for a moment what was just changed.
     if (!queued) apply(answer)
@@ -132,7 +135,9 @@ const selected = computed(() => events.value.find((e) => e.id === selectedId.val
 
 async function onCreate({ day, start: startTime, end: endTime }) {
   try {
+    touched = true
     const created = await api.createScheduleEvent({ day, startTime, endTime })
+    invalidate('schedule')
     events.value = [...events.value, created]
     selectedId.value = created.id
   } catch (e) {
@@ -142,7 +147,9 @@ async function onCreate({ day, start: startTime, end: endTime }) {
 
 async function onMove(id, day, startTime, endTime) {
   try {
+    touched = true
     const updated = await api.updateScheduleEvent({ eventId: id, day, startTime, endTime })
+    invalidate('schedule')
     events.value = events.value.map((e) => (e.id === id ? updated : e))
   } catch (e) {
     saveError.value = e.message || t('common.somethingWrongLong')
@@ -151,7 +158,9 @@ async function onMove(id, day, startTime, endTime) {
 
 async function onResize(id, startTime, endTime) {
   try {
+    touched = true
     const updated = await api.updateScheduleEvent({ eventId: id, startTime, endTime })
+    invalidate('schedule')
     events.value = events.value.map((e) => (e.id === id ? updated : e))
   } catch (e) {
     saveError.value = e.message || t('common.somethingWrongLong')
@@ -161,8 +170,10 @@ async function onResize(id, startTime, endTime) {
 async function onRemove(id) {
   events.value = events.value.filter((e) => e.id !== id)
   if (selectedId.value === id) selectedId.value = null
+  touched = true
   try {
     await api.deleteScheduleEvent({ eventId: id })
+    invalidate('schedule')
   } catch (e) {
     saveError.value = e.message || t('common.somethingWrongLong')
   }
@@ -173,14 +184,16 @@ async function onRemove(id) {
 async function patchSelected(patch) {
   if (!selected.value) return
   try {
+    touched = true
     const updated = await api.updateScheduleEvent({ eventId: selected.value.id, ...patch })
+    invalidate('schedule')
     events.value = events.value.map((e) => (e.id === updated.id ? updated : e))
   } catch (e) {
     saveError.value = e.message || t('common.somethingWrongLong')
   }
 }
 
-onMounted(load)
+onMounted(refresh)
 </script>
 
 <template>

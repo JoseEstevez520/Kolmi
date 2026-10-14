@@ -5,6 +5,7 @@ import { onBeforeRouteLeave } from 'vue-router'
 import { Button, Input, StatusText } from 'elastic-ui'
 import { Eye, EyeOff, Square } from '@lucide/vue'
 import { api } from '../lib/api.js'
+import { invalidate } from '../lib/cached.js'
 
 // The writer's side of a live note: a title, the editor, a "Share live" switch (off until the
 // author turns it on) and "End session". What is written is saved a moment after the last key.
@@ -106,7 +107,10 @@ onBeforeUnmount(() => {
 function onHide() {
   if (document.visibilityState === 'hidden') save(true)
 }
-onBeforeRouteLeave(() => save())
+onBeforeRouteLeave(async () => {
+  await save()
+  invalidate('live')
+})
 
 async function end() {
   ending.value = true

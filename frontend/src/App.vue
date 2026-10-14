@@ -30,6 +30,7 @@ import {
 } from './lib/chat.js'
 import { chatSize } from './lib/chatPanel.js'
 import { libraryLabels } from './lib/i18n.js'
+import { usePrefetch } from './lib/cached.js'
 import { useLiveCount } from './lib/liveCount.js'
 import { motionOn } from './lib/motion.js'
 import { tocShown } from './lib/toc.js'
@@ -57,6 +58,8 @@ watch(
 
 // The Notes tab's count of live notes, polled for as long as the shell is up.
 useLiveCount()
+// The lists a member opens most are fetched in the background once they are let in.
+usePrefetch()
 
 // A step on another page sends the tour there first, and `beforeStep` waits for the route to
 // settle before the new target is measured. Tour calls this for its current step as soon as it

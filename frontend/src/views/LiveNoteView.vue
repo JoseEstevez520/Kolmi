@@ -8,6 +8,7 @@ import LiveWatch from '../components/LiveWatch.vue'
 import LiveWrite from '../components/LiveWrite.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
+import { invalidate } from '../lib/cached.js'
 import { refreshLiveCount } from '../lib/liveCount.js'
 import { usePolling } from '../lib/polling.js'
 
@@ -58,11 +59,13 @@ const state = computed(() => {
 
 async function ended() {
   note.value = await api.liveNote({ id })
+  invalidate('live')
   refreshLiveCount()
 }
 
 async function remove() {
   await api.deleteLiveNote({ id })
+  invalidate('live')
   refreshLiveCount()
   router.push({ name: 'live' })
 }

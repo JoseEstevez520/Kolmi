@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, Callout, Empty, StatusText } from 'elastic-ui'
 import { NotebookPen, Plus, Radio } from '@lucide/vue'
@@ -8,6 +8,7 @@ import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
+import { useCached } from '../lib/cached.js'
 import { formatDay, noteStatusLabel } from '../lib/format.js'
 import { plainText, splitNote } from '../lib/notes.js'
 
@@ -15,9 +16,9 @@ import { plainText, splitNote } from '../lib/notes.js'
 // screen (NoteWriteView), still editable while it waits for the daily pass.
 const { t } = useI18n()
 
-const notes = ref([])
-const loading = ref(true)
-const error = ref('')
+// The last list draws at once and is refreshed quietly; "loading" is only for a first visit.
+const { data, loading, error, refresh } = useCached('notes')
+const notes = computed(() => data.value ?? [])
 
 // A note's status as the library's Status state: waiting, taken in, or left out.
 const STATUS_STATES = {
@@ -37,19 +38,7 @@ function preview(note) {
   return { title: parts.title, text: plainText(parts.body) || names }
 }
 
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    notes.value = await api.myNotes()
-  } catch (e) {
-    error.value = e.message || t('notes.errorLong')
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(load)
+onMounted(refresh)
 </script>
 
 <template>
@@ -66,7 +55,7 @@ onMounted(load)
 
       <StatusText v-if="loading" :delay="300" :text="t('notes.loading')" working />
       <Callout v-else-if="error" type="caution" :title="t('notes.error')">
-        {{ error }}
+        {{ error.trim() || t('notes.errorLong') }}
       </Callout>
       <Empty
         v-else-if="notes.length === 0"
