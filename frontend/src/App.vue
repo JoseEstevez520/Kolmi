@@ -17,7 +17,7 @@ import {
 import AppBreadcrumbs from './components/AppBreadcrumbs.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import ChatConversation from './components/ChatConversation.vue'
-import { isWaiting, profile, session } from './lib/auth.js'
+import { hinted, isWaiting, profile, session } from './lib/auth.js'
 import {
   activity,
   chatEnabled,
@@ -51,7 +51,7 @@ const withSidebar = computed(() => route.meta.layout === 'app' && Boolean(sessio
 // Whether the admin turned the chat on is read once, as soon as someone who has been let in is
 // signed in: a person still waiting (or blocked) would only get a 403 from the settings.
 watch(
-  () => Boolean(session.value && profile.value && !isWaiting(profile.value)),
+  () => Boolean(session.value && profile.value && !isWaiting(profile.value) && !hinted.value),
   (letIn) => letIn && chatEnabled.value === null && loadChatEnabled(),
   { immediate: true },
 )

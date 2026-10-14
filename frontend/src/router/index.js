@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { chatEnabled, loadChatEnabled, setChatPage } from '../lib/chat.js'
 import { openChatWide } from '../lib/chatPanel.js'
-import { authReady, isWaiting, loadProfile, session } from '../lib/auth.js'
+import { authReady, confirmed, hinted, isWaiting, loadProfile, profile, session } from '../lib/auth.js'
 import AdminReportsView from '../views/AdminReportsView.vue'
 import AdminLogView from '../views/AdminLogView.vue'
 import AdminClassView from '../views/AdminClassView.vue'
@@ -103,24 +103,10 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to) => {
-  // Wait for the initial Supabase session before deciding.
-  await authReady
-
-  if (!session.value) {
-    return to.meta.public ? true : { name: 'login' }
-  }
-
-  let current = null
-  try {
-    current = await loadProfile()
-  } catch {
-    current = null
-  }
-
-  if (!current) {
-    return to.name === 'register' ? true : { name: 'register' }
-  }
+// Where a visit goes for the person we know about: `true` to let it through, or a redirect.
+function decide(to, current) {
+  if (!session.value) return to.meta.public ? true : { name: 'login' }
+  if (!current) return to.name === 'register' ? true : { name: 'register' }
   // Someone waiting or blocked reaches nothing but the waiting screen and login.
   if (isWaiting(current)) {
     return to.name === 'waiting' || to.name === 'login' ? true : { name: 'waiting' }
@@ -128,14 +114,47 @@ router.beforeEach(async (to) => {
   if (to.name === 'waiting' || to.name === 'login' || to.name === 'register') {
     return { name: 'home' }
   }
-  if (to.meta.admin && current.role !== 'admin') {
-    return { name: 'home' }
+  if (to.meta.admin && current.role !== 'admin') return { name: 'home' }
+  return true
+}
+
+router.beforeEach(async (to) => {
+  // With a snapshot of the last confirmed profile (lib/auth.js) the visit goes through at once
+  // and is checked again when the server answers (below). The chat route waits: it needs the
+  // admin's setting, which only a confirmed session can read.
+  if (!hinted.value || to.meta.chat) {
+    // Wait for the initial Supabase session before deciding.
+    await authReady
+    await confirmed
   }
+
+  if (!hinted.value && !session.value) return decide(to, null)
+
+  let current = profile.value
+  if (!hinted.value) {
+    try {
+      current = await loadProfile()
+    } catch {
+      current = null
+    }
+  }
+
+  const verdict = decide(to, current)
+  if (verdict !== true) return verdict
   if (to.meta.chat) {
     if (chatEnabled.value === null) await loadChatEnabled()
     if (!chatEnabled.value) return { name: 'home' }
   }
   return true
+})
+
+// The server's answer can disagree with the snapshot a visit went through on: blocked, waiting,
+// no longer an admin, signed out. The page we are on is judged again with what is now known.
+confirmed.then(() => {
+  const here = router.currentRoute.value
+  if (!here.matched.length) return
+  const verdict = decide(here, profile.value)
+  if (verdict !== true) router.replace(verdict)
 })
 
 router.afterEach((to) => setChatPage(to.name === 'node' ? Number(to.params.id) : null))

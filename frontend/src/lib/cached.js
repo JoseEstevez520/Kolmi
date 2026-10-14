@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { api } from './api.js'
-import { isWaiting, profile, ready, session } from './auth.js'
+import { hinted, isWaiting, profile, ready, session } from './auth.js'
 
 // Stale-while-revalidate for the list screens. The last answer per key is kept in memory (so
 // leaving a screen and coming back finds it) and in sessionStorage (so a reload does too, a new
@@ -124,7 +124,7 @@ export function prefetch(keys = WARM) {
 
 // Whoever is signed in owns the cache: another person, or nobody, starts empty.
 watch(
-  () => (ready.value ? (session.value?.user?.id ?? null) : undefined),
+  () => (ready.value || hinted.value ? (session.value?.user?.id ?? null) : undefined),
   (id) => {
     if (id === undefined || id === owner) return
     owner = id
@@ -149,7 +149,7 @@ watch(
 // Once the person is let in, warm the lists (called from the app shell).
 export function usePrefetch() {
   watch(
-    () => Boolean(session.value && profile.value && !isWaiting(profile.value)),
+    () => Boolean(session.value && profile.value && !isWaiting(profile.value) && !hinted.value),
     (letIn) => letIn && prefetch(),
     { immediate: true },
   )

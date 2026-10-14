@@ -1,4 +1,4 @@
-import { accessToken, isWaiting, profile } from './auth.js'
+import { accessToken, authReady, isWaiting, profile, ready } from './auth.js'
 import { t } from './i18n.js'
 
 export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -28,6 +28,8 @@ async function checkAccess() {
 
 // `keepalive` lets a request outlive the page, for a save as the tab closes.
 async function request(path, { method = 'GET', body, keepalive = false } = {}) {
+  // A reload draws the shell before Supabase has refreshed a stale token: wait for it.
+  if (!ready.value) await authReady
   const token = accessToken()
   const headers = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
