@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { chatEnabled, loadChatEnabled, setChatPage } from '../lib/chat.js'
+import { chatEnabled, loadChatEnabled, setChatLive, setChatPage } from '../lib/chat.js'
 import { openChatWide } from '../lib/chatPanel.js'
 import { authReady, confirmed, hinted, isWaiting, loadProfile, profile, session } from '../lib/auth.js'
 import AdminReportsView from '../views/AdminReportsView.vue'
@@ -163,6 +163,9 @@ confirmed.then(() => {
   if (verdict !== true) router.replace(verdict)
 })
 
-router.afterEach((to) => setChatPage(to.name === 'node' ? Number(to.params.id) : null))
+router.afterEach((to) => {
+  setChatPage(to.name === 'node' ? Number(to.params.id) : null)
+  setChatLive(to.name === 'live-note' ? Number(to.params.id) : null)
+})
 
 export default router

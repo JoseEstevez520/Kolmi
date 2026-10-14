@@ -70,6 +70,7 @@ part was needed for step 1.
   `since`, the `updated_at` the caller holds: if nothing changed it answers `{unchanged: true}`
   with the flags that can change on their own (`live`, `ended`). `list_live_notes` answers
   `{notes, current_class}`, the live ones first, each with a preview of its last 140 characters.
+- **Chat**: on `/live/:id` the chat gets `live_id` and points the model at the note (see [chat.md](chat.md)); it reads it with `read_live_note`.
 - **Web**: `/live/:id` for watching; the watcher polls every 4 s and the Notes row every 6 s,
   both stopping while the tab is hidden. The note's autosave (1.2 s after the last key) feeds
   the session.

@@ -39,6 +39,12 @@ export function setChatPage(id) {
   pageId = Number.isInteger(id) ? id : null
 }
 
+// The live note the person is watching (`/live/:id`), the same way.
+let liveId = null
+export function setChatLive(id) {
+  liveId = Number.isInteger(id) ? id : null
+}
+
 let nextId = 1
 
 const STORAGE_KEY = 'kolmi.chat'
@@ -188,7 +194,7 @@ export async function send(text) {
       } else if (name === 'proposal') reply.proposals.push(withLocalState(data))
       else if (name === 'done') finished = true
       else if (name === 'error') failure = data.message || t('chat.error')
-    }, pageId)
+    }, pageId, liveId)
     // A stream that closes without `done` was cut on the way (a network or proxy that drops
     // long connections), not finished: say so instead of leaving a blank reply.
     if (!finished && !failure) failure = t('chat.dropped')

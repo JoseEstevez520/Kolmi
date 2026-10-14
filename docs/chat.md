@@ -55,6 +55,12 @@ user part of the prompt: the page's title and id, and a reminder to read it with
 the question is about it. The content is not sent. An id that doesn't exist, or that the person
 can't see, is dropped without a word.
 
+The same goes for a live note: on `/live/:id` the web adds `live_id`, and the API checks it with
+the rule of `read_live_note` (shared with the class, or the person's own). The prompt gets one more
+line with the note's title, id and author, a reminder to read it with `read_live_note`, and that
+it is one person's unchecked notes still being written, so the answer must say so. The writer
+sees nothing of it.
+
 A change is never run by the model. It becomes a row in `chat_proposals` and a card; Confirm is a
 new request. See [tools.md](tools.md).
 

@@ -23,6 +23,7 @@ from ..passes.schedule import TIMEZONE, today_start
 from ..rag import search
 from .content import LIST_COLUMNS
 from .registry import action, check, get_action, invoke
+from .live_notes import _author, _find, _is_author
 from .schedule import _resolve
 from .tools import answer as tool_answer
 from .tools import chat_tool, offered, schemas
@@ -101,6 +102,10 @@ class AskChatParams(BaseModel):
         default=None,
         description="The page the person has open, if any. Ignored when it doesn't exist or isn't theirs to see.",
     )
+    live_id: int | None = Field(
+        default=None,
+        description="The live note the person is watching, if any. Ignored when it doesn't exist or isn't theirs to see.",
+    )
 
 
 def _recent(history: list[HistoryMessage]) -> list[dict[str, str]]:
@@ -157,6 +162,20 @@ def _open_page(nodes: list[dict[str, Any]], node_id: int | None) -> dict[str, An
     return next((n for n in nodes if n["id"] == node_id), None)
 
 
+def _open_live(ctx: Context, live_id: int | None) -> dict[str, Any] | None:
+    """The live note the person is watching, if they may read it (shared with the class, or
+    their own: the rule of read_live_note); None otherwise, without saying why."""
+    if live_id is None:
+        return None
+    try:
+        row = _find(ctx, live_id, "id, title, shared, author_id, profiles(name)")
+    except HTTPException:
+        return None
+    if not row["shared"] and not _is_author(ctx, row):
+        return None
+    return {"id": row["id"], "title": row["title"], "author": _author(row)}
+
+
 def _gate(ctx: Context, params: AskChatParams) -> tuple[dict[str, Any], str]:
     """The checks before a question is answered, the same for both ways in: the class's settings,
     the daily limit (not for admins) and a question to answer."""
@@ -202,6 +221,7 @@ def ask_chat(ctx: Context, params: AskChatParams):
         run_action=chat_tool(ctx, proposed),
         history=history,
         page=_open_page(nodes, params.node_id),
+        live=_open_live(ctx, params.live_id),
         # The parts of the pages closest to the question; none with the search index off. A
         # follow-up ("and how is that set up?") says little alone, so it is searched with what
         # the person asked just before.
@@ -495,6 +515,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 run_action=run_action,
                 history=history,
                 page=_open_page(nodes, params.node_id),
+        live=_open_live(ctx, params.live_id),
                 passages=passages,
             ):
                 if event["type"] == "token":

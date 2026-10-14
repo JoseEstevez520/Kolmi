@@ -47,6 +47,7 @@ def _prompt(
     history: list[dict[str, str]] | None,
     passages_note: str = CHAT_PASSAGES,
     page: dict[str, Any] | None = None,
+    live: dict[str, Any] | None = None,
 ) -> tuple[str, str]:
     """The system prompt (with the passages' note when there are any) and the user message: the
     tree as an index, the day, the timetable, the passages, the conversation and the question."""
@@ -83,6 +84,13 @@ def _prompt(
             f"\n\nThe person has this page open: {page.get('title') or ''} (id {page['id']}). "
             "Read it with read_page if the question is about it."
         )
+    if live:
+        by = f" by {live['author']}" if live.get("author") else ""
+        open_page += (
+            f"\n\nThe person is watching this live note: {live.get('title') or ''} (id {live['id']}){by}. "
+            "It is one person's notes, still being written and not checked by anyone: say so if you answer from it. "
+            "Read it with read_live_note if the question is about it."
+        )
     user = f"Tree:\n{index}{when}{timetable}{found}{said}{open_page}\n\nQuestion: {question}"
 
     return system, user
@@ -103,6 +111,7 @@ def run_chat(
     passages: list[dict[str, Any]] | None = None,
     history: list[dict[str, str]] | None = None,
     page: dict[str, Any] | None = None,
+    live: dict[str, Any] | None = None,
 ) -> ChatAnswer:
     """Answer a student's question from the class's own content, same shape as the gatekeeper:
     the tree as an index, and the pages it wants with the `read_page` tool. With a model that has
@@ -111,7 +120,7 @@ def run_chat(
     and date; both empty when the class hasn't set a timetable up. `search` is a `search_web`
     reader, DuckDuckGo (needs no key) by default; pass `None` to turn it off. `actions` are the
     registry's tool schemas the asker is offered, and `run_action` runs or proposes one of them.
-    `page` is the node the person has open, if any (a pointer only). `passages` are the chunks a search by meaning found closest to the question ({node_id, heading,
+    `page` is the node the person has open, if any, and `live` the live note they are watching (pointers only). `passages` are the chunks a search by meaning found closest to the question ({node_id, heading,
     content}), put before it; with them the index can be shortened, since they carry the content.
     """
     system, user = _prompt(
@@ -124,6 +133,7 @@ def run_chat(
         passages=passages,
         history=history,
         page=page,
+        live=live,
     )
 
     # The actions are told about only to the loop that can offer them: the answer from the index
@@ -162,6 +172,7 @@ def run_chat_stream(
     passages: list[dict[str, Any]] | None = None,
     history: list[dict[str, str]] | None = None,
     page: dict[str, Any] | None = None,
+    live: dict[str, Any] | None = None,
 ) -> Iterator[dict[str, str]]:
     """`run_chat`, streamed: the same context and tools, but the model writes an OpenUI Lang
     program (`root = Answer([...])`) and it comes out as `status` and `token` events as it is
@@ -180,6 +191,7 @@ def run_chat_stream(
         history=history,
         passages_note=CHAT_PASSAGES_STREAM,
         page=page,
+        live=live,
     )
     system += f"\n\n{CHAT_ACTIONS}" if actions else ""
     tools = [READ_PAGE_TOOL] + ([SEARCH_WEB_TOOL] if search is not None else [])

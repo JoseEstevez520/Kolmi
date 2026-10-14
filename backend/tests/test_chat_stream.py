@@ -134,6 +134,42 @@ def test_an_unknown_page_is_ignored(monkeypatch):
     assert "has this page open" not in _asked(monkeypatch, None)
 
 
+def _asked_live(monkeypatch, live_id, node_id=None, user_id="u1"):
+    client = _Client()
+    client.table("live_notes").rows.extend(
+        [
+            {"id": 1, "title": "DAW class", "shared": True, "author_id": "u2", "profiles": {"name": "Ana"}},
+            {"id": 2, "title": "Secret", "shared": False, "author_id": "u2", "profiles": {"name": "Ana"}},
+            {"id": 3, "title": "Mine", "shared": False, "author_id": "u1", "profiles": {"name": "Me"}},
+        ]
+    )
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    params = AskChatParams(question="what did I miss?", live_id=live_id, node_id=node_id)
+    list(stream_chat(_ctx(client, user_id=user_id), params))
+    return llm.calls[0][2]
+
+
+def test_a_shared_live_note_is_named_and_marked_unchecked(monkeypatch):
+    user = _asked_live(monkeypatch, 1)
+    assert "watching this live note: DAW class (id 1) by Ana" in user
+    assert "read_live_note" in user and "not checked" in user and "still being written" in user
+
+
+def test_own_unshared_live_note_is_named_but_not_a_hidden_one(monkeypatch):
+    assert "(id 3)" in _asked_live(monkeypatch, 3)
+    assert "live note" not in _asked_live(monkeypatch, 2)
+    assert "live note" not in _asked_live(monkeypatch, 99)
+    assert "live note" not in _asked_live(monkeypatch, None)
+
+
+def test_page_and_live_note_are_both_mentioned(monkeypatch):
+    user = _asked_live(monkeypatch, 1, node_id=20)
+    assert "has this page open: Git" in user and "watching this live note" in user
+
+
 def test_the_first_event_is_a_status_before_the_model_is_called(monkeypatch):
     client = _Client()
     llm = FakeLLM()
