@@ -37,7 +37,6 @@ The notes (the Markdown) carry the text; the page decides what goes in cards, ta
 |---|---|
 | steps in order | numbered list (Steps) |
 | details or cases within a topic | a level-3 heading for each one |
-| a comparison | table |
 | a file or a command | code block with the real example |
 | code that is only read, and is long | code block, not a CodeWalkthrough that drags on |
 | the folder structure of a project | code block with the tree |
@@ -55,7 +54,8 @@ Before making a piece, check whether a table or a code block is enough.
 - **Around each piece**: a sentence before it that says what to notice, and after it its conclusion in bold, for whoever only looks at the end.
 - **The text does not repeat the drawing**: what the piece already shows is not told again in prose. If two blocks say the same, one is left over.
 - **Colour:** one per concept, the same in the whole page. Green / amber / red only for yes / with conditions / no.
-- **Icons and logos:** icons for general concepts, with a short label beside them; logos (Logos) for brands and technologies.
+- **Icons and logos:** icons for general concepts, with a short label beside them; logos (Logos) for brands and technologies, and when a page names its technologies, a row of their logos opens it.
+- **Vary the form.** Give each idea the form that shows it best, and do not give every idea on a page the same block: a page that is all tables, or all boxes, is a page that was not looked at.
 - **Tints, no borders:** each part, a soft tint of its colour, with normal text on it. Never a tint inside another tint, nor small grey text on colour: the text loses contrast, above all in dark mode. A visual that cannot be read in dark mode is no use, however pretty.
 - **Never:** semi-transparent boxes over lines, a visual empty on load, coloured side borders, data repeated inside each box.
 - **Phone:** if it does not fit, it changes shape (one item at a time, cards instead of a scheme).
