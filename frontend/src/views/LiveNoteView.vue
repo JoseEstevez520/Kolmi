@@ -8,6 +8,7 @@ import LiveWatch from '../components/LiveWatch.vue'
 import LiveWrite from '../components/LiveWrite.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
+import { refreshLiveCount } from '../lib/liveCount.js'
 import { usePolling } from '../lib/polling.js'
 
 // One live note. Its author gets the editor (LiveWrite); everyone else a read-only view that
@@ -57,10 +58,12 @@ const state = computed(() => {
 
 async function ended() {
   note.value = await api.liveNote({ id })
+  refreshLiveCount()
 }
 
 async function remove() {
   await api.deleteLiveNote({ id })
+  refreshLiveCount()
   router.push({ name: 'live' })
 }
 </script>

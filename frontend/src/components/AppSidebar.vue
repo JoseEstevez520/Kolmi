@@ -19,6 +19,7 @@ import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
 import { libraryLabels } from '../lib/i18n.js'
 import { nodeIcon } from '../lib/icons.js'
+import { liveCount } from '../lib/liveCount.js'
 
 // The app's sidebar (elastic-ui "connected" variant): Home, Notes, the
 // top-level nodes with their icon and colour (never the whole tree; the pages
@@ -78,7 +79,9 @@ async function handleSignOut() {
 
     <NavTree :model-value="active">
       <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
-      <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen" data-tour="nav-notes">{{ t('sidebar.notes') }}</NavTreeItem>
+      <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen" :count="liveCount" data-tour="nav-notes">
+        {{ t('sidebar.notes') }}
+      </NavTreeItem>
       <NavTreeItem v-if="showSchedule" value="/schedule" to="/schedule" :icon="CalendarDays">
         {{ t('sidebar.schedule') }}
       </NavTreeItem>

@@ -9,6 +9,7 @@ import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { formatAgo } from '../lib/format.js'
+import { setLiveCount } from '../lib/liveCount.js'
 import { usePolling } from '../lib/polling.js'
 
 // The live notes: what is being written right now on top, the earlier sessions below, and a way
@@ -28,6 +29,7 @@ async function load() {
   try {
     const answer = await api.liveNotes()
     notes.value = answer.notes
+    setLiveCount(answer.notes)
     currentClass.value = answer.current_class
     error.value = ''
   } catch (e) {
