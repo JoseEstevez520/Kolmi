@@ -5,16 +5,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { Button, Callout, ConfirmButton, Status, StatusText } from 'elastic-ui'
 import { ArrowLeft } from '@lucide/vue'
 import LiveWatch from '../components/LiveWatch.vue'
-import LiveWrite from '../components/LiveWrite.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { invalidate } from '../lib/cached.js'
 import { refreshLiveCount } from '../lib/liveCount.js'
 import { usePolling } from '../lib/polling.js'
 
-// One live note. Its author gets the editor (LiveWrite); everyone else a read-only view that
-// follows it (LiveWatch). The watcher asks every few seconds with the `updated_at` it already
-// has, so a note that has not changed costs a tiny answer.
+// One live note, watched: a read-only view that follows it (LiveWatch). It asks every few
+// seconds with the `updated_at` it already has, so a note that has not changed costs a tiny
+// answer. Its author writes it from the note itself (NoteWriteView's header), so they are sent
+// there instead.
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -26,14 +26,15 @@ const note = ref(null)
 const loading = ref(true)
 const error = ref('')
 
-const writing = computed(() => note.value?.mine && !note.value.ended)
-const canDelete = computed(() => note.value && (note.value.mine || profile.value?.role === 'admin'))
+const canDelete = computed(() => note.value && profile.value?.role === 'admin')
 
 async function load() {
-  // The author writes: their copy is the truth, so there is nothing to follow.
-  if (writing.value) return
   try {
     const answer = await api.liveNote({ id, since: note.value?.updated_at })
+    if (answer.mine) {
+      router.replace(answer.note_id ? { name: 'note', params: { id: answer.note_id } } : { name: 'notes' })
+      return
+    }
     if (answer.unchanged) {
       // The text is the same; whether it is still live or ended may not be.
       note.value = { ...note.value, live: answer.live, ended: answer.ended }
@@ -57,17 +58,11 @@ const state = computed(() => {
   return ['idle', note.value?.shared ? t('live.state.stopped') : t('live.state.private')]
 })
 
-async function ended() {
-  note.value = await api.liveNote({ id })
-  invalidate('live')
-  refreshLiveCount()
-}
-
 async function remove() {
   await api.deleteLiveNote({ id })
   invalidate('live')
   refreshLiveCount()
-  router.push({ name: 'live' })
+  router.push({ name: 'notes' })
 }
 </script>
 
@@ -75,7 +70,7 @@ async function remove() {
   <main class="py-16">
     <div class="article">
       <div class="mb-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" size="icon" :icon="ArrowLeft" to="/live" :aria-label="t('live.back')" />
+        <Button variant="ghost" size="icon" :icon="ArrowLeft" to="/notes" :aria-label="t('notes.write.back')" :title="t('notes.write.back')" />
         <ConfirmButton
           v-if="canDelete"
           variant="ghost"
@@ -90,7 +85,7 @@ async function remove() {
       <Callout v-else-if="error" type="caution" :title="t('live.error')">{{ error }}</Callout>
 
       <template v-else-if="note">
-        <div v-if="!writing" class="prose">
+        <div class="prose">
           <div class="flex items-start justify-between gap-4">
             <h1>{{ note.title }}</h1>
             <Status compact class="mt-2 shrink-0" :state="state[0]" :label="state[1]" />
@@ -98,10 +93,7 @@ async function remove() {
           <p class="text-fg-muted" :title="t('live.notChecked')">{{ note.author ?? '?' }}</p>
         </div>
 
-        <LiveWrite v-if="writing" :note="note" @ended="ended" />
-        <template v-else>
-          <LiveWatch v-if="!note.ended || note.content" :content="note.content ?? ''" :live="note.live" />
-        </template>
+        <LiveWatch v-if="!note.ended || note.content" :content="note.content ?? ''" :live="note.live" />
       </template>
     </div>
   </main>

@@ -220,6 +220,8 @@ create table if not exists live_notes (
   title text not null,
   -- The timetable slot that was on when the session started, if any.
   event_id bigint references schedule_events(id) on delete set null,
+  -- The author's note this session mirrors, if any (migrations/20261014140000_live_notes_note_link.sql).
+  note_id bigint references notes(id) on delete set null,
   -- Plain text or Markdown, as written.
   content text not null default '',
   -- Off until the author shares it: until then only the author sees it.

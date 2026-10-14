@@ -182,7 +182,8 @@ export const api = {
     if (since) query.set('since', since)
     return request(`/live/note?${query}`)
   },
-  startLiveNote: ({ title = null } = {}) => request('/live/start', { method: 'POST', body: { title } }),
+  startLiveNote: ({ title = null, noteId = null, content = null, shared = false } = {}) =>
+    request('/live/start', { method: 'POST', body: { title, note_id: noteId, content, shared } }),
   saveLiveNote: ({ id, content, shared, title, keepalive }) => {
     const body = { id }
     if (content !== undefined) body.content = content

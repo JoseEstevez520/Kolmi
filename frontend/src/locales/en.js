@@ -333,27 +333,16 @@ export default {
   },
 
   live: {
-    title: 'Live notes',
-    start: 'Start writing',
-    startTitleLabel: 'What is the session about?',
-    startTitlePlaceholder: 'Deployment class',
-    startGo: 'Start',
-    byAgo: '{name} · {ago}',
     error: 'Could not load the live notes',
     state: { live: 'Live', ended: 'Ended', stopped: 'Not live', private: 'Private' },
-    back: 'Live notes',
     notChecked: "One person's notes, not checked",
     followEnd: 'Follow the end',
     stopFollowing: 'Stop following',
     notFound: 'This live note does not exist, or is not shared with the class.',
     share: 'Share live',
-    titleLabel: 'Session title',
-    end: 'End session',
-    ending: 'Ending…',
     deleteLabel: 'Delete this live note',
     deleteConfirm: 'Delete',
     deleteCancel: 'Keep',
-    startError: 'Could not start the session',
   },
 
   notes: {

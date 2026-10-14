@@ -302,14 +302,17 @@ Same tools, same loop, another trigger.
   pass. A sketch of the screens is in [docs/live-notes.md](docs/live-notes.md). It grows in
   steps, each useful on its own and tried in a real class before the next:
   - **Watch, in plain text.** Built. Apply `supabase/migrations/20261014120000_live_notes.sql`
-    before deploying. Any active member may start a session and any may watch one. A session
-    starts private and its author shares it with a switch; only the author writes (last save
-    wins) and only the author or an admin deletes. Table `live_notes`; actions `start_live_note`,
-    `save_live_note`, `end_live_note`, `read_live_note`, `list_live_notes` and `delete_live_note`
-    (the two reads are chat and MCP tools); screens `/live` and `/live/:id`; the web polls every
-    4 s with `since`. The text is Markdown from the notes editor. Still to do from the plan: a
-    warning when it's open in two tabs, SSE only if polling feels slow, and the live dot on the
-    timetable.
+    and `supabase/migrations/20261014140000_live_notes_note_link.sql` before deploying. Live
+    notes are not a page of their own: writing live is an icon switch in the header of the note
+    being written (it mirrors the note, and every autosave feeds the session), and watching is
+    a first row of cards on Notes, shown only when someone is writing live; a card opens
+    `/live/:id`, read-only. A person has one open session at a time; the session ends by itself
+    after 3 hours. Only the author writes (last save wins) and only the author or an admin
+    deletes. Table `live_notes`; actions `start_live_note`, `save_live_note`, `end_live_note`,
+    `read_live_note`, `list_live_notes` and `delete_live_note` (the two reads are chat and MCP
+    tools); the web polls every 4 s with `since`. Ended sessions are not listed anywhere until
+    the next step turns them into notes. Still to do from the plan: a warning when it's open in
+    two tabs, SSE only if polling feels slow, and the live dot on the timetable.
   - **Into the pass.** When the session ends, its text becomes an ordinary note (`source =
     'live'`), and the gatekeeper judges it like any other: it can merge it into a page, discard
     the filler. The live note itself stays as it was. The editor is Tiptap, but the document is

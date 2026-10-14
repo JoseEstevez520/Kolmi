@@ -146,6 +146,55 @@ def test_start_with_no_class_on_needs_a_title(store):
     assert store["live_notes"][0]["event_id"] is None
 
 
+def test_start_can_mirror_one_of_my_notes(store):
+    store["notes"] = [{"id": 5, "user_id": "ana"}]
+
+    note = run("start_live_note", _ctx(store), {"note_id": 5, "title": "Docker", "content": "# Docker", "shared": True})
+
+    row = store["live_notes"][0]
+    assert row["note_id"] == 5 and row["content"] == "# Docker" and row["shared"] is True
+    assert note["note_id"] == 5 and note["title"] == "Docker"
+
+
+def test_a_linked_session_without_a_title_is_untitled(store):
+    store["notes"] = [{"id": 5, "user_id": "ana"}]
+
+    assert run("start_live_note", _ctx(store), {"note_id": 5})["title"] == "Untitled"
+
+
+def test_start_refuses_a_note_that_is_not_mine(store):
+    store["notes"] = [{"id": 5, "user_id": "luis"}]
+
+    with pytest.raises(HTTPException) as err:
+        run("start_live_note", _ctx(store), {"note_id": 5, "title": "x"})
+
+    assert err.value.status_code == 404
+    assert not store.get("live_notes")
+
+
+def test_starting_ends_my_other_open_session_and_nobody_elses(store):
+    store["notes"] = [{"id": 5, "user_id": "ana"}]
+    _seed(store, author_id="ana")
+    _seed(store, author_id="luis")
+    _seed(store, author_id="ana", ended_at=_ago(30))
+
+    run("start_live_note", _ctx(store), {"note_id": 5, "title": "x"})
+
+    rows = store["live_notes"]
+    assert rows[0]["ended_at"] is not None
+    assert rows[1]["ended_at"] is None
+    assert rows[3]["ended_at"] is None
+
+
+def test_the_link_to_the_note_is_only_shown_to_its_author(store):
+    _seed(store, note_id=5)
+
+    assert run("read_live_note", _ctx(store), {"id": 1})["note_id"] == 5
+    assert run("read_live_note", _ctx(store, "luis"), {"id": 1})["note_id"] is None
+    assert run("list_live_notes", _ctx(store, "luis"))["notes"][0]["note_id"] is None
+    assert run("list_live_notes", _ctx(store))["notes"][0]["note_id"] == 5
+
+
 def test_save_writes_the_text_and_shares_it(store):
     _seed(store, shared=False, updated_at=_ago(30))
 

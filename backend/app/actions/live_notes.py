@@ -21,7 +21,7 @@ PREVIEW_CHARS = 140
 MAX_CONTENT = 200_000
 LIST_LIMIT = 60
 
-SUMMARY_COLUMNS = "id, author_id, title, event_id, shared, ended_at, created_at, updated_at, content, profiles(name)"
+SUMMARY_COLUMNS = "id, author_id, note_id, title, event_id, shared, ended_at, created_at, updated_at, content, profiles(name)"
 
 
 def _now() -> datetime:
@@ -97,6 +97,8 @@ def _shape(ctx: Context, row: dict[str, Any], now: datetime) -> dict[str, Any]:
         "live": is_live(row, now),
         "ended": is_over(row, now),
         "event_id": row.get("event_id"),
+        # The note being mirrored: only its author needs it, so nobody else sees which one.
+        "note_id": row.get("note_id") if _is_author(ctx, row) else None,
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
     }
@@ -121,31 +123,49 @@ class StartParams(BaseModel):
     title: str | None = Field(
         None,
         max_length=200,
-        description="What the session is about, like 'Deployment class'. Left out, it takes the title of the class the timetable says is on now; if none is on, a title is required.",
+        description="What the session is about, like 'Deployment class'. Left out, it takes the title of the class the timetable says is on now; if none is on, a title is required (a session linked to a note falls back to 'Untitled').",
     )
+    note_id: int | None = Field(None, description="One of your own notes to mirror: the session is linked to it and the web pushes the note's text to it as you write. Left out, the session stands alone.")
+    content: str | None = Field(None, max_length=MAX_CONTENT, description="The text to start with, as Markdown or plain text. Left out, the session starts empty.")
+    shared: bool = Field(False, description="true opens the session to the class from the start; otherwise it starts private.")
+
+
+def _end_open_sessions(ctx: Context) -> None:
+    """A person writes live in one place at a time: whatever they had open ends now."""
+    rows = ctx.client.table("live_notes").select("id, created_at, ended_at").eq("author_id", ctx.user_id).execute().data
+    stamp = _stamp()
+    for row in rows:
+        if not is_over(row):
+            ctx.client.table("live_notes").update({"ended_at": stamp, "updated_at": stamp}).eq("id", row["id"]).execute()
 
 
 @action(
     name="start_live_note",
-    description="Start a live note: a session where you write during a class and the rest of the class can watch the text appear. It starts private; save_live_note with shared=true opens it to the class. Linked to the class the timetable says is on now, if any.",
+    description="Start a live note: a session where you write during a class and the rest of the class can watch the text appear. It starts private unless shared=true; save_live_note with shared=true opens it to the class. Pass note_id to mirror one of your own notes. You can write live in one place at a time: starting a session ends any other you had open. Linked to the class the timetable says is on now, if any.",
     params=StartParams,
     path="/live/start",
 )
 def start_live_note(ctx: Context, params: StartParams):
+    if params.note_id is not None:
+        owned = ctx.client.table("notes").select("id").eq("id", params.note_id).eq("user_id", ctx.user_id).execute().data
+        if not owned:
+            raise HTTPException(404, f"You have no note {params.note_id}; only your own notes can be shared live")
     on_now = current_class(ctx.client)
-    title = (params.title or "").strip() or (on_now or {}).get("title") or ""
+    title = (params.title or "").strip() or (on_now or {}).get("title") or ("Untitled" if params.note_id is not None else "")
     if not title:
         raise HTTPException(422, "Give the session a title: no class is on now to take it from")
+    _end_open_sessions(ctx)
     now = _stamp()
     row = (
         ctx.client.table("live_notes")
         .insert(
             {
                 "author_id": ctx.user_id,
+                "note_id": params.note_id,
                 "title": title,
                 "event_id": (on_now or {}).get("event_id"),
-                "content": "",
-                "shared": False,
+                "content": params.content or "",
+                "shared": params.shared,
                 "created_at": now,
                 "updated_at": now,
             }

@@ -1,8 +1,8 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, Callout, Empty } from 'elastic-ui'
-import { NotebookPen, Plus, Radio } from '@lucide/vue'
+import { NotebookPen, Plus } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import CardGridSkeleton from '../components/CardGridSkeleton.vue'
 import PageCard from '../components/PageCard.vue'
@@ -11,15 +11,26 @@ import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { useCached } from '../lib/cached.js'
 import { formatDay, noteStatusLabel } from '../lib/format.js'
+import { setLiveCount } from '../lib/liveCount.js'
 import { plainText, splitNote } from '../lib/notes.js'
+import { usePolling } from '../lib/polling.js'
 
-// Your notes: a way into writing a new one, and the ones you left. Each opens on its own
+// Your notes: a way into writing a new one, and the ones you left. When classmates are writing
+// live, their notes come first, as a row of cards. Writing live is a switch in a note's own
+// header (NoteWriteView). Each opens on its own
 // screen (NoteWriteView), still editable while it waits for the daily pass.
 const { t } = useI18n()
 
 // The last list draws at once and is refreshed quietly; "loading" is only for a first visit.
 const { data, loading, error, refresh } = useCached('notes')
 const notes = computed(() => data.value ?? [])
+
+// Other people's live notes: from the cache at once, refreshed while this screen is open
+// (paused while the tab is hidden). Your own live note is not here: its switch shows it.
+const live = useCached('live')
+const liveNotes = computed(() => (live.data.value?.notes ?? []).filter((n) => n.live && !n.mine))
+watch(live.data, (answer) => answer && setLiveCount(answer.notes), { immediate: true })
+usePolling(live.refresh, 6000)
 
 // A note's status as the library's Status state: waiting, taken in, or left out.
 const STATUS_STATES = {
@@ -45,10 +56,22 @@ onMounted(refresh)
 <template>
   <main class="py-16">
     <PageLayout :title="title" :lead="t('notes.lead')">
+      <CardGrid v-if="liveNotes.length" class="not-prose mb-10">
+        <PageCard
+          v-for="note in liveNotes"
+          :key="note.id"
+          :to="`/live/${note.id}`"
+          :title="note.title"
+          :description="note.preview"
+          :meta="note.author ?? ''"
+          state="working"
+          :status="t('live.state.live')"
+        />
+      </CardGrid>
+
       <div class="not-prose">
         <div class="flex items-center gap-2">
           <Button :icon="Plus" to="/notes/new" data-tour="new-note">{{ t('notes.new') }}</Button>
-          <Button variant="ghost" size="icon" :icon="Radio" to="/live" :aria-label="t('live.title')" :title="t('live.title')" />
         </div>
       </div>
 

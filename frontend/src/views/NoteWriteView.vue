@@ -3,7 +3,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch 
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusText, TextMorph } from 'elastic-ui'
-import { ArrowLeft, Maximize2, Minimize2, Paperclip } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Minimize2, Paperclip, Radio } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import NodePicker from '../components/NodePicker.vue'
 import { api } from '../lib/api.js'
@@ -36,6 +36,11 @@ const editor = ref(null)
 const picker = ref(null)
 const fileCount = ref(0)
 
+// The live session mirroring this note, if it is on: its id, or null. Switched on from the
+// header; while it is on, every save of the note also sends its text to the class.
+const liveId = ref(null)
+const liveBusy = ref(false)
+
 // Where the student thinks the note goes, as a hint for the daily pass; null leaves it empty.
 // Lives in the top bar as a quiet NodePicker, a ghost button with the picked place's short
 // path, opening the tree. Picking a place closes it.
@@ -61,6 +66,7 @@ async function load() {
       body.value = parts.body
       hintId.value = note.node_id
       saved = { content: content.value, hintId: hintId.value }
+      findLive()
     }
   } catch (e) {
     error.value = e.message || t('notes.errorLong')
@@ -68,6 +74,60 @@ async function load() {
     loading.value = false
   }
 }
+
+// The switch shows what the server has: the author's own session on this note that is not over.
+// It can end on its own (three hours), so a failed push also turns it off.
+async function findLive() {
+  try {
+    const { notes } = await api.liveNotes()
+    liveId.value = notes.find((n) => n.mine && !n.ended && n.note_id === noteId.value)?.id ?? null
+  } catch {
+    /* the switch stays off */
+  }
+}
+
+// What the class sees is the note's own text, as it is saved. A session that ended meanwhile
+// (409) just turns the switch off; any other failure is skipped, the next save sends it again.
+async function pushLive(keepalive = false) {
+  if (liveId.value == null) return
+  try {
+    await api.saveLiveNote({ id: liveId.value, content: body.value, title: title.value.trim() || undefined, keepalive })
+  } catch (e) {
+    if (e.status === 409 || e.status === 404) liveId.value = null
+  }
+}
+
+async function toggleLive() {
+  if (liveBusy.value) return
+  liveBusy.value = true
+  try {
+    if (liveId.value != null) {
+      const id = liveId.value
+      liveId.value = null
+      await api.endLiveNote({ id })
+    } else {
+      // A new note is made first: the session links to it.
+      const id = await ensureNote()
+      const session = await api.startLiveNote({
+        title: title.value.trim() || null,
+        noteId: id,
+        content: body.value,
+        shared: true,
+      })
+      liveId.value = session.id
+    }
+    invalidate('live')
+  } catch {
+    status.value = 'error'
+  } finally {
+    liveBusy.value = false
+  }
+}
+
+// A quiet stretch must not drop the note out of the class's row (it counts as live for five
+// minutes after its last save), so the text is sent again now and then.
+const HEARTBEAT = 2 * 60 * 1000
+let heartbeat = null
 
 // '' (nothing to say yet), 'saving', 'saved' or 'error'. Saves come every few seconds while
 // writing, so "Saving…" only shows when one takes long enough to notice; a quick one leaves
@@ -146,6 +206,7 @@ function save(keepalive = false) {
       }
       saved = sent
       endSaving('saved')
+      pushLive(keepalive)
     } catch {
       // The text stays on screen; the next change tries again.
       endSaving('error')
@@ -178,6 +239,7 @@ function onHide() {
   if (document.visibilityState === 'hidden') save(true)
 }
 onMounted(() => {
+  heartbeat = setInterval(pushLive, HEARTBEAT)
   document.addEventListener('visibilitychange', onHide)
   window.addEventListener('pagehide', onHide)
 })
@@ -185,6 +247,7 @@ onBeforeUnmount(() => clearTimeout(savingTimer))
 
 onBeforeUnmount(() => {
   clearTimeout(timer)
+  clearInterval(heartbeat)
   document.removeEventListener('visibilitychange', onHide)
   window.removeEventListener('pagehide', onHide)
 })
@@ -257,6 +320,17 @@ onMounted(() => loadNodes().catch(() => {}))
           :text="statusText"
           :working="status === 'saving'"
           :error="status === 'error'"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          :icon="Radio"
+          :class="liveId != null && 'bg-bg-muted text-fg'"
+          :disabled="liveBusy"
+          :aria-pressed="liveId != null"
+          :aria-label="t('live.share')"
+          :title="t('live.share')"
+          @click="toggleLive"
         />
         <Button
           variant="ghost"

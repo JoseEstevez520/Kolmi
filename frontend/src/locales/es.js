@@ -330,27 +330,16 @@ export default {
   },
 
   live: {
-    title: 'Apuntes en directo',
-    start: 'Empezar a escribir',
-    startTitleLabel: '¿De qué va la sesión?',
-    startTitlePlaceholder: 'Clase de despliegue',
-    startGo: 'Empezar',
-    byAgo: '{name} · {ago}',
     error: 'No se han podido cargar los apuntes en directo',
     state: { live: 'En directo', ended: 'Terminada', stopped: 'Sin directo', private: 'Privada' },
-    back: 'Apuntes en directo',
     notChecked: 'Apuntes de una persona, sin revisar',
     followEnd: 'Seguir el final',
     stopFollowing: 'Dejar de seguir',
     notFound: 'Estos apuntes no existen o no están compartidos con la clase.',
     share: 'Compartir en directo',
-    titleLabel: 'Título de la sesión',
-    end: 'Terminar sesión',
-    ending: 'Terminando…',
     deleteLabel: 'Borrar estos apuntes en directo',
     deleteConfirm: 'Borrar',
     deleteCancel: 'Conservar',
-    startError: 'No se ha podido empezar la sesión',
   },
 
   notes: {
