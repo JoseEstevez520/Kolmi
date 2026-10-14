@@ -79,6 +79,18 @@ What we're building and what's next. Open to whatever the class needs.
   handwritten notes, and then cleaned up. The gatekeeper did what the plan expects in every case
   (filler, repeat, wrong hint, a note merged into a page, new pages, files attached or discarded).
   The plan and the results are in [docs/testing.md](docs/testing.md).
+- [x] **A calmer interface** — one rule, written in [frontend/design.md](frontend/design.md): minimal
+  by default. Warm tones from a short scale (page, surface, sunk, raised), no black as a
+  highlight, icon-only actions with their name on hover, states shown as a ring and not a word,
+  no hints, leads or empty-state sentences, dates day first (`16/7/25`), long notes cut to four
+  lines. The timetable is only the week, with its settings and edit mode behind two icons; the
+  admin's content tree is a compact tree with a panel for the selected page, a search and
+  `?node=` in the URL; the bar above a note fades while you write. The pieces that were missing
+  went into elastic-ui first (`Status compact`, `NavTreeItem count`, `Skeleton`).
+- [x] **Screens open at once** — notes, live notes and the timetable draw from a cache and refresh
+  behind it; a first load shows the shape of what is coming (skeletons) and never a loading line.
+  The chat answers sooner: a status at once, a heartbeat against proxies that cut quiet
+  connections, the reads done in parallel, fewer tools offered and a cap on tool rounds.
 
 ## Next: actions as tools, users and the MCP
 
@@ -260,8 +272,9 @@ Same tools, same loop, another trigger.
   and `GITHUB_REPO` to file issues. Also done: a duplicate check (the judge sees up
   to 30 open issue titles; a duplicate becomes a comment on the existing issue), and an admin
   queue at `/admin/reports` to issue or discard any report. Issues also carry the browser environment, a bug/enhancement label and, on a
-  duplicate, how many people reported it. Left: the daily cap in the admin
-  panel.
+  duplicate, how many people reported it. The chat can also report a problem and, for an admin,
+  list, file and discard reports, each with a card to confirm (web and chat only, not the MCP).
+  Left: the daily cap in the admin panel, and a preview of its own for the report's card.
 - [ ] **A forum** — one shared space for the class (not per page: a class is small, scattered
   threads get no traffic), for doubts and requests alike, not just notes. Kolmi is a participant
   in it, not a separate bolted-on checker: a role ("you are Kolmi, you help this class"), given
