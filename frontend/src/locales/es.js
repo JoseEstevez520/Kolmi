@@ -188,6 +188,7 @@ export default {
     placeholder: 'Pregunta algo sobre la clase…',
     thinking: 'Pensando…',
     error: 'No se pudo responder',
+    dropped: 'La conexión se cerró antes de que llegara la respuesta. Inténtalo de nuevo.',
     sources: 'De: {pages}',
     sourcesLabel: 'De:',
     greeting: 'Soy Kolmi. Pregúntame lo que quieras sobre la clase.',

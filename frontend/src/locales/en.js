@@ -191,6 +191,7 @@ export default {
     placeholder: 'Ask something about the class…',
     thinking: 'Thinking…',
     error: "Couldn't answer",
+    dropped: 'The connection closed before the answer arrived. Try again.',
     sources: 'From: {pages}',
     sourcesLabel: 'From:',
     greeting: "I'm Kolmi. Ask me anything about the class.",

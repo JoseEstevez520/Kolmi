@@ -173,6 +173,7 @@ export async function send(text) {
       first.proposals = []
     }
     let failure = ''
+    let finished = false
     await api.streamChat(question, history, (name, data) => {
       const reply = live()
       if (!reply) return
@@ -185,8 +186,12 @@ export async function send(text) {
         reply.status = ''
         reply.text += data.text
       } else if (name === 'proposal') reply.proposals.push(withLocalState(data))
+      else if (name === 'done') finished = true
       else if (name === 'error') failure = data.message || t('chat.error')
     }, pageId)
+    // A stream that closes without `done` was cut on the way (a network or proxy that drops
+    // long connections), not finished: say so instead of leaving a blank reply.
+    if (!finished && !failure) failure = t('chat.dropped')
     const reply = live()
     if (reply) {
       reply.streaming = false
