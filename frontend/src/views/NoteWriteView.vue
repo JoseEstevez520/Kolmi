@@ -10,6 +10,7 @@ import { api } from '../lib/api.js'
 import { invalidate } from '../lib/cached.js'
 import { loadNodes } from '../lib/content.js'
 import { joinNote, splitNote } from '../lib/notes.js'
+import { useIdleChrome } from '../lib/idleChrome.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
 // Writing a note, as a page of its own: a title and the text under it, nothing else in the
@@ -268,6 +269,10 @@ function toText() {
   editor.value?.focus()
 }
 
+// In zen mode the bar above the note fades while writing and comes back with the pointer.
+const bar = ref(null)
+const { hidden: barHidden } = useIdleChrome(zen, bar)
+
 onMounted(load)
 // The tree is usually loaded already, for the sidebar; if it fails, the hint just has no options.
 onMounted(() => loadNodes().catch(() => {}))
@@ -281,7 +286,12 @@ onMounted(() => loadNodes().catch(() => {}))
     :disabled="loading || !!closed || !!error"
     @add="picker?.add($event)"
   >
-    <div class="mb-10 flex items-center justify-between gap-3">
+    <div
+      ref="bar"
+      class="mb-10 flex items-center justify-between gap-3 transition-opacity duration-300 motion-reduce:transition-none"
+      :class="barHidden && 'opacity-0'"
+      :inert="barHidden"
+    >
       <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
       <div v-if="!closed && !error" class="flex min-w-0 items-center gap-2">
         <NodePicker
