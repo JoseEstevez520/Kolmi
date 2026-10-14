@@ -8,7 +8,7 @@ import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
-import { formatDate, noteStatusLabel } from '../lib/format.js'
+import { formatDay, noteStatusLabel } from '../lib/format.js'
 import { plainText, splitNote } from '../lib/notes.js'
 
 // Your notes: a way into writing a new one, and the ones you left. Each opens on its own
@@ -81,7 +81,7 @@ onMounted(load)
           :to="`/notes/${note.id}`"
           :title="preview(note).title"
           :description="preview(note).text"
-          :meta="formatDate(note.created_at)"
+          :meta="formatDay(note.created_at)"
           :status="noteStatusLabel(note.status)"
           :state="STATUS_STATES[note.status]"
           clamp

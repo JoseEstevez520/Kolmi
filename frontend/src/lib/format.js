@@ -22,10 +22,10 @@ export function formatDate(value) {
 }
 
 // Just the day, for when someone joined.
-// A day in numbers, as a table's column reads it: "5/10/26".
+// A day in numbers, day first in every language, as the class writes it: "16/7/25".
 export function formatDay(value) {
   const date = toDate(value)
-  return date ? formatter('day', { dateStyle: 'short' }).format(date) : ''
+  return date ? `${date.getDate()}/${date.getMonth() + 1}/${String(date.getFullYear()).slice(-2)}` : ''
 }
 
 // For narrow cells (the AI log): day, short month and the time, no year.
@@ -64,7 +64,7 @@ export function noteStatusLabel(status) {
 }
 
 // How long ago, in the largest unit that fits: "now", "2 minutes ago", "3 hours ago", and past
-// a day the date.
+// a day the date in numbers.
 export function formatAgo(value) {
   const date = toDate(value)
   if (!date) return ''
@@ -73,5 +73,5 @@ export function formatAgo(value) {
   if (seconds < 45) return rtf.format(0, 'second')
   if (seconds < 3600) return rtf.format(-Math.round(seconds / 60), 'minute')
   if (seconds < 86400) return rtf.format(-Math.round(seconds / 3600), 'hour')
-  return formatDate(value)
+  return formatDay(value)
 }
