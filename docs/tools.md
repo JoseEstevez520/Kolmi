@@ -36,7 +36,10 @@ the caller's own profile (`get_profile`). The live notes' writes (`start_live_no
 `end_live_note`, `delete_live_note`) are not tools either: the web saves a note every second or
 two, and a model proposing each save for confirmation makes no sense. Their two reads
 (`list_live_notes`, `read_live_note`) are chat and MCP tools. `start_live_note` can mirror one of the
-caller's own notes (`note_id`) and ends any other session the caller had open. Never over the MCP: settings, and the timetable's
+caller's own notes (`note_id`) and ends any other session the caller had open. `read_live_note`
+also answers `followers` (id and name of the active members who read the session in the last 15
+seconds, at most 20, plus `followers_count` when there are more): reading it is what registers a
+follower, so a model reading a note for a student shows up there too. Never over the MCP: settings, and the timetable's
 writes, whose days are indexes into the settings.
 
 ## Written for a model

@@ -1,3 +1,5 @@
+import threading
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -20,6 +22,15 @@ MAX_SESSION = timedelta(hours=3)
 PREVIEW_CHARS = 140
 MAX_CONTENT = 200_000
 LIST_LIMIT = 60
+
+# Who is following a session. The API is one process, so this lives in memory and needs no
+# table: note id -> {user id: last time they read it, on the monotonic clock}. A restart
+# empties it and the next poll refills it. A reader counts as following for FOLLOW_WINDOW after
+# their last read (the web reads every 4 s), so a closed tab drops out within moments.
+FOLLOW_WINDOW = 15.0
+MAX_FOLLOWERS = 20
+_seen: dict[int, dict[str, float]] = {}
+_seen_lock = threading.Lock()
 
 SUMMARY_COLUMNS = "id, author_id, note_id, title, event_id, shared, ended_at, created_at, updated_at, content, profiles(name)"
 
@@ -232,6 +243,38 @@ def end_live_note(ctx: Context, params: NoteIdParams):
     return {"id": params.id, "ended_at": now}
 
 
+def _follow(ctx: Context, row: dict[str, Any]) -> list[str]:
+    """Record this read (unless it is the author's) and return the ids following the session,
+    most recent first. Old entries are dropped here, so nothing grows without a read."""
+    now = time.monotonic()
+    with _seen_lock:
+        if not _is_author(ctx, row):
+            _seen.setdefault(row["id"], {})[ctx.user_id] = now
+        # Prune every session, so an ended one's readers don't linger.
+        for note_id in list(_seen):
+            seen = _seen[note_id]
+            for user_id in [u for u, at in seen.items() if now - at > FOLLOW_WINDOW]:
+                del seen[user_id]
+            if not seen:
+                del _seen[note_id]
+        seen = _seen.get(row["id"], {})
+        return sorted(seen, key=lambda u: -seen[u])
+
+
+def _followers(ctx: Context, ids: list[str]) -> dict[str, Any]:
+    """{followers: [{id, name}], followers_count}: only active members, at most MAX_FOLLOWERS
+    of them named. followers_count is the whole number, and is only sent when it is larger."""
+    if not ids:
+        return {"followers": []}
+    rows = ctx.client.table("profiles").select("id, name").in_("id", ids).eq("status", "active").execute().data
+    by_id = {r["id"]: r.get("name") for r in rows}
+    people = [{"id": i, "name": by_id[i]} for i in ids if i in by_id]
+    out: dict[str, Any] = {"followers": people[:MAX_FOLLOWERS]}
+    if len(people) > MAX_FOLLOWERS:
+        out["followers_count"] = len(people)
+    return out
+
+
 class ReadParams(BaseModel):
     id: int = Field(..., description="The live note's id, from list_live_notes.")
     since: str | None = Field(None, description="The updated_at of the copy you already have. If the note hasn't changed since, you get a short 'unchanged' answer instead of the text.")
@@ -242,7 +285,7 @@ class ReadParams(BaseModel):
     read_only=True,
     tool=True,
     mcp=True,
-    description="Read a live note: the text one classmate is writing (or wrote) during a class, with its title, author, and whether it is being written now. It is one person's notes and nobody has checked them. Pass since (a previous updated_at) to poll: an unchanged note answers with {unchanged: true}. A note its author hasn't shared can only be read by the author.",
+    description="Read a live note: the text one classmate is writing (or wrote) during a class, with its title, author, and whether it is being written now. It is one person's notes and nobody has checked them. Also followers, the classmates reading it in the last few seconds, by name. Pass since (a previous updated_at) to poll: an unchanged note answers with {unchanged: true} and the followers, which change on their own. A note its author hasn't shared can only be read by the author.",
     params=ReadParams,
     method="GET",
     path="/live/note",
@@ -253,9 +296,10 @@ def read_live_note(ctx: Context, params: ReadParams):
         raise HTTPException(404, f"Live note {params.id} isn't shared with the class; list_live_notes shows what is")
     now = _now()
     live = is_live(row, now)
+    followers = _followers(ctx, _follow(ctx, row))
     if params.since and params.since == row["updated_at"]:
-        return {"id": row["id"], "unchanged": True, "updated_at": row["updated_at"], "live": live, "ended": is_over(row, now)}
-    return {**_shape(ctx, row, now), "content": row["content"], "unchanged": False}
+        return {"id": row["id"], "unchanged": True, "updated_at": row["updated_at"], "live": live, "ended": is_over(row, now), **followers}
+    return {**_shape(ctx, row, now), "content": row["content"], "unchanged": False, **followers}
 
 
 @action(

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
+  Avatar,
   Button,
   ConfirmButton,
   Input,
@@ -129,6 +130,7 @@ function showTourAgain() {
             <p class="text-label text-fg-secondary">{{ t('settings.nameHint') }}</p>
           </div>
           <div class="flex w-full items-center gap-2 sm:w-80">
+            <Avatar :name="profile?.name" initials class="shrink-0" />
             <Input
               v-model="name"
               class="min-w-0 flex-1"

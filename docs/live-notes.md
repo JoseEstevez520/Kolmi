@@ -24,6 +24,16 @@ written; watching is a row on the Notes screen.
   any; no heading, no empty state. Your own live note is not in it. A card opens `/live/:id`,
   read-only, following the end of the text (a button stops following). The author opening their
   own `/live/:id` is sent to the note.
+- **Who is following.** Reading a session, as anyone but its author, registers the reader for 15
+  seconds (`FOLLOW_WINDOW`). `read_live_note` answers `followers` (id and name of active members,
+  at most 20, with `followers_count` past that), also in the `unchanged` short answer, since the
+  list changes while the text doesn't. It is kept in memory in the API process (one uvicorn), so
+  no table: a restart empties it and the next poll refills it. The watcher's header and the
+  writer's bar (which reads its own session every 6 s while the switch is on) show them as a small
+  stack of initials, names on hover, nothing when nobody follows. Names are fine here, a social
+  surface; they never go into pages.
+- A session mirrors an ordinary note, so the note itself goes through the daily pass like any
+  note. There is no separate step for ending a session.
 - Ended sessions are not listed anywhere for now. Step 2 of the roadmap turns them into ordinary
   notes.
 

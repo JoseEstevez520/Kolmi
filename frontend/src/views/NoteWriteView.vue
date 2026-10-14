@@ -5,12 +5,14 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusText, TextMorph } from 'elastic-ui'
 import { ArrowLeft, Maximize2, Minimize2, Paperclip, Radio } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
+import LiveFollowers from '../components/LiveFollowers.vue'
 import NodePicker from '../components/NodePicker.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
 import { invalidate } from '../lib/cached.js'
 import { loadNodes } from '../lib/content.js'
 import { joinNote, splitNote } from '../lib/notes.js'
+import { usePolling } from '../lib/polling.js'
 import { useIdleChrome } from '../lib/idleChrome.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
@@ -42,6 +44,20 @@ const fileCount = ref(0)
 // header; while it is on, every save of the note also sends its text to the class.
 const liveId = ref(null)
 const liveBusy = ref(false)
+// Who is reading the session, learnt by reading it; only asked while the switch is on.
+const followers = ref([])
+const FOLLOWERS_POLL = 6000
+usePolling(async () => {
+  if (liveId.value == null) {
+    followers.value = []
+    return
+  }
+  try {
+    followers.value = (await api.liveNote({ id: liveId.value })).followers ?? []
+  } catch {
+    // A missed beat is skipped; the next one asks again.
+  }
+}, FOLLOWERS_POLL)
 
 // Where the student thinks the note goes, as a hint for the daily pass; null leaves it empty.
 // Lives in the top bar as a quiet NodePicker, a ghost button with the picked place's short
@@ -333,6 +349,7 @@ onMounted(() => loadNodes().catch(() => {}))
           :working="status === 'saving'"
           :error="status === 'error'"
         />
+        <LiveFollowers v-if="liveId != null" :followers="followers" />
         <Button
           variant="ghost"
           size="icon"

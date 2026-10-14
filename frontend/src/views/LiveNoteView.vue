@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { Button, Callout, ConfirmButton, Status } from 'elastic-ui'
 import { ArrowLeft } from '@lucide/vue'
+import LiveFollowers from '../components/LiveFollowers.vue'
 import LiveWatch from '../components/LiveWatch.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
@@ -24,6 +25,7 @@ const id = Number(route.params.id)
 const POLL = 4000
 
 const note = ref(null)
+const followers = ref([])
 const loading = ref(true)
 const error = ref('')
 
@@ -36,6 +38,7 @@ async function load() {
       router.replace(answer.note_id ? { name: 'note', params: { id: answer.note_id } } : { name: 'notes' })
       return
     }
+    followers.value = answer.followers ?? []
     if (answer.unchanged) {
       // The text is the same; whether it is still live or ended may not be.
       note.value = { ...note.value, live: answer.live, ended: answer.ended }
@@ -89,7 +92,10 @@ async function remove() {
         <div class="prose">
           <div class="flex items-start justify-between gap-4">
             <h1>{{ note.title }}</h1>
-            <Status compact class="mt-2 shrink-0" :state="state[0]" :label="state[1]" />
+            <div class="mt-2 flex shrink-0 items-center gap-3">
+              <LiveFollowers :followers="followers" />
+              <Status compact :state="state[0]" :label="state[1]" />
+            </div>
           </div>
           <p class="text-fg-muted" :title="t('live.notChecked')">{{ note.author ?? '?' }}</p>
         </div>

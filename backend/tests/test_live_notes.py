@@ -18,11 +18,13 @@ class _Query:
         self.store, self.name, self.op, self.data = store, name, op, data
         self.eqs: list[tuple[str, Any]] = []
         self.either: tuple[str, str] | None = None
+        self.ins: list[tuple[str, list]] = []
 
     def select(self, *_a, **_k): return self
     def eq(self, column, value): self.eqs.append((column, value)); return self
     def order(self, *_a, **_k): return self
     def limit(self, _n): return self
+    def in_(self, column, values): self.ins.append((column, list(values))); return self
 
     def or_(self, text):
         # Only the shape the list uses: "shared.eq.true,author_id.eq.<id>".
@@ -31,6 +33,8 @@ class _Query:
 
     def _match(self, row):
         if not all(row.get(c) == v for c, v in self.eqs):
+            return False
+        if not all(row.get(c) in vs for c, vs in self.ins):
             return False
         if self.either:
             keep = False
@@ -86,6 +90,9 @@ def store(monkeypatch):
     data: dict[str, Any] = {"names": NAMES}
     # The timetable is its own concern: these tests say what is on, or that nothing is.
     monkeypatch.setattr(live, "current_class", lambda _client: data.get("on_now"))
+    # Who is following lives in memory: every test starts with nobody.
+    monkeypatch.setattr(live, "_seen", {})
+    data["profiles"] = [{"id": u, "name": n, "status": "active"} for u, n in NAMES.items()]
     return data
 
 
@@ -288,7 +295,7 @@ def test_read_with_the_same_since_is_a_tiny_answer(store):
 
     out = run("read_live_note", _ctx(store, "luis"), {"id": 1, "since": row["updated_at"]})
 
-    assert out == {"id": 1, "unchanged": True, "updated_at": row["updated_at"], "live": True, "ended": False}
+    assert out == {"id": 1, "unchanged": True, "updated_at": row["updated_at"], "live": True, "ended": False, "followers": [{"id": "luis", "name": "Luis"}]}
 
 
 def test_read_with_an_older_since_returns_the_text(store):
@@ -443,3 +450,61 @@ def test_no_class_on_when_off_between_slots_or_on_a_free_day(monkeypatch):
     assert live.current_class(_TimetableClient([slot])) is None
     _on(monkeypatch, datetime(2026, 10, 13, 10, 15, tzinfo=madrid))  # Tuesday is not a class day
     assert live.current_class(_TimetableClient([slot])) is None
+
+
+# -- who is following ------------------------------------------------------------------
+
+
+def _read(store, user, **args):
+    return run("read_live_note", _ctx(store, user), {"id": 1, **args})
+
+
+def test_a_reader_shows_as_follower_and_the_author_does_not(store, monkeypatch):
+    _seed(store)
+    assert _read(store, "ana")["followers"] == []
+    out = _read(store, "luis")
+    assert out["followers"] == [{"id": "luis", "name": "Luis"}]
+    # The author's own read learns who is here, and is not counted among them.
+    assert _read(store, "ana")["followers"] == [{"id": "luis", "name": "Luis"}]
+
+
+def test_followers_come_with_the_unchanged_answer(store):
+    row = _seed(store)
+    _read(store, "luis")
+    out = _read(store, "root", since=row["updated_at"])
+    assert out["unchanged"] is True
+    assert {f["id"] for f in out["followers"]} == {"luis", "root"}
+
+
+def test_a_follower_drops_out_after_the_window(store, monkeypatch):
+    _seed(store)
+    clock = [1000.0]
+    monkeypatch.setattr(live.time, "monotonic", lambda: clock[0])
+    _read(store, "luis")
+    clock[0] += live.FOLLOW_WINDOW - 1
+    assert [f["id"] for f in _read(store, "ana")["followers"]] == ["luis"]
+    clock[0] += 2
+    assert _read(store, "ana")["followers"] == []
+    assert live._seen == {}
+
+
+def test_only_active_members_are_named(store):
+    _seed(store)
+    _read(store, "luis")
+    _read(store, "root")
+    next(p for p in store["profiles"] if p["id"] == "luis")["status"] = "blocked"
+    assert [f["name"] for f in _read(store, "ana")["followers"]] == ["Root"]
+
+
+def test_followers_are_capped_with_the_full_count(store, monkeypatch):
+    _seed(store)
+    for i in range(live.MAX_FOLLOWERS + 5):
+        store["profiles"].append({"id": f"u{i}", "name": f"U{i}", "status": "active"})
+        live._seen.setdefault(1, {})[f"u{i}"] = live.time.monotonic()
+    out = _read(store, "ana")
+    assert len(out["followers"]) == live.MAX_FOLLOWERS
+    assert out["followers_count"] == live.MAX_FOLLOWERS + 5
+
+def test_no_count_under_the_cap(store):
+    _seed(store)
+    assert "followers_count" not in _read(store, "luis")

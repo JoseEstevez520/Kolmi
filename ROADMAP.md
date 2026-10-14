@@ -329,13 +329,12 @@ Same tools, same loop, another trigger.
     deletes. Table `live_notes`; actions `start_live_note`, `save_live_note`, `end_live_note`,
     `read_live_note`, `list_live_notes` and `delete_live_note` (the two reads are chat and MCP
     tools); the web polls every 4 s with `since`. Ended sessions are not listed anywhere until
-    the next step turns them into notes. Still to do from the plan: a warning when it's open in
+    the next step turns them into notes. Who is following is built: `read_live_note` answers the
+    names of those reading in the last 15 s, shown as stacked initials. Still to do from the plan: a warning when it's open in
     two tabs, SSE only if polling feels slow, and the live dot on the timetable.
-  - **Into the pass.** When the session ends, its text becomes an ordinary note (`source =
-    'live'`), and the gatekeeper judges it like any other: it can merge it into a page, discard
-    the filler. The live note itself stays as it was. The editor is Tiptap, but the document is
-    kept as Tiptap JSON (generated blocks won't fit in Markdown) and the Markdown is derived
-    for the pass.
+  - **Into the pass.** Built, with no step of its own: a live session mirrors a normal note, so the
+    note itself goes through the daily pass as any other, whether or not the session ended.
+    The editor stays the notes editor; the Markdown it saves is what the pass reads.
   - **Generative notes.** The interface shows up without selecting anything: when a paragraph
     closes, a small cheap model decides whether it deserves a section or an artifact and offers it
     as a quiet chip under the paragraph (AuraNote's "ambient suggestions"); selecting a passage and
@@ -346,7 +345,6 @@ Same tools, same loop, another trigger.
     artifact) and both renderers over `@openuidev/vue-lang`; Kolmi uses the same catalogue, so most
     of it should be reuse. Each generation is a model call, so it counts against a daily cap like
     the chat. Parts that are missing go into elastic-ui first.
-  - **See who's here**, a count and the names of who is following a note.
   - **Later, maybe.** Letting a reader turn a passage into a diagram in their own view, without
     touching the writer's note (a call per reader, so a cap per person); writing together, with
     Hocuspocus or Tiptap's provider on Yjs (the Supabase ones, `y-supabase`, are alpha).
