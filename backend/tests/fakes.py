@@ -46,7 +46,7 @@ class FakeLLM:
             self.tool_results += [run_tool(name, args) for name, args in round_]
         return self.json_response
 
-    def stream_with_tools(self, system, user, tools, run_tool):
+    def stream_with_tools(self, system, user, tools, run_tool, max_rounds=50):
         """Runs the tool rounds, then streams `stream_tokens` (a stream that ends in
         `stream_error`, when set, is cut there)."""
         self.calls.append(("stream", system, user))

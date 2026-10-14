@@ -14,6 +14,9 @@ log = logging.getLogger(__name__)
 
 # With passages, the most characters of tree index the chat is sent (some 1,500 tokens).
 INDEX_BUDGET = 6000
+# The chat answers from the passages it was handed and a few pages: a model that walks the whole
+# tree one page at a time (it did, 48 reads, two minutes) is cut off and asked to answer.
+CHAT_MAX_TOOL_ROUNDS = 8
 
 
 def _combined_tool(read_page_run, search_run, action_run=None):
@@ -183,4 +186,4 @@ def run_chat_stream(
     tools += actions or []
     run_search = search_tool(search, []) if search is not None else None
     run_tool = _combined_tool(read_page_tool(nodes, read_page, []), run_search, run_action)
-    yield from llm.stream_with_tools(system, user, tools, run_tool)
+    yield from llm.stream_with_tools(system, user, tools, run_tool, max_rounds=CHAT_MAX_TOOL_ROUNDS)

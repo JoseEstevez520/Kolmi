@@ -176,8 +176,12 @@ export async function send(text) {
     await api.streamChat(question, history, (name, data) => {
       const reply = live()
       if (!reply) return
-      if (name === 'status') reply.status = data.text
-      else if (name === 'token') {
+      if (name === 'status') {
+        reply.status = data.text
+        // What the model said before a tool ("I'll look at the tree...") is not the answer, and
+        // glued to the program it would stop it parsing.
+        reply.text = ''
+      } else if (name === 'token') {
         reply.status = ''
         reply.text += data.text
       } else if (name === 'proposal') reply.proposals.push(withLocalState(data))

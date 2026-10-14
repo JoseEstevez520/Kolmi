@@ -33,6 +33,7 @@ class LLM(Protocol):
         user: str,
         tools: list[dict[str, Any]],
         run_tool: Callable[[str, dict[str, Any]], str],
+        max_rounds: int = ...,
     ) -> Iterator[dict[str, str]]:
         """Like `complete_with_tools`, but the answer is plain text, streamed. Yields
         `{"type": "status", "text": ...}` when a tool runs and `{"type": "token", "text": ...}`
@@ -167,13 +168,14 @@ class OpenAILLM:
         user: str,
         tools: list[dict[str, Any]],
         run_tool: Callable[[str, dict[str, Any]], str],
+        max_rounds: int = MAX_TOOL_ROUNDS,
     ) -> Iterator[dict[str, str]]:
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ]
         empty_answers = 0
-        for _ in range(MAX_TOOL_ROUNDS):
+        for _ in range(max_rounds):
             stream = self._client.chat.completions.create(
                 model=self.model,
                 messages=messages,
@@ -235,7 +237,7 @@ class OpenAILLM:
                 messages.append(
                     {"role": "tool", "tool_call_id": call["id"], "content": run_tool(call["name"], args)}
                 )
-        log.warning("still calling tools after %d rounds; asking for the answer", MAX_TOOL_ROUNDS)
+        log.warning("still calling tools after %d rounds; asking for the answer", max_rounds)
         messages.append({"role": "user", "content": STOP_TOOLS_TEXT})
         final = self._client.chat.completions.create(
             model=self.model,
