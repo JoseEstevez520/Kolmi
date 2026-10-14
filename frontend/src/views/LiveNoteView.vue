@@ -69,7 +69,7 @@ async function remove() {
   <main class="py-16">
     <div class="article">
       <div class="mb-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/live">{{ t('live.back') }}</Button>
+        <Button variant="ghost" size="icon" :icon="ArrowLeft" to="/live" :aria-label="t('live.back')" />
         <ConfirmButton
           v-if="canDelete"
           variant="ghost"
@@ -89,13 +89,11 @@ async function remove() {
             <h1>{{ note.title }}</h1>
             <Status class="mt-2 shrink-0" :state="state[0]" :label="state[1]" />
           </div>
-          <p class="text-fg-muted">{{ t('live.notChecked', { name: note.author ?? '?' }) }}</p>
+          <p class="text-fg-muted" :title="t('live.notChecked')">{{ note.author ?? '?' }}</p>
         </div>
 
         <LiveWrite v-if="writing" :note="note" @ended="ended" />
         <template v-else>
-          <Callout v-if="note.ended" type="note" class="mb-8">{{ t('live.endedNote') }}</Callout>
-          <Callout v-else-if="!note.shared" type="note" class="mb-8">{{ t('live.notShared') }}</Callout>
           <LiveWatch v-if="!note.ended || note.content" :content="note.content ?? ''" :live="note.live" />
         </template>
       </template>

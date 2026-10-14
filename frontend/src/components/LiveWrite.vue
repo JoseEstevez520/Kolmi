@@ -3,7 +3,7 @@ import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vu
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave } from 'vue-router'
 import { Button, Input, StatusText, Switch } from 'elastic-ui'
-import { Square } from '@lucide/vue'
+import { Radio, Square } from '@lucide/vue'
 import { api } from '../lib/api.js'
 
 // The writer's side of a live note: a title, the editor, a "Share live" switch (off until the
@@ -122,7 +122,9 @@ const statusText = () =>
 <template>
   <div>
     <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-      <Switch :model-value="shared" :disabled="ending" @update:model-value="setShared">{{ t('live.share') }}</Switch>
+      <Switch :model-value="shared" :disabled="ending" :aria-label="t('live.share')" :title="t('live.share')" @update:model-value="setShared">
+        <Radio class="size-4" aria-hidden="true" />
+      </Switch>
       <div class="flex items-center gap-2">
         <StatusText
           v-if="status"
@@ -131,12 +133,9 @@ const statusText = () =>
           :working="status === 'saving'"
           :error="status === 'error'"
         />
-        <Button variant="ghost" :icon="Square" :disabled="ending" @click="end">
-          {{ ending ? t('live.ending') : t('live.end') }}
-        </Button>
+        <Button variant="ghost" size="icon" :icon="Square" :disabled="ending" :aria-label="t('live.end')" :title="t('live.end')" @click="end" />
       </div>
     </div>
-    <p class="mb-6 text-meta text-fg-muted">{{ t('live.shareHint') }}</p>
     <Input v-model="title" bare class="mb-6 text-display" :aria-label="t('live.titleLabel')" />
     <NoteEditor v-model="body" :label="t('live.titleLabel')" :placeholder="t('live.bodyPlaceholder')" />
   </div>

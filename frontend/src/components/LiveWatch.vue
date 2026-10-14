@@ -30,16 +30,15 @@ watch(following, follow)
     <div v-if="live" class="sticky top-[calc(var(--page-header-height)+0.5rem)] z-10 mb-4 flex justify-end">
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         :icon="following ? Pause : ArrowDownToLine"
         :aria-pressed="following"
+        :aria-label="following ? t('live.stopFollowing') : t('live.followEnd')"
+        :title="following ? t('live.stopFollowing') : t('live.followEnd')"
         @click="following = !following"
-      >
-        {{ following ? t('live.stopFollowing') : t('live.followEnd') }}
-      </Button>
+      />
     </div>
     <Markdown v-if="content.trim()" :source="content" />
-    <p v-else class="text-fg-muted">{{ t('live.emptyNote') }}</p>
     <div ref="end" aria-hidden="true" class="h-px" />
   </div>
 </template>

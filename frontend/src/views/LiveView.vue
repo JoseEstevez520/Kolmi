@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Button, Callout, Input, StatusText } from 'elastic-ui'
-import { Pencil } from '@lucide/vue'
+import { Check, Pencil, X } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -76,7 +76,7 @@ async function start() {
 
 <template>
   <main class="py-16">
-    <PageLayout :title="t('live.title')" :lead="t('live.lead')">
+    <PageLayout :title="t('live.title')">
       <div class="not-prose">
         <form v-if="starting" class="flex flex-wrap items-center gap-2" @submit.prevent="start">
           <Input
@@ -86,49 +86,29 @@ async function start() {
             :aria-label="t('live.startTitleLabel')"
             autofocus
           />
-          <Button type="submit" :disabled="busy">{{ t('live.startGo') }}</Button>
-          <Button variant="ghost" :disabled="busy" @click="starting = false">{{ t('common.cancel') }}</Button>
+          <Button type="submit" size="icon" :icon="Check" :disabled="busy" :aria-label="t('live.startGo')" />
+          <Button variant="ghost" size="icon" :icon="X" :disabled="busy" :aria-label="t('common.cancel')" @click="starting = false" />
         </form>
-        <Button v-else :icon="Pencil" @click="openStart">{{ t('live.start') }}</Button>
+        <Button v-else size="icon" :icon="Pencil" :aria-label="t('live.start')" @click="openStart" />
         <Callout v-if="startError" type="caution" class="mt-4">{{ startError }}</Callout>
       </div>
 
       <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
       <Callout v-else-if="error" type="caution" :title="t('live.error')">{{ error }}</Callout>
-      <template v-else>
-        <h2 id="now" class="mt-10">{{ t('live.now') }}</h2>
-        <CardGrid v-if="now.length">
-          <PageCard
-            v-for="note in now"
-            :key="note.id"
-            :to="`/live/${note.id}`"
-            :title="note.title"
-            :description="note.preview"
-            :meta="byline(note)"
-            :state="stateOf(note)[0]"
-            :status="stateOf(note)[1]"
-          />
-        </CardGrid>
-        <p v-else class="text-fg-muted">{{ t('live.nothingNow') }}</p>
-
-        <template v-if="earlier.length">
-          <h2 id="earlier" class="mt-10">{{ t('live.earlier') }}</h2>
-          <CardGrid>
-            <PageCard
-              v-for="note in earlier"
-              :key="note.id"
-              :to="`/live/${note.id}`"
-              :title="note.title"
-              :description="note.preview"
-              :meta="byline(note)"
-              :state="stateOf(note)[0]"
-              :status="stateOf(note)[1]"
-              clamp
-            />
-          </CardGrid>
-        </template>
-        <p v-else-if="!now.length" class="mt-2 text-fg-muted">{{ t('live.nothingYet') }}</p>
-      </template>
+      <!-- What is being written now comes first; the state on each card says the rest. -->
+      <CardGrid v-else-if="notes.length" class="mt-10">
+        <PageCard
+          v-for="note in [...now, ...earlier]"
+          :key="note.id"
+          :to="`/live/${note.id}`"
+          :title="note.title"
+          :description="note.preview"
+          :meta="byline(note)"
+          :state="stateOf(note)[0]"
+          :status="stateOf(note)[1]"
+          :clamp="!note.live"
+        />
+      </CardGrid>
     </PageLayout>
   </main>
 </template>
