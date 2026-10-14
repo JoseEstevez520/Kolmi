@@ -9,7 +9,7 @@ from typing import Any
 from ..class_settings import FALLBACK_LANGUAGE
 from . import openui
 from .client import LLM
-from .prompts import language_line, tree_lines, visual_system
+from .prompts import WEB_DRAWING_GUIDE, WEB_REDRAW_LINE, language_line, tree_lines, visual_system
 
 log = logging.getLogger(__name__)
 
@@ -37,13 +37,14 @@ def _brief(*, title: str, markdown: str, existing_web: str, language: str, index
     parts = [
         language_line(language),
         "",
+        WEB_DRAWING_GUIDE,
         f"Page title: {title}",
         "",
         "The page's notes, in Markdown (the page says all of this, and nothing more):",
         markdown,
     ]
     if existing_web.strip():
-        parts += ["", "Current page, in OpenUI Lang (keep what still holds):", existing_web]
+        parts += ["", "Current page, in OpenUI Lang:", WEB_REDRAW_LINE, existing_web]
     parts += tree_lines(index)
     return "\n".join(parts)
 

@@ -352,6 +352,43 @@ def language_line(language: str = FALLBACK_LANGUAGE) -> str:
     )
 
 
+# When a study page gets a drawing. It rides in the web agent's brief (the Gateway keeps its own
+# system prompt), after the catalogue's guide, and says what that guide leaves open: the guide
+# says "a comparison is a table" and "check a table is not enough first", and notes that are
+# mostly tables then come out as tables only.
+WEB_DRAWING_GUIDE = """\
+Reading the page: a study page should be understood by looking at it first and reading second.
+
+- Look for the one to three ideas in the notes that are a shape, not a sentence: a process or \
+flow (A then B then C), a comparison of two or three options by how they behave, a hierarchy or \
+containment (X holds Y), a timeline or order of events, a cause and its effect, or a set of \
+related concepts. Draw each as a Figure: Areas for what holds things, Chips for the named \
+things, Labels for items in a list, Arrows for the order or the cause, an icon from the set on \
+the Areas and Chips that have a clear general one. One short sentence before it says what to \
+notice, and the point in bold after it.
+- The drawing replaces words, it does not add them: when a Figure shows what a paragraph or a \
+table said, the paragraph goes, and a table whose rows are now drawn goes too. Keep a table \
+only for facts the figure does not carry.
+- A procedure the reader follows is Steps. Terms the page uses, each in a sentence, are a \
+DescriptionList. The one thing that bites (a trap, the common mistake, a rule) is one short \
+Callout, not a paragraph.
+- Keep it short: at most one or two figures per page, each with a handful of parts, text \
+under each heading in a few lines. Colour means something and is the same for the same concept \
+across the page.
+- Do not draw for its own sake. A page that is a reference (a table of values, a list of \
+syntax, commands with code) stays a Table, a list or a CodeBlock: no figure. Do not draw a \
+single fact, a decoration, or something already shown by a code block.
+- Everything in a drawing comes from the notes: never invent a fact, a number, a name or a \
+step to fill a figure.
+"""
+
+# Added when the page already has a web: the current page must not freeze a plain one.
+WEB_REDRAW_LINE = (
+    "Keep what still holds, but if the current page shows a process, a comparison, a hierarchy "
+    "or a set of concepts only as text or tables, replace those blocks with a Figure."
+)
+
+
 # The figures and interactive pieces a page asks for with a brief (Diagram, Artifact), drawn by
 # the main model after the page is written. Both are shown inside the app, in its light or dark
 # theme, so they draw with its tokens and diagram classes instead of colours of their own.
