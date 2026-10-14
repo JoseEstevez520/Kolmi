@@ -57,6 +57,9 @@ in its own repo.
 - **Everything in this repo is in English** (code, comments, docs, commits), except
   `README.es.md`, the Spanish translation of the README. The README always ships in both
   languages: edit one and the other in the same commit.
+- **Minimal UI.** Icons over text, state shown with the library's own parts and not explained
+  in sentences, no hints, leads or empty-state copy that repeat what the screen already says.
+  See [frontend/design.md](frontend/design.md#minimal-by-default).
 - **Personal setup is local.** This developer's own server, Supabase and deploy details live
   in `LOCAL.md` (gitignored). If it exists, read it for the instance-specific context.
 - **Nothing personal in the repo.** The repo is the product, for any class. What belongs to one

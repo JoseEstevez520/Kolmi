@@ -48,6 +48,23 @@ Grey by default. `--color-accent` in `src/style.css` is the same near-black as t
 the outcomes (success, warning, danger) and the aurora, which is the library's and does not
 appear in phase 1.
 
+## Minimal by default
+
+A screen says as little as it can. This is a principle of the app, not a taste for one screen:
+
+- **Icon over text.** An action is an icon button with its name in `aria-label` and `title`.
+  Visible text stays only where an icon alone would be ambiguous.
+- **State is shown, not explained.** A `Status`, a switch, a dot or a card's state say what a
+  sentence would. No hint under a control ("Off: only you see it. On: ..."), no banner that
+  repeats what the header already shows, no empty state that narrates ("Nobody is writing
+  right now"): an empty list is just empty.
+- **No leads or headings that restate the title.** If the screen's name and its content say it,
+  the sentence is noise.
+- **Whatever must be said goes where it is asked for:** a `title` on hover, the confirmation
+  before a destructive step, an error when something fails.
+
+Before adding a line of copy to a screen, ask what would be lost without it.
+
 ## Screens
 
 - **Login**: "Sign in with Google", an email and password form, and links to Sign up and
