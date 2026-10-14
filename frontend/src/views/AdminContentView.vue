@@ -2,8 +2,9 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { Button, Callout, Sheet, SheetTitle, StatusText, TreeDrag } from 'elastic-ui'
+import { Button, Callout, Sheet, SheetTitle, TreeDrag } from 'elastic-ui'
 import { Plus, Search } from '@lucide/vue'
+import ListSkeleton from '../components/ListSkeleton.vue'
 import AdminCreateDialog from '../components/AdminCreateDialog.vue'
 import AdminNode from '../components/AdminNode.vue'
 import AdminPanel from '../components/AdminPanel.vue'
@@ -295,7 +296,7 @@ const searching = ref(false)
       </template>
     </Teleport>
 
-    <StatusText v-if="loading" :delay="300" :text="t('common.loadingContent')" working />
+    <ListSkeleton v-if="loading" :rows="8" />
 
     <template v-else>
       <Callout v-if="error" type="caution" :title="t('common.somethingWrong')" class="mb-6">{{ error }}</Callout>

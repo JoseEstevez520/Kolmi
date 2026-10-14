@@ -12,7 +12,6 @@ export default {
   },
 
   common: {
-    loadingContent: 'Cargando el contenido…',
     nothingHere: 'Aún no hay nada',
     cancel: 'Cancelar',
     save: 'Guardar',
