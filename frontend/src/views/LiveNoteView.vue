@@ -90,7 +90,7 @@ async function remove() {
         <div v-if="!writing" class="prose">
           <div class="flex items-start justify-between gap-4">
             <h1>{{ note.title }}</h1>
-            <Status class="mt-2 shrink-0" :state="state[0]" :label="state[1]" />
+            <Status compact class="mt-2 shrink-0" :state="state[0]" :label="state[1]" />
           </div>
           <p class="text-fg-muted" :title="t('live.notChecked')">{{ note.author ?? '?' }}</p>
         </div>

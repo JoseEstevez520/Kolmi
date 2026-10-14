@@ -130,7 +130,7 @@ async function send() {
           <li v-for="report in reports" :key="report.id" class="flex flex-col gap-1">
             <span class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <span class="min-w-0 truncate text-label text-fg">{{ report.title }}</span>
-              <Status :state="stateOf(report)" :label="t(`bug.status.${report.status}`)" :reason="report.reason || undefined" />
+              <Status compact :state="stateOf(report)" :label="t(`bug.status.${report.status}`)" :reason="report.reason || undefined" />
             </span>
             <a
               v-if="report.issue_url"

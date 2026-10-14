@@ -110,7 +110,7 @@ watch(expanded, (open) => {
 
       <CardFooter v-if="meta || state" class="mt-auto justify-between gap-3">
         <time v-if="meta" class="text-meta text-fg-muted">{{ meta }}</time>
-        <Status v-if="state" :state="state" :label="status || undefined" :class="!meta && 'ml-auto'" />
+        <Status v-if="state" compact :state="state" :label="status || undefined" :class="!meta && 'ml-auto'" />
       </CardFooter>
     </Card>
   </component>
