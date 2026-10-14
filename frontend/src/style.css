@@ -16,6 +16,33 @@
   --color-accent-fg: light-dark(#ffffff, #0a0a0a);
 
   /*
+   * Warm neutrals, one short scale (design.md, "Tones"): page, surface, sunk and raised. Depth
+   * comes from these tones, not from borders or shadows.
+   */
+  --color-bg: light-dark(#f8f7f4, #0d0d0c);
+  --color-bg-subtle: light-dark(#f3f2ee, #131311);
+  --color-bg-muted: light-dark(#efeee9, #1a1a18);
+  --color-bg-inset: light-dark(#e6e4dd, #222220);
+  --color-surface-sunk: light-dark(#e1dfd7, #151513);
+  --color-surface-raised: light-dark(#ffffff, #272724);
+  --color-fg: light-dark(#1d1d1b, #f5f4f0);
+  --color-fg-secondary: light-dark(#51554c, #a8a89f);
+  --color-fg-muted: light-dark(#686d62, #8e8e85);
+  --color-fg-faint: light-dark(#a5a79c, #5e5e57);
+  --color-border: light-dark(#dedcd4, #262623);
+  --color-border-strong: light-dark(#cfccc2, #353531);
+
+  /*
+   * No black as a highlight: a button is a tone one step below the surface it sits on, and a
+   * switch is grey on and off. The accent stays the text colour, for focus rings and the like.
+   */
+  --button-bg: var(--color-bg-inset);
+  --button-fg: var(--color-fg);
+  --button-bg-hover: var(--color-surface-sunk);
+  --switch-track-on: light-dark(#8b8e83, #6b6e64);
+  --switch-thumb-on: light-dark(#ffffff, #f5f4f0);
+
+  /*
    * The aurora is the library's one decorative colour, only behind AI at work (the chat):
    * ours is honey, the logo's own amber (#EFA220) carried across four tones instead of the
    * library's default blue-to-pink.

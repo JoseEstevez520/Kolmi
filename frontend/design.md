@@ -41,12 +41,19 @@ It ships no compiled CSS: `src/style.css` imports its tokens and points Tailwind
 components with `@source`. The library's own texts (screen-reader names, "On this page"…) are
 in English by default, so the app does not override them.
 
-## Colour
+## Colour and tones
 
-Grey by default. `--color-accent` in `src/style.css` is the same near-black as the text
-(near-white in the dark theme): the app has no accent colour. Colour only carries meaning:
-the outcomes (success, warning, danger) and the aurora, which is the library's and does not
-appear in phase 1.
+Warm greys, one short scale, set in `src/style.css` over the library's tokens: page `#f8f7f4`,
+surface `#efeee9`, sunk `#e6e4dd`, raised white (dark theme: `#0d0d0c`, `#1a1a18`, `#222220`,
+`#272724`). Depth comes from these tones, never from borders or shadows. The scale follows
+Strivon's staff screen, which had learned it first (its `DESIGN.md` explains why).
+
+- **No black as a highlight.** A button is the sunk tone with the text colour, one step down
+  from what it sits on; a switch is grey on and off. A solid dark block read as a foreign body
+  on a grey screen. The accent stays the text colour, used for focus rings only.
+- **Colour only carries meaning:** the outcomes (success, warning, danger) and the aurora, which
+  is the library's and appears only behind the AI at work.
+- Same things look the same: objects of one kind share one tone, one radius and one size.
 
 ## Minimal by default
 
