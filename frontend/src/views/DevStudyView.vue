@@ -41,41 +41,13 @@ import {
 } from '@lucide/vue'
 import { logoFor } from '../lib/openui/logos.js'
 
-// Development only (/dev/study): six ways a study page could look, on one topic ("var, let and
+// Development only (/dev/study): four ways a study page could look, on one topic ("var, let and
 // const"), with the library's parts and fake local data. Nothing is fetched until a click.
 
 // A. Logos
 const stack = ['JavaScript', 'Node.js', 'Chrome', 'ESLint', 'Vue']
 
-// B. A switch
-const kinds = {
-  var: {
-    output: '2',
-    ok: true,
-    scope: 'function',
-    reassign: true,
-    redeclare: true,
-  },
-  let: {
-    output: 'ReferenceError: x is not defined',
-    ok: false,
-    scope: 'block',
-    reassign: true,
-    redeclare: false,
-  },
-  const: {
-    output: 'TypeError: Assignment to constant variable.',
-    ok: false,
-    scope: 'block',
-    reassign: false,
-    redeclare: false,
-  },
-}
-const kind = ref('var')
-const chosen = computed(() => kinds[kind.value])
-const sample = computed(() => `if (true) {\n  ${kind.value} x = 1\n  x = 2\n}\nconsole.log(x)`)
-
-// C. Playground: editable code, run in a closed frame (scripts only, no network, no access to the
+// B. Playground: editable code, run in a closed frame (scripts only, no network, no access to the
 // page). The code goes in as its own inline script so a syntax error cannot break the capture.
 const tries = [
   { id: 'before', label: 'Too early', icon: Clock, code: 'console.log(a)\nlet a = 1' },
@@ -200,14 +172,7 @@ function onMessage(e) {
 onMounted(() => window.addEventListener('message', onMessage))
 onBeforeUnmount(() => window.removeEventListener('message', onMessage))
 
-// D. Cheat sheet
-const sheet = [
-  { name: 'var', icon: Braces, rules: [[Box, 'Function scope'], [Repeat, 'Can be redeclared'], [RefreshCw, 'Can be reassigned']] },
-  { name: 'let', icon: Square, rules: [[Square, 'Block scope'], [Ban, 'No redeclaring'], [RefreshCw, 'Can be reassigned']] },
-  { name: 'const', icon: Lock, rules: [[Square, 'Block scope'], [Ban, 'No redeclaring'], [Equal, 'Never reassigned']] },
-]
-
-// E. Media carousel (the player and the page only load after a click)
+// C. Media carousel (the player and the page only load after a click)
 const slides = [
   { kind: 'video', title: 'Scope in five minutes', id: 'VIDEO_ID_1' },
   { kind: 'site', title: 'MDN: let', host: 'developer.mozilla.org', href: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let' },
@@ -236,30 +201,7 @@ const playing = ref({})
     </section>
 
     <section class="flex flex-col gap-3">
-      <h2 class="m-0 text-ui font-semibold">B. Compare with a switch</h2>
-      <div class="flex flex-col gap-4 rounded-xl bg-bg-muted p-6">
-        <ToggleGroup v-model="kind" type="single" aria-label="Keyword" class="self-start">
-          <ToggleGroupItem v-for="(_, name) in kinds" :key="name" :value="name">{{ name }}</ToggleGroupItem>
-        </ToggleGroup>
-        <CodeBlock :code="sample" language="js" />
-        <div class="flex items-center gap-2 text-ui">
-          <Status compact :state="chosen.ok ? 'done' : 'error'" :label="chosen.ok ? 'Prints' : 'Throws'" />
-          <code class="min-w-0 break-words">{{ chosen.output }}</code>
-        </div>
-        <Diagram :label="`Where x lives with ${kind}`">
-          <DiagramGroup layout="row">
-            <DiagramArea :title="chosen.scope === 'function' ? 'function' : 'block { }'" layout="row">
-              <DiagramChip>x</DiagramChip>
-            </DiagramArea>
-            <DiagramChip :icon="chosen.reassign ? Check : X" note="reassign">x = 2</DiagramChip>
-            <DiagramChip :icon="chosen.redeclare ? Check : X" note="redeclare">{{ kind }} x</DiagramChip>
-          </DiagramGroup>
-        </Diagram>
-      </div>
-    </section>
-
-    <section class="flex flex-col gap-3">
-      <h2 class="m-0 text-ui font-semibold">C. Playground</h2>
+      <h2 class="m-0 text-ui font-semibold">B. Playground</h2>
       <div class="flex flex-col gap-3 rounded-xl bg-bg-muted p-6">
         <ToggleGroup v-model="picked" type="single" aria-label="Try this" class="flex-wrap self-start">
           <ToggleGroupItem v-for="t in tries" :key="t.id" :value="t.id" class="gap-1.5">
@@ -343,27 +285,7 @@ const playing = ref({})
     </section>
 
     <section class="flex flex-col gap-3">
-      <h2 class="m-0 text-ui font-semibold">D. Card grid cheat sheet</h2>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Card v-for="k in sheet" :key="k.name" size="sm">
-          <CardContent class="flex flex-col gap-3">
-            <span class="flex items-center gap-2 text-ui font-semibold">
-              <component :is="k.icon" class="size-4" :stroke-width="1.5" aria-hidden="true" />
-              {{ k.name }}
-            </span>
-            <ul class="m-0 flex list-none flex-col gap-2 p-0">
-              <li v-for="[icon, text] in k.rules" :key="text" class="flex items-center gap-2 text-label text-fg-secondary">
-                <component :is="icon" class="size-4 shrink-0" :stroke-width="1.5" aria-hidden="true" />
-                {{ text }}
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-
-    <section class="flex flex-col gap-3">
-      <h2 class="m-0 text-ui font-semibold">E. Media carousel</h2>
+      <h2 class="m-0 text-ui font-semibold">C. Media carousel</h2>
       <Carousel v-model="slide" label="Further reading" class="max-w-sm">
         <CarouselItem v-for="(s, i) in slides" :key="i">
           <Card size="sm" class="mx-1">
@@ -422,7 +344,7 @@ const playing = ref({})
     </section>
 
     <section class="flex flex-col gap-3">
-      <h2 class="m-0 text-ui font-semibold">F. The current style</h2>
+      <h2 class="m-0 text-ui font-semibold">D. The current style</h2>
       <div class="rounded-xl bg-bg-muted p-6">
         <Diagram label="var is function scoped, let and const are block scoped">
           <DiagramGroup layout="row">
