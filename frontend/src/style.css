@@ -39,6 +39,9 @@
   --button-bg: var(--color-bg-inset);
   --button-fg: var(--color-fg);
   --button-bg-hover: var(--color-surface-sunk);
+  /* A person's round avatar sits a tone below the surface, so it shows on the page and on a card. */
+  --avatar-bg: var(--color-bg-inset);
+
   /* The picked days of the week: a tone of the scale, not a grey of their own. */
   --week-pill-bg: var(--color-surface-sunk);
   --switch-track-on: light-dark(#8b8e83, #6b6e64);

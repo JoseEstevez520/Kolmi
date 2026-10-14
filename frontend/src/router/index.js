@@ -88,6 +88,12 @@ const routes = [
           meta: { public: true },
         },
         {
+          path: '/dev/live',
+          name: 'dev-live',
+          component: () => import('../views/DevLiveView.vue'),
+          meta: { public: true },
+        },
+        {
           path: '/dev/actions',
           name: 'dev-actions',
           component: () => import('../views/DevActionsView.vue'),
