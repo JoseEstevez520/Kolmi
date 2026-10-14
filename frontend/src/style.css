@@ -39,6 +39,8 @@
   --button-bg: var(--color-bg-inset);
   --button-fg: var(--color-fg);
   --button-bg-hover: var(--color-surface-sunk);
+  /* The picked days of the week: a tone of the scale, not a grey of their own. */
+  --week-pill-bg: var(--color-surface-sunk);
   --switch-track-on: light-dark(#8b8e83, #6b6e64);
   --switch-thumb-on: light-dark(#ffffff, #f5f4f0);
 
