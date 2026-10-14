@@ -118,15 +118,6 @@ function removeBreak(i) {
   save({ scheduleBreaks: breaks.value })
 }
 
-// A subject's marker: one lightness and chroma for all, only the hue changes, taken from its
-// title so it is the same every time and on every screen.
-function subjectColor(title) {
-  if (!title) return undefined
-  let h = 0
-  for (const ch of title.trim().toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) % 360
-  return `oklch(0.7 0.08 ${h})`
-}
-
 // The slots: the grid is the editor, for an admin. A gesture only tells what it would change.
 const timetableEvents = computed(() =>
   events.value.map((e) => ({
@@ -136,7 +127,7 @@ const timetableEvents = computed(() =>
     end: e.end_time,
     title: e.title || (isAdmin.value ? t('admin.schedule.untitled') : ''),
     detail: e.detail || undefined,
-    color: subjectColor(e.title),
+    color: e.color || undefined,
     to: e.to,
   })),
 )
