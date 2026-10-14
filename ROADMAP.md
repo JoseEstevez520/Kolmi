@@ -301,17 +301,15 @@ Same tools, same loop, another trigger.
   doesn't vanish when the class ends: it stays as a record and also goes through the normal daily
   pass. A sketch of the screens is in [docs/live-notes.md](docs/live-notes.md). It grows in
   steps, each useful on its own and tried in a real class before the next:
-  - **Watch, in plain text.** One person writes, the others open the note and see it fill up,
-    read-only. A "share live" switch, off by default, and a label saying whose notes they are and
-    that nobody has checked them. A session per class, tied to the timetable (the one on now is
-    the one that opens). A list screen with what's being written right now on top (who, which
-    class) and the earlier sessions below, reopenable, and a note view that is read-only for a
-    watcher and the editor for the writer; the author can delete a session. As actions
-    (`save_live_note`, `read_live_note`, `list_live_notes`) with their own table, so the web, the
-    chat and the MCP all use them; the web polls every few seconds with `updated_at`, so an
-    unchanged note costs nothing, and SSE from FastAPI (`fetch`-based, shared with the chat's
-    streaming) only if that feels slow. One writer per note, last save wins, a warning if it's open
-    in two tabs.
+  - **Watch, in plain text.** Built. Apply `supabase/migrations/20261014120000_live_notes.sql`
+    before deploying. Any active member may start a session and any may watch one. A session
+    starts private and its author shares it with a switch; only the author writes (last save
+    wins) and only the author or an admin deletes. Table `live_notes`; actions `start_live_note`,
+    `save_live_note`, `end_live_note`, `read_live_note`, `list_live_notes` and `delete_live_note`
+    (the two reads are chat and MCP tools); screens `/live` and `/live/:id`; the web polls every
+    4 s with `since`. The text is Markdown from the notes editor. Still to do from the plan: a
+    warning when it's open in two tabs, SSE only if polling feels slow, and the live dot on the
+    timetable.
   - **Into the pass.** When the session ends, its text becomes an ordinary note (`source =
     'live'`), and the gatekeeper judges it like any other: it can merge it into a page, discard
     the filler. The live note itself stays as it was. The editor is Tiptap, but the document is
@@ -331,8 +329,7 @@ Same tools, same loop, another trigger.
   - **Later, maybe.** Letting a reader turn a passage into a diagram in their own view, without
     touching the writer's note (a call per reader, so a cap per person); writing together, with
     Hocuspocus or Tiptap's provider on Yjs (the Supabase ones, `y-supabase`, are alpha).
-  - Open: its entry in the sidebar, who may watch, whether anyone can be the one writing or the
-    admin picks, and what the pass does with a note whose blocks it can't read (it reads the text).
+  - Open: what the pass does with a note whose blocks it can't read (it reads the text).
 - [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there
   to ask again. Worth building if it becomes one (saved conversations, answers kept as study
   material). The light memory above lasts as long as the browser tab; sessions keep

@@ -32,7 +32,10 @@ those with `tool` (and `mcp`, for the MCP) whose `min_role` the caller has.
 
 Never tools: signing up (`register_profile`), a file's signed link (`download_file`), the chat
 itself (`ask_chat`, which spends the class's model), the settings form (`update_settings`) and
-the caller's own profile (`get_profile`). Never over the MCP: settings, and the timetable's
+the caller's own profile (`get_profile`). The live notes' writes (`start_live_note`, `save_live_note`,
+`end_live_note`, `delete_live_note`) are not tools either: the web saves a note every second or
+two, and a model proposing each save for confirmation makes no sense. Their two reads
+(`list_live_notes`, `read_live_note`) are chat and MCP tools. Never over the MCP: settings, and the timetable's
 writes, whose days are indexes into the settings.
 
 ## Written for a model

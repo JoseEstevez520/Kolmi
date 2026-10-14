@@ -25,6 +25,7 @@ def _names(role: str, surface: str) -> set[str]:
 STUDENT_MCP = {
     "list_nodes", "view_node", "search_pages", "list_schedule_events",
     "create_note", "update_note", "my_notes", "delete_note",
+    "list_live_notes", "read_live_note",
 }
 # Reporting a problem is for the web and the chat; a personal token never reaches it.
 BUGS_MEMBER = {"report_bug", "my_bug_reports"}
@@ -41,10 +42,10 @@ def test_what_a_student_is_offered():
 
 def test_what_an_admin_is_offered():
     every_tool = {a.name for a in get_registry().values() if a.tool}
-    assert len(every_tool) == 35
+    assert len(every_tool) == 37
     assert _names("admin", "chat") == every_tool - CHAT_LEFT_OUT
     assert _names("admin", "mcp") == every_tool - {"get_settings"} - PEOPLE - BUGS_MEMBER - BUGS_ADMIN
-    assert len(_names("admin", "mcp")) == 24
+    assert len(_names("admin", "mcp")) == 26
 
 
 def test_the_mcp_only_offers_tools():

@@ -62,3 +62,16 @@ export function noteStatusLabel(status) {
   const key = `notes.status.${status}`
   return status && te(key) ? t(key) : status
 }
+
+// How long ago, in the largest unit that fits: "now", "2 minutes ago", "3 hours ago", and past
+// a day the date.
+export function formatAgo(value) {
+  const date = toDate(value)
+  if (!date) return ''
+  const seconds = Math.max(0, Math.round((Date.now() - date) / 1000))
+  const rtf = new Intl.RelativeTimeFormat(currentLocale(), { numeric: 'auto' })
+  if (seconds < 45) return rtf.format(0, 'second')
+  if (seconds < 3600) return rtf.format(-Math.round(seconds / 60), 'minute')
+  if (seconds < 86400) return rtf.format(-Math.round(seconds / 3600), 'hour')
+  return formatDate(value)
+}

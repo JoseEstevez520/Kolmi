@@ -9,6 +9,8 @@ import AdminContentView from '../views/AdminContentView.vue'
 import AdminPeopleView from '../views/AdminPeopleView.vue'
 import AdminView from '../views/AdminView.vue'
 import HomeView from '../views/HomeView.vue'
+import LiveNoteView from '../views/LiveNoteView.vue'
+import LiveView from '../views/LiveView.vue'
 import LoginView from '../views/LoginView.vue'
 import NodeView from '../views/NodeView.vue'
 import NotesView from '../views/NotesView.vue'
@@ -52,6 +54,9 @@ const routes = [
       return from.matched.length ? false : { name: 'home' }
     },
   },
+  // Live notes: the list, and one note (its author writes it, the rest watch it).
+  { path: '/live', name: 'live', component: LiveView, meta: { layout: 'app' } },
+  { path: '/live/:id(\\d+)', name: 'live-note', component: LiveNoteView, meta: { layout: 'app' } },
   { path: '/schedule', name: 'schedule', component: ScheduleView, meta: { layout: 'app' } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { layout: 'app' } },
   // The admin panel is three pages under one shell (title and selector): /admin itself is the

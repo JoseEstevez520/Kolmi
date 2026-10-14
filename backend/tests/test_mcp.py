@@ -256,7 +256,7 @@ def test_losing_access_revokes_every_token(client):
 
 # -- the tools each role is offered ------------------------------------------------------------------
 
-STUDENT = {"list_nodes", "view_node", "search_pages", "list_schedule_events", "create_note", "update_note", "my_notes", "delete_note"}
+STUDENT = {"list_nodes", "view_node", "search_pages", "list_schedule_events", "create_note", "update_note", "my_notes", "delete_note", "list_live_notes", "read_live_note"}
 ADMIN_ALSO = {"write_page", "write_page_web", "rebuild_page", "list_versions", "restore_version",
               "list_notes", "view_ai_log", "list_passes", "run_pass",
               "create_node", "update_node", "move_node", "delete_node",

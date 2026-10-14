@@ -64,7 +64,7 @@ chat apps".
 
 | | Tools |
 |---|---|
-| Everyone | `list_nodes`, `view_node` (with `include_web`, a page's web), `search_pages`, `list_schedule_events`, `create_note`, `update_note`, `my_notes`, `delete_note` |
+| Everyone | `list_nodes`, `view_node` (with `include_web`, a page's web), `search_pages`, `list_schedule_events`, `create_note`, `update_note`, `my_notes`, `delete_note`, `list_live_notes`, `read_live_note` |
 | Admins, too | `write_page`, `write_page_web`, `rebuild_page`, `list_versions`, `restore_version`, `list_notes`, `view_ai_log`, `list_passes`, `run_pass`, the tree (`create_node`, `update_node`, `move_node`, `delete_node`) and the timetable (`create_schedule_event`, `update_schedule_event`, `delete_schedule_event`) |
 | Never | the class's people, the settings, the tokens, the account, `ask_chat` (the client brings its own model), files |
 

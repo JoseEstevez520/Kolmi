@@ -174,6 +174,25 @@ export const api = {
   fileBugReport: ({ id }) => request('/bugs/file', { method: 'POST', body: { id } }),
   discardBugReport: ({ id, reason }) => request('/bugs/discard', { method: 'POST', body: { id, reason } }),
 
+  // Live notes: one person writes during a class and the rest watch. `liveNote` with `since`
+  // (the updated_at already held) answers `{unchanged: true}` while nothing changed.
+  liveNotes: () => request('/live'),
+  liveNote: ({ id, since = null }) => {
+    const query = new URLSearchParams({ id })
+    if (since) query.set('since', since)
+    return request(`/live/note?${query}`)
+  },
+  startLiveNote: ({ title = null } = {}) => request('/live/start', { method: 'POST', body: { title } }),
+  saveLiveNote: ({ id, content, shared, title, keepalive }) => {
+    const body = { id }
+    if (content !== undefined) body.content = content
+    if (shared !== undefined) body.shared = shared
+    if (title !== undefined) body.title = title
+    return request('/live/save', { method: 'POST', body, keepalive })
+  },
+  endLiveNote: ({ id }) => request('/live/end', { method: 'POST', body: { id } }),
+  deleteLiveNote: ({ id }) => request('/live/delete', { method: 'POST', body: { id } }),
+
   // Browsing: the whole tree, and one node with its children (and, for a page,
   // its text).
   nodes: () => request('/nodes'),
