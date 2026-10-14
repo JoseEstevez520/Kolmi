@@ -396,7 +396,6 @@ export default {
   node: {
     page: 'Página',
     section: 'Sección',
-    items: '1 elemento | {n} elementos',
     error: 'No se ha podido cargar.',
     pageError: 'No se ha podido cargar esta página',
     sectionError: 'No se ha podido cargar esta sección',

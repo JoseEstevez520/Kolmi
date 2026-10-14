@@ -51,12 +51,6 @@ const title = computed(() => {
 })
 const loadingContent = computed(() => isPage.value && !(id.value in pages.value))
 
-const lead = computed(() => {
-  if (isPage.value) return ''
-  const count = children.value.length
-  return count ? t('node.items', { n: count }, count) : ''
-})
-
 // The renderer draws what it can and reports the rest; a page is still worth showing.
 function onRenderErrors(errors) {
   if (errors.length) console.warn('Page source has errors:', errors)
@@ -111,7 +105,7 @@ watch(id, load)
 
 <template>
   <main class="py-16">
-    <PageLayout :title="title" :lead="lead" :toc="isPage">
+    <PageLayout :title="title" :toc="isPage">
       <template v-if="node && !isPage && children.length > 0" #actions>
         <ActionButton
           variant="ghost"

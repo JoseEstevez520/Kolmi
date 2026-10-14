@@ -399,7 +399,6 @@ export default {
   node: {
     page: 'Page',
     section: 'Section',
-    items: '1 item | {n} items',
     error: 'Could not load this node.',
     pageError: 'Could not load this page',
     sectionError: 'Could not load this section',
