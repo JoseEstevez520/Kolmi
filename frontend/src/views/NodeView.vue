@@ -116,7 +116,7 @@ watch(id, load)
         <ActionButton
           variant="ghost"
           size="icon"
-          icon="arrowDown"
+          icon="download"
           :label="t('export.section')"
           :working-label="t('export.working')"
           :done-label="t('export.done')"
