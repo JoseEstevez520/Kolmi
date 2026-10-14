@@ -9,7 +9,7 @@ import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 // and a footer with a short line (a date) and, when it carries meaning, a Status
 // (its `state`, with `status` as the label in the app's own words). With a `to` it is a router link, with an `href`
 // a plain one; without either it is a plain card. With `clamp`, long text (a
-// note) is kept to a few lines with a fading end and a "Show more", so one note
+// note) is cut to a few lines with an ellipsis and a "Show more", so one note
 // never dominates the list; a linked card opens instead of a "Show more".
 const props = defineProps({
   to: { type: [String, Object], default: null },
@@ -36,7 +36,8 @@ const overflowing = ref(false)
 async function measure() {
   if (!props.clamp || expanded.value) return
   await nextTick()
-  if (body.value) overflowing.value = body.value.scrollHeight > body.value.clientHeight + 1
+  const el = body.value?.$el
+  if (el) overflowing.value = el.scrollHeight > el.clientHeight + 1
 }
 
 onMounted(measure)
@@ -87,17 +88,13 @@ watch(expanded, (open) => {
           </CardTitle>
 
           <template v-if="description">
-            <div
+            <CardDescription
               ref="body"
-              :class="
-                clamp &&
-                !expanded && ['max-h-[7rem] overflow-hidden', overflowing && 'mask-fade-note']
-              "
+              class="leading-relaxed whitespace-pre-line text-fg-secondary"
+              :class="clamp && !expanded && 'line-clamp-4'"
             >
-              <CardDescription class="leading-relaxed whitespace-pre-line text-fg-secondary">
-                {{ description }}
-              </CardDescription>
-            </div>
+              {{ description }}
+            </CardDescription>
             <Button
               v-if="clamp && overflowing && !linked"
               variant="link"
