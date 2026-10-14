@@ -1,14 +1,14 @@
 import { onBeforeUnmount, ref, watch } from 'vue'
 
-// The controls around a note, out of the way while it is written. While `active` (zen mode), they
-// fade out as soon as you type or the pointer rests, and come back with the next pointer move, a
-// touch or the Tab key. Writing in the controls themselves (a search box) doesn't hide them, nor
+// The controls around a note, out of the way while it is written. They fade out as soon as you type
+// (always) or, while `idle` is on (zen mode), also when the pointer rests, and come back with the
+// next pointer move, a touch or the Tab key. Writing in the controls themselves (a search box) doesn't hide them, nor
 // does resting the pointer on them, nor does focus inside them: a keyboard user is never left with
 // controls they can't see. The same pattern as Ulysses' minimal mode, Novlr and FocusWriter.
 const IDLE_MS = 2500
 const MOVE_PX = 4
 
-export function useIdleChrome(active, chrome) {
+export function useIdleChrome(active, chrome, idle = ref(false)) {
   const hidden = ref(false)
   let timer = null
   let last = null
@@ -23,7 +23,7 @@ export function useIdleChrome(active, chrome) {
 
   function arm() {
     clearTimeout(timer)
-    if (!active.value) return
+    if (!active.value || !idle.value) return
     timer = setTimeout(() => {
       if (active.value && !busy()) hidden.value = true
       else arm()
@@ -65,6 +65,9 @@ export function useIdleChrome(active, chrome) {
     window.removeEventListener('keydown', onKey)
     window.removeEventListener('input', onInput, true)
   })
+
+  // Leaving zen mode stops the resting timer, and brings the controls back.
+  watch(idle, (on) => (on ? show() : (clearTimeout(timer), (hidden.value = false))))
 
   watch(active, (on) => {
     if (on) show()

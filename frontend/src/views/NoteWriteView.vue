@@ -269,9 +269,10 @@ function toText() {
   editor.value?.focus()
 }
 
-// In zen mode the bar above the note fades while writing and comes back with the pointer.
+// The bar above the note fades while you write (also when the pointer rests, in zen mode) and
+// comes back with the pointer.
 const bar = ref(null)
-const { hidden: barHidden } = useIdleChrome(zen, bar)
+const { hidden: barHidden } = useIdleChrome(ref(true), bar, zen)
 
 onMounted(load)
 // The tree is usually loaded already, for the sidebar; if it fails, the hint just has no options.
