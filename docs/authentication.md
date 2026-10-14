@@ -88,10 +88,16 @@ Every route receives `Authorization: Bearer <Supabase access token>` and validat
 
 | Route | What it does |
 |---|---|
-| `GET /profile` | the user's profile, or 404 if it doesn't exist |
+| `GET /profile` | the user's profile (with `avatar_url`, null without a photo), or 404 if it doesn't exist |
+| `POST /profile/avatar`, `DELETE /profile/avatar` | set or remove your own photo. The image is the request body (JPEG, PNG or WebP by its first bytes, up to 512 KB); the web crops it to 256x256 first. Active members, in the app only |
 | `POST /register` | `{code, name}`: validates the code against `CLASS_CODE` and creates the profile. 403 if the code is wrong |
 | `POST /notes` | `{content}`: requires an active profile and saves the note as `pending` |
 | `GET /notes/mine` | the user's own notes |
+
+A profile photo lives in the public `avatars` bucket under a random name (`profiles.avatar_path`).
+The link is only handed out to signed-in members (the profile and the followers of a live note),
+never on pages, notes or the AI's tools. The tradeoff: anyone who has the link can open it, and it
+doesn't expire. Replacing or removing the photo, or deleting the account, deletes the object.
 
 Environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `CLASS_CODE`. The service key
 never leaves the backend.

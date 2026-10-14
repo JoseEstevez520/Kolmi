@@ -8,6 +8,7 @@ from .api import register_routes
 from .chat_api import router as chat_router
 from .config import get_settings
 from .export_api import router as export_router
+from .avatar_api import router as avatar_router
 from .files_api import router as files_router
 from .mcp_server import route as mcp_route
 from .mcp_server import running as mcp_running
@@ -32,6 +33,7 @@ app.add_middleware(
 
 register_routes(app)
 app.include_router(chat_router)
+app.include_router(avatar_router)
 app.include_router(files_router)
 app.include_router(export_router)
 # Anyone's own AI, with a personal token: see app/mcp_server.py and docs/mcp.md.

@@ -10,6 +10,8 @@ All of it lives in the instance's Supabase project, in the region its owner pick
 
 - **Accounts:** the name and the email someone signs up with, their role (student or admin) and
   their status (active, pending while an admin lets them in, or blocked).
+- **Profile photo:** optional, in a public Storage bucket under a random name that only signed-in
+  members are shown. It is deleted when replaced, removed or the account goes.
 - **Notes:** what each student writes and the files they attach. Files go to a private Storage
   bucket and are served through short-lived links.
 - **The shared pages:** the pages the AI writes from the notes, their earlier versions, and the

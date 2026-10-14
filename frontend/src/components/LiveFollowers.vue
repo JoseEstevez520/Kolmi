@@ -8,6 +8,6 @@ defineProps({ followers: { type: Array, default: () => [] } })
 
 <template>
   <AvatarGroup v-if="followers.length" size="sm" initials :max="5">
-    <Avatar v-for="person in followers" :key="person.id" :name="person.name" />
+    <Avatar v-for="person in followers" :key="person.id" :name="person.name" :src="person.avatar_url || undefined" />
   </AvatarGroup>
 </template>

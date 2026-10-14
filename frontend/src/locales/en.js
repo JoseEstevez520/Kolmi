@@ -68,6 +68,9 @@ export default {
     name: 'Your name',
     nameHint: 'The name your notes are shown under.',
     nameSaved: 'Name saved.',
+    avatar: 'Change your photo',
+    removeAvatar: 'Remove your photo',
+    avatarFailed: "That photo couldn't be used. Try a JPEG, PNG or WebP image.",
     deleteAccount: 'Delete my account',
     deleteHint:
       'Your notes and your chat go with it. What the hive already wrote into the pages stays.',

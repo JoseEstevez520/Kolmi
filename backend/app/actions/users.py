@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from ..auth import Context, forget_profile, on_access_lost, status_of
+from ..avatars import BUCKET as AVATARS, with_avatar
 from ..files import BUCKET
 from .registry import action
 
@@ -98,6 +99,13 @@ def _delete_account(client, user_id: str) -> None:
             client.storage.from_(BUCKET).remove(paths[start : start + REMOVE_BATCH])
     except Exception as exc:
         raise HTTPException(502, "Could not remove their notes' files, so nothing was deleted; try again") from exc
+
+    try:  # their photo too; never a reason to keep the account
+        rows = client.table("profiles").select("avatar_path").eq("id", user_id).limit(1).execute().data
+        if rows and rows[0].get("avatar_path"):
+            client.storage.from_(AVATARS).remove([rows[0]["avatar_path"]])
+    except Exception:
+        log.warning("Could not remove an avatar", exc_info=True)
 
     on_access_lost(user_id, client)
     try:
@@ -199,7 +207,7 @@ def update_my_name(ctx: Context, params: NameParams):
     forget_profile(ctx.user_id)
     if not rows:
         raise HTTPException(404, "Profile not found")
-    return rows[0]
+    return with_avatar(rows[0])
 
 
 @action(

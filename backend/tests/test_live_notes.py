@@ -295,7 +295,7 @@ def test_read_with_the_same_since_is_a_tiny_answer(store):
 
     out = run("read_live_note", _ctx(store, "luis"), {"id": 1, "since": row["updated_at"]})
 
-    assert out == {"id": 1, "unchanged": True, "updated_at": row["updated_at"], "live": True, "ended": False, "followers": [{"id": "luis", "name": "Luis"}]}
+    assert out == {"id": 1, "unchanged": True, "updated_at": row["updated_at"], "live": True, "ended": False, "followers": [{"id": "luis", "name": "Luis", "avatar_url": None}]}
 
 
 def test_read_with_an_older_since_returns_the_text(store):
@@ -463,9 +463,9 @@ def test_a_reader_shows_as_follower_and_the_author_does_not(store, monkeypatch):
     _seed(store)
     assert _read(store, "ana")["followers"] == []
     out = _read(store, "luis")
-    assert out["followers"] == [{"id": "luis", "name": "Luis"}]
+    assert out["followers"] == [{"id": "luis", "name": "Luis", "avatar_url": None}]
     # The author's own read learns who is here, and is not counted among them.
-    assert _read(store, "ana")["followers"] == [{"id": "luis", "name": "Luis"}]
+    assert _read(store, "ana")["followers"] == [{"id": "luis", "name": "Luis", "avatar_url": None}]
 
 
 def test_followers_come_with_the_unchanged_answer(store):

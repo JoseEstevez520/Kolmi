@@ -3,6 +3,7 @@ from postgrest.exceptions import APIError
 from pydantic import BaseModel
 
 from ..auth import Context
+from ..avatars import with_avatar
 from ..config import get_settings
 from .registry import action
 
@@ -23,7 +24,7 @@ class RegisterProfileParams(BaseModel):
 def get_profile(ctx: Context, params: None):
     if not ctx.profile:
         raise HTTPException(404, "Profile not found")
-    return ctx.profile
+    return with_avatar(ctx.profile)
 
 
 @action(

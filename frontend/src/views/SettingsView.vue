@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { X } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import {
   Avatar,
@@ -21,6 +22,7 @@ import ConnectAI from '../components/ConnectAI.vue'
 import FlagIcon from '../components/FlagIcon.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
+import { ACCEPT, squareJpeg } from '../lib/avatar.js'
 import { profile, signOut } from '../lib/auth.js'
 import { LOCALES, setLocale } from '../lib/i18n.js'
 import { motionOn, setMotionOn } from '../lib/motion.js'
@@ -40,6 +42,41 @@ const saving = ref(false)
 const saved = ref(false)
 const nameError = ref('')
 const deleteError = ref('')
+
+// The photo: the avatar is the control. The picked image is squared and shrunk in the browser
+// before it goes up; any failure is one short line under the row.
+const picker = ref(null)
+const photoBusy = ref(false)
+const photoError = ref('')
+
+async function changePhoto(event) {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file) return
+  photoBusy.value = true
+  photoError.value = ''
+  try {
+    const { avatar_url } = await api.setAvatar(await squareJpeg(file))
+    profile.value = { ...profile.value, avatar_url }
+  } catch (e) {
+    photoError.value = e.status ? e.message : t('settings.avatarFailed')
+  } finally {
+    photoBusy.value = false
+  }
+}
+
+async function removePhoto() {
+  photoBusy.value = true
+  photoError.value = ''
+  try {
+    await api.removeAvatar()
+    profile.value = { ...profile.value, avatar_url: null }
+  } catch (e) {
+    photoError.value = e.message || t('common.somethingWrongLong')
+  } finally {
+    photoBusy.value = false
+  }
+}
 
 async function saveName() {
   const next = name.value.trim()
@@ -130,7 +167,28 @@ function showTourAgain() {
             <p class="text-label text-fg-secondary">{{ t('settings.nameHint') }}</p>
           </div>
           <div class="flex w-full items-center gap-2 sm:w-80">
-            <Avatar :name="profile?.name" initials class="shrink-0" />
+            <button
+              type="button"
+              class="shrink-0 rounded-full transition-opacity disabled:opacity-60"
+              :aria-label="t('settings.avatar')"
+              :title="t('settings.avatar')"
+              :disabled="photoBusy"
+              @click="picker.click()"
+            >
+              <Avatar :name="profile?.name" :src="profile?.avatar_url || undefined" initials />
+            </button>
+            <input ref="picker" type="file" :accept="ACCEPT" class="hidden" @change="changePhoto" />
+            <Button
+              v-if="profile?.avatar_url"
+              type="button"
+              variant="ghost"
+              size="icon"
+              :icon="X"
+              :aria-label="t('settings.removeAvatar')"
+              :title="t('settings.removeAvatar')"
+              :disabled="photoBusy"
+              @click="removePhoto"
+            />
             <Input
               v-model="name"
               class="min-w-0 flex-1"
@@ -150,6 +208,7 @@ function showTourAgain() {
           </div>
           <StatusText v-if="saved" class="w-full" :text="t('settings.nameSaved')" />
           <StatusText v-if="nameError" class="w-full" :text="nameError" error />
+          <StatusText v-if="photoError" class="w-full" :text="photoError" error />
         </form>
 
         <Separator />

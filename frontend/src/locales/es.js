@@ -65,6 +65,9 @@ export default {
     name: 'Tu nombre',
     nameHint: 'El nombre con el que se muestran tus apuntes.',
     nameSaved: 'Nombre guardado.',
+    avatar: 'Cambiar tu foto',
+    removeAvatar: 'Quitar tu foto',
+    avatarFailed: 'No se pudo usar esa foto. Prueba con una imagen JPEG, PNG o WebP.',
     deleteAccount: 'Borrar mi cuenta',
     deleteHint:
       'Se van tus apuntes y tu chat. Lo que la colmena ya escribió en las páginas se queda.',

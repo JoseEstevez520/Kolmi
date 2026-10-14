@@ -119,8 +119,32 @@ function upload({ file, noteId = null, nodeId = null, onProgress }) {
   })
 }
 
+// The profile photo goes up as the request's body, like a file; removing it has none.
+async function avatar(method, blob) {
+  const token = accessToken()
+  const headers = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+  if (blob) headers['Content-Type'] = blob.type
+  let response
+  try {
+    response = await fetch(`${BASE_URL}/profile/avatar`, { method, headers, body: blob })
+  } catch {
+    throw new ApiError(0, t('api.unreachable'))
+  }
+  let data = null
+  try {
+    data = await response.json()
+  } catch {
+    // Not JSON: the status says enough.
+  }
+  if (!response.ok) throw new ApiError(response.status, (data && data.detail) || t('api.failed'))
+  return data
+}
+
 export const api = {
   getProfile: () => request('/profile'),
+  setAvatar: (blob) => avatar('POST', blob),
+  removeAvatar: () => avatar('DELETE'),
 
   register: ({ code, name }) => request('/register', { method: 'POST', body: { code, name } }),
 

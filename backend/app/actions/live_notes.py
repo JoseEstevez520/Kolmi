@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
 from ..auth import Context
+from ..avatars import avatar_url
 from ..class_settings import read_settings
 from ..passes.schedule import TIMEZONE
 from .registry import action
@@ -262,13 +263,17 @@ def _follow(ctx: Context, row: dict[str, Any]) -> list[str]:
 
 
 def _followers(ctx: Context, ids: list[str]) -> dict[str, Any]:
-    """{followers: [{id, name}], followers_count}: only active members, at most MAX_FOLLOWERS
+    """{followers: [{id, name, avatar_url}], followers_count}: only active members, at most MAX_FOLLOWERS
     of them named. followers_count is the whole number, and is only sent when it is larger."""
     if not ids:
         return {"followers": []}
-    rows = ctx.client.table("profiles").select("id, name").in_("id", ids).eq("status", "active").execute().data
-    by_id = {r["id"]: r.get("name") for r in rows}
-    people = [{"id": i, "name": by_id[i]} for i in ids if i in by_id]
+    rows = ctx.client.table("profiles").select("id, name, avatar_path").in_("id", ids).eq("status", "active").execute().data
+    by_id = {r["id"]: r for r in rows}
+    people = [
+        {"id": i, "name": by_id[i].get("name"), "avatar_url": avatar_url(by_id[i].get("avatar_path"))}
+        for i in ids
+        if i in by_id
+    ]
     out: dict[str, Any] = {"followers": people[:MAX_FOLLOWERS]}
     if len(people) > MAX_FOLLOWERS:
         out["followers_count"] = len(people)

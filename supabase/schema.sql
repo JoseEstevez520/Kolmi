@@ -10,6 +10,8 @@ create table if not exists profiles (
   -- What they may do, apart from their role: active, pending (waiting for an admin) or blocked.
   -- Also in migrations/20261007120000_users.sql.
   status text not null default 'active' check (status in ('active', 'pending', 'blocked')),
+  -- The profile photo's key in the public `avatars` bucket. Also in migrations/20261015120000_avatars.sql.
+  avatar_path text,
   created_at timestamptz not null default now()
 );
 
@@ -427,4 +429,8 @@ revoke all on function sign_up_profile(uuid, text) from public, anon, authentica
 
 -- Private bucket: the backend uploads, and hands out short-lived signed links to download.
 insert into storage.buckets (id, name, public) values ('files', 'files', false)
+on conflict (id) do nothing;
+
+-- Public bucket for profile photos: the names are random, and only members are handed the link.
+insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true)
 on conflict (id) do nothing;
