@@ -1,9 +1,10 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Empty, StatusText } from 'elastic-ui'
+import { Button, Callout, Empty } from 'elastic-ui'
 import { NotebookPen, Plus, Radio } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
+import CardGridSkeleton from '../components/CardGridSkeleton.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
@@ -53,7 +54,7 @@ onMounted(refresh)
 
       <h2 id="my-notes" class="mt-10">{{ t('notes.mine') }}</h2>
 
-      <StatusText v-if="loading" :delay="300" :text="t('notes.loading')" working />
+      <CardGridSkeleton v-if="loading" class="mt-4" />
       <Callout v-else-if="error" type="caution" :title="t('notes.error')">
         {{ error.trim() || t('notes.errorLong') }}
       </Callout>

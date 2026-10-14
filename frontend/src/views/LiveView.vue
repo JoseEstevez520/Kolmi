@@ -2,9 +2,10 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Button, Callout, Input, StatusText } from 'elastic-ui'
+import { Button, Callout, Input } from 'elastic-ui'
 import { Check, Pencil, X } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
+import CardGridSkeleton from '../components/CardGridSkeleton.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { api } from '../lib/api.js'
@@ -85,7 +86,7 @@ async function start() {
         <Callout v-if="startError" type="caution" class="mt-4">{{ startError }}</Callout>
       </div>
 
-      <StatusText v-if="loading" :delay="300" :text="t('common.loading')" working />
+      <CardGridSkeleton v-if="loading" :count="2" class="mt-10" />
       <Callout v-else-if="error" type="caution" :title="t('live.error')">{{ error.trim() || t('live.error') }}</Callout>
       <!-- What is being written now comes first; the state on each card says the rest. -->
       <CardGrid v-else-if="notes.length" class="mt-10">
