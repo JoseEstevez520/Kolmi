@@ -8,16 +8,13 @@ import {
   FileText,
   Folder,
   Home,
-  Radio,
   LogOut,
-  MessageCircle,
   NotebookPen,
   ScrollText,
   Settings,
   SlidersHorizontal,
 } from '@lucide/vue'
 import { api } from '../lib/api.js'
-import { chatEnabled } from '../lib/chat.js'
 import { profile, signOut } from '../lib/auth.js'
 import { loadNodes, nodes, prefetchNode, trailTo } from '../lib/content.js'
 import { libraryLabels } from '../lib/i18n.js'
@@ -40,7 +37,8 @@ const active = computed(() => {
   }
   // The admin's three pages keep the Admin tab lit (the AI log has its own).
   if (route.path.startsWith('/admin/') && route.path !== '/admin/log') return '/admin'
-  if (route.path.startsWith('/live/')) return '/live'
+  // Live notes are notes: they keep the Notes tab lit.
+  if (route.path.startsWith('/live')) return '/notes'
   return route.path
 })
 
@@ -81,8 +79,6 @@ async function handleSignOut() {
     <NavTree :model-value="active">
       <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
       <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen" data-tour="nav-notes">{{ t('sidebar.notes') }}</NavTreeItem>
-      <NavTreeItem v-if="chatEnabled" value="/chat" to="/chat" :icon="MessageCircle">{{ t('sidebar.chat') }}</NavTreeItem>
-      <NavTreeItem value="/live" to="/live" :icon="Radio">{{ t('sidebar.live') }}</NavTreeItem>
       <NavTreeItem v-if="showSchedule" value="/schedule" to="/schedule" :icon="CalendarDays">
         {{ t('sidebar.schedule') }}
       </NavTreeItem>

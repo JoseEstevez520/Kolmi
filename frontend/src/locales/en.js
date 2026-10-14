@@ -48,9 +48,7 @@ export default {
   sidebar: {
     home: 'Home',
     notes: 'Notes',
-    chat: 'Chat',
     schedule: 'Timetable',
-    live: 'Live',
     admin: 'Admin',
     aiLog: 'AI log',
     account: 'Account',

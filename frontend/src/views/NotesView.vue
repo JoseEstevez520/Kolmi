@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, Callout, Empty, StatusText } from 'elastic-ui'
-import { NotebookPen, Plus } from '@lucide/vue'
+import { NotebookPen, Plus, Radio } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
@@ -56,7 +56,10 @@ onMounted(load)
   <main class="py-16">
     <PageLayout :title="title" :lead="t('notes.lead')">
       <div class="not-prose">
-        <Button :icon="Plus" to="/notes/new" data-tour="new-note">{{ t('notes.new') }}</Button>
+        <div class="flex items-center gap-2">
+          <Button :icon="Plus" to="/notes/new" data-tour="new-note">{{ t('notes.new') }}</Button>
+          <Button variant="ghost" size="icon" :icon="Radio" to="/live" :aria-label="t('live.title')" :title="t('live.title')" />
+        </div>
       </div>
 
       <h2 id="my-notes" class="mt-10">{{ t('notes.mine') }}</h2>

@@ -56,7 +56,8 @@ note, and the suggestion chips will appear under the paragraphs.
 
 ## Getting there
 
-A "Live" entry in the sidebar. A live dot on the timetable when a class has a note being written
+A quiet icon beside "New note" on the Notes screen (live notes are notes, so no sidebar entry of
+their own). A live dot on the timetable when a class has a note being written
 is still to do.
 
 ## Parts
