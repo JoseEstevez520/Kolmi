@@ -310,6 +310,23 @@ Same tools, same loop, another trigger.
   to turn the export off. And fix at the source what the export has to patch: the notes agent
   copies links written for the notes' original files (60 of them across 24 pages in the test, 19
   matching another page by title), though it is told to link as `/node/<id>`.
+- [ ] **One source of truth for the page format** — the page format lives twice: the frontend
+  uses the official OpenUI packages, and the backend carries its own Python parser
+  (`app/agents/openui/`, about 560 lines) plus a prompt and schemas generated from the frontend.
+  They can drift: a page can pass one and fail the other, and the backend can't compile or run a
+  piece, so a broken one is only seen when someone opens the page. The fix is not a patch on the
+  Python side but a small Node service, `page-kit`, that owns the catalogue, the parser, the
+  validation and a piece check (Vue's own compiler on a simulated DOM, no browser). The API calls
+  it over HTTP and drops its parser, the generated files and `npm run page-prompt`. The rest of
+  the backend stays Python. Cost: one more container on a small server. Start with a prototype
+  that measures its memory and how long a piece takes to check, and compare it with what we have
+  before deciding.
+- [ ] **Pieces measured, not guessed** — a development-only bench in `backend/evals/` (like the
+  MCP one): a list of briefs, the web model writes each piece, and a headless browser reports
+  whether it runs, shows something before it is touched, fits 340 px and reads in dark. It
+  compares prompt versions and models before a change goes live, and stays out of the image. In
+  the app, a piece the frame can't run is written to the pass log, so a broken one shows up in
+  `/admin/log`.
 
 ## Later
 
