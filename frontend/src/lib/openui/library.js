@@ -307,7 +307,7 @@ export const renderers = {
   // of the library's parts (a Vue component, from <template>) runs on the sandbox runtime; a page
   // written before it carries a whole HTML document, in that slot or, older, in the brief's.
   Artifact: renderer(({ title = '', brief = '', height, piece }) => {
-    const common = { label: title, height: Number(height) > 0 ? Number(height) : undefined }
+    const common = { label: title, height: Number(height) > 0 ? Number(height) : undefined, bare: true }
     if (/^\s*<template[\s>]/i.test(piece ?? '')) return h(SandboxFrame, { ...common, piece, runtime: sandboxRuntime })
     const html = piece || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '')
     return html ? h(SandboxFrame, { ...common, html }) : null
