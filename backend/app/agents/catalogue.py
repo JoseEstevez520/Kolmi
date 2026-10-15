@@ -48,6 +48,6 @@ def catalogue_guide(language: str) -> str:
     for line in body.splitlines():
         for name, text in _BRIEFS.items():
             if line.startswith(f"{name}("):
-                line = _BRIEF.sub(text, line).replace("At most one per page.", "Usually one per page; more only when the page needs them.")
+                line = _BRIEF.sub(text, line)
         lines.append(line)
     return _HEADER.replace("{language}", language) + "\n".join(lines).rstrip() + _TAIL + drawing_guide(language)

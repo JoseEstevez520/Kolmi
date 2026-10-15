@@ -79,7 +79,7 @@ const DESCRIPTIONS = {
   Diagram:
     'A drawing neither the Figure pieces nor a Chart can make: a curve that only shows a shape, a timeline, a cycle. A chart of values is a Chart, not a Diagram. Write a brief, not the drawing: a drawing model makes the SVG from it. Leave `svg` out.',
   Artifact:
-    'A small interactive piece, only when touching it is the point (compare two behaviours live, a simulation, a calculator). At most one per page. Write a brief, not the code: a model builds it from the library\'s parts (buttons, sliders, switches, tinted chips, charts). Leave `piece` out.',
+    'An interactive piece, for an idea that is understood better by touching or seeing it live than by reading it (compare behaviours, a simulation, a calculator, one thing shown in several forms, a sheet that changes all its parts at once). Write a brief, not the code: a model builds it, from the library\'s parts or with its own. Leave `piece` out.',
 }
 
 const color = z

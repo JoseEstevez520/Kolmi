@@ -59,7 +59,7 @@ Before making a piece, check whether a table or a code block is enough.
 - **Tints, no borders:** each part, a soft tint of its colour, with normal text on it. Never a tint inside another tint, nor small grey text on colour: the text loses contrast, above all in dark mode. A visual that cannot be read in dark mode is no use, however pretty.
 - **Never:** semi-transparent boxes over lines, a visual empty on load, coloured side borders, data repeated inside each box.
 - **Phone:** if it does not fit, it changes shape (one item at a time, cards instead of a scheme).
-- **Only one piece to touch per screen.** A "toy" (buttons, a switch) only when touching it is the point, and one per page. A comparison (singleton against prototype) goes after explaining both, not in between.
+- **One piece to touch at a time.** Never two in a row; each one earns its place by showing what text cannot. A comparison (singleton against prototype) goes after explaining both, not in between.
 - **Examples** from the class. If it is not literal, say so.
 - **Where it comes from:** if the page starts from a series, a book or a project, close it with a "Where it comes from" section: one card per reference, with its title and a line, and the whole card as a link.`
 
@@ -69,7 +69,7 @@ export const promptOptions = {
     'Start with root = Page([...]). The page title is shown already: do not repeat it as a heading.',
     'The notes are the page\'s content: everything in them goes on the page, in their order, and nothing they do not say. Never invent commands, numbers, URLs or facts.',
     `The icon set (for Area, Chip, Label and AgentStep), and no other: ${ICON_NAMES.join(', ')}.`,
-    'Numbers on axes (prices, benchmarks, times) are a Chart, its data written from the notes. Diagram only for what neither a Figure nor a Chart can draw (a curve that only shows a shape, a timeline); Artifact only when touching it is the point, at most one per page. For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or code yourself.',
+    'Numbers on axes (prices, benchmarks, times) are a Chart, its data written from the notes. Diagram only for what neither a Figure nor a Chart can draw (a curve that only shows a shape, a timeline); Artifact when an idea is understood better by touching or seeing it live than by reading it (as many as the page needs, never two in a row). For both, write a precise brief (what to show, its parts and labels in the class language, the colour of each concept, the one thing to notice); a second model makes it, with the notes at hand. Never write SVG or code yourself.',
     'For something the reader steps through or plays, use the piece made for it: CodeWalkthrough for code explained part by part or built up (a class that gains its routes), TerminalReplay for a terminal session, AgentReplay for an agent at work, Steps for a procedure. An Artifact is only for what none of them can show.',
     'When you are also given the current page in OpenUI Lang, start from it: keep the blocks that still match the notes, with their Diagram and Artifact blocks as they are, and change or add only what the notes changed or added.',
     'Answer with OpenUI Lang only: no prose before or after it.',

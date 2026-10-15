@@ -405,123 +405,6 @@ _PARTS = (
     "DiagramArrow, Chart"
 )
 
-# Three pieces in the style wanted, on topics of their own: a step button moving files between
-# areas, a Slider driving two numbers, a toggle comparing two behaviours. Each shows something
-# before it is touched.
-_PIECE_STEPS = """\
-<template>
-  <div class="flex flex-col gap-4">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <Button :disabled="at === steps.length - 1" @click="at++">Run {{ next }}</Button>
-      <Button variant="ghost" size="sm" :disabled="!at" @click="at = 0">Start over</Button>
-    </div>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <div v-for="area in areas" :key="area.name" class="flex flex-col gap-2">
-        <span class="text-label text-fg">{{ area.name }}</span>
-        <div class="flex flex-wrap gap-2">
-          <DiagramChip v-for="file in step[area.key]" :key="file" :color="area.color">{{ file }}</DiagramChip>
-          <span v-if="!step[area.key].length" class="text-meta text-fg-muted">nothing here</span>
-        </div>
-      </div>
-    </div>
-    <TextMorph class="text-ui text-fg-secondary" :text="step.said" />
-  </div>
-</template>
-
-<script>
-import { computed, ref } from 'vue'
-
-export default {
-  setup() {
-    const areas = [
-      { key: 'work', name: 'Working tree', color: '#ca8a04' },
-      { key: 'staged', name: 'Staging area', color: '#0891b2' },
-      { key: 'repo', name: 'Repository', color: '#2563eb' },
-    ]
-    const steps = [
-      { run: '', work: ['app.js', 'notes.txt'], staged: ['style.css'], repo: ['index.html'], said: 'style.css is staged; app.js and notes.txt are only edited.' },
-      { run: 'git add app.js', work: ['notes.txt'], staged: ['style.css', 'app.js'], repo: ['index.html'], said: 'app.js joins style.css in the staging area.' },
-      { run: 'git commit', work: ['notes.txt'], staged: [], repo: ['index.html', 'style.css', 'app.js'], said: 'The commit takes what was staged. notes.txt was never added, so it stays out.' },
-    ]
-    const at = ref(0)
-    const step = computed(() => steps[at.value])
-    const next = computed(() => steps[at.value + 1]?.run ?? 'git commit')
-    return { areas, steps, at, step, next }
-  },
-}
-</script>"""
-
-_PIECE_SLIDER = """\
-<template>
-  <div class="flex flex-col gap-5">
-    <Field label="Elements in the sorted list">
-      <Slider v-model="size" :min="10" :max="1000" :step="10" />
-    </Field>
-    <StatGroup>
-      <Stat label="Linear search" :value="size" />
-      <Stat label="Binary search" :value="binary" />
-    </StatGroup>
-    <p class="m-0 text-ui text-fg-secondary">
-      Comparisons at worst: binary search checks <TextMorph class="font-semibold text-fg" :text="ratio" /> fewer elements.
-    </p>
-  </div>
-</template>
-
-<script>
-import { computed, ref } from 'vue'
-
-export default {
-  setup() {
-    const size = ref(100)
-    const binary = computed(() => Math.ceil(Math.log2(size.value + 1)))
-    const ratio = computed(() => Math.round(size.value / binary.value) + ' times')
-    return { size, binary, ratio }
-  },
-}
-</script>"""
-
-_PIECE_TOGGLE = """\
-<template>
-  <div class="flex flex-col gap-4">
-    <ToggleGroup v-model="mode" type="single" aria-label="Cache">
-      <ToggleGroupItem value="off">Without cache</ToggleGroupItem>
-      <ToggleGroupItem value="on">With cache</ToggleGroupItem>
-    </ToggleGroup>
-    <div class="flex flex-col gap-2">
-      <span class="text-label text-fg">Five requests for /products</span>
-      <div class="flex flex-wrap gap-2">
-        <DiagramChip v-for="request in requests" :key="request.n" :color="request.color" :note="request.ms + ' ms'">
-          #{{ request.n }} {{ request.from }}
-        </DiagramChip>
-      </div>
-    </div>
-    <p class="m-0 text-ui text-fg-secondary">
-      Total: <TextMorph class="font-semibold text-fg tabular-nums" :text="total + ' ms'" />,
-      <TextMorph :text="queries" />
-    </p>
-  </div>
-</template>
-
-<script>
-import { computed, ref } from 'vue'
-
-export default {
-  setup() {
-    const mode = ref('off')
-    const requests = computed(() =>
-      [1, 2, 3, 4, 5].map((n) =>
-        mode.value === 'on' && n > 1
-          ? { n, from: 'cache', ms: 4, color: '#7c3aed' }
-          : { n, from: 'database', ms: 120, color: '#0891b2' },
-      ),
-    )
-    const total = computed(() => requests.value.reduce((sum, r) => sum + r.ms, 0))
-    const queries = computed(() => (mode.value === 'on' ? 'one database query' : 'five database queries'))
-    return { mode, requests, total, queries }
-  },
-}
-</script>"""
-
 # What a piece may and may not do. One text for the web agent and for an AI writing a piece over
 # the MCP (the catalogue resource), so the two cannot drift apart.
 PIECE_RULES = f"""\
@@ -538,11 +421,17 @@ from 'vue', with a template), your own classes in <style>.
 - The frame is bare: no ground, no padding, no rounded corners. The piece sits straight on the \
 page, so give it the room and the surface it needs (a card with --color-surface-raised and a \
 radius, or nothing at all) and let it breathe on its own.
-- Plain elements (button, input, code) already look like the app. Utility classes available \
-without writing CSS: flex, grid, gap-*, p-*, m-*, items-*, justify-*, grid-cols-*, \
+- Plain elements (button, input) come unstyled: use the library's Button, Input and the like, or \
+style them yourself. Utility classes available without writing CSS: flex, grid, gap-*, p-*, m-*, items-*, justify-*, grid-cols-*, \
 sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, text-fg-secondary, text-fg-muted, \
 font-semibold, tabular-nums.
-- It fits any width from 340 to 720px and reads in light and dark."""
+- It fits any width from 340 to 720px and reads in light and dark.
+- It shows something before it is touched, and touching it changes something the reader can see. \
+Patterns that work: a calculator with a live verdict; a selector that changes a view while the \
+rest stays put; one thing shown in several forms to switch between; a sheet whose parts all \
+change together (with a component of your own); a step button that moves things from one place \
+to another; a specimen shown for real instead of described. Fit the pattern to the idea, not \
+the idea to the pattern."""
 
 _PIECE = f"""\
 You build one small interactive piece for a page of Kolmi, a class notebook, as a Vue component. \
@@ -553,14 +442,6 @@ comes from them. The page around it explains; the piece lets the reader touch on
 
 - Answer with the component only, no prose and no code fence.
 {PIECE_RULES}
-
-Three examples, each on its own topic (yours is on the brief's, in {{language}}):
-
-{_PIECE_STEPS}
-
-{_PIECE_SLIDER}
-
-{_PIECE_TOGGLE}
 """
 
 
@@ -575,8 +456,6 @@ def drawing_guide(language: str = FALLBACK_LANGUAGE) -> str:
     drawing model gets."""
     figure = _SVG[_SVG.index("- Answer with the <svg>") :]
     text = (
-        "### A Diagram's svg\n\n" + figure + "\n### An Artifact's piece\n\n" + PIECE_RULES
-        + "\n\nThree examples, each on its own topic:\n\n"
-        + f"{_PIECE_STEPS}\n\n{_PIECE_SLIDER}\n\n{_PIECE_TOGGLE}\n"
+        "### A Diagram's svg\n\n" + figure + "\n### An Artifact's piece\n\n" + PIECE_RULES + "\n"
     )
     return _fill(text, language)
