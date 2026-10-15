@@ -103,6 +103,7 @@ class OpenAILLM:
             ],
             response_format={"type": "json_object"},
             temperature=0.2,
+            extra_body=self._no_thinking,
         )
         content = response.choices[0].message.content or "{}"
         return json.loads(content)
@@ -258,6 +259,7 @@ class OpenAILLM:
                 {"role": "user", "content": user},
             ],
             temperature=0.2,
+            extra_body=self._no_thinking,
         )
         return response.choices[0].message.content or ""
 
@@ -269,6 +271,7 @@ def get_llm() -> LLM:
         api_key=settings.llm_api_key,
         base_url=settings.llm_base_url,
         model=settings.llm_model,
+        thinking=settings.llm_thinking,
     )
 
 

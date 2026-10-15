@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # most of a 10 to 25 second answer was reasoning, and the chat's answers are short.
     chat_thinking: bool = False
 
+    # Whether the main model reasons before it writes a page, a note or a verdict. On by default,
+    # as it always was; off, DeepSeek answers without the reasoning it bills as output.
+    llm_thinking: bool = True
+
     # The web model, optional: it writes the pages as OpenUI Lang, and when it fails, or isn't
     # set, the model above writes them instead. Any OpenAI-compatible endpoint. web_prompt is
     # "full" (the whole catalogue) or "gateway" for an endpoint that builds the prompt from a
