@@ -426,6 +426,8 @@ style them yourself. Utility classes available without writing CSS: flex, grid, 
 sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, text-fg-secondary, text-fg-muted, \
 font-semibold, tabular-nums.
 - It fits any width from 340 to 720px and reads in light and dark.
+- Everything the template reads exists from the first render: start the state on a real item (the first option, a number), never on null or an empty object, and return from setup() every name the template uses.
+- Text keeps 4.5:1 against what is behind it in light and in dark: use --color-fg and --color-fg-secondary, --color-fg-muted only for small labels, and a concept colour as a text colour only on its own tint, never straight on the page.
 - It shows something before it is touched, and touching it changes something the reader can see. \
 Patterns that work: a calculator with a live verdict; a selector that changes a view while the \
 rest stays put; one thing shown in several forms to switch between; a sheet whose parts all \
