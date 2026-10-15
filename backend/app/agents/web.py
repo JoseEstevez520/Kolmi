@@ -95,7 +95,7 @@ _PIECE = re.compile(r"<template\b.*</(?:template|script|style)>", re.S | re.I)
 _OUTSIDE = re.compile(r"""(?:src|href)\s*=\s*["']?\s*(?:https?:)?//""", re.I)
 # What a piece may import, as the sandbox runtime reads it: named imports from these two only.
 _IMPORTABLE = {"vue", "@joseestevez/vue-elastic-ui"}
-_NAMED_IMPORT = re.compile(r"""^\s*import\s*\{[^}]*\}\s*from\s*['"]([^'"]+)['"]""", re.M)
+_NAMED_IMPORT = re.compile(r"""^\s*import\s*\{[^}]*\}\s*from\s*['"]([^'"]+)['"]\s*;?""", re.M)
 _ANY_IMPORT = re.compile(r"^\s*import\b.*$", re.M)
 
 
@@ -114,12 +114,13 @@ def _piece_problem(piece: str) -> str:
     body = script.group(2)
     if not re.search(r"\bexport\s+default\b", body):
         return "the <script> has no export default"
-    for line in _ANY_IMPORT.findall(body):
-        named = _NAMED_IMPORT.match(line)
-        if not named:
-            return f"only named imports work ({line.strip()})"
-        if named.group(1) not in _IMPORTABLE:
-            return f'it imports from "{named.group(1)}": only vue and @joseestevez/vue-elastic-ui'
+    # A named import may span lines, as the runtime reads it; whatever import is left after taking
+    # those out is a default or namespace import, which does not work there.
+    for source in _NAMED_IMPORT.findall(body):
+        if source not in _IMPORTABLE:
+            return f'it imports from "{source}": only vue and @joseestevez/vue-elastic-ui'
+    for line in _ANY_IMPORT.findall(_NAMED_IMPORT.sub("", body)):
+        return f"only named imports work ({line.strip()})"
     return ""
 
 

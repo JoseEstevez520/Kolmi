@@ -572,3 +572,9 @@ def test_a_piece_that_imports_from_outside_is_rejected():
 
     assert _problem("piece", outside) == ("", 'it imports from "date-fns": only vue and @joseestevez/vue-elastic-ui')
     assert _problem("piece", default)[1].startswith("only named imports work")
+
+
+def test_a_named_import_over_several_lines_is_accepted():
+    spread = PIECE.replace("import { ref } from 'vue'", "import {\n  ref,\n  computed,\n} from 'vue'")
+
+    assert _problem("piece", spread)[1] == ""
