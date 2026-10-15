@@ -522,23 +522,37 @@ export default {
 }
 </script>"""
 
+# What a piece may and may not do. One text for the web agent and for an AI writing a piece over
+# the MCP (the catalogue resource), so the two cannot drift apart.
+PIECE_RULES = f"""\
+- A piece is a Vue single-file component: a <template>, then a plain <script>, `export default \
+{{ setup() {{ … return {{ … }} }} }}`, never <script setup>, and an optional <style>. Imports only \
+named, and only from 'vue' and '@joseestevez/vue-elastic-ui'. There is no network.
+- elastic-ui's parts are the base, not the limit. Use them by name when one fits: {_PARTS}. When \
+none does, build what the piece needs: your own markup, components of your own (`defineComponent` \
+from 'vue', with a template), your own classes in <style>.
+- The look is the app's, in both themes: take colours, radii, type and spacing from its tokens \
+(var(--color-bg), --color-bg-subtle, --color-surface, --color-surface-raised, --color-border, \
+--color-fg, --color-fg-secondary, --color-fg-muted, --color-accent, --radius-md, --radius-xl, \
+--font-sans, --font-mono), never a fixed colour for text, backgrounds or lines. {_COLOURS}
+- The frame is bare: no ground, no padding, no rounded corners. The piece sits straight on the \
+page, so give it the room and the surface it needs (a card with --color-surface-raised and a \
+radius, or nothing at all) and let it breathe on its own.
+- Plain elements (button, input, code) already look like the app. Utility classes available \
+without writing CSS: flex, grid, gap-*, p-*, m-*, items-*, justify-*, grid-cols-*, \
+sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, text-fg-secondary, text-fg-muted, \
+font-semibold, tabular-nums.
+- It fits any width from 340 to 720px and reads in light and dark."""
+
 _PIECE = f"""\
-You build one small interactive piece for a page of Kolmi, a class notebook: a Vue component \
-made of the elastic-ui library's parts. Every word in it is in {{language}}.
+You build one small interactive piece for a page of Kolmi, a class notebook, as a Vue component. \
+Every word in it is in {{language}}.
 
 The brief says what it is for, and the page's notes are its context: every name and number \
 comes from them. The page around it explains; the piece lets the reader touch one idea.
 
-- Answer with a <template> and then a plain <script>, `export default {{ setup() {{ … return \
-{{ … }} }} }}`, never <script setup>; no prose, no code fence. Imports only named, and only \
-from 'vue' and '@joseestevez/vue-elastic-ui'. There is no network.
-- These parts are registered; use them by name: {_PARTS}.
-- Your own markup takes only layout and type classes: flex, grid, gap-*, p-*, m-*, items-*, \
-justify-*, grid-cols-*, sm:grid-cols-*, text-ui, text-label, text-meta, text-fg, \
-text-fg-secondary, text-fg-muted, font-semibold, tabular-nums. The frame already has the \
-app's theme, light or dark, on a tinted ground: no colours or backgrounds of your own, except \
-a part's concept colour (a DiagramChip's color, a Chart series'). {_COLOURS}
-- It fits any width from 340 to 720px.
+- Answer with the component only, no prose and no code fence.
+{PIECE_RULES}
 
 Three examples, each on its own topic (yours is on the brief's, in {{language}}):
 
@@ -553,3 +567,16 @@ Three examples, each on its own topic (yours is on the brief's, in {{language}})
 def visual_system(kind: str, language: str = FALLBACK_LANGUAGE) -> str:
     """The prompt for a page's figure (`svg`) or interactive piece (`piece`)."""
     return _fill(_SVG if kind == "svg" else _PIECE, language)
+
+
+def drawing_guide(language: str = FALLBACK_LANGUAGE) -> str:
+    """How to write a Diagram's `svg` and an Artifact's `piece` by hand, for an AI that sends a
+    page over the MCP and so has no drawing model behind it: the same rules the web agent's
+    drawing model gets."""
+    figure = _SVG[_SVG.index("- Answer with the <svg>") :]
+    text = (
+        "### A Diagram's svg\n\n" + figure + "\n### An Artifact's piece\n\n" + PIECE_RULES
+        + "\n\nThree examples, each on its own topic:\n\n"
+        + f"{_PIECE_STEPS}\n\n{_PIECE_SLIDER}\n\n{_PIECE_TOGGLE}\n"
+    )
+    return _fill(text, language)

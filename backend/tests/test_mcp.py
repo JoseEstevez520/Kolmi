@@ -506,3 +506,35 @@ def test_an_unknown_prompt_is_an_error(http, client):
     reply = _rpc(http, _token(client), "prompts/get", {"name": "nope"})
 
     assert "error" in reply.json()
+
+
+# -- the page catalogue as a resource -------------------------------------------------------------------
+
+
+def test_an_admin_is_offered_the_catalogue_and_reads_it(http, client):
+    token = _token(client, "a1")
+
+    listed = _rpc(http, token, "resources/list").json()["result"]["resources"]
+    read = _rpc(http, token, "resources/read", {"uri": "kolmi://catalogue"})
+
+    assert "kolmi://catalogue" in {r["uri"] for r in listed}
+    text = read.json()["result"]["contents"][0]["text"]
+    assert 'color?: "blue" | "violet"' in text  # the allowed values
+    assert "Writing the drawings yourself" in text and "Leave `piece` out" not in text
+    assert "Hoisting" not in text  # the web agent's streaming notes stay out
+
+
+def test_a_student_does_not_see_the_catalogue(http, client):
+    token = _token(client)
+
+    listed = _rpc(http, token, "resources/list").json()["result"]["resources"]
+    read = _rpc(http, token, "resources/read", {"uri": "kolmi://catalogue"})
+
+    assert "kolmi://catalogue" not in {r["uri"] for r in listed}
+    assert read.json()["error"]["code"] == -32002
+
+
+def test_write_page_web_points_to_the_catalogue(http, client):
+    tool = _tools(http, _token(client, "a1"))["write_page_web"]
+
+    assert "kolmi://catalogue" in tool["description"]

@@ -54,7 +54,7 @@ props and descriptions, with no renderers. Argument order is the order of the ke
 | `Arrow(label?, both?)` | `DiagramArrow`: points along its layout, and turns when a row runs down |
 | `Chart(label, series, variant?, x?, y?, caption?)`, `ChartSeries(name, points, color?)` | `Chart`: values on real axes, as a line, bars or points; each axis `{title, unit, scale, min, max}`, each point `{x, y, label?}` |
 | `Diagram(label, brief, caption?, svg?)` | `Diagram` round a `DiagramImage`: the SVG as an `<img>`, so it cannot run scripts |
-| `Artifact(title, brief, height?, piece?)` | `SandboxFrame`: `sandbox="allow-scripts"`, no same-origin access, a content policy with no network, and as tall as its content (`height` is only where it starts). The piece runs on the library's sandbox runtime |
+| `Artifact(title, brief, height?, piece?)` | `SandboxFrame`: `sandbox="allow-scripts"`, no same-origin access, a content policy with no network, and as tall as its content (`height` is only where it starts), `bare`: the frame adds no ground, corners, padding or entrance, so the piece draws its own. The piece runs on the library's sandbox runtime |
 
 The figure pieces are elastic-ui's diagram parts (on its `diagram-area` and `diagram-chip`
 classes, tinted by `--diagram-color`), so a model can compose the boxes-with-tints drawings the class notes site
@@ -84,9 +84,12 @@ labels, the colour of each concept, what to notice) and leaves the last argument
 page parses, `draw_visuals` in `backend/app/agents/web.py` sends each brief to the main model
 (`LLM_*`), checks the answer and writes it into the source. A Diagram's is an `<svg>` with a viewBox, no
 scripts, no event attributes and no outside resources. An Artifact's is a **piece**: a Vue
-single-file component made of elastic-ui's parts, a `<template>` and a plain `<script>` with
+single-file component, a `<template>`, a plain `<script>` and an optional `<style>`, with
 `export default { setup() { … } }` (never `<script setup>`), importing only, by name, from
-`vue` and `@joseestevez/vue-elastic-ui`. A bad answer is
+`vue` and `@joseestevez/vue-elastic-ui`. The library's parts are the base, not the limit: a piece
+may define components and styles of its own, taking its colours and radii from the theme's tokens
+so it stays in the app's look in both themes (the rules are `PIECE_RULES` in `agents/prompts.py`).
+A bad answer is
 sent back once with its problem; a failed call is tried once more. If the second answer fails
 too, the block is taken out of the page, and the pass stats record it (`visuals`). The page
 itself never fails because of a drawing. An SVG whose labels overlap (a rough measure of each

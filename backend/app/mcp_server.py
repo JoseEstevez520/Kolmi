@@ -34,9 +34,11 @@ from starlette.routing import Route
 from mcp.shared.exceptions import MCPError
 
 from . import tokens
+from .agents.catalogue import TITLE as CATALOGUE_TITLE, URI as CATALOGUE_URI, catalogue_guide
 from .actions.registry import Action
 from .actions.tools import offered, run_tool
 from .auth import Context, _profile, check_active, status_of, token_context
+from .class_settings import class_language
 from .export import page_markdown, shared_pages
 from .supabase_client import get_client
 
@@ -45,7 +47,9 @@ INSTRUCTIONS = (
     "Kolmi is a class's shared notebook: notes left by its members become organized pages each "
     "night. Read the tree (list_nodes), a page (view_node) or search the pages (search_pages) "
     "before writing. Leave what someone learned as notes (create_note), one per topic, with the "
-    "source_url it came from; they are private until the daily pass writes them into the pages."
+    "source_url it came from; they are private until the daily pass writes them into the pages. "
+    "Admins: before write_page_web, read the resource kolmi://catalogue: the page's components, "
+    "their parameters and allowed values, examples, and how to write a figure or an interactive piece."
 )
 
 
@@ -120,17 +124,32 @@ def _shared_nodes(caller: Context) -> list[dict[str, Any]]:
     return caller.client.table("nodes").select(EXPORT_COLUMNS).execute().data
 
 
+def _is_admin(caller: Context) -> bool:
+    return (caller.profile or {}).get("role") == "admin"
+
+
 async def _list_resources(_ctx: Any, _params: types.PaginatedRequestParams | None) -> types.ListResourcesResult:
     def pages() -> list[types.Resource]:
-        return [
+        caller = _caller()
+        found = [
             types.Resource(
                 name=page["title"],
                 uri=page_uri(page["id"]),
                 description=" > ".join(trail) or None,
                 mime_type="text/markdown",
             )
-            for page, trail in shared_pages(_shared_nodes(_caller()))
+            for page, trail in shared_pages(_shared_nodes(caller))
         ]
+        if _is_admin(caller):  # it is for write_page_web, which only admins have
+            found.append(
+                types.Resource(
+                    name=CATALOGUE_TITLE,
+                    uri=CATALOGUE_URI,
+                    description="The components a page's web is built from, with their parameters, allowed values, when to use each, examples, and how to write a figure or an interactive piece. Read it before write_page_web.",
+                    mime_type="text/markdown",
+                )
+            )
+        return found
 
     return types.ListResourcesResult(resources=await anyio.to_thread.run_sync(pages))
 
@@ -152,6 +171,17 @@ async def _list_resource_templates(
 
 async def _read_resource(_ctx: Any, params: types.ReadResourceRequestParams) -> types.ReadResourceResult:
     uri = str(params.uri)
+    if uri == CATALOGUE_URI:
+
+        def guide() -> str | None:
+            caller = _caller()
+            check_active(caller)
+            return catalogue_guide(class_language(caller.client)) if _is_admin(caller) else None
+
+        text = await anyio.to_thread.run_sync(guide)
+        if text is None:
+            raise MCPError(NOT_FOUND, f"Kolmi has no resource {uri}: pages are {PAGE_URI}")
+        return types.ReadResourceResult(contents=[types.TextResourceContents(uri=uri, mime_type="text/markdown", text=text)])
     prefix = PAGE_URI.split("{")[0]
     node_id = uri[len(prefix) :] if uri.startswith(prefix) else ""
     if not node_id.isdigit():

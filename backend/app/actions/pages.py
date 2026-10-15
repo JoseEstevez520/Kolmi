@@ -290,7 +290,7 @@ def restore_version(ctx: Context, params: VersionIdParams):
     name="write_page_web",
     tool=True,
     mcp=True,
-    description="Set a page's web, its OpenUI Lang, exactly as given, with no web agent in between: for a livelier page than the agent makes (a richer figure, a chart, an interactive piece). Admin only, confirmed. It is checked against the catalogue first and nothing is saved if it fails: the error lists each line and what to change, so fix those and send the whole page again. To change what is there rather than write it all, read it first with view_node and include_web. The page's Markdown stays as it is and its previous web is kept as a version (list_versions, restore_version). The web follows the Markdown: the page's next rebuild draws it again from there.",
+    description="Set a page's web, its OpenUI Lang, exactly as given, with no web agent in between: for a livelier page than the agent makes (a richer figure, a chart, an interactive piece). Admin only, confirmed. Read the resource kolmi://catalogue first: the components, their parameters and allowed values, examples, and how to write a figure's svg and a piece. It is checked against the catalogue first and nothing is saved if it fails: the error lists each line and what to change, so fix those and send the whole page again. To change what is there rather than write it all, read it first with view_node and include_web. The page's Markdown stays as it is and its previous web is kept as a version (list_versions, restore_version). The web follows the Markdown: the page's next rebuild draws it again from there.",
     params=WritePageWebParams,
     path="/page/web",
     requires_confirmation=True,

@@ -79,6 +79,15 @@ it: a client can read a page without calling a tool. It reads as the export writ
 to that page's own resource. Only pages with content; never a raw note, a file or the web. Any
 active member reads them; anything else is the spec's "resource not found" (-32002).
 
+Admins also get `kolmi://catalogue`, the guide to `write_page_web`: the page's components with their
+parameters and allowed values, when to use each, examples, and the rules for writing a figure's SVG
+and an interactive piece by hand (there is no drawing model behind the MCP). It is built on each
+read from the web agent's own prompt (`agents/openui/page.txt`, generated from the frontend's
+catalogue) by `app/agents/catalogue.py`, so the two never disagree; the drawing rules are
+`PIECE_RULES` and the figure prompt in `agents/prompts.py`, shared with the agent. Students are
+told it doesn't exist (-32002), since they have no tool that needs it. `INSTRUCTIONS` and the
+`write_page_web` description point to it, because a client that only reads the tools would not find it.
+
 ## The prompt
 
 `material_to_notes` ("Turn this material into class notes"), with an optional `material` (pasted,
