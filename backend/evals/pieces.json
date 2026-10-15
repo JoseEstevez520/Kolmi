@@ -1,0 +1,16 @@
+{
+  "note": "Briefs for the interactive pieces (Artifact) a page asks for, as the web agent writes them. language is the class's. Topics are deliberately varied: the prompt must not only work for one subject.",
+  "language": "es",
+  "cases": [
+    {"id": "cache-ratio", "label": "Tamaño de la caché y tiempo de respuesta", "brief": "Una pieza para ver cómo cambia el tiempo medio de respuesta al variar el porcentaje de aciertos de la caché: se mueve un control y se ven los números y una barra.", "notes": "Una petición a la base de datos tarda 120 ms; a la caché, 2 ms. Con un 90 % de aciertos, el tiempo medio es unos 14 ms."},
+    {"id": "rest-graphql", "label": "Pedir los datos de un usuario", "brief": "Comparar cómo se piden los datos de un usuario con REST y con GraphQL: el mismo caso en cada forma, con lo que devuelve.", "notes": "REST: GET /users/7 devuelve todos los campos. GraphQL: se piden solo name y email en una consulta a /graphql."},
+    {"id": "brand-sheet", "label": "La identidad de una cafetería", "brief": "Una hoja de marca de una cafetería con sus piezas (nombre, logo, paleta, tipografía, tono) y dos o tres variantes entre las que cambiar.", "notes": "Cafetería «Brasa»: tostado artesanal, colores tierra, tono cercano."},
+    {"id": "git-areas", "label": "Dónde está cada archivo en git", "brief": "Un botón que ejecuta el siguiente comando de git y mueve los archivos entre el directorio de trabajo, el área de preparación y el repositorio.", "notes": "Comandos: git add app.js, git add notes.txt, git commit. Archivos: app.js, notes.txt, style.css, index.html."},
+    {"id": "contrast", "label": "Comprobador de contraste", "brief": "Dos selectores de color, texto y fondo, que muestran una muestra de texto y la relación de contraste con un veredicto.", "notes": "El mínimo es 4.5:1 para texto normal y 3:1 para texto grande."},
+    {"id": "sorting", "label": "Búsqueda lineal frente a binaria", "brief": "Un deslizador con el tamaño de la lista que muestra cuántas comparaciones necesita cada búsqueda en el peor caso.", "notes": "Lineal: n comparaciones. Binaria: log2(n) redondeado hacia arriba. Con 1000 elementos, 1000 frente a 10."},
+    {"id": "http-status", "label": "Códigos de estado HTTP", "brief": "Elegir una familia de códigos (2xx, 3xx, 4xx, 5xx) y ver qué significa y tres ejemplos con su nombre.", "notes": "2xx éxito: 200 OK, 201 Created, 204 No Content. 3xx redirección: 301, 302, 304. 4xx error del cliente: 400, 401, 404. 5xx error del servidor: 500, 502, 503."},
+    {"id": "loan", "label": "Cuota de un préstamo", "brief": "Una calculadora con el importe, el plazo y el interés que muestra la cuota mensual y el total pagado.", "notes": "Cuota = P·r / (1 − (1 + r)^−n), con r el interés mensual y n los meses."},
+    {"id": "box-model", "label": "El modelo de caja de CSS", "brief": "Controles para margen, borde y relleno de una caja de ejemplo, con la caja dibujada y los valores a la vista.", "notes": "El tamaño total de una caja es contenido + relleno + borde, y el margen queda fuera."},
+    {"id": "scopes", "label": "Singleton frente a prototype", "brief": "Pedir una instancia a un contenedor con cada ámbito y ver cuántas instancias distintas se crean tras varias peticiones.", "notes": "Singleton: una instancia compartida. Prototype: una instancia nueva en cada petición."}
+  ]
+}

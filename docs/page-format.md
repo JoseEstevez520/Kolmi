@@ -100,6 +100,29 @@ update) is not drawn again.
 stub renderers so the CLI can load it in Node, and `prompt-options.js` has the preamble,
 rules and example.
 
+## Measuring the pieces
+
+`backend/evals/pieces.json` holds ten briefs on different subjects, written the way the page model
+writes one for an Artifact. `run_piece_evals` has the web model write each piece with the pass's
+own prompt and checks (`web._draw`), draws it in headless Chromium at 340 px on the library's
+sandbox runtime, in light and in dark, and prints a row per piece: valid, runs (no script error),
+shows (something on screen before it is touched), touch (a control exists and changes the page),
+fits (no horizontal scroll) and light/dark (text at 3:1 or better). It touches no database and
+isn't part of the image; it needs `playwright` from `requirements-dev.txt` and a Chromium
+(`playwright install chromium`, or `--chromium` with a path). From `backend/`:
+
+```bash
+.venv/bin/python -m evals.run_piece_evals --verbose
+.venv/bin/python -m evals.run_piece_evals --only brand-sheet --keep /tmp/pieces
+```
+
+Use it before changing the piece prompt or the model, and compare the two runs. `shows` is a
+heuristic (text and height, plus a first control whose click more than doubles the text), and
+contrast skips anything with a gradient behind it. The first run, with `deepseek-v4-pro`: ten
+valid, nine that run, ten that show, touch and fit, ten in light and eight in dark. The one that
+didn't run passed every structural check and failed on mount, which is the case only a real draw
+catches.
+
 ## Regenerating the prompt
 
 After changing the catalogue or the prompt options:
