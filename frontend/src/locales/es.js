@@ -345,6 +345,15 @@ export default {
     lead: 'Deja una nota y esta noche la colmena la convierte en apuntes.',
     new: 'Nueva nota',
     field: 'Tu nota',
+    ai: {
+      toggle: 'IA en la nota',
+      mark: 'Escrito por la IA',
+      ask: 'Preguntar a la IA',
+      complete: 'Completar con la IA',
+      help: 'Que te ayude la IA',
+      remove: 'Quitar',
+      failed: 'La IA no ha podido responder.',
+    },
     write: {
       back: 'Notas',
       titleLabel: 'Título',

@@ -20,6 +20,8 @@ export function joinNote(title, body) {
 // words, not the note's own links and code blocks.
 export function plainText(markdown = '') {
   return markdown
+    // What the AI wrote into the note (a program, not words) isn't the note's own text.
+    .replace(/```kolmi-ai[^\n]*\n[\s\S]*?```/g, '')
     .replace(/^```.*$/gm, '')
     .replace(/^\s{0,3}(#{1,6}|[-*+]|\d+[.)]|>)\s+/gm, '')
     .replace(/(\*\*|__|\*|_|~~|`)(.+?)\1/g, '$2')

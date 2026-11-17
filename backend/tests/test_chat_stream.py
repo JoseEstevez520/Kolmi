@@ -183,6 +183,10 @@ def test_the_first_event_is_a_status_before_the_model_is_called(monkeypatch):
     assert llm.calls == []
     assert client.rows("chat_messages") == []
     stream.close()
+    # The worker finishes its current step after the reader leaves: wait for it, or it resolves
+    # get_chat_llm with the next test's fake and that test sees a call it never made.
+    for worker in [t for t in threading.enumerate() if t.name == "chat-stream"]:
+        worker.join(timeout=5)
 
 
 def test_a_failed_preparation_is_an_error_event_and_leaves_no_row(monkeypatch):
@@ -239,3 +243,52 @@ def test_the_heartbeat_closes_the_source_when_the_reader_leaves():
     assert next(stream) == "0"
     stream.close()
     assert closed.wait(2)
+
+
+def _from_note(monkeypatch, mode, question, note):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    params = AskChatParams(question=question, mode=mode, note=note)
+    events = _events(list(stream_chat(_ctx(client), params)))
+    return client, llm, events
+
+
+def test_the_ai_in_a_note_reads_the_note_and_offers_no_tools(monkeypatch):
+    client, llm, events = _from_note(monkeypatch, "note", "what was @Bean?", "Spring: beans\n\nsingleton by default")
+
+    assert events[-1] == ("done", {})
+    _, system, user = llm.calls[0]
+    assert "in a student's note" in system
+    assert "<note>\nSpring: beans\n\nsingleton by default\n</note>" in user
+    assert user.endswith("Question: what was @Bean?")
+    # A class's notes are on what is new: it doesn't read the class's pages (no tree, no pages)
+    # nor search the web, and it acts on nothing. No tools at all.
+    assert "Tree:" not in user
+    assert llm.offered_tools[0] == []
+    assert events[0] == ("status", {"text": "Thinking..."})
+    # It counts against the daily limit like any question.
+    assert len(client.rows("chat_messages")) == 1
+
+
+def test_a_note_passage_reads_no_pages_and_keeps_the_notes_end(monkeypatch):
+    def no_search(*args, **kwargs):
+        raise AssertionError("a note doesn't search the class's pages")
+
+    monkeypatch.setattr("app.actions.chat.search", no_search)
+    note = "x" * 7000 + "THE END"
+    _, llm, _ = _from_note(monkeypatch, "note", "request: browser -> controller -> service", note)
+
+    _, system, user = llm.calls[0]
+    assert "%%ask" in system and "%%complete" in system
+    assert "Figure(" in system
+    assert "THE END" in user and "x" * 7000 not in user
+
+
+def test_a_chat_question_ignores_a_note(monkeypatch):
+    _, llm, _ = _from_note(monkeypatch, "chat", "help me", "my private note")
+    _, system, user = llm.calls[0]
+    assert "<note>" not in user
+    assert "in a student's note" not in system

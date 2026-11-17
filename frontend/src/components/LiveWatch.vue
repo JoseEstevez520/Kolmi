@@ -3,6 +3,7 @@ import { nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button, Markdown } from 'elastic-ui'
 import { ArrowDownToLine, Pause } from '@lucide/vue'
+import NoteAiFence from './NoteAiFence.vue'
 
 // What a watcher sees of a live note: its text, read-only, following the end while it is
 // written. A button stops following so something can be reread, and brings it back.
@@ -38,7 +39,7 @@ watch(following, follow)
         @click="following = !following"
       />
     </div>
-    <Markdown v-if="content.trim()" :source="content" />
+    <Markdown v-if="content.trim()" :source="content" :components="{ 'kolmi-ai': NoteAiFence }" />
     <div ref="end" aria-hidden="true" class="h-px" />
   </div>
 </template>

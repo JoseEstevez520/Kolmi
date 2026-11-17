@@ -256,10 +256,14 @@ a GitHub repo and writes the class's notes in Kolmi.
   `moved` marks, and its `change` event. Left: previews for the actions that still show the plain
   card (`write_page_web`, `restore_version`, `run_pass`), and a summary-of-impact part in
   elastic-ui if it earns its place.
-- [ ] **Your message stays at the top while the answer streams** — sending a message pins it to
+- [x] **Your message stays at the top while the answer streams** — sending a message pins it to
   the top of the thread and the answer fills in below it, so the view doesn't keep scrolling
   down as tokens arrive and a long answer is read from its first line. Same for the bubble and
-  `/chat`. If the thread needs a behaviour `ChatThread` lacks, it goes into elastic-ui first.
+  `/chat`. If the thread needs a behaviour `ChatThread` lacks, it goes into elastic-ui first. Built
+  there (elastic-ui 0.28.0): the sent message glides to the top and stays, the answer is never
+  followed, a button jumps to the end once, the reserved space is a `min-height` that fades out of
+  sight as you scroll up, and any scrolling of yours stops a glide. Checked with simulated answers
+  in the bubble and `/chat`; still to try once against the real model.
 
 ## After: new agents on the same base
 
@@ -362,7 +366,8 @@ Same tools, same loop, another trigger.
   - **Into the pass.** Built, with no step of its own: a live session mirrors a normal note, so the
     note itself goes through the daily pass as any other, whether or not the session ended.
     The editor stays the notes editor; the Markdown it saves is what the pass reads.
-  - **Generative notes.** The interface shows up without selecting anything: when a paragraph
+  - **Generative notes.** The manual way is built: "Complete" in the AI in a note (below). Left,
+    the ambient one. The interface shows up without selecting anything: when a paragraph
     closes, a small cheap model decides whether it deserves a section or an artifact and offers it
     as a quiet chip under the paragraph (AuraNote's "ambient suggestions"); selecting a passage and
     asking stays as the manual way. Opt-in, off by default, the model strict so most paragraphs
@@ -376,16 +381,37 @@ Same tools, same loop, another trigger.
     touching the writer's note (a call per reader, so a cap per person); writing together, with
     Hocuspocus or Tiptap's provider on Yjs (the Supabase ones, `y-supabase`, are alpha).
   - Open: what the pass does with a note whose blocks it can't read (it reads the text).
-- [ ] **Ask the AI from inside a note** — not built. While writing, a person leaves a line like "I
-  don't understand geology" and the AI answers right below it, in the note, with no side chat.
-  The person picks how it replies (a mode: explain it, ask me back, give an example, quiz me), so
-  the same line can get a different kind of answer. It reads the note and the class's pages, and
-  the reply stays in the note as a block the writer can keep, edit or delete. It sits next to
-  "Generative notes" above (that one offers an interface for a passage on its own; this one
-  answers what the writer says) and would share its daily cap. To settle before building: how
-  the AI knows a line is a question, whether the reply goes into the pass or stays private to
-  the writer, and look at what already exists (inline AI in editors such as AFFiNE and Writalin)
-  first.
+- [x] **The AI in a note** — a help for taking notes, not a second chat. The chat answers what
+  someone doesn't know *from the class's notes*; this helps *write* them, in class, on what is
+  usually new and not in any page yet. So it doesn't search the class's pages, the tree or the
+  web: it writes from what the model knows, with the note as written so far as context (what
+  "this" points at, the class's level and tools, how the student writes). One gesture, behind a
+  switch in the note's bar (off by default, remembered in the browser, only when the class has
+  the chat on): Ctrl/Cmd+Enter on a line, or a selection and the sparkles. The AI tells what the
+  text is and says it on its first line:
+  - **A question** (`%%ask`): it becomes notes on it, in its place, as the student would keep
+    them: a short heading with the concept, a line or two, and a piece.
+  - **The student's own notes** (`%%complete`): they stay, and the piece that shows them best
+    goes under them, filling in what they leave out.
+  The essence is generative UI: Kolmi's notes hold pieces (a Table, Steps, a DescriptionList, a
+  Callout, a Figure, a Chart, a CodeBlock), so that is what it reaches for. The prompt gives
+  guidance, not a template: the student's own asking wins ("brief", "the code", "a table").
+  Only the pieces' syntax is strict, with the icon set listed.
+  A drawing lives in the note as a ```kolmi-ai fence holding the OpenUI Lang program, drawn in
+  the page as part of the note (no box, no chat look; a remove button on hover): the note stays
+  Markdown, the class following it live sees it arrive, and LiveWatch and a closed note draw the
+  fence (`NoteAiFence`). It is the streamed chat with its own prompt (`mode: note` on `/chat/stream`,
+  the note in `note`), offers no tools and no actions, and
+  counts against the chat's daily limit. When it can't write (no session, the day's limit), the
+  reason shows in the note's bar.
+  Tried against the real model in `/dev/note-ai` (no note saved); `?fake` streams a made-up
+  answer. Left:
+  - The pass reads the fence's program as text; it should read it as what it shows, or skip it.
+  - Completing in ink, step by step, for an idea to grasp (structures and data stay clean): needs
+    an ink look for the diagram parts in elastic-ui first.
+  - Other ways to reply (ask me back, an example, quiz me), if asking alone falls short in class.
+  Prior art looked at: Riddled (riddled.ai), a notebook whose AI reads along and answers in the
+  margin, and AFFiNE's inline AI.
 - [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there
   to ask again. Worth building if it becomes one (saved conversations, answers kept as study
   material). The light memory above lasts as long as the browser tab; sessions keep

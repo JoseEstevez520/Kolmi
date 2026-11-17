@@ -105,6 +105,12 @@ const routes = [
           component: () => import('../views/DevActionsView.vue'),
           meta: { public: true },
         },
+        {
+          path: '/dev/note-ai',
+          name: 'dev-note-ai',
+          component: () => import('../views/DevNoteAiView.vue'),
+          meta: { public: true },
+        },
       ]
     : []),
   { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },

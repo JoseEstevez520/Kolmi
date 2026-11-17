@@ -348,6 +348,15 @@ export default {
     lead: 'Leave a note; tonight the hive turns it into shared notes.',
     new: 'New note',
     field: 'Your note',
+    ai: {
+      toggle: 'AI in the note',
+      mark: 'Written by the AI',
+      ask: 'Ask the AI',
+      complete: 'Complete with the AI',
+      help: 'Get help from the AI',
+      remove: 'Remove',
+      failed: "The AI couldn't answer.",
+    },
     write: {
       back: 'Notes',
       titleLabel: 'Title',

@@ -48,6 +48,7 @@ def _prompt(
     passages_note: str = CHAT_PASSAGES,
     page: dict[str, Any] | None = None,
     live: dict[str, Any] | None = None,
+    note: str | None = None,
 ) -> tuple[str, str]:
     """The system prompt (with the passages' note when there are any) and the user message: the
     tree as an index, the day, the timetable, the passages, the conversation and the question."""
@@ -91,7 +92,11 @@ def _prompt(
             "It is one person's notes, still being written and not checked by anyone: say so if you answer from it. "
             "Read it with read_live_note if the question is about it."
         )
-    user = f"Tree:\n{index}{when}{timetable}{found}{said}{open_page}\n\nQuestion: {question}"
+    # Asked from inside a note: the note as written so far, so "this" and "that" have something
+    # to point at. The note is the student's own, unchecked; the pages come first.
+    writing = f"\n\nThe note the student is writing:\n<note>\n{note}\n</note>" if note else ""
+    tree = f"Tree:\n{index}" if nodes else ""
+    user = f"{tree}{when}{timetable}{found}{said}{open_page}{writing}\n\nQuestion: {question}"
 
     return system, user
 
@@ -162,7 +167,7 @@ def run_chat_stream(
     question: str,
     nodes: list[dict[str, Any]],
     *,
-    read_page: PageReader,
+    read_page: PageReader | None,
     language: str = FALLBACK_LANGUAGE,
     today: str = "",
     schedule: str = "",
@@ -173,15 +178,18 @@ def run_chat_stream(
     history: list[dict[str, str]] | None = None,
     page: dict[str, Any] | None = None,
     live: dict[str, Any] | None = None,
+    note: str | None = None,
+    system: str | None = None,
 ) -> Iterator[dict[str, str]]:
     """`run_chat`, streamed: the same context and tools, but the model writes an OpenUI Lang
     program (`root = Answer([...])`) and it comes out as `status` and `token` events as it is
     written. There is no fallback to the index alone: if the model fails, the error is the
     caller's to tell. Pages are read by the model's own `read_page`, so it gets no `sources` field;
-    it cites them with a `Sources` part.
+    it cites them with a `Sources` part. `note` is the note the question was asked from, if any,
+    and `system` replaces the chat's own prompt (asking or completing from a note).
     """
     system, user = _prompt(
-        chat_stream_system(language),
+        system or chat_stream_system(language),
         question,
         nodes,
         language=language,
@@ -192,10 +200,13 @@ def run_chat_stream(
         passages_note=CHAT_PASSAGES_STREAM,
         page=page,
         live=live,
+        note=note,
     )
     system += f"\n\n{CHAT_ACTIONS}" if actions else ""
-    tools = [READ_PAGE_TOOL] + ([SEARCH_WEB_TOOL] if search is not None else [])
+    # Without a page reader (asking from a note) there are no pages to read: no read_page tool.
+    tools = ([READ_PAGE_TOOL] if read_page is not None else []) + ([SEARCH_WEB_TOOL] if search is not None else [])
     tools += actions or []
     run_search = search_tool(search, []) if search is not None else None
-    run_tool = _combined_tool(read_page_tool(nodes, read_page, []), run_search, run_action)
+    run_pages = read_page_tool(nodes, read_page, []) if read_page is not None else (lambda name, args: "")
+    run_tool = _combined_tool(run_pages, run_search, run_action)
     yield from llm.stream_with_tools(system, user, tools, run_tool, max_rounds=CHAT_MAX_TOOL_ROUNDS)

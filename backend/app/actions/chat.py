@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from ..agents import get_chat_llm, run_chat
 from ..agents.chat import run_chat_stream
+from ..agents.prompts import note_system
 from ..auth import Context
 from ..class_settings import class_language, read_settings
 from ..files import node_files
@@ -106,6 +107,32 @@ class AskChatParams(BaseModel):
         default=None,
         description="The live note the person is watching, if any. Ignored when it doesn't exist or isn't theirs to see.",
     )
+    mode: Literal["chat", "note"] = Field(
+        default="chat",
+        description=(
+            "chat: a question in the chat. note: a line or passage of a note the AI helps with "
+            "from inside it (a question becomes notes on it; notes get the piece that shows them)."
+        ),
+    )
+    note: str | None = Field(
+        default=None,
+        description="With the note mode, the note as written so far: only its last part is used.",
+    )
+
+
+# The note a question comes from is context, not the subject: its end (what is being written
+# now) is kept, up to this much.
+NOTE_CHARS = 6000
+
+# The AI in a note: the prompt it writes with.
+_NOTE_SYSTEMS = {"note": note_system}
+
+
+def _note(params: "AskChatParams") -> str | None:
+    if params.mode == "chat" or not params.note:
+        return None
+    text = params.note.strip()
+    return text[-NOTE_CHARS:] if text else None
 
 
 def _recent(history: list[HistoryMessage]) -> list[dict[str, str]]:
@@ -464,14 +491,17 @@ def stream_chat(ctx: Context, params: AskChatParams):
         program = ""
         message: dict[str, Any] | None = None
         try:
-            yield sse("status", {"text": "Searching the notes..."})
+            # From a note it answers or completes, and acts on nothing. It doesn't look in the
+            # class's pages either: notes are taken in class, on what is new and not written up.
+            in_note = params.mode in _NOTE_SYSTEMS
+            yield sse("status", {"text": "Thinking..." if in_note else "Searching the notes..."})
             history = _recent(params.history)
             # Independent reads, at the same time. The Supabase client is an httpx client, which
             # is safe to share across threads; every `.table()` call builds its own request.
             with ThreadPoolExecutor(max_workers=4) as pool:
-                found = pool.submit(search, client, _search_query(history, question))
+                found = pool.submit(lambda: [] if in_note else search(client, _search_query(history, question)))
                 loaded = pool.submit(
-                    lambda: client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
+                    lambda: [] if in_note else client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
                 )
                 lang = pool.submit(class_language, client)
                 language = lang.result()
@@ -507,16 +537,20 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 get_chat_llm(),
                 question,
                 nodes,
-                read_page=_read_page(client),
+                read_page=None if in_note else _read_page(client),
                 language=language,
                 today=_today_text(language),
-                schedule=schedule_text,
-                actions=schemas(ctx, "chat"),
-                run_action=run_action,
+                schedule="" if in_note else schedule_text,
+                # No web search from a note either: an answer in a few seconds, from what it knows.
+                **({"search": None} if in_note else {}),
+                actions=None if in_note else schemas(ctx, "chat"),
+                run_action=None if in_note else run_action,
                 history=history,
                 page=_open_page(nodes, params.node_id),
-        live=_open_live(ctx, params.live_id),
+                live=_open_live(ctx, params.live_id),
                 passages=passages,
+                note=_note(params),
+                system=_NOTE_SYSTEMS[params.mode](language) if in_note else None,
             ):
                 if event["type"] == "token":
                     program += event["text"]

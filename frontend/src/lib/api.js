@@ -297,7 +297,8 @@ export const api = {
   // The same question as a stream of server-sent events (`status`, `token`, `proposal`, `done`,
   // `error`), each handed to `onEvent(name, data)`. Read with `fetch`, as `EventSource` can't
   // send the session header. A refusal before the stream starts (limit, chat off) throws.
-  async streamChat(question, history, onEvent, nodeId = null, liveId = null) {
+  // `extra` asks from a note: { mode: 'note_ask' | 'note_complete', note }.
+  async streamChat(question, history, onEvent, nodeId = null, liveId = null, extra = {}) {
     const token = accessToken()
     let response
     try {
@@ -307,7 +308,7 @@ export const api = {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ question, history, node_id: nodeId, live_id: liveId }),
+        body: JSON.stringify({ question, history, node_id: nodeId, live_id: liveId, ...extra }),
       })
     } catch {
       throw new ApiError(0, t('api.unreachable'))

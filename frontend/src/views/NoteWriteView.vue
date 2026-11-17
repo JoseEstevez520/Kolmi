@@ -3,10 +3,11 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch 
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusText, TextMorph } from 'elastic-ui'
-import { ArrowLeft, Maximize2, Minimize2, Paperclip, Radio } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Minimize2, Paperclip, Radio, Sparkles } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import LiveFollowers from '../components/LiveFollowers.vue'
 import NodePicker from '../components/NodePicker.vue'
+import NoteAiFence from '../components/NoteAiFence.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
 import { invalidate } from '../lib/cached.js'
@@ -15,6 +16,7 @@ import { joinNote, splitNote } from '../lib/notes.js'
 import { usePolling } from '../lib/polling.js'
 import { useIdleChrome } from '../lib/idleChrome.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
+import { chatEnabled, loadChatEnabled } from '../lib/chat.js'
 
 // Writing a note, as a page of its own: a title and the text under it, nothing else in the
 // way. At /notes/new it starts one; at /notes/:id it reopens one of yours, until the daily
@@ -62,6 +64,44 @@ usePolling(async () => {
 // Where the student thinks the note goes, as a hint for the daily pass; null leaves it empty.
 // Lives in the top bar as a quiet NodePicker, a ghost button with the picked place's short
 // path, opening the tree. Picking a place closes it.
+// The AI in the note: off until the person turns it on, and remembered in this browser. It
+// answers from the chat, so it is there only when the class has the chat on, and it counts
+// against the same daily limit.
+const AI_KEY = 'kolmi:note-ai'
+const aiOn = ref(localStorage.getItem(AI_KEY) === '1')
+loadChatEnabled()
+function toggleAi() {
+  aiOn.value = !aiOn.value
+  localStorage.setItem(AI_KEY, aiOn.value ? '1' : '0')
+}
+
+// Streams what the AI writes into the note; resolves when it ends, rejects when it fails.
+async function assist(text, note, onToken) {
+  let failed = false
+  await api.streamChat(
+    text,
+    [],
+    (name, data) => {
+      if (name === 'token') onToken(data.text)
+      if (name === 'error') failed = true
+    },
+    null,
+    liveId.value,
+    { mode: 'note', note },
+  )
+  if (failed) throw new Error(t('notes.ai.failed'))
+}
+const noteAssist = computed(() => (aiOn.value && chatEnabled.value ? assist : null))
+
+// Why the AI didn't write, for a few seconds in the bar.
+const aiError = ref('')
+let aiErrorTimer = null
+function onAiError(message) {
+  aiError.value = message || t('notes.ai.failed')
+  clearTimeout(aiErrorTimer)
+  aiErrorTimer = setTimeout(() => (aiError.value = ''), 6000)
+}
+
 const hintId = ref(null)
 
 const content = computed(() => joinNote(title.value, body.value))
@@ -342,6 +382,7 @@ onMounted(() => loadNodes().catch(() => {}))
             <FilePicker ref="picker" compact :note-id="noteId" :ensure-note="ensureNote" @count="fileCount = $event" />
           </div>
         </PopoverMorph>
+        <StatusText v-if="aiError" class="text-meta" :text="aiError" error />
         <StatusText
           v-if="status"
           :class="['text-meta', status !== 'error' && 'text-fg-muted']"
@@ -362,6 +403,17 @@ onMounted(() => loadNodes().catch(() => {}))
           @click="toggleLive"
         />
         <Button
+          v-if="chatEnabled"
+          variant="ghost"
+          size="icon"
+          :icon="Sparkles"
+          :class="aiOn && 'bg-bg-muted text-fg'"
+          :aria-pressed="aiOn"
+          :aria-label="t('notes.ai.toggle')"
+          :title="t('notes.ai.toggle')"
+          @click="toggleAi"
+        />
+        <Button
           variant="ghost"
           size="icon"
           :icon="zen ? Minimize2 : Maximize2"
@@ -378,7 +430,7 @@ onMounted(() => loadNodes().catch(() => {}))
 
     <template v-else-if="closed">
       <Callout type="note" :title="t('notes.write.closedTitle')">{{ t('notes.write.closed') }}</Callout>
-      <Markdown v-if="closed.format === 'markdown'" :source="closed.content" class="mt-8" />
+      <Markdown v-if="closed.format === 'markdown'" :source="closed.content" :components="{ 'kolmi-ai': NoteAiFence }" class="mt-8" />
       <p v-else class="mt-8 whitespace-pre-line text-fg-secondary">{{ closed.content }}</p>
     </template>
 
@@ -397,6 +449,8 @@ onMounted(() => loadNodes().catch(() => {}))
         v-model="body"
         :label="t('notes.field')"
         :placeholder="t('notes.write.bodyPlaceholder')"
+        :assist="noteAssist"
+        @ai-error="onAiError"
       />
     </template>
   </FileDropZone>

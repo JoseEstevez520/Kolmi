@@ -3,6 +3,24 @@
 The chat answers from the class's notes, and a model that wants to change something proposes
 it first. This page says what the model writes, what it doesn't, and how to change either.
 
+## The chat and the AI in a note
+
+Two different jobs, on the same streamed endpoint:
+
+| | The chat | The AI in a note |
+|---|---|---|
+| For | asking what you don't know, from the class's notes | writing your notes, in class |
+| Reads | the class's pages (passages, the tree, `read_page`), the web | only the note as written so far |
+| Answers from | the class's content first | what the model knows: the topic is usually new, not in any page yet |
+| Can act | proposes actions (cards to confirm) | never: no tools, no actions |
+| What it writes | an answer in the thread | notes in the note, with pieces drawn in the page (a question is replaced by them; notes get a piece under them) |
+
+The AI in a note is `/chat/stream` with `mode` set to `note` and `note` holding the note's
+text, with its own prompt (`note_system`). It gets a line or a selection and tells what it is,
+on its first line: `%%ask` for a question (notes on it replace it) or `%%complete` for the
+student's notes (the piece that shows them goes under them). It counts against the chat's daily limit like any question. A
+drawing is saved in the note as a ```kolmi-ai fence with the program (see the ROADMAP item).
+
 ## What the model writes
 
 An answer is a short program in OpenUI Lang, the same language the pages use. The model picks
