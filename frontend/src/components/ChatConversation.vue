@@ -36,8 +36,8 @@ function unplaced(m) {
 
 <template>
   <ChatThread>
-    <!-- One child per message (ChatMessage, and the sources line when it has one), so
-         ChatThread's "what was just added" glide sees one new thing, not two. -->
+    <!-- One child per message (ChatMessage, and the sources line when it has one). ChatThread
+         finds the question inside by its role and brings it to the top as it is sent. -->
     <div v-for="m in messages" :key="m.id" class="flex flex-col gap-1.5">
       <!-- No `text` prop: the answer is Markdown, which ChatStream's plain-text wave can't
            draw, so the default slot takes over for both roles and the "thinking" line is
