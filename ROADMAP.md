@@ -256,6 +256,10 @@ a GitHub repo and writes the class's notes in Kolmi.
   `moved` marks, and its `change` event. Left: previews for the actions that still show the plain
   card (`write_page_web`, `restore_version`, `run_pass`), and a summary-of-impact part in
   elastic-ui if it earns its place.
+- [ ] **Your message stays at the top while the answer streams** — sending a message pins it to
+  the top of the thread and the answer fills in below it, so the view doesn't keep scrolling
+  down as tokens arrive and a long answer is read from its first line. Same for the bubble and
+  `/chat`. If the thread needs a behaviour `ChatThread` lacks, it goes into elastic-ui first.
 
 ## After: new agents on the same base
 
@@ -372,6 +376,16 @@ Same tools, same loop, another trigger.
     touching the writer's note (a call per reader, so a cap per person); writing together, with
     Hocuspocus or Tiptap's provider on Yjs (the Supabase ones, `y-supabase`, are alpha).
   - Open: what the pass does with a note whose blocks it can't read (it reads the text).
+- [ ] **Ask the AI from inside a note** — not built. While writing, a person leaves a line like "I
+  don't understand geology" and the AI answers right below it, in the note, with no side chat.
+  The person picks how it replies (a mode: explain it, ask me back, give an example, quiz me), so
+  the same line can get a different kind of answer. It reads the note and the class's pages, and
+  the reply stays in the note as a block the writer can keep, edit or delete. It sits next to
+  "Generative notes" above (that one offers an interface for a passage on its own; this one
+  answers what the writer says) and would share its daily cap. To settle before building: how
+  the AI knows a line is a question, whether the reply goes into the pass or stays private to
+  the writer, and look at what already exists (inline AI in editors such as AFFiNE and Writalin)
+  first.
 - [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there
   to ask again. Worth building if it becomes one (saved conversations, answers kept as study
   material). The light memory above lasts as long as the browser tab; sessions keep
