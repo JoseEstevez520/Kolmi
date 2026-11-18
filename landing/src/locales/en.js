@@ -145,6 +145,55 @@ export default {
     acts: 'The chat can act, but never on its own. Anything that changes something comes back as a card showing what would change, and it happens when you confirm. A student can leave and edit their own notes this way. An admin can also move pages, edit the timetable and look after the class’s people. It can report a problem with the app too. An admin turns the chat on and sets a daily limit per student.',
   },
 
+  noteAi: {
+    title: 'The AI in a note',
+    body: 'The chat asks the class’s notes what you don’t know. The AI in a note helps you write them, in class, where the topic is usually new. Press **Ctrl+Enter** on a line, or select some text and click the sparkles. A question becomes notes on it, in its place. A line of your own stays, and the piece that shows it goes under it.',
+    lead: 'Watch a student in a web development class take notes on an API. It is a made-up example.',
+    label: 'A made-up example: in a note on the Star Wars API, a question about @ManyToMany becomes a heading, a line and a table, and a rough line about characters and their planet gets a diagram under it',
+    caption: 'A made-up example, drawn with the app’s own parts.',
+    after: '**A question becomes notes, and your own notes get the piece that shows them. Either way, what the AI writes is part of the note and is saved with it.** It writes from what it knows, with the note so far as context, and takes no actions. It is there when the class has the chat on, each student turns it on in the note’s bar, and it counts against the chat’s daily limit.',
+    demo: {
+      back: 'Notes',
+      live: 'Share live',
+      toggle: 'AI in the note',
+      zen: 'Full screen',
+      keys: ['Ctrl', 'Enter'],
+      title: 'Consuming an API: SWAPI',
+      lines: [
+        'each endpoint returns JSON',
+        'we map the JSON to Java classes: People, Film, Planet…',
+      ],
+      question: 'how is a ManyToMany stored in the database?',
+      answer: {
+        heading: '@ManyToMany in the database',
+        line: 'a join table is created with the keys of both tables',
+        label: 'The tables of a many-to-many between people and films',
+        head: ['Table', 'Columns'],
+        rows: [
+          ['`people`', 'id, name, homeworld_id'],
+          ['`people_films`', 'people_id, film_id'],
+          ['`films`', 'id, title, release_date'],
+        ],
+      },
+      rough: 'several characters → same planet (homeworld)',
+      figure: {
+        label: 'Luke, Leia and Han point to the same planet, Tatooine, through homeworld',
+        characters: ['Luke', 'Leia', 'Han'],
+        planet: 'Tatooine',
+        planetNote: 'Planet',
+      },
+      notes: [
+        'A note being taken in class, on the Star Wars API. The sparkles in the bar mean the AI is on.',
+        'The student writes as the class goes, short and a bit rough.',
+        'A question in the middle of the note, and Ctrl+Enter on its line.',
+        'It was a question, so notes on it take its place: a heading, a line and a table.',
+        'Then a rough line of the student’s own, and Ctrl+Enter again.',
+        'That line stays as it is. The diagram that shows it goes under it.',
+        'A question becomes notes, and your own notes get their piece. Either way, it is part of the note.',
+      ],
+    },
+  },
+
   ai: {
     title: 'Your own AI, connected',
     body: 'Kolmi is also an MCP server, so the AI you already use can work with the class’s notes as you. Say your course is on Moodle and the practice code is in a GitHub repo. With Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week’s material and write it up. It reads the class’s tree first, sees what the pages already say and leaves one note per topic, each with the link it came from. An admin’s AI can fold the material straight into a page instead.',

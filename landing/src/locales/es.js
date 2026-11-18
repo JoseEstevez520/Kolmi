@@ -143,6 +143,55 @@ export default {
     acts: 'El chat puede actuar, pero nunca por su cuenta. Todo lo que cambia algo vuelve como una tarjeta que enseña qué cambiaría, y ocurre cuando lo confirmas. Un estudiante puede dejar y editar sus notas así. Un admin además puede mover páginas, editar el horario y cuidar de la gente de la clase. También puede avisar de un problema de la app. Un admin enciende el chat y fija un límite diario por estudiante.',
   },
 
+  noteAi: {
+    title: 'La IA en una nota',
+    body: 'El chat le pregunta a los apuntes de la clase lo que no sabes. La IA en una nota te ayuda a escribirlos, en clase, cuando el tema suele ser nuevo. Pulsa **Ctrl+Intro** en una línea, o selecciona un texto y pulsa los destellos. Una pregunta se convierte en apuntes sobre ella, en su sitio. Una línea tuya se queda, y debajo aparece la pieza que la muestra.',
+    lead: 'Mira a un estudiante de un ciclo de desarrollo web tomar apuntes sobre una API. Es un ejemplo inventado.',
+    label: 'Un ejemplo inventado: en una nota sobre la API de Star Wars, una pregunta sobre @ManyToMany se convierte en un título, una línea y una tabla, y una línea suelta sobre personajes y su planeta recibe un diagrama debajo',
+    caption: 'Un ejemplo inventado, dibujado con las piezas de la app.',
+    after: '**Una pregunta se convierte en apuntes, y tus propios apuntes reciben la pieza que los muestra. En los dos casos, lo que escribe la IA es parte de la nota y se guarda con ella.** Escribe con lo que sabe, con la nota hasta ese punto como contexto, y no hace ninguna acción. Está cuando la clase tiene el chat encendido, cada estudiante la enciende en la barra de la nota y cuenta para el límite diario del chat.',
+    demo: {
+      back: 'Notas',
+      live: 'Compartir en directo',
+      toggle: 'IA en la nota',
+      zen: 'Pantalla completa',
+      keys: ['Ctrl', 'Intro'],
+      title: 'Consumir una API: SWAPI',
+      lines: [
+        'cada endpoint devuelve JSON',
+        'pasamos el JSON a clases Java: People, Film, Planet…',
+      ],
+      question: '¿cómo se guarda un ManyToMany en la base de datos?',
+      answer: {
+        heading: '@ManyToMany en la base de datos',
+        line: 'se crea una tabla intermedia con las claves de las dos tablas',
+        label: 'Las tablas de una relación muchos a muchos entre personajes y películas',
+        head: ['Tabla', 'Columnas'],
+        rows: [
+          ['`people`', 'id, name, homeworld_id'],
+          ['`people_films`', 'people_id, film_id'],
+          ['`films`', 'id, title, release_date'],
+        ],
+      },
+      rough: 'varios personajes → mismo planeta (homeworld)',
+      figure: {
+        label: 'Luke, Leia y Han apuntan al mismo planeta, Tatooine, con homeworld',
+        characters: ['Luke', 'Leia', 'Han'],
+        planet: 'Tatooine',
+        planetNote: 'Planeta',
+      },
+      notes: [
+        'Una nota que se toma en clase, sobre la API de Star Wars. Los destellos de la barra dicen que la IA está encendida.',
+        'El estudiante escribe según avanza la clase, corto y un poco a lo bruto.',
+        'Una pregunta en mitad de la nota, y Ctrl+Intro en su línea.',
+        'Era una pregunta, así que los apuntes sobre ella ocupan su sitio: un título, una línea y una tabla.',
+        'Luego una línea suya, a medias, y otra vez Ctrl+Intro.',
+        'Esa línea se queda como está. Debajo aparece el diagrama que la muestra.',
+        'Una pregunta se convierte en apuntes, y tus apuntes reciben su pieza. En los dos casos, es parte de la nota.',
+      ],
+    },
+  },
+
   ai: {
     title: 'Tu propia IA, conectada',
     body: 'Kolmi también es un servidor MCP, así que la IA que ya usas puede trabajar con los apuntes de la clase en tu nombre. Pongamos que el curso está en Moodle y el código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo asistente, le pides que lea el material de esta semana y lo pase a limpio. Lee primero el árbol de la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.',

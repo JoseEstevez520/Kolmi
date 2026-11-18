@@ -7,6 +7,7 @@ import HowSection from './sections/HowSection.vue'
 import LandingFooter from './sections/LandingFooter.vue'
 import LandingHeader from './sections/LandingHeader.vue'
 import LinksSection from './sections/LinksSection.vue'
+import NoteAiSection from './sections/NoteAiSection.vue'
 import RunSection from './sections/RunSection.vue'
 import TodaySection from './sections/TodaySection.vue'
 import WhatSection from './sections/WhatSection.vue'
@@ -24,6 +25,7 @@ import WhatSection from './sections/WhatSection.vue'
       <WhatSection />
       <HowSection />
       <AskSection />
+      <NoteAiSection />
       <AiSection />
       <TodaySection />
       <RunSection />
