@@ -14,6 +14,7 @@ import { findBlocks } from '../lib/editor/blocks.js'
 import { BlockHint } from '../lib/editor/hint.js'
 import { SlashMenu } from '../lib/editor/slash.js'
 import { Arrows } from '../lib/editor/arrows.js'
+import { AiStatus, setAiStatus } from '../lib/editor/aiStatus.js'
 import { AI_LANGUAGE, AiCodeBlock, aiWriting, withoutAi } from '../lib/editor/aiBlock.js'
 
 // The note's body, written like a page: nothing on screen but the text. Blocks come from one
@@ -93,6 +94,7 @@ const editor = useEditor({
     StarterKit.configure({ heading: { levels: [2, 3] }, underline: false, codeBlock: false }),
     AiCodeBlock,
     Arrows,
+    AiStatus,
     // A photo in the note (the AI's, from Wikimedia Commons, with its credit under it).
     Image.configure({ inline: true, HTMLAttributes: { loading: 'lazy', decoding: 'async' } }),
     TaskList,
@@ -156,42 +158,89 @@ function run() {
   if (!text) return false
   const note = withoutAi(ed.getMarkdown())
 
-  // The blocks the text is in, and the place under them.
+  // Where it goes: the AI's text runs from `start` to `end`. Blocks already finished (a
+  // paragraph, a photo, a table) are written once, up to `mid`, and never touched again; only
+  // the block still arriving, from `mid` to `end`, is redrawn as tokens come. So nothing above
+  // the line being written flickers, and a photo loads once.
   const blockStart = $from.before(1)
   const blockEnd = $to.after(1)
-  let range = null
+  let start = null
+  let mid = null
+  let end = null
+  let committed = 0
+  let own = false
   const track = ({ transaction }) => {
-    if (range) range = { from: transaction.mapping.map(range.from, -1), to: transaction.mapping.map(range.to, 1) }
+    if (own || mid === null) return
+    start = transaction.mapping.map(start, -1)
+    mid = transaction.mapping.map(mid, -1)
+    end = transaction.mapping.map(end, 1)
   }
   ed.on('transaction', track)
 
-  let received = ''
-  let queued = false
-  const render = () => {
-    queued = false
-    const newline = received.indexOf('\n')
-    if (newline < 0) return
-    if (!range) {
-      // The first line says what it did; a model that forgets is read by the text itself.
-      const tag = received.slice(0, newline).trim()
-      const ask = tag === '%%ask' || (tag !== '%%complete' && text.endsWith('?'))
-      range = ask ? { from: blockStart, to: blockEnd } : { from: blockEnd, to: blockEnd }
-    }
-    let markdown = received.slice(newline + 1).replace(/^%%(ask|complete)\s*$/m, '').trimStart()
-    if (!markdown) return
-    // A fence still being written is closed, so what follows it doesn't fall inside.
-    if ((markdown.match(/^```/gm) || []).length % 2) markdown += '\n```'
+  // Replace mid..end with `markdown`; returns where it ends.
+  const put = (markdown) => {
+    const before = ed.state.doc.content.size
+    own = true
     ed.chain()
       .command(({ tr }) => {
         tr.setMeta('addToHistory', false)
         return true
       })
-      .insertContentAt(range, markdown, { contentType: 'markdown', updateSelection: false })
+      .insertContentAt({ from: mid, to: end }, markdown || '', { contentType: 'markdown', updateSelection: false })
       .run()
+    own = false
+    return end + (ed.state.doc.content.size - before)
+  }
+
+  // Where the finished blocks of `markdown` end: the last blank line outside a fence.
+  const stableLength = (markdown) => {
+    let inFence = false
+    let at = 0
+    let stable = 0
+    for (const line of markdown.split('\n')) {
+      if (line.startsWith('```')) inFence = !inFence
+      at += line.length + 1
+      if (!inFence && line.trim() === '' && at <= markdown.length) stable = at
+    }
+    return stable
+  }
+
+  let received = ''
+  let queued = false
+  const render = (final = false) => {
+    queued = false
+    const newline = received.indexOf('\n')
+    if (newline < 0) return
+    if (mid === null) {
+      // The first line says what it did; a model that forgets is read by the text itself.
+      const tag = received.slice(0, newline).trim()
+      const ask = tag === '%%ask' || (tag !== '%%complete' && text.endsWith('?'))
+      mid = ask ? blockStart : blockEnd
+      end = blockEnd
+      if (!ask) end = mid
+      start = mid
+    }
+    const markdown = received.slice(newline + 1).replace(/^%%(ask|complete)\s*$/m, '').trimStart()
+    if (!markdown && !final) return
+    setAiStatus(ed, null)
+    // Finished blocks go in once; the rest is the block still arriving.
+    const stable = final ? markdown.length : stableLength(markdown)
+    if (stable > committed) {
+      // Trimmed: a finished block's blank line would become an empty paragraph.
+      end = put(markdown.slice(committed, stable).trim())
+      mid = end
+      committed = stable
+    }
+    // A photo waits for its block to finish, so it is put in (and loads) once.
+    let tail = markdown.slice(committed).replace(/^!\[.*$/gm, '').trim()
+    // A fence still being written is closed, so what follows it doesn't fall inside.
+    if ((tail.match(/^```/gm) || []).length % 2) tail += '\n```'
+    if (tail || end > mid) end = put(tail)
   }
 
   busy.value = true
   aiWriting.value = true
+  setAiStatus(ed, { pos: blockEnd, text: t('notes.ai.thinking') })
   props
     .assist(
       text,
@@ -200,10 +249,11 @@ function run() {
         received += token
         if (!queued) {
           queued = true
-          requestAnimationFrame(render)
+          requestAnimationFrame(() => render())
         }
       },
-      // A piece that wouldn't draw, mended once it ended (or dropped): put in its place.
+      // A piece that wouldn't draw, mended once it ended (or dropped): the whole answer is put
+      // in again, with the mended piece in its place.
       (index, program) => {
         let at = -1
         received = received.replace(/```kolmi-ai[^\n]*\n[\s\S]*?```\n?/g, (fence) => {
@@ -211,13 +261,25 @@ function run() {
           if (at !== index) return fence
           return program ? '```kolmi-ai\n' + program + '\n```\n' : ''
         })
+        if (mid !== null) {
+          mid = start
+          committed = 0
+        }
+      },
+      // What it is doing while nothing arrives: thinking, or looking for an image.
+      (status) => {
+        if (!received.includes('\n') || /image/i.test(status)) {
+          const text = /image/i.test(status) ? t('notes.ai.searchingImage') : t('notes.ai.thinking')
+          setAiStatus(ed, { pos: end ?? blockEnd, text })
+        }
       },
     )
     // Nothing came, or it failed: the note stays as it was, and the writer is told why.
     .catch((e) => emit('ai-error', e?.message || ''))
     .finally(() => {
       if (!received.includes('\n')) received += '\n'
-      render()
+      render(true)
+      setAiStatus(ed, null)
       ed.off('transaction', track)
       aiWriting.value = false
       busy.value = false
@@ -281,6 +343,29 @@ defineExpose({
 </template>
 
 <style scoped>
+/* What the AI is doing while nothing has arrived: a quiet line where its answer will go. */
+.note-editor :deep(.ai-status) {
+  margin: 0.5em 0;
+  color: var(--color-fg-muted);
+}
+
+/* A photo the AI put in comes into focus once, as it arrives. */
+.note-editor :deep(.ProseMirror img) {
+  border-radius: var(--radius-md);
+  animation: note-photo-in 0.5s ease-out;
+}
+@keyframes note-photo-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note-editor :deep(.ProseMirror img) {
+    animation: none;
+  }
+}
+
 /* The empty block being written says what it is, in the fields' faint tone. It keeps the
    block's own type, so an empty heading already shows at a heading's size. */
 .note-editor :deep(.ProseMirror-focused [data-placeholder])::before,

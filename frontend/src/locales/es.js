@@ -352,6 +352,8 @@ export default {
       ask: 'Preguntar a la IA',
       complete: 'Completar con la IA',
       help: 'Que te ayude la IA',
+      thinking: 'Pensando…',
+      searchingImage: 'Buscando una imagen…',
       remove: 'Quitar',
       failed: 'La IA no ha podido responder.',
     },

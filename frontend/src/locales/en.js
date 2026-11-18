@@ -355,6 +355,8 @@ export default {
       ask: 'Ask the AI',
       complete: 'Complete with the AI',
       help: 'Get help from the AI',
+      thinking: 'Thinking…',
+      searchingImage: 'Looking for an image…',
       remove: 'Remove',
       failed: "The AI couldn't answer.",
     },

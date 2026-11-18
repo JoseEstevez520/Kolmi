@@ -77,8 +77,8 @@ function toggleAi() {
 }
 
 // Streams what the AI writes into the note; resolves when it ends, rejects when it fails.
-function assist(text, note, onToken, onFix) {
-  return streamNoteAi(text, note, { onToken, onFix, liveId: liveId.value, failed: t('notes.ai.failed') })
+function assist(text, note, onToken, onFix, onStatus) {
+  return streamNoteAi(text, note, { onToken, onFix, onStatus, liveId: liveId.value, failed: t('notes.ai.failed') })
 }
 const noteAssist = computed(() => (aiOn.value && chatEnabled.value ? assist : null))
 
