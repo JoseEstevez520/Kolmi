@@ -17,11 +17,17 @@ export function sourceTitles(ids) {
 // (App.vue): the bubble shows only then. `null` while unknown, so it shows only once we're sure.
 export const chatEnabled = ref(null)
 
-export async function loadChatEnabled() {
+// A failed read (a redeploy, a dropped connection) doesn't switch the chat off: what was known
+// stays, and it asks again a few times, so the chat and the AI in a note don't vanish from an
+// open tab until a reload.
+let retry = null
+export async function loadChatEnabled(attempt = 0) {
+  clearTimeout(retry)
   try {
     chatEnabled.value = Boolean((await api.settings()).chat_enabled)
   } catch {
-    chatEnabled.value = false
+    if (chatEnabled.value === null && attempt >= 3) chatEnabled.value = false
+    if (attempt < 3) retry = setTimeout(() => loadChatEnabled(attempt + 1), 2000 * 2 ** attempt)
   }
 }
 
