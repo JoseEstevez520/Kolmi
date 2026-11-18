@@ -1,6 +1,6 @@
 <script setup>
 import LandingSection from '../components/LandingSection.vue'
-import NoteAiDemo from '../components/NoteAiDemo.vue'
+import NoteAiReel from '../components/NoteAiReel.vue'
 import RichText from '../components/RichText.vue'
 import { copy } from '../i18n.js'
 
@@ -14,7 +14,7 @@ import { copy } from '../i18n.js'
     <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.noteAi.lead }}</p>
 
     <figure class="m-0 flex flex-col gap-4" :aria-label="copy.noteAi.label">
-      <NoteAiDemo :demo="copy.noteAi.demo" />
+      <NoteAiReel :reel="copy.noteAi.reel" />
       <figcaption class="text-center text-sm text-fg-muted">{{ copy.noteAi.caption }}</figcaption>
     </figure>
 

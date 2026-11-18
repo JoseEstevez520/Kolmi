@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "elastic-ui/tokens.css";
 
+/* Excalidraw's hand-written font (OFL, Latin subset), for the diagrams drawn by hand in the AI in
+   a note's demo (elastic-ui's --font-hand names it first). */
+@font-face {
+  font-family: "Excalifont";
+  src: url("./assets/fonts/excalifont.woff2") format("woff2");
+  font-display: swap;
+}
+
 /* The library ships no compiled CSS: Tailwind has to read its components. */
 @source "../node_modules/elastic-ui/dist";
 
