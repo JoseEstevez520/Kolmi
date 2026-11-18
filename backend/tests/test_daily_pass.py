@@ -335,3 +335,81 @@ def test_a_note_with_neither_text_nor_files_is_left_out_of_the_pass():
     store = FakeStore(notes=[{**_note(), "content": "  \n"}], nodes=[_section()])
 
     assert run_daily_pass(store=store, llm=FakeLLM())["status"] == "empty"
+
+
+# A pass that breaks halfway must leave no empty page behind: its notes stay pending, and the
+# next pass would otherwise give them a second page.
+
+CREDIT = RuntimeError("Error code: 402 - Insufficient Balance")
+
+
+def _create(note_id: int, title: str) -> dict:
+    return {
+        "note_ids": [note_id],
+        "action": "create",
+        "new_page": {"parent_id": 10, "title": title, "description": ""},
+        "summary": f"What note {note_id} says.",
+        "reason": "new topic",
+    }
+
+
+def _pages(store: FakeStore) -> list[dict]:
+    return [n for n in store.nodes() if n["kind"] == "page"]
+
+
+def test_a_model_that_fails_after_the_gatekeeper_leaves_no_page():
+    store = FakeStore(notes=[_note()], nodes=[_section()])
+    plan = {"batches": [_create(1, "Git")], "discarded": []}
+
+    with pytest.raises(RuntimeError):
+        run_daily_pass(store=store, llm=FakeLLM(json_response=plan, text_response=[CREDIT]))
+
+    assert store.passes[1]["status"] == "failed"
+    assert _pages(store) == [] and store._pages == {}
+    assert [n["id"] for n in store.pending_notes()] == [1]
+    assert all(entry["action"] != "created" for entry in store.logs)
+
+    # The next pass, with the model back, makes the one page.
+    summary = run_daily_pass(store=store, llm=FakeLLM(json_response=plan, text_response="# Git"))
+
+    assert summary["created"] == 1
+    assert [p["title"] for p in _pages(store)] == ["Git"]
+    assert store.page(_pages(store)[0]["id"])["content_md"] == "# Git"
+    assert store.pending_notes() == []
+
+
+def test_a_model_that_fails_on_the_second_batch_keeps_the_first_page_and_no_empty_one():
+    store = FakeStore(notes=[_note(1), _note(2)], nodes=[_section()])
+    plan = {"batches": [_create(1, "Git"), _create(2, "Docker")], "discarded": []}
+
+    with pytest.raises(RuntimeError):
+        run_daily_pass(
+            store=store,
+            # The first page's notes, its web, then the second page's notes fail.
+            llm=FakeLLM(json_response=plan, text_response=["# Git", "", CREDIT]),
+        )
+
+    assert [p["title"] for p in _pages(store)] == ["Git"]
+    assert all(page["content_md"] for page in store._pages.values())
+    assert [n["id"] for n in store.pending_notes()] == [2]
+
+    retry = {"batches": [_create(2, "Docker")], "discarded": []}
+    run_daily_pass(store=store, llm=FakeLLM(json_response=retry, text_response="# Docker"))
+
+    assert sorted(p["title"] for p in _pages(store)) == ["Docker", "Git"]
+    assert all(page["content_md"] for page in store._pages.values())
+
+
+def test_a_model_that_fails_after_the_notes_agent_still_writes_the_page():
+    store = FakeStore(notes=[_note()], nodes=[_section()])
+    plan = {"batches": [_create(1, "Git")], "discarded": []}
+
+    # The notes come back; the web, from the same model, fails: the page keeps its Markdown.
+    summary = run_daily_pass(
+        store=store, llm=FakeLLM(json_response=plan, text_response=["# Git", CREDIT])
+    )
+
+    assert summary["status"] == "done" and summary["created"] == 1
+    assert len(_pages(store)) == 1
+    assert store.page(_pages(store)[0]["id"])["content_md"] == "# Git"
+    assert store.pending_notes() == []

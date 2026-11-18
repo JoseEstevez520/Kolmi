@@ -532,6 +532,16 @@ export default {
       started: 'Started',
       alreadyRunning: 'Already running',
     },
+    passAlert: {
+      title: 'The AI pass has been failing since {date}',
+      reasons: {
+        credit: 'The model has no credit left.',
+        quota: 'The model hit its usage limit.',
+        auth: 'The model refused its key.',
+        other: 'The model answered with an error.',
+      },
+      waiting: 'No notes waiting. | 1 note waiting. | {n} notes waiting.',
+    },
     schedule: {
       title: 'Timetable',
       enabled: 'Show the class timetable',

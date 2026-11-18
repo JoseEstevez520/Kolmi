@@ -229,6 +229,8 @@ export const api = {
   // Admin, the AI log: the passes, what the AI did with each note or page, and
   // the notes students have left.
   adminPasses: ({ limit = 20 } = {}) => request(`/passes?limit=${encodeURIComponent(limit)}`),
+  // Whether the latest passes all failed: since when, why and the notes waiting.
+  passHealth: () => request('/passes/health'),
 
   adminAiLog: ({ passId = null, since = null, limit = 100 } = {}) => {
     const query = new URLSearchParams()

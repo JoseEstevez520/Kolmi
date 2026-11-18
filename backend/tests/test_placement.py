@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.agents.schemas import Batch, NewPage
-from app.passes.daily import _resolve_target
+from app.passes.daily import _create_page, _resolve_target
 from tests.fakes import FakeStore
 
 
@@ -58,6 +58,9 @@ def test_placement_reason_reaches_the_log():
             placement_reason="the others build on it",
         ),
     )
-    page = _resolve_target(store, 1, batch, {"created": 0, "flagged": []})
+    stats = {"created": 0, "flagged": []}
+    page = _resolve_target(store, 1, batch, stats)
+    assert page["id"] is None and store.logs == []  # made only once its content is written
+    _create_page(store, 1, batch, page, stats)
     assert store.logs[0]["reason"] == "new topic the others build on it"
     assert _order(store, page["id"])[0] == page["id"]

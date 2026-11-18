@@ -91,6 +91,11 @@ What we're building and what's next. Open to whatever the class needs.
   behind it; a first load shows the shape of what is coming (skeletons) and never a loading line.
   The chat answers sooner: a status at once, a heartbeat against proxies that cut quiet
   connections, the reads done in parallel, fewer tools offered and a cap on tool rounds.
+- [x] **A failing pass shows in Admin** — while the latest passes have all failed, the admin
+  panel opens with a warning: since when, why in plain words (no model credit, usage limit,
+  refused key, other) and the notes waiting; it goes once a pass works (`pass_health`).
+- [x] **No empty page from a broken pass** — a new page enters the tree only once its content is
+  written, so a pass that fails halfway leaves no empty page for the next one to duplicate.
 
 ## Next: actions as tools, users and the MCP
 

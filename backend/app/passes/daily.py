@@ -47,7 +47,13 @@ def _split_unreviewed(store: Store, unreviewed: list[int]) -> tuple[list[int], l
 def _resolve_target(
     store: Store, pass_id: int, batch: Batch, stats: dict[str, Any]
 ) -> dict[str, Any] | None:
-    """Find the page a batch goes to, creating it when the gatekeeper asked."""
+    """Find the page a batch goes to.
+
+    A new page is not created here: it comes back with no `id`, and `_create_page` makes it only
+    once its content is written. A pass that fails halfway (the model out of credit, say) then
+    leaves no empty page behind for notes that stay pending, which the next pass would otherwise
+    give a second page.
+    """
     if batch.action == "update" and batch.node_id is not None:
         page = store.page(batch.node_id)
         if page:
@@ -65,6 +71,14 @@ def _resolve_target(
         return None
 
     new = batch.new_page or NewPage(parent_id=None, title="Untitled")
+    return {"id": None, "title": new.title, "content_md": "", "content_web": ""}
+
+
+def _create_page(
+    store: Store, pass_id: int, batch: Batch, page: dict[str, Any], stats: dict[str, Any]
+) -> None:
+    """Make the batch's new page in the tree, now that what goes in it is ready."""
+    new = batch.new_page or NewPage(parent_id=None, title="Untitled")
     created = store.create_page(
         parent_id=new.parent_id,
         title=new.title,
@@ -72,6 +86,7 @@ def _resolve_target(
         placement=new.placement,
         after_node_id=new.after_node_id,
     )
+    page["id"] = created["id"]
     reason = " ".join(r for r in (batch.reason, new.placement_reason) if r)
     store.log(
         pass_id=pass_id,
@@ -81,7 +96,6 @@ def _resolve_target(
         reason=reason,
     )
     stats["created"] += 1
-    return {"id": created["id"], "title": new.title, "content_md": "", "content_web": ""}
 
 
 def _write_batch(
@@ -96,7 +110,8 @@ def _write_batch(
 ) -> None:
     existing_md = page.get("content_md") or ""
     existing_web = page.get("content_web") or ""
-    # The tree as it is now (a page made in this pass included), so a page can link to another.
+    # The tree as it is now (the pages made earlier in this pass included), so a page can link
+    # to another.
     index = build_index(store.nodes())
 
     # First the notes: the page's Markdown, its source of truth.
@@ -122,6 +137,9 @@ def _write_batch(
         index=index,
     )
 
+    # The model calls are done: only now does a new page enter the tree, with its content.
+    if page["id"] is None:
+        _create_page(store, pass_id, batch, page, stats)
     if existing_md.strip() or existing_web.strip():
         store.save_version(page["id"], existing_md, existing_web)
 
@@ -198,6 +216,8 @@ def _apply(
         # A batch of only files has nothing to write: its files go to the page as they are.
         if batch.summary.strip():
             _write_batch(store, llm, web_llm, pass_id, batch, page, stats, language)
+        elif page["id"] is None:
+            _create_page(store, pass_id, batch, page, stats)
         _attach_files(store, pass_id, batch, page, files, stats)
         for note_id in batch.note_ids:
             if note_id in note_ids:

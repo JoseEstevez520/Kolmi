@@ -105,6 +105,8 @@ The router is what keeps normal pages cheap while still letting the hard ones ex
 - `list_notes(status?, module_id?)`
 - `view_ai_log(pass_id?, since?)`
 - `run_pass()`: runs the AI pass without waiting for the night
+- `pass_health()`: whether the latest passes all failed, since when, why and the notes waiting
+  (web only: the admin panel's warning)
 - `list_users()`, `set_role(user_id, role)`, `set_status(user_id, status)`,
   `delete_user(user_id)`\*: never over the MCP, and never leaving the class without an active
   admin.

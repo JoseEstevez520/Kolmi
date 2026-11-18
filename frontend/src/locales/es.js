@@ -529,6 +529,16 @@ export default {
       started: 'En marcha',
       alreadyRunning: 'Ya se está ejecutando',
     },
+    passAlert: {
+      title: 'La pasada de la IA falla desde el {date}',
+      reasons: {
+        credit: 'Al modelo no le queda saldo.',
+        quota: 'El modelo ha llegado a su límite de uso.',
+        auth: 'El modelo ha rechazado su clave.',
+        other: 'El modelo ha respondido con un error.',
+      },
+      waiting: 'Ninguna nota esperando. | 1 nota esperando. | {n} notas esperando.',
+    },
     schedule: {
       title: 'Horario',
       enabled: 'Mostrar el horario de la clase',

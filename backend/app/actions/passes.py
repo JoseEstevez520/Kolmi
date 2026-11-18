@@ -1,4 +1,5 @@
 import logging
+import re
 import threading
 
 from pydantic import BaseModel, Field
@@ -75,6 +76,63 @@ def list_passes(ctx: Context, params: ListPassesParams | None):
         .execute()
         .data
     )
+
+
+# What a failed pass's stored error says, in a word the admin panel can put in plain language.
+# The model's provider writes it (DeepSeek: "Error code: 402 - ... Insufficient Balance").
+_REASONS = (
+    ("credit", re.compile(r"\b402\b|insufficient[ _]balance|insufficient[ _]quota|billing|credit", re.I)),
+    ("quota", re.compile(r"\b429\b|rate[ _]limit|too many requests|quota", re.I)),
+    ("auth", re.compile(r"\b40[13]\b|api[ _]key|unauthori[sz]ed|authentication|permission", re.I)),
+)
+
+
+def failure_reason(error: str | None) -> str:
+    """`credit`, `quota`, `auth` or `other`, from a failed pass's error."""
+    for reason, pattern in _REASONS:
+        if pattern.search(error or ""):
+            return reason
+    return "other"
+
+
+@action(
+    name="pass_health",
+    read_only=True,
+    description="Whether the AI pass is failing: the latest finished passes, if they all failed, since when, why and how many notes wait. Admin only.",
+    method="GET",
+    path="/passes/health",
+    min_role="admin",
+)
+def pass_health(ctx: Context, params: None):
+    rows = (
+        ctx.client.table("ai_passes")
+        .select("id, status, error, started_at")
+        .order("started_at", desc=True)
+        .limit(50)
+        .execute()
+        .data
+    )
+    # The failures in a row since the last pass that worked; one still running doesn't count.
+    failed = []
+    for row in rows:
+        if row["status"] == "running":
+            continue
+        if row["status"] != "failed":
+            break
+        failed.append(row)
+    if not failed:
+        return {"status": "ok"}
+    pending = (
+        ctx.client.table("notes").select("id", count="exact").eq("status", "pending").execute()
+    )
+    return {
+        "status": "failing",
+        "since": failed[-1]["started_at"],
+        "failed": len(failed),
+        "reason": failure_reason(failed[0]["error"]),
+        "error": failed[0]["error"],
+        "pending": pending.count or 0,
+    }
 
 
 @action(

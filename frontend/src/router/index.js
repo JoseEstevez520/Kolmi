@@ -106,6 +106,12 @@ const routes = [
           meta: { public: true },
         },
         {
+          path: '/dev/pass-alert',
+          name: 'dev-pass-alert',
+          component: () => import('../views/DevPassAlertView.vue'),
+          meta: { public: true },
+        },
+        {
           path: '/dev/note-ai',
           name: 'dev-note-ai',
           component: () => import('../views/DevNoteAiView.vue'),

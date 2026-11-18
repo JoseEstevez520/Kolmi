@@ -54,7 +54,7 @@ def test_the_mcp_only_offers_tools():
 
 def test_some_actions_are_never_tools():
     registry = get_registry()
-    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account"):
+    for name in ("register_profile", "download_file", "ask_chat", "update_settings", "get_profile", "delete_my_account", "pass_health"):
         assert not registry[name].tool
         assert not registry[name].mcp
     # The bug reports are chat tools, never MCP ones.
