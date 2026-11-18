@@ -184,12 +184,34 @@ def _read_page(client):
     return read
 
 
+def _node_path(by_id: dict[int, dict[str, Any]], node: dict[str, Any]) -> str:
+    """Where a node sits in the tree, its own title last: "Tools › Git". Walks up the parents it
+    was loaded with, and stops at a broken chain rather than loop on it."""
+    titles: list[str] = []
+    seen: set[int] = set()
+    current: dict[str, Any] | None = node
+    while current is not None and current["id"] not in seen:
+        seen.add(current["id"])
+        title = (current.get("title") or "").strip()
+        if title:
+            titles.append(title)
+        parent_id = current.get("parent_id")
+        current = by_id.get(parent_id) if parent_id is not None else None
+    return " › ".join(reversed(titles))
+
+
 def _open_page(nodes: list[dict[str, Any]], node_id: int | None) -> dict[str, Any] | None:
     """The page the person has open, from the tree already loaded for them (so one they can't
-    see is simply not there); None when there is none or it isn't in the tree."""
+    see is simply not there); None when there is none or it isn't in the tree. It carries the
+    route the web shows it at and its path in the tree, so the assistant can name the page it is
+    asked about and read it with `read_page`."""
     if node_id is None:
         return None
-    return next((n for n in nodes if n["id"] == node_id), None)
+    by_id = {n["id"]: n for n in nodes}
+    node = by_id.get(node_id)
+    if node is None:
+        return None
+    return {**node, "route": f"/node/{node['id']}", "path": _node_path(by_id, node)}
 
 
 def _open_live(ctx: Context, live_id: int | None) -> dict[str, Any] | None:

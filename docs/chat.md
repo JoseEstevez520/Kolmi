@@ -72,9 +72,11 @@ slower call to draw.
 
 When the person has a page open (`/node/:id`), the web adds its id to the question as `node_id`.
 The API checks it against the tree it already loaded for that person and puts one line in the
-user part of the prompt: the page's title and id, and a reminder to read it with `read_page` if
-the question is about it. The content is not sent. An id that doesn't exist, or that the person
-can't see, is dropped without a word.
+user part of the prompt: the page's path in the tree, its id and its route (`/node/<id>`), and a
+reminder to read it with `read_page` if the question is about it. Both prompts also say the open
+page is part of what the model gets, and that "this" and "the page I'm on" mean it, so it answers
+about the page it is on instead of saying it doesn't know. The content is not sent. An id that
+doesn't exist, or that the person can't see, is dropped without a word.
 
 The same goes for a live note: on `/live/:id` the web adds `live_id`, and the API checks it with
 the rule of `read_live_note` (shared with the class, or the person's own). The prompt gets one more

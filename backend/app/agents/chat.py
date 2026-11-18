@@ -78,12 +78,16 @@ def _prompt(
     if history:
         lines = [f"{'Student' if m['role'] == 'user' else 'You'}: {m['text']}" for m in history]
         said = "\n\nThe conversation so far, last message at the end:\n" + "\n".join(lines)
-    # Only a pointer: the model reads the page itself if the question is about it.
+    # Only a pointer: the model reads the page itself if the question is about it. The route and
+    # the path are what the person sees, so "what page am I on?" has an answer and "this page"
+    # has something to point at.
     open_page = ""
     if page:
+        where = page.get("path") or page.get("title") or ""
+        route = page.get("route") or f"/node/{page['id']}"
         open_page = (
-            f"\n\nThe person has this page open: {page.get('title') or ''} (id {page['id']}). "
-            "Read it with read_page if the question is about it."
+            f"\n\nThe person has this page open: {where} (id {page['id']}, route {route}). "
+            f"Read it with read_page({page['id']}) if the question is about it."
         )
     if live:
         by = f" by {live['author']}" if live.get("author") else ""

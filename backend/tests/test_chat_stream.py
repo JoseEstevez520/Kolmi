@@ -9,7 +9,7 @@ import time
 import pytest
 from fastapi import HTTPException
 
-from app.actions.chat import PING, AskChatParams, stream_chat, with_heartbeat
+from app.actions.chat import PING, AskChatParams, _open_page, stream_chat, with_heartbeat
 from tests.fakes import FakeLLM
 from tests.test_chat_tools import _Client, _ctx
 
@@ -125,8 +125,34 @@ def _asked(monkeypatch, node_id):
 
 def test_the_open_page_is_named_not_inlined(monkeypatch):
     user = _asked(monkeypatch, 20)
-    assert "The person has this page open: Git (id 20). Read it with read_page" in user
+    assert "The person has this page open: Tools › Git (id 20, route /node/20)" in user
+    assert "read_page(20)" in user
     assert "# Git" not in user
+
+
+def test_the_prompt_says_the_open_page_is_part_of_what_it_gets(monkeypatch):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    list(stream_chat(_ctx(client), AskChatParams(question="what page am I on?", node_id=20)))
+
+    system = llm.calls[0][1]
+    assert "the page the person has open when they are on one" in system
+    assert "\"the page I'm on\"" in system
+
+
+def test_a_page_is_named_by_its_place_in_the_tree():
+    nodes = [
+        {"id": 1, "parent_id": None, "title": "Tools"},
+        {"id": 2, "parent_id": 1, "title": "Git"},
+        {"id": 3, "parent_id": 99, "title": "Orphan"},
+    ]
+    assert _open_page(nodes, 2)["path"] == "Tools › Git"
+    assert _open_page(nodes, 2)["route"] == "/node/2"
+    # A parent that isn't in the tree stops the walk instead of losing the page.
+    assert _open_page(nodes, 3)["path"] == "Orphan"
 
 
 def test_an_unknown_page_is_ignored(monkeypatch):
@@ -167,7 +193,7 @@ def test_own_unshared_live_note_is_named_but_not_a_hidden_one(monkeypatch):
 
 def test_page_and_live_note_are_both_mentioned(monkeypatch):
     user = _asked_live(monkeypatch, 1, node_id=20)
-    assert "has this page open: Git" in user and "watching this live note" in user
+    assert "has this page open: Tools › Git" in user and "watching this live note" in user
 
 
 def test_the_first_event_is_a_status_before_the_model_is_called(monkeypatch):
