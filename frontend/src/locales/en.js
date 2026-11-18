@@ -61,6 +61,7 @@ export default {
     language: 'Language',
     languageHint: "Menus, buttons and messages. Notes are written in the class's language.",
     motion: 'Animations',
+    ink: 'Diagrams by hand',
     tour: 'Guided tour',
     replayTour: 'Show it again',
     savedHere: 'Saved in this browser only.',

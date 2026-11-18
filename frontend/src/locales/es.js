@@ -58,6 +58,7 @@ export default {
     language: 'Idioma',
     languageHint: 'Los menús, botones y avisos. Los apuntes se escriben en el idioma de la clase.',
     motion: 'Animaciones',
+    ink: 'Diagramas a mano',
     tour: 'Visita guiada',
     replayTour: 'Volver a verla',
     savedHere: 'Se guarda solo en este navegador.',

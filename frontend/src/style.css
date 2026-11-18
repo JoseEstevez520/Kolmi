@@ -4,6 +4,15 @@
 /* The library ships no compiled CSS: Tailwind has to read its components. */
 @source "../node_modules/elastic-ui/dist";
 
+/* The hand-written face for diagrams by hand (Settings): elastic-ui's `--font-hand` names it and
+   the app provides it (Excalidraw's Excalifont, Latin subset, OFL; licence beside the file). Only
+   downloaded once a diagram in ink shows. */
+@font-face {
+  font-family: "Excalifont";
+  src: url("./assets/fonts/excalifont.woff2") format("woff2");
+  font-display: swap;
+}
+
 /*
  * No accent colour (see design.md): what elastic-ui uses as the accent (focus,
  * the active tab, "Important") is the same near-black grey as the text here,

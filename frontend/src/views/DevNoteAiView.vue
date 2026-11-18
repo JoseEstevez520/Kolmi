@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 import { api } from '../lib/api.js'
 import { streamNoteAi } from '../lib/noteAi.js'
 import { ready, session } from '../lib/auth.js'
+import { inkOn, setInkOn } from '../lib/ink.js'
 
 // Development only (/dev/note-ai): the real note editor with the AI on, against the real chat,
 // without saving a note (so nothing reaches the class's pass). Each question is logged in
@@ -41,10 +42,7 @@ onMounted(async () => {
   }
 })
 
-// "By hand": the drawings the AI makes in the note (a Figure's boxes and arrows) in ink, a
-// hand-written font and wobbly strokes, to try the look on real notes. Tables, steps and the
-// rest stay clean.
-const ink = ref(route.query.ink !== undefined)
+// "A mano" is the real setting (Settings, "Diagrams by hand"): a Figure's parts in ink.
 
 // ?fake streams a made-up answer instead, to look at the editor without a session or a model.
 const fake = route.query.fake !== undefined
@@ -83,9 +81,9 @@ const aiError = ref('')
         size="sm"
         :icon="PenLine"
         class="ml-auto"
-        :class="ink && 'bg-bg-muted text-fg'"
-        :aria-pressed="ink"
-        @click="ink = !ink"
+        :class="inkOn && 'bg-bg-muted text-fg'"
+        :aria-pressed="inkOn"
+        @click="setInkOn(!inkOn)"
       >
         A mano
       </Button>
@@ -97,70 +95,15 @@ const aiError = ref('')
       y vuelve aquí. O prueba el modo simulado:
       <RouterLink to="/dev/note-ai?fake" class="underline">?fake</RouterLink>.
     </p>
-    <div :class="ink && 'ink'">
-      <NoteEditor
-        :key="editorKey"
-        v-model="body"
-        label="Nota de prueba"
-        placeholder="Escribe…"
-        :assist="assist"
-        @ai-error="aiError = $event || 'La IA no ha podido responder.'"
-      />
-    </div>
+    <NoteEditor
+      :key="editorKey"
+      v-model="body"
+      label="Nota de prueba"
+      placeholder="Escribe…"
+      :assist="assist"
+      @ai-error="aiError = $event || 'La IA no ha podido responder.'"
+    />
     <p v-if="aiError" class="m-0 text-meta text-danger">{{ aiError }}</p>
-
-    <!-- The wobble for the ink look: displaces a stroke, never the text. -->
-    <svg width="0" height="0" class="absolute" aria-hidden="true">
-      <filter id="ink-rough" x="-10%" y="-40%" width="120%" height="180%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" />
-        <feDisplacementMap in="SourceGraphic" scale="2.6" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-    </svg>
   </main>
 </template>
 
-<style scoped>
-@font-face {
-  font-family: 'Excalifont';
-  src: url('/dev/excalifont.woff2') format('woff2');
-}
-
-/* Only the drawings (a Figure's parts and arrows) go in ink: the hand-written font, a wobbly pen
-   stroke on a pseudo-element so the words inside stay sharp. Tables, steps, callouts and code
-   stay as they are. */
-.ink :deep([data-ai-block] :is(.diagram-chip, .diagram-area, span.text-fg-faint)) {
-  font-family: 'Excalifont', 'Comic Neue', cursive;
-}
-.ink :deep([data-ai-block] :is(.diagram-chip, .diagram-area)) {
-  position: relative;
-  background: color-mix(in oklab, var(--diagram-color, var(--color-fg)) 7%, transparent);
-  border-radius: 6px;
-}
-.ink :deep([data-ai-block] :is(.diagram-chip, .diagram-area))::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border: 1.6px solid color-mix(in oklab, var(--diagram-color, var(--color-fg)) 75%, var(--color-fg));
-  border-radius: 6px;
-  filter: url(#ink-rough);
-  pointer-events: none;
-}
-.ink :deep([data-ai-block] svg) {
-  filter: url(#ink-rough);
-}
-/* Arrows: drawn, not faint: the pen's colour and a size you see. */
-.ink :deep([data-ai-block] span.text-fg-faint) {
-  color: var(--color-fg-secondary);
-  font-size: 0.95rem;
-}
-.ink :deep([data-ai-block] span.text-fg-faint > svg) {
-  width: 1.6em;
-  height: 1.6em;
-  stroke-width: 1.75;
-}
-/* The figure's soft ground goes: ink on the page, as in a notebook. */
-.ink :deep([data-ai-block] [role='img']),
-.ink :deep([data-ai-block] .diagram) {
-  background: transparent;
-}
-</style>

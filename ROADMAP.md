@@ -412,8 +412,10 @@ Same tools, same loop, another trigger.
   Tried against the real model in `/dev/note-ai` (no note saved); `?fake` streams a made-up
   answer. Left:
   - The pass reads the fence's program as text; it should read it as what it shows, or skip it.
-  - Completing in ink, step by step, for an idea to grasp (structures and data stay clean): needs
-    an ink look for the diagram parts in elastic-ui first.
+  - Completing in ink, step by step, for an idea to grasp (structures and data stay clean). The
+    ink look itself is built: "Diagrams by hand" in Settings (off by default, in this browser)
+    draws every Figure's chips, areas and arrows with Rough.js, in notes, the chat and the pages
+    (elastic-ui's Diagram `ink`). Left: revealing a figure step by step.
   - Other ways to reply (ask me back, an example, quiz me), if asking alone falls short in class.
   Each piece is checked when the answer ends, as the pass checks a page's (`openui.problems`; the
   chat's parts have the page's signatures), and one with problems goes back to the model once

@@ -25,12 +25,13 @@ import { api } from '../lib/api.js'
 import { ACCEPT, squareJpeg } from '../lib/avatar.js'
 import { profile, signOut } from '../lib/auth.js'
 import { LOCALES, setLocale } from '../lib/i18n.js'
+import { inkOn, setInkOn } from '../lib/ink.js'
 import { motionOn, setMotionOn } from '../lib/motion.js'
 import { replayTour } from '../lib/tour.js'
 
-// How the app behaves in this browser: its language and its animations. Both depend on the
-// device, so they are kept in the browser rather than in the account. One row per setting: what
-// it is on the left, its control on the right.
+// How the app behaves in this browser: its language, its animations and whether diagrams are
+// drawn by hand. They depend on the device, so they are kept in the browser rather than in the
+// account. One row per setting: what it is on the left, its control on the right.
 const { t, locale } = useI18n()
 const router = useRouter()
 
@@ -145,6 +146,15 @@ function showTourAgain() {
           <h2 id="motion" class="text-label font-medium text-fg">{{ t('settings.motion') }}</h2>
           <Switch :model-value="motionOn" @update:model-value="setMotionOn">
             <span class="sr-only">{{ t('settings.motion') }}</span>
+          </Switch>
+        </section>
+
+        <Separator />
+
+        <section class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5">
+          <h2 id="ink" class="text-label font-medium text-fg">{{ t('settings.ink') }}</h2>
+          <Switch :model-value="inkOn" @update:model-value="setInkOn">
+            <span class="sr-only">{{ t('settings.ink') }}</span>
           </Switch>
         </section>
 
