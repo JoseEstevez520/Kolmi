@@ -9,6 +9,11 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view'
 // ("Thinking…", "Looking for an image…"): a widget, never saved.
 export const aiRegionsKey = new PluginKey('aiRegions')
 
+// The wave of words coming into focus at the end of an answer being written: bands of this many
+// characters, newest first.
+const WAVE = ['ai-wave-3', 'ai-wave-2', 'ai-wave-1']
+const WAVE_BAND = 14
+
 // A transaction of the AI's own, which may change its places.
 export const AI_OWN = 'aiOwn'
 
@@ -96,6 +101,32 @@ export const AiRegions = Extension.create({
                   if (pos >= r.from && pos + node.nodeSize <= r.to) found.push(Decoration.node(pos, pos + node.nodeSize, { class: 'ai-writing' }))
                   return false
                 })
+              }
+              // The words just arrived come into focus: the last characters of an answer still
+              // being written fade from faint to full, in bands, a soft front that moves on as the
+              // text arrives at its steady pace (as the chat's words do, each one blurring in).
+              if (r.writing && r.to > r.from) {
+                const texts = []
+                state.doc.nodesBetween(r.from, r.to, (node, pos) => {
+                  if (node.isText) texts.push([pos, pos + node.text.length])
+                })
+                let left = WAVE.length * WAVE_BAND
+                let band = 0
+                let inBand = 0
+                for (let i = texts.length - 1; i >= 0 && left > 0; i--) {
+                  let [a, b] = texts[i]
+                  while (b > a && left > 0) {
+                    const take = Math.min(b - a, WAVE_BAND - inBand)
+                    found.push(Decoration.inline(b - take, b, { class: WAVE[band] }))
+                    b -= take
+                    left -= take
+                    inBand += take
+                    if (inBand >= WAVE_BAND) {
+                      band++
+                      inBand = 0
+                    }
+                  }
+                }
               }
               if (r.status) {
                 const text = r.status

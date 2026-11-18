@@ -72,3 +72,14 @@ body {
   background: var(--color-bg);
   color: var(--color-fg);
 }
+
+/* A chat answer's blocks (a paragraph, a table, a diagram) come into focus as each one appears,
+   with the library's blur-in, as its plain text does word by word. */
+.chat-answer-blocks > * {
+  animation: blur-in 700ms var(--ease-out, ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-answer-blocks > * {
+    animation: none;
+  }
+}

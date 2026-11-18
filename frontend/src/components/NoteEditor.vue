@@ -8,7 +8,7 @@ import { Markdown } from '@tiptap/markdown'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
 import { TableKit } from '@tiptap/extension-table'
 import { Image } from '@tiptap/extension-image'
-import { Button, SuggestionMenu, SuggestionMenuEmpty, SuggestionMenuItem } from 'elastic-ui'
+import { Button, SuggestionMenu, SuggestionMenuEmpty, SuggestionMenuItem, createStreamPace, wholeWords } from 'elastic-ui'
 import { Plus, Sparkles } from '@lucide/vue'
 import { findBlocks } from '../lib/editor/blocks.js'
 import { BlockHint } from '../lib/editor/hint.js'
@@ -195,7 +195,12 @@ function run() {
     const head = ed.state.selection.head
     const above = head >= r.to
     const top = above ? ed.view.coordsAtPos(head).top : 0
-    own((c) => c.insertContentAt({ from: r.mid, to: r.to }, markdown || '', { contentType: 'markdown', updateSelection: false }))
+    // Delete, then insert between blocks: replacing a whole paragraph in one go would pour the
+    // new blocks into it (a heading would arrive as a paragraph).
+    own((c) => {
+      const chain = r.to > r.mid ? c.deleteRange({ from: r.mid, to: r.to }) : c
+      return markdown ? chain.insertContentAt(r.mid, markdown, { contentType: 'markdown', updateSelection: false }) : chain
+    })
     if (above) {
       const moved = ed.view.coordsAtPos(ed.state.selection.head).top - top
       if (moved) window.scrollBy(0, moved)
@@ -215,24 +220,28 @@ function run() {
     return stable
   }
 
+  // What arrived (`received`), and what is on show (`revealed`): the library's steady pace, a
+  // whole word at a time, instead of the model's bursts (createStreamPace, as the chat does).
   let received = ''
+  let revealed = ''
   let committed = 0
   let queued = false
+  let done = false
   const render = (final = false) => {
     queued = false
-    const newline = received.indexOf('\n')
+    const newline = revealed.indexOf('\n')
     if (newline < 0) return
     let r = aiRegion(ed, id)
     if (!r) return
     if (r.mid == null) {
       // The first line says what it did; a model that forgets is read by the text itself. A
       // question is replaced (the place is its block); notes stay and the answer goes under.
-      const tag = received.slice(0, newline).trim()
+      const tag = revealed.slice(0, newline).trim()
       const ask = tag === '%%ask' || (tag !== '%%complete' && text.endsWith('?'))
       setAiRegion(ed, id, ask ? { mid: r.from } : { from: r.to, mid: r.to })
       r = aiRegion(ed, id)
     }
-    const markdown = received.slice(newline + 1).replace(/^%%(ask|complete)\s*$/m, '').trimStart()
+    const markdown = revealed.slice(newline + 1).replace(/^%%(ask|complete)\s*$/m, '').trimStart()
     if (!markdown && !final) return
     const stable = final ? markdown.length : stableLength(markdown)
     if (stable > committed) {
@@ -250,19 +259,58 @@ function run() {
     setAiRegion(ed, id, { status: null })
   }
 
+  let quiet = false
+  // A photo's line (a long link nobody reads) is shown whole as soon as it has arrived, so the
+  // pace doesn't spend seconds on it while nothing seems to happen.
+  let jumpTo = 0
+  const show = (n) => {
+    revealed = wholeWords(received, n, !done, quiet)
+    const lineStart = revealed.lastIndexOf('\n') + 1
+    const lineEnd = received.indexOf('\n', lineStart)
+    if (lineEnd > 0 && /^(!\[|\*Imagen:|\*Image:)/.test(received.slice(lineStart, lineEnd))) jumpTo = Math.max(jumpTo, lineEnd + 1)
+    if (jumpTo > revealed.length) revealed = received.slice(0, jumpTo)
+    if (!queued) {
+      queued = true
+      requestAnimationFrame(() => render())
+    }
+  }
+  let finished = false
+  const finish = () => {
+    if (finished) return
+    finished = true
+    pace.stop()
+    try {
+      revealed = received.includes('\n') ? received : received + '\n'
+      render(true)
+    } finally {
+      setAiRegion(ed, id, null)
+      running.delete(controller)
+      aiWriting.value--
+    }
+  }
+  const pace = createStreamPace({
+    onFrame: show,
+    onQuiet: () => {
+      quiet = true
+      show(pace.shown)
+    },
+    // Once the model is done and everything is on show, the answer ends.
+    onCaughtUp: () => {
+      if (done) finish()
+    },
+  })
+
   const controller = new AbortController()
   running.add(controller)
   aiWriting.value++
+  setAiRegion(ed, id, { writing: true })
   props
     .assist(
       text,
       note,
       (token) => {
         received += token
-        if (!queued) {
-          queued = true
-          requestAnimationFrame(() => render())
-        }
+        pace.update(received, true)
       },
       // A piece that wouldn't draw, mended once it ended (or dropped): the whole answer is put
       // in again, with the mended piece in its place.
@@ -278,6 +326,7 @@ function run() {
           setAiRegion(ed, id, { mid: r.from })
           committed = 0
         }
+        pace.update(received, true)
       },
       // What it is doing while nothing arrives: thinking, or looking for an image.
       (status) => {
@@ -294,13 +343,15 @@ function run() {
       if (!controller.signal.aborted) emit('ai-error', e?.message || '')
     })
     .finally(() => {
-      try {
-        if (!received.includes('\n')) received += '\n'
-        render(true)
-      } finally {
-        setAiRegion(ed, id, null)
-        running.delete(controller)
-        aiWriting.value--
+      done = true
+      // Stopped by the writer: what is on show stays, at once. Otherwise the rest comes in at
+      // the pace's flush and the answer ends when it has caught up.
+      if (controller.signal.aborted) {
+        received = revealed
+        finish()
+      } else {
+        pace.update(received, false)
+        if (pace.shown >= received.length) finish()
       }
     })
   return true
@@ -369,27 +420,23 @@ defineExpose({
 </template>
 
 <style scoped>
-/* The place an answer is filling in: a thin line beside it that breathes, until it ends. */
-.note-editor :deep(.ai-writing) {
-  position: relative;
+/* The words just arrived, coming into focus (the wave, see aiStatus.js): faint and soft at the
+   very end, sharper further back. Static per band, so redrawing the text never restarts it. */
+.note-editor :deep(.ai-wave-3) {
+  opacity: 0.2;
+  filter: blur(2px);
 }
-.note-editor :deep(.ai-writing)::before {
-  content: '';
-  position: absolute;
-  inset: 0.15em auto 0.15em -0.9rem;
-  width: 2px;
-  border-radius: 1px;
-  background: var(--color-fg-faint);
-  animation: ai-writing 1.6s ease-in-out infinite;
+.note-editor :deep(.ai-wave-2) {
+  opacity: 0.5;
+  filter: blur(1px);
 }
-@keyframes ai-writing {
-  50% {
-    opacity: 0.35;
-  }
+.note-editor :deep(.ai-wave-1) {
+  opacity: 0.8;
 }
 @media (prefers-reduced-motion: reduce) {
-  .note-editor :deep(.ai-writing)::before {
-    animation: none;
+  .note-editor :deep(:is(.ai-wave-3, .ai-wave-2, .ai-wave-1)) {
+    opacity: 1;
+    filter: none;
   }
 }
 

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { Markdown } from 'elastic-ui'
 import { loadChatRenderer } from '../lib/openui/load-chat.js'
+import { usePacedText } from '../lib/pacedText.js'
 
 // A chat answer written in OpenUI Lang and drawn with the chat catalogue. `text` is the raw
 // text so far; while `streaming` it is drawn as it arrives, and once the stream ends an answer
@@ -10,6 +11,12 @@ const props = defineProps({
   text: { type: String, default: '' },
   streaming: { type: Boolean, default: false },
 })
+
+// Drawn at the library's steady pace, not in the model's bursts: the same as a chat's plain text.
+const { paced, settling } = usePacedText(
+  () => props.text,
+  () => props.streaming,
+)
 
 const openui = ref(null)
 const failed = ref(false)
@@ -43,10 +50,10 @@ const asMarkdown = computed(
   <Markdown v-if="asMarkdown" :source="text" />
   <component
     :is="openui.Renderer"
-    v-else-if="openui && text"
-    :response="text"
+    v-else-if="openui && paced"
+    :response="paced"
     :library="openui.chatLibrary"
-    :is-streaming="streaming"
+    :is-streaming="settling"
     :on-error="onError"
   />
 </template>

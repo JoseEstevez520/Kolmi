@@ -14,7 +14,8 @@ export const chatLibrary = buildLibrary(
   {
     ...renderers,
     // Not inside a Prose: an answer is a chat bubble's content, with the blocks' own spacing.
-    Answer: renderer((props, renderNode) => h('div', { class: 'flex flex-col gap-3' }, renderNode(props.blocks ?? []))),
+    // Each block comes into focus as it appears (chat-answer-blocks, in style.css).
+    Answer: renderer((props, renderNode) => h('div', { class: 'chat-answer-blocks flex flex-col gap-3' }, renderNode(props.blocks ?? []))),
     Sources: renderer(({ ids }) => h(AnswerSources, { ids: Array.isArray(ids) ? ids : [] })),
     Proposal: renderer(({ id }) => (id != null ? h(AnswerProposal, { id }) : null)),
   },
