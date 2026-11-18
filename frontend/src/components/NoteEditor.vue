@@ -420,23 +420,28 @@ defineExpose({
 </template>
 
 <style scoped>
-/* The words just arrived, coming into focus (the wave, see aiStatus.js): faint and soft at the
-   very end, sharper further back. Static per band, so redrawing the text never restarts it. */
+/* The words just arrived, in ink (as the chat's, elastic-ui's ink-wave): at the very end faint,
+   soft and in an aurora colour, sharper and drying into the text's colour further back. Static per
+   band, so redrawing the text never restarts it; the front moves on with the text. */
 .note-editor :deep(.ai-wave-3) {
-  opacity: 0.2;
+  opacity: 0.35;
   filter: blur(2px);
+  color: color-mix(in oklab, var(--ink-flow) 85%, var(--color-fg));
 }
 .note-editor :deep(.ai-wave-2) {
-  opacity: 0.5;
-  filter: blur(1px);
+  opacity: 0.7;
+  filter: blur(0.6px);
+  color: color-mix(in oklab, var(--ink-flow) 70%, var(--color-fg));
 }
 .note-editor :deep(.ai-wave-1) {
-  opacity: 0.8;
+  color: color-mix(in oklab, var(--ink-flow) 40%, var(--color-fg-secondary));
+  transition: color 600ms ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
   .note-editor :deep(:is(.ai-wave-3, .ai-wave-2, .ai-wave-1)) {
     opacity: 1;
     filter: none;
+    color: inherit;
   }
 }
 

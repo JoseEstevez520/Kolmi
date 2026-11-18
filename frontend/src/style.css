@@ -73,10 +73,14 @@ body {
   color: var(--color-fg);
 }
 
-/* A chat answer's blocks (a paragraph, a table, a diagram) come into focus as each one appears,
-   with the library's blur-in, as its plain text does word by word. */
+/* A chat answer's blocks (a paragraph, a table, a diagram) arrive as its words do in Kolmi: in
+   ink (elastic-ui's ink-wave), each block landing in an aurora colour and drying into the text's. */
 .chat-answer-blocks > * {
-  animation: blur-in 700ms var(--ease-out, ease-out) both;
+  animation: ink-wave 1700ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  --ink-flow: var(--aurora-1);
+}
+.chat-answer-blocks > :nth-child(2n) {
+  --ink-flow: var(--aurora-2);
 }
 @media (prefers-reduced-motion: reduce) {
   .chat-answer-blocks > * {

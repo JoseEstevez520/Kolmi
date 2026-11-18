@@ -1,6 +1,7 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import { inkFlow } from 'elastic-ui'
 
 // While the AI writes into a note, one or several answers at once, each has a place: the blocks
 // it is filling in (`from`..`to`). That place is marked (a thin line beside it that breathes) and
@@ -117,7 +118,9 @@ export const AiRegions = Extension.create({
                   let [a, b] = texts[i]
                   while (b > a && left > 0) {
                     const take = Math.min(b - a, WAVE_BAND - inBand)
-                    found.push(Decoration.inline(b - take, b, { class: WAVE[band] }))
+                    // In ink, the band's hue drifts along the answer as the chat's words do.
+                    const at = b - take - r.from
+                    found.push(Decoration.inline(b - take, b, { class: WAVE[band], style: `--ink-flow: ${inkFlow(Math.floor(at / 6))}` }))
                     b -= take
                     left -= take
                     inBand += take
