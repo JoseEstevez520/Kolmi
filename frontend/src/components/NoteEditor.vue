@@ -14,7 +14,7 @@ import { findBlocks } from '../lib/editor/blocks.js'
 import { BlockHint } from '../lib/editor/hint.js'
 import { SlashMenu } from '../lib/editor/slash.js'
 import { Arrows } from '../lib/editor/arrows.js'
-import { AiStatus, setAiStatus } from '../lib/editor/aiStatus.js'
+import { AI_OWN, AiRegions, aiRegion, setAiRegion, shiftAiRegions } from '../lib/editor/aiStatus.js'
 import { AI_LANGUAGE, AiCodeBlock, aiWriting, withoutAi } from '../lib/editor/aiBlock.js'
 
 // The note's body, written like a page: nothing on screen but the text. Blocks come from one
@@ -29,9 +29,10 @@ const emit = defineEmits(['ai-error'])
 const props = defineProps({
   placeholder: { type: String, default: '' },
   label: { type: String, default: '' },
-  // The AI in the note, when it is on: `assist(text, note, onToken, onFix)` streams what the AI
-  // writes about a line or a selection, hands back a mended piece (by its index among the
-  // answer's pieces, or null to drop it), and resolves when it ends. Null: no AI.
+  // The AI in the note, when it is on: `assist(text, note, onToken, onFix, onStatus, signal)`
+  // streams what the AI writes about a line or a selection, hands back a mended piece (by its
+  // index among the answer's pieces, or null to drop it), says what it is doing, stops when
+  // `signal` aborts, and resolves when it ends. Null: no AI.
   assist: { type: Function, default: null },
 })
 
@@ -94,7 +95,7 @@ const editor = useEditor({
     StarterKit.configure({ heading: { levels: [2, 3] }, underline: false, codeBlock: false }),
     AiCodeBlock,
     Arrows,
-    AiStatus,
+    AiRegions,
     // A photo in the note (the AI's, from Wikimedia Commons, with its credit under it).
     Image.configure({ inline: true, HTMLAttributes: { loading: 'lazy', decoding: 'async' } }),
     TaskList,
@@ -112,6 +113,7 @@ const editor = useEditor({
     },
     // Ctrl/Cmd+Enter: the AI on the selection, or on the line the cursor is on.
     handleKeyDown: (view, event) => {
+      if (event.key === 'Escape') return stopAll()
       if (!props.assist || event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) return false
       return run()
     },
@@ -143,53 +145,61 @@ function currentLine() {
   return $from.parent.textContent
 }
 
-const busy = ref(false)
 
 // The AI on a line or a selection: one gesture, and the AI tells what it is. A question becomes
 // notes on it, in its place; the student's own notes get the piece that shows them, under them.
 // Its first line says which (%%ask or %%complete). What it writes is Markdown (with pieces as
 // ```kolmi-ai fences), part of the note from the start: the class following it live sees it
 // arrive, and it reads as the note's own, not as a chat.
+let nextRun = 0
+// The answers on their way, to stop them (Esc).
+const running = new Set()
+
 function run() {
   const ed = editor.value
-  if (!ed || !props.assist || busy.value) return false
+  if (!ed || !props.assist) return false
   const { from, to, empty, $from, $to } = ed.state.selection
   const text = (empty ? currentLine() : ed.state.doc.textBetween(from, to, '\n')).trim()
   if (!text) return false
   const note = withoutAi(ed.getMarkdown())
+  const id = `ai-${++nextRun}`
 
-  // Where it goes: the AI's text runs from `start` to `end`. Blocks already finished (a
-  // paragraph, a photo, a table) are written once, up to `mid`, and never touched again; only
-  // the block still arriving, from `mid` to `end`, is redrawn as tokens come. So nothing above
-  // the line being written flickers, and a photo loads once.
+  // Its place lives in the editor (AiRegions), which moves it with every edit, the writer's or
+  // another answer's: `from` where it starts, `to` where it ends, `mid` between the blocks
+  // already finished (written once, never touched again) and the block still arriving (redrawn
+  // as tokens come). Several answers can fill their places at once.
   const blockStart = $from.before(1)
   const blockEnd = $to.after(1)
-  let start = null
-  let mid = null
-  let end = null
-  let committed = 0
-  let own = false
-  const track = ({ transaction }) => {
-    if (own || mid === null) return
-    start = transaction.mapping.map(start, -1)
-    mid = transaction.mapping.map(mid, -1)
-    end = transaction.mapping.map(end, 1)
-  }
-  ed.on('transaction', track)
-
-  // Replace mid..end with `markdown`; returns where it ends.
-  const put = (markdown) => {
-    const before = ed.state.doc.content.size
-    own = true
-    ed.chain()
-      .command(({ tr }) => {
-        tr.setMeta('addToHistory', false)
+  const own = (run) =>
+    run(
+      ed.chain().command(({ tr }) => {
+        tr.setMeta(AI_OWN, true).setMeta('addToHistory', false)
         return true
-      })
-      .insertContentAt({ from: mid, to: end }, markdown || '', { contentType: 'markdown', updateSelection: false })
-      .run()
-    own = false
-    return end + (ed.state.doc.content.size - before)
+      }),
+    ).run()
+
+  // The writer goes on at once, on a fresh line under the place the answer will fill.
+  const after = ed.state.doc.nodeAt(blockEnd)
+  if (!(after && after.type.name === 'paragraph' && after.content.size === 0)) {
+    own((c) => c.insertContentAt(blockEnd, { type: 'paragraph' }))
+    // Another answer filling the block right under keeps its place, without this line.
+    shiftAiRegions(ed, blockEnd, 2)
+  }
+  ed.commands.setTextSelection(blockEnd + 1)
+  setAiRegion(ed, id, { from: blockStart, to: blockEnd, mid: null, status: t('notes.ai.thinking') })
+
+  // Replace the arriving part (mid..to) with `markdown`, keeping the line being written where it
+  // is on screen when the answer grows above it.
+  const put = (markdown) => {
+    const r = aiRegion(ed, id)
+    const head = ed.state.selection.head
+    const above = head >= r.to
+    const top = above ? ed.view.coordsAtPos(head).top : 0
+    own((c) => c.insertContentAt({ from: r.mid, to: r.to }, markdown || '', { contentType: 'markdown', updateSelection: false }))
+    if (above) {
+      const moved = ed.view.coordsAtPos(ed.state.selection.head).top - top
+      if (moved) window.scrollBy(0, moved)
+    }
   }
 
   // Where the finished blocks of `markdown` end: the last blank line outside a fence.
@@ -206,41 +216,43 @@ function run() {
   }
 
   let received = ''
+  let committed = 0
   let queued = false
   const render = (final = false) => {
     queued = false
     const newline = received.indexOf('\n')
     if (newline < 0) return
-    if (mid === null) {
-      // The first line says what it did; a model that forgets is read by the text itself.
+    let r = aiRegion(ed, id)
+    if (!r) return
+    if (r.mid == null) {
+      // The first line says what it did; a model that forgets is read by the text itself. A
+      // question is replaced (the place is its block); notes stay and the answer goes under.
       const tag = received.slice(0, newline).trim()
       const ask = tag === '%%ask' || (tag !== '%%complete' && text.endsWith('?'))
-      mid = ask ? blockStart : blockEnd
-      end = blockEnd
-      if (!ask) end = mid
-      start = mid
+      setAiRegion(ed, id, ask ? { mid: r.from } : { from: r.to, mid: r.to })
+      r = aiRegion(ed, id)
     }
     const markdown = received.slice(newline + 1).replace(/^%%(ask|complete)\s*$/m, '').trimStart()
     if (!markdown && !final) return
-    setAiStatus(ed, null)
-    // Finished blocks go in once; the rest is the block still arriving.
     const stable = final ? markdown.length : stableLength(markdown)
     if (stable > committed) {
       // Trimmed: a finished block's blank line would become an empty paragraph.
-      end = put(markdown.slice(committed, stable).trim())
-      mid = end
+      put(markdown.slice(committed, stable).trim())
+      setAiRegion(ed, id, { mid: aiRegion(ed, id).to })
       committed = stable
     }
     // A photo waits for its block to finish, so it is put in (and loads) once.
-    let tail = markdown.slice(committed).replace(/^!\[.*$/gm, '').trim()
+    let tail = final ? '' : markdown.slice(committed).replace(/^!\[.*$/gm, '').trim()
     // A fence still being written is closed, so what follows it doesn't fall inside.
     if ((tail.match(/^```/gm) || []).length % 2) tail += '\n```'
-    if (tail || end > mid) end = put(tail)
+    r = aiRegion(ed, id)
+    if (tail || r.to > r.mid) put(tail)
+    setAiRegion(ed, id, { status: null })
   }
 
-  busy.value = true
-  aiWriting.value = true
-  setAiStatus(ed, { pos: blockEnd, text: t('notes.ai.thinking') })
+  const controller = new AbortController()
+  running.add(controller)
+  aiWriting.value++
   props
     .assist(
       text,
@@ -261,35 +273,49 @@ function run() {
           if (at !== index) return fence
           return program ? '```kolmi-ai\n' + program + '\n```\n' : ''
         })
-        if (mid !== null) {
-          mid = start
+        const r = aiRegion(ed, id)
+        if (r && r.mid != null) {
+          setAiRegion(ed, id, { mid: r.from })
           committed = 0
         }
       },
       // What it is doing while nothing arrives: thinking, or looking for an image.
       (status) => {
-        if (!received.includes('\n') || /image/i.test(status)) {
-          const text = /image/i.test(status) ? t('notes.ai.searchingImage') : t('notes.ai.thinking')
-          setAiStatus(ed, { pos: end ?? blockEnd, text })
+        const r = aiRegion(ed, id)
+        if (r && (r.mid == null || /image/i.test(status))) {
+          setAiRegion(ed, id, { status: /image/i.test(status) ? t('notes.ai.searchingImage') : t('notes.ai.thinking') })
         }
       },
+      controller.signal,
     )
-    // Nothing came, or it failed: the note stays as it was, and the writer is told why.
-    .catch((e) => emit('ai-error', e?.message || ''))
-    .finally(() => {
-      if (!received.includes('\n')) received += '\n'
-      render(true)
-      setAiStatus(ed, null)
-      ed.off('transaction', track)
-      aiWriting.value = false
-      busy.value = false
+    // Nothing came, or it failed: the note stays as it was, and the writer is told why. Stopped
+    // by the writer (Esc): what arrived stays, nothing to say.
+    .catch((e) => {
+      if (!controller.signal.aborted) emit('ai-error', e?.message || '')
     })
+    .finally(() => {
+      try {
+        if (!received.includes('\n')) received += '\n'
+        render(true)
+      } finally {
+        setAiRegion(ed, id, null)
+        running.delete(controller)
+        aiWriting.value--
+      }
+    })
+  return true
+}
+
+// Esc stops every answer on its way; what arrived stays.
+function stopAll() {
+  if (!running.size) return false
+  for (const controller of running) controller.abort()
   return true
 }
 
 // The selection's own menu, only with the AI on: ask about it, or complete it.
 function showAiMenu({ state, from, to }) {
-  return Boolean(props.assist) && from !== to && !busy.value && state.selection.$from.parent.type.name !== 'codeBlock'
+  return Boolean(props.assist) && from !== to && state.selection.$from.parent.type.name !== 'codeBlock'
 }
 
 defineExpose({
@@ -343,6 +369,30 @@ defineExpose({
 </template>
 
 <style scoped>
+/* The place an answer is filling in: a thin line beside it that breathes, until it ends. */
+.note-editor :deep(.ai-writing) {
+  position: relative;
+}
+.note-editor :deep(.ai-writing)::before {
+  content: '';
+  position: absolute;
+  inset: 0.15em auto 0.15em -0.9rem;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-fg-faint);
+  animation: ai-writing 1.6s ease-in-out infinite;
+}
+@keyframes ai-writing {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note-editor :deep(.ai-writing)::before {
+    animation: none;
+  }
+}
+
 /* What the AI is doing while nothing has arrived: a quiet line where its answer will go. */
 .note-editor :deep(.ai-status) {
   margin: 0.5em 0;

@@ -53,7 +53,7 @@ const FAKE = {
   complete:
     '```kolmi-ai\nroot = Answer([f])\nf = Figure("Varios personajes apuntan al mismo planeta", [g, a, p], "row")\ng = Group([l, le, h], "column")\nl = Chip("Luke", "violet")\nle = Chip("Leia", "violet")\nh = Chip("Han", "violet")\na = Arrow("homeworld")\np = Chip("Tatooine", "green", "globe", "Planet")\n```\n',
 }
-async function fakeAssist(text, note, onToken, onFix, onStatus) {
+async function fakeAssist(text, note, onToken, onFix, onStatus, signal) {
   if (/raspberry/i.test(text)) {
     onStatus?.('Using search images...')
     await new Promise((r) => setTimeout(r, 1500))
@@ -64,13 +64,14 @@ async function fakeAssist(text, note, onToken, onFix, onStatus) {
       ? '%%ask\n' + FAKE.ask
       : '%%complete\n' + FAKE.complete
   for (const piece of answer.match(/.{1,12}/gs)) {
-    await new Promise((r) => setTimeout(r, 40))
+    if (signal?.aborted) return
+    await new Promise((r) => setTimeout(r, 120))
     onToken(piece)
   }
 }
 
-function realAssist(text, note, onToken, onFix, onStatus) {
-  return streamNoteAi(text, note, { onToken, onFix, onStatus })
+function realAssist(text, note, onToken, onFix, onStatus, signal) {
+  return streamNoteAi(text, note, { onToken, onFix, onStatus, signal })
 }
 const assist = fake ? fakeAssist : realAssist
 const aiError = ref('')

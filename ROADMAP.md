@@ -426,6 +426,11 @@ Same tools, same loop, another trigger.
   finds one on Wikimedia Commons with its only tool, `search_images` (`agents/images.py`, the
   public API, no key), and puts it in the note as a Markdown image with its author, licence and
   Commons link under it, as Commons asks; the editor keeps it (Tiptap's Image, inline).
+  While it writes, the writer goes on: Ctrl+Enter moves them to a fresh line under the place the
+  answer fills, the place is marked (a thin line that breathes) and kept out of their typing
+  until it ends, the line they write stays still on screen as the answer grows above it, several
+  answers can fill their places at once, and Esc stops them all, keeping what arrived. The
+  places live in the editor (`lib/editor/aiStatus.js`), mapped through every edit.
   Prior art looked at: Riddled (riddled.ai), a notebook whose AI reads along and answers in the
   margin, and AFFiNE's inline AI.
 - [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there

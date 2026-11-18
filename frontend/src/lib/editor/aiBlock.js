@@ -10,9 +10,9 @@ import NoteCodeBlock from '../../components/NoteCodeBlock.vue'
 // `components` (NoteAiFence).
 export const AI_LANGUAGE = 'kolmi-ai'
 
-// While the AI writes notes into the editor (their pieces arrive half written), so a piece isn't
-// judged unreadable before its program ends.
-export const aiWriting = ref(false)
+// How many answers the AI is writing into the editor right now (their pieces arrive half
+// written), so a piece isn't judged unreadable before its program ends.
+export const aiWriting = ref(0)
 
 export const AiCodeBlock = CodeBlock.extend({
   addAttributes() {

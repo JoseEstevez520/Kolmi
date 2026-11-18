@@ -300,7 +300,9 @@ export const api = {
   // `error`), each handed to `onEvent(name, data)`. Read with `fetch`, as `EventSource` can't
   // send the session header. A refusal before the stream starts (limit, chat off) throws.
   // `extra` asks from a note: { mode: 'note_ask' | 'note_complete', note }.
+  // `extra.signal` (an AbortSignal) stops it: it then ends quietly with what arrived.
   async streamChat(question, history, onEvent, nodeId = null, liveId = null, extra = {}) {
+    const { signal, ...more } = extra
     const token = accessToken()
     let response
     try {
@@ -310,9 +312,11 @@ export const api = {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ question, history, node_id: nodeId, live_id: liveId, ...extra }),
+        body: JSON.stringify({ question, history, node_id: nodeId, live_id: liveId, ...more }),
+        signal,
       })
     } catch {
+      if (signal?.aborted) return
       throw new ApiError(0, t('api.unreachable'))
     }
     if (!response.ok || !response.body) {
@@ -328,7 +332,14 @@ export const api = {
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
     let pending = ''
     for (;;) {
-      const { done, value } = await reader.read()
+      let chunk
+      try {
+        chunk = await reader.read()
+      } catch (e) {
+        if (signal?.aborted) return
+        throw e
+      }
+      const { done, value } = chunk
       if (done) break
       pending += value
       const events = pending.split('\n\n')

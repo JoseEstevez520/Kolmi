@@ -4,7 +4,7 @@ import { api } from './api.js'
 // once it ends, a piece that wouldn't draw comes back mended (or dropped) as a `fix`. Resolves
 // when the answer is done, rejects with the reason when it couldn't write. `onStatus` hears what
 // it is doing while nothing arrives (thinking, looking for an image).
-export async function streamNoteAi(text, note, { onToken, onFix, onStatus, liveId = null, failed = 'failed' }) {
+export async function streamNoteAi(text, note, { onToken, onFix, onStatus, signal, liveId = null, failed = 'failed' }) {
   let error = false
   await api.streamChat(
     text,
@@ -17,7 +17,7 @@ export async function streamNoteAi(text, note, { onToken, onFix, onStatus, liveI
     },
     null,
     liveId,
-    { mode: 'note', note },
+    { mode: 'note', note, signal },
   )
   if (error) throw new Error(failed)
 }
