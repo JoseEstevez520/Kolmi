@@ -59,12 +59,49 @@
   /*
    * The aurora is the library's one decorative colour, only behind AI at work (the chat):
    * ours is honey, the logo's own amber (#EFA220) carried across four tones instead of the
-   * library's default blue-to-pink.
+   * library's default blue-to-pink. It is a glow, seen through the panel's glass.
    */
   --aurora-1: light-dark(oklch(0.74 0.15 70 / 0.7), oklch(0.62 0.16 70 / 0.65));
   --aurora-2: light-dark(oklch(0.68 0.16 50 / 0.7), oklch(0.56 0.17 50 / 0.65));
   --aurora-3: light-dark(oklch(0.86 0.1 90 / 0.75), oklch(0.68 0.12 90 / 0.5));
   --aurora-4: light-dark(oklch(0.82 0.14 85 / 0.6), oklch(0.64 0.15 85 / 0.5));
+
+  /*
+   * Ink is the same honey as a word, not as a glow. The library draws a word the AI writes in a
+   * colour mixed from the aurora (`inkFlow` into `--ink-flow`) and lets it dry into the text's;
+   * taken from the glow's tones, the pale, 70%-opaque ones, it landed at about 1.3:1 over the
+   * panel and the person's own bubble, so the words coming in could hardly be read. These are
+   * the ink's own: the honey with less chroma and deeper, at full strength, between 4 and 5:1
+   * here, which still reads as arriving before it settles rather than as a second text colour.
+   */
+  --ink-1: light-dark(oklch(0.55 0.08 70), oklch(0.8 0.1 70));
+  --ink-2: light-dark(oklch(0.53 0.09 50), oklch(0.78 0.11 50));
+  --ink-3: light-dark(oklch(0.56 0.06 90), oklch(0.84 0.07 90));
+  --ink-4: light-dark(oklch(0.55 0.07 85), oklch(0.82 0.09 85));
+}
+
+/*
+ * Where words arrive in ink — the chat and the AI in a note — they take the ink's ramp instead.
+ * `inkFlow` builds each word's `--ink-flow` from the four aurora tones, and puts it inline on the
+ * word, so the tones are the one place the ink's colour can be set from here. Only inside the
+ * chat's dialog: the aurora behind the chat is its sibling, and keeps the glow's own tones.
+ */
+.chat-panel [role="dialog"],
+.note-editor {
+  --aurora-1: var(--ink-1);
+  --aurora-2: var(--ink-2);
+  --aurora-3: var(--ink-3);
+  --aurora-4: var(--ink-4);
+}
+
+/*
+ * The chat panel fades the top of its content so it dissolves under the header. ChatThread rests
+ * the question it just sent 24px below the top of its scroll area, and the fade covers the first
+ * 56px: the bubble came to rest half gone, nudged up under what was above it. The thread's own
+ * edge cuts it cleanly instead.
+ */
+.chat-panel [class*="[mask-image"] {
+  mask-image: none;
 }
 
 body {

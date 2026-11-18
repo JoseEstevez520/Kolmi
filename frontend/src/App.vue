@@ -127,13 +127,15 @@ const indicator = ref(null)
       <TourStep target="settings" to="/settings" :title="t('tour.settings.title')">{{ t('tour.settings.body') }}</TourStep>
     </Tour>
 
-    <!-- Honey, not the library's default: --aurora-1 to -4 are Kolmi's own, in style.css.
+    <!-- Honey, not the library's default: --aurora-1 to -4 are Kolmi's own, in style.css, and
+         `chat-panel` is where the ink its answers arrive in takes its deeper tones.
          Floats over every screen; an answer is whole, never streamed, so no ChatTool step. -->
     <ChatMorph
       v-if="withSidebar && chatEnabled"
       v-model:open="chatOpen"
       v-model:size="chatSize"
       resizable
+      class="chat-panel"
       :label="t('chat.label')"
       :title="t('chat.title')"
       :settled="settled"

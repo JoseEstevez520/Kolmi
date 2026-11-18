@@ -192,6 +192,7 @@ export default {
     thinking: 'Thinking…',
     error: "Couldn't answer",
     dropped: 'The connection closed before the answer arrived. Try again.',
+    bugReported: 'Report {id} sent',
     sources: 'From: {pages}',
     sourcesLabel: 'From:',
     greeting: "I'm Kolmi. Ask me anything about the class.",

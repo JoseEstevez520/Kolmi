@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, ChatMessage, ChatThread, Markdown, StatusText } from 'elastic-ui'
+import { Button, ChatMessage, ChatThread, Markdown, Status, StatusText } from 'elastic-ui'
 import { profile } from '../lib/auth.js'
 import { messages, send, sourceTitles } from '../lib/chat.js'
 import { chatSize } from '../lib/chatPanel.js'
@@ -39,10 +39,13 @@ function unplaced(m) {
     <!-- One child per message (ChatMessage, and the sources line when it has one). ChatThread
          finds the question inside by its role and brings it to the top as it is sent. -->
     <div v-for="m in messages" :key="m.id" class="flex flex-col gap-1.5">
+      <!-- Reported, done: a ring and the report's number, the one thing no other part says
+           once a proposal has folded away (lib/chat.js, `announce`). -->
+      <Status v-if="m.role === 'notice'" state="done" :label="m.text" />
       <!-- No `text` prop: the answer is Markdown, which ChatStream's plain-text wave can't
            draw, so the default slot takes over for both roles and the "thinking" line is
            drawn here instead of left to ChatMessage. -->
-      <ChatMessage :role="m.role">
+      <ChatMessage v-else :role="m.role">
         <template v-if="m.role === 'user'">{{ m.text }}</template>
         <template v-else-if="m.error">
           <span class="text-[color:var(--color-danger)]">{{ m.error }}</span>

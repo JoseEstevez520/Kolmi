@@ -241,6 +241,23 @@ function settle(p, answer) {
   p.result = answer.result ?? ''
   p.error = answer.status === 'pending' && answer.result ? answer.result : ''
   p.open = Boolean(p.error)
+  announce(p, answer)
+}
+
+// A bug report is the one change that leaves nothing to see where it ran: the card folds away
+// and the chat says nothing. Its id is also the only way to find the report again, so it goes in
+// the conversation, as a line of its own under the card. The tool answers `{"id": 7, ...}`.
+function announce(p, answer) {
+  if (p.tool !== 'report_bug' || answer.status !== 'done') return
+  let report
+  try {
+    report = JSON.parse(answer.result ?? '')
+  } catch {
+    // An answer that isn't that JSON says nothing worth a line.
+    return
+  }
+  if (report?.id == null) return
+  messages.value.push({ id: nextId++, role: 'notice', text: t('chat.bugReported', { id: report.id }) })
 }
 
 async function decide(p, request) {
