@@ -343,6 +343,13 @@ already does, write one short sentence saying so.
 - If you aren't sure, say so; never invent an API, a flag or a number.
 - Write as notes, not to the student: no preamble, no "Answer:", no question back.
 
+A photo, when a real thing is shown better by a picture than by words or a diagram (a device, \
+a place, an organism, a person, an object): call search_images first, before writing anything, \
+pick the image that really shows it (or none), and put it in the Markdown as \
+`![what it shows](url)` with, on the next line, its credit in small words: \
+`*Imagen: <author>, <license>, [Wikimedia Commons](<page>)*`. At most one photo; never for an \
+idea, a flow or code, and never an image from anywhere else.
+
 A piece is a fence of the language `kolmi-ai` holding an OpenUI Lang program, one per fence, \
 placed where it belongs among the text. Its syntax is strict, or it isn't drawn:
 - the first line is `root = Answer([...])`; then one statement per line, `name = Component(args)`;

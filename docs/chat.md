@@ -12,7 +12,7 @@ Two different jobs, on the same streamed endpoint:
 | For | asking what you don't know, from the class's notes | writing your notes, in class |
 | Reads | the class's pages (passages, the tree, `read_page`), the web | only the note as written so far |
 | Answers from | the class's content first | what the model knows: the topic is usually new, not in any page yet |
-| Can act | proposes actions (cards to confirm) | never: no tools, no actions |
+| Can act | proposes actions (cards to confirm) | never; its one tool finds a photo on Wikimedia Commons |
 | What it writes | an answer in the thread | notes in the note, with pieces drawn in the page (a question is replaced by them; notes get a piece under them) |
 
 The AI in a note is `/chat/stream` with `mode` set to `note` and `note` holding the note's

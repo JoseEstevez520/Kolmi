@@ -420,6 +420,10 @@ Same tools, same loop, another trigger.
   with them (`agents/note_pieces.py`, a `fix` event): mended in place, or dropped, never shown as
   code. The pass reads the pieces as what they show: the gatekeeper, the notes agent and the web
   agent may keep one as it is when it fits the page, or say it in words; nothing obliges either.
+  Photos: when a real thing is shown better by a picture (a device, a place, an organism), it
+  finds one on Wikimedia Commons with its only tool, `search_images` (`agents/images.py`, the
+  public API, no key), and puts it in the note as a Markdown image with its author, licence and
+  Commons link under it, as Commons asks; the editor keeps it (Tiptap's Image, inline).
   Prior art looked at: Riddled (riddled.ai), a notebook whose AI reads along and answers in the
   margin, and AFFiNE's inline AI.
 - [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there

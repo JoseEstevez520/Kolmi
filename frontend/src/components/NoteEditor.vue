@@ -7,6 +7,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
 import { TableKit } from '@tiptap/extension-table'
+import { Image } from '@tiptap/extension-image'
 import { Button, SuggestionMenu, SuggestionMenuEmpty, SuggestionMenuItem } from 'elastic-ui'
 import { Plus, Sparkles } from '@lucide/vue'
 import { findBlocks } from '../lib/editor/blocks.js'
@@ -92,6 +93,8 @@ const editor = useEditor({
     StarterKit.configure({ heading: { levels: [2, 3] }, underline: false, codeBlock: false }),
     AiCodeBlock,
     Arrows,
+    // A photo in the note (the AI's, from Wikimedia Commons, with its credit under it).
+    Image.configure({ inline: true, HTMLAttributes: { loading: 'lazy', decoding: 'async' } }),
     TaskList,
     TaskItem.configure({ nested: true }),
     TableKit.configure({ table: { resizable: false } }),

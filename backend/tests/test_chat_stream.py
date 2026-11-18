@@ -265,9 +265,9 @@ def test_the_ai_in_a_note_reads_the_note_and_offers_no_tools(monkeypatch):
     assert "<note>\nSpring: beans\n\nsingleton by default\n</note>" in user
     assert user.endswith("Question: what was @Bean?")
     # A class's notes are on what is new: it doesn't read the class's pages (no tree, no pages)
-    # nor search the web, and it acts on nothing. No tools at all.
+    # nor search the web, and it acts on nothing. Its one tool finds a photo on Commons.
     assert "Tree:" not in user
-    assert llm.offered_tools[0] == []
+    assert llm.offered_tools[0] == ["search_images"]
     assert events[0] == ("status", {"text": "Thinking..."})
     # It counts against the daily limit like any question.
     assert len(client.rows("chat_messages")) == 1

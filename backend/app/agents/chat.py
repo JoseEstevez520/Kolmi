@@ -180,6 +180,8 @@ def run_chat_stream(
     live: dict[str, Any] | None = None,
     note: str | None = None,
     system: str | None = None,
+    extra_tools: list[dict[str, Any]] | None = None,
+    run_extra: Callable[[str, dict[str, Any]], str] | None = None,
 ) -> Iterator[dict[str, str]]:
     """`run_chat`, streamed: the same context and tools, but the model writes an OpenUI Lang
     program (`root = Answer([...])`) and it comes out as `status` and `token` events as it is
@@ -206,7 +208,9 @@ def run_chat_stream(
     # Without a page reader (asking from a note) there are no pages to read: no read_page tool.
     tools = ([READ_PAGE_TOOL] if read_page is not None else []) + ([SEARCH_WEB_TOOL] if search is not None else [])
     tools += actions or []
+    # Tools of its own for a caller that isn't the chat (the AI in a note: search_images).
+    tools += extra_tools or []
     run_search = search_tool(search, []) if search is not None else None
     run_pages = read_page_tool(nodes, read_page, []) if read_page is not None else (lambda name, args: "")
-    run_tool = _combined_tool(run_pages, run_search, run_action)
+    run_tool = _combined_tool(run_pages, run_search, run_action or run_extra)
     yield from llm.stream_with_tools(system, user, tools, run_tool, max_rounds=CHAT_MAX_TOOL_ROUNDS)

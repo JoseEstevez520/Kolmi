@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from ..agents import get_chat_llm, run_chat
 from ..agents.chat import run_chat_stream
+from ..agents.images import SEARCH_IMAGES_TOOL, images_tool
 from ..agents.note_pieces import apply_mends, mend_pieces
 from ..agents.openui import chat_parts
 from ..agents.prompts import NOTE_PARTS, note_system
@@ -553,6 +554,9 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 passages=passages,
                 note=_note(params),
                 system=_NOTE_SYSTEMS[params.mode](language) if in_note else None,
+                # From a note it may show a real thing with a photo from Wikimedia Commons.
+                extra_tools=[SEARCH_IMAGES_TOOL] if in_note else None,
+                run_extra=images_tool() if in_note else None,
             ):
                 if event["type"] == "token":
                     program += event["text"]

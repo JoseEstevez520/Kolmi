@@ -22,7 +22,9 @@ singleton por defecto → una sola instancia, todos los que lo piden reciben la 
 
 petición: navegador → controller → service → repository → BD
 
-¿Qué diferencia hay entre @Component y @Bean?`)
+¿Qué diferencia hay entre @Component y @Bean?
+
+¿cómo es una Raspberry Pi?`)
 const editorKey = ref(0)
 
 onMounted(async () => {
@@ -47,12 +49,18 @@ const ink = ref(route.query.ink !== undefined)
 // ?fake streams a made-up answer instead, to look at the editor without a session or a model.
 const fake = route.query.fake !== undefined
 const FAKE = {
+  photo:
+    '## Raspberry Pi\nUn ordenador completo en una placa del tamaño de una tarjeta: CPU, RAM, USB, HDMI, Ethernet y pines GPIO. Corre Linux.\n\n![Raspberry Pi 4 Model B](https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Raspberry_Pi_4_Model_B_-_Side.jpg/960px-Raspberry_Pi_4_Model_B_-_Side.jpg)\n*Imagen: Laserlicht, CC BY-SA 4.0, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Raspberry_Pi_4_Model_B_-_Side.jpg)*\n',
   ask: '## @Component vs @Bean\n\nAmbos registran beans; cambia quién crea el objeto → Spring o tú.\n\n```kolmi-ai\nroot = Answer([t])\nt = Table(["", "@Component", "@Bean"], [["Va sobre", "tu clase", "un método de una @Configuration"], ["Lo crea", "Spring, al escanear", "tú, en el método"]])\n```\n',
   complete:
     '```kolmi-ai\nroot = Answer([f])\nf = Figure("Varios personajes apuntan al mismo planeta", [g, a, p], "row")\ng = Group([l, le, h], "column")\nl = Chip("Luke", "violet")\nle = Chip("Leia", "violet")\nh = Chip("Han", "violet")\na = Arrow("homeworld")\np = Chip("Tatooine", "green", "globe", "Planet")\n```\n',
 }
 async function fakeAssist(text, note, onToken) {
-  const answer = text.endsWith('?') ? '%%ask\n' + FAKE.ask : '%%complete\n' + FAKE.complete
+  const answer = /raspberry/i.test(text)
+    ? '%%ask\n' + FAKE.photo
+    : text.endsWith('?')
+      ? '%%ask\n' + FAKE.ask
+      : '%%complete\n' + FAKE.complete
   for (const piece of answer.match(/.{1,12}/gs)) {
     await new Promise((r) => setTimeout(r, 40))
     onToken(piece)
