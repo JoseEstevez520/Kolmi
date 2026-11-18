@@ -98,17 +98,24 @@ export const AiRegions = Extension.create({
             const found = []
             for (const r of regions) {
               if (r.to > r.from) {
+                // Until the answer's first line arrives, the block it was asked about sits back:
+                // dimmed, never blurred, and it comes back the moment the answer starts.
+                const waiting = r.status != null && r.mid == null
+                const className = waiting ? 'ai-writing ai-waiting' : 'ai-writing'
                 state.doc.nodesBetween(r.from, r.to, (node, pos) => {
-                  if (pos >= r.from && pos + node.nodeSize <= r.to) found.push(Decoration.node(pos, pos + node.nodeSize, { class: 'ai-writing' }))
+                  if (pos >= r.from && pos + node.nodeSize <= r.to) found.push(Decoration.node(pos, pos + node.nodeSize, { class: className }))
                   return false
                 })
               }
               // The words just arrived come into focus: the last characters of an answer still
               // being written fade from faint to full, in bands, a soft front that moves on as the
               // text arrives at its steady pace (as the chat's words do, each one blurring in).
-              if (r.writing && r.to > r.from) {
+              // Only what the answer itself has written: in the block it was asked in, the
+              // writer's own text keeps its focus; there it only sits back while it waits.
+              const bandFrom = r.mid ?? r.to
+              if (r.writing && r.to > bandFrom) {
                 const texts = []
-                state.doc.nodesBetween(r.from, r.to, (node, pos) => {
+                state.doc.nodesBetween(bandFrom, r.to, (node, pos) => {
                   if (node.isText) texts.push([pos, pos + node.text.length])
                 })
                 let left = WAVE.length * WAVE_BAND
@@ -119,7 +126,7 @@ export const AiRegions = Extension.create({
                   while (b > a && left > 0) {
                     const take = Math.min(b - a, WAVE_BAND - inBand)
                     // In ink, the band's hue drifts along the answer as the chat's words do.
-                    const at = b - take - r.from
+                    const at = b - take - bandFrom
                     found.push(Decoration.inline(b - take, b, { class: WAVE[band], style: `--ink-flow: ${inkFlow(Math.floor(at / 6))}` }))
                     b -= take
                     left -= take

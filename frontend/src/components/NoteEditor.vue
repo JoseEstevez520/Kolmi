@@ -451,6 +451,13 @@ defineExpose({
   color: var(--color-fg-muted);
 }
 
+/* While the AI thinks, the line it was asked about sits back: dimmed, never blurred, and back to
+   its own colour the moment the answer starts. */
+.note-editor :deep(.ai-waiting) {
+  opacity: 0.55;
+  transition: opacity 300ms ease;
+}
+
 /* A photo the AI put in comes into focus once, as it arrives. */
 .note-editor :deep(.ProseMirror img) {
   border-radius: var(--radius-md);
