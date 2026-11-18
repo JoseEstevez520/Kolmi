@@ -42,6 +42,14 @@ def _brief(*, title: str, markdown: str, existing_web: str, language: str, index
         "The page's notes, in Markdown (the page says all of this, and nothing more):",
         markdown,
     ]
+    if "```kolmi-ai" in markdown:
+        parts += [
+            "",
+            "The notes hold ```kolmi-ai fences: pieces already drawn, in OpenUI Lang with an "
+            "Answer root and the same components and signatures as the page's. Where one fits the "
+            "page, you may reuse its statements as they are (without its root line, renaming any "
+            "name that clashes) instead of drawing it again; redraw it when a better piece fits.",
+        ]
     if existing_web.strip():
         parts += ["", "Current page, in OpenUI Lang (keep what still holds):", existing_web]
     parts += tree_lines(index)

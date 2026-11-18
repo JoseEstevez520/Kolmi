@@ -20,6 +20,9 @@ text, with its own prompt (`note_system`). It gets a line or a selection and tel
 on its first line: `%%ask` for a question (notes on it replace it) or `%%complete` for the
 student's notes (the piece that shows them goes under them). It counts against the chat's daily limit like any question. A
 drawing is saved in the note as a ```kolmi-ai fence with the program (see the ROADMAP item).
+When the answer ends, each piece is checked as a page is and, if it wouldn't draw, sent back to
+the model once with its problems; the stream then sends `fix` (`index`, `program`, or null to
+drop it) before `done`.
 
 ## What the model writes
 

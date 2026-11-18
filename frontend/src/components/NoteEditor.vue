@@ -27,8 +27,9 @@ const emit = defineEmits(['ai-error'])
 const props = defineProps({
   placeholder: { type: String, default: '' },
   label: { type: String, default: '' },
-  // The AI in the note, when it is on: `assist(text, note, onToken)` streams what the AI writes
-  // about a line or a selection and resolves when it ends. Null: no AI.
+  // The AI in the note, when it is on: `assist(text, note, onToken, onFix)` streams what the AI
+  // writes about a line or a selection, hands back a mended piece (by its index among the
+  // answer's pieces, or null to drop it), and resolves when it ends. Null: no AI.
   assist: { type: Function, default: null },
 })
 
@@ -189,13 +190,26 @@ function run() {
   busy.value = true
   aiWriting.value = true
   props
-    .assist(text, note, (token) => {
-      received += token
-      if (!queued) {
-        queued = true
-        requestAnimationFrame(render)
-      }
-    })
+    .assist(
+      text,
+      note,
+      (token) => {
+        received += token
+        if (!queued) {
+          queued = true
+          requestAnimationFrame(render)
+        }
+      },
+      // A piece that wouldn't draw, mended once it ended (or dropped): put in its place.
+      (index, program) => {
+        let at = -1
+        received = received.replace(/```kolmi-ai[^\n]*\n[\s\S]*?```\n?/g, (fence) => {
+          at++
+          if (at !== index) return fence
+          return program ? '```kolmi-ai\n' + program + '\n```\n' : ''
+        })
+      },
+    )
     // Nothing came, or it failed: the note stays as it was, and the writer is told why.
     .catch((e) => emit('ai-error', e?.message || ''))
     .finally(() => {

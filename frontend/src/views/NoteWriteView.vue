@@ -17,6 +17,7 @@ import { usePolling } from '../lib/polling.js'
 import { useIdleChrome } from '../lib/idleChrome.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
 import { chatEnabled, loadChatEnabled } from '../lib/chat.js'
+import { streamNoteAi } from '../lib/noteAi.js'
 
 // Writing a note, as a page of its own: a title and the text under it, nothing else in the
 // way. At /notes/new it starts one; at /notes/:id it reopens one of yours, until the daily
@@ -76,20 +77,8 @@ function toggleAi() {
 }
 
 // Streams what the AI writes into the note; resolves when it ends, rejects when it fails.
-async function assist(text, note, onToken) {
-  let failed = false
-  await api.streamChat(
-    text,
-    [],
-    (name, data) => {
-      if (name === 'token') onToken(data.text)
-      if (name === 'error') failed = true
-    },
-    null,
-    liveId.value,
-    { mode: 'note', note },
-  )
-  if (failed) throw new Error(t('notes.ai.failed'))
+function assist(text, note, onToken, onFix) {
+  return streamNoteAi(text, note, { onToken, onFix, liveId: liveId.value, failed: t('notes.ai.failed') })
 }
 const noteAssist = computed(() => (aiOn.value && chatEnabled.value ? assist : null))
 

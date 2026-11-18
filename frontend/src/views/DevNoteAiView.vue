@@ -4,6 +4,7 @@ import { Button, ThemeToggle } from 'elastic-ui'
 import { PenLine } from '@lucide/vue'
 import { useRoute } from 'vue-router'
 import { api } from '../lib/api.js'
+import { streamNoteAi } from '../lib/noteAi.js'
 import { ready, session } from '../lib/auth.js'
 
 // Development only (/dev/note-ai): the real note editor with the AI on, against the real chat,
@@ -58,20 +59,8 @@ async function fakeAssist(text, note, onToken) {
   }
 }
 
-async function realAssist(text, note, onToken) {
-  let failed = false
-  await api.streamChat(
-    text,
-    [],
-    (name, data) => {
-      if (name === 'token') onToken(data.text)
-      if (name === 'error') failed = true
-    },
-    null,
-    null,
-    { mode: 'note', note },
-  )
-  if (failed) throw new Error('failed')
+function realAssist(text, note, onToken, onFix) {
+  return streamNoteAi(text, note, { onToken, onFix })
 }
 const assist = fake ? fakeAssist : realAssist
 const aiError = ref('')

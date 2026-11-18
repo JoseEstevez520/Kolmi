@@ -410,6 +410,11 @@ Same tools, same loop, another trigger.
   - Completing in ink, step by step, for an idea to grasp (structures and data stay clean): needs
     an ink look for the diagram parts in elastic-ui first.
   - Other ways to reply (ask me back, an example, quiz me), if asking alone falls short in class.
+  Each piece is checked when the answer ends, as the pass checks a page's (`openui.problems`; the
+  chat's parts have the page's signatures), and one with problems goes back to the model once
+  with them (`agents/note_pieces.py`, a `fix` event): mended in place, or dropped, never shown as
+  code. The pass reads the pieces as what they show: the gatekeeper, the notes agent and the web
+  agent may keep one as it is when it fits the page, or say it in words; nothing obliges either.
   Prior art looked at: Riddled (riddled.ai), a notebook whose AI reads along and answers in the
   margin, and AFFiNE's inline AI.
 - [ ] **Chat sessions** — parked: Kolmi is not a study tool today, and the notes are always there

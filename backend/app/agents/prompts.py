@@ -26,6 +26,10 @@ code, numbers, links), faithful to the notes. Do not invent facts.
 - The hint is a hint, not an order: the note usually goes there, but think about it and move it \
 if it fits better elsewhere.
 - Look before deciding whether something is new or a repeat.
+- A note may hold ```kolmi-ai fences: pieces the AI drew in the student's note while they wrote \
+(OpenUI Lang: a Table, Steps, a Figure…). Read them as what they show, as part of the note. When \
+one already shows its idea well for the page, you may keep it in the summary as it is, fence and \
+all; otherwise carry what it says in words. Nothing obliges either.
 - Notes may come in any language. Use them all, whatever their language, and write every \
 summary, title and description in {{language}}.
 
@@ -217,6 +221,9 @@ The answer:
 - The whole page in {{language}}, even when the material or the current page is in another \
 language: translate what you keep. No level-1 heading: the title is shown already.
 - No names or personal data. Do not invent facts.
+- The material may hold ```kolmi-ai fences, pieces already drawn (a table, steps, a diagram). Keep \
+one, as it is, where it belongs when it shows that part of the page well; drop it or say it in \
+words when it doesn't fit the page.
 - Answer with the page in Markdown: no preamble, no code fence around the whole page.
 - After the page, on a line of its own, write `---decisions---` and under it a few short lines: what you left out, merged or changed from the material or the current page, and why. Kolmi keeps them for the class admin, so a decision can be understood later. They are not part of the page.
 """
