@@ -98,12 +98,13 @@ export const AiRegions = Extension.create({
             const found = []
             for (const r of regions) {
               if (r.to > r.from) {
-                // Until the answer's first line arrives, the block it was asked about sits back:
-                // dimmed, never blurred, and it comes back the moment the answer starts.
-                const waiting = r.status != null && r.mid == null
-                const className = waiting ? 'ai-writing ai-waiting' : 'ai-writing'
+                // The block the answer fills, and while it waits, the one it was asked in. A data
+                // attribute, not a class: the library styles a heading only while it has no class
+                // (`:where(h2):not([class])`), and a heading would stop being one as it arrived.
+                const attrs = { 'data-ai-writing': '' }
+                if (r.status != null && r.mid == null) attrs['data-ai-waiting'] = ''
                 state.doc.nodesBetween(r.from, r.to, (node, pos) => {
-                  if (pos >= r.from && pos + node.nodeSize <= r.to) found.push(Decoration.node(pos, pos + node.nodeSize, { class: className }))
+                  if (pos >= r.from && pos + node.nodeSize <= r.to) found.push(Decoration.node(pos, pos + node.nodeSize, attrs))
                   return false
                 })
               }

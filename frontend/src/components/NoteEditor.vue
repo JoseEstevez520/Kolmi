@@ -453,7 +453,7 @@ defineExpose({
 
 /* While the AI thinks, the line it was asked about sits back: dimmed, never blurred, and back to
    its own colour the moment the answer starts. */
-.note-editor :deep(.ai-waiting) {
+.note-editor :deep([data-ai-waiting]) {
   opacity: 0.55;
   transition: opacity 300ms ease;
 }
