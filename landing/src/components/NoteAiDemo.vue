@@ -231,7 +231,8 @@ function reveal(name) {
   if (!box || !el) return
   const b = box.getBoundingClientRect()
   const r = el.getBoundingClientRect()
-  const margin = 28
+  // Room under what just came in, so the note never reads as stuck to the bottom edge.
+  const margin = 96
   let top = box.scrollTop
   if (r.bottom > b.bottom - margin) top += r.bottom - b.bottom + margin
   if (r.top - (top - box.scrollTop) < b.top + margin) top = box.scrollTop + r.top - b.top - margin
@@ -315,7 +316,7 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
           </div>
         </div>
 
-        <div ref="screen" class="note-scroll min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pt-8 pb-14 sm:px-10 sm:pt-10">
+        <div ref="screen" class="note-scroll min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pt-8 pb-40 sm:px-10 sm:pt-10">
           <p class="m-0 mb-8 text-display text-fg">{{ demo.title }}</p>
           <Prose class="note-body">
             <!-- The student's lines, typed as the class goes on. -->
@@ -341,9 +342,9 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
               <h2 v-if="s.heading"><template v-for="(word, i) in headingWords.slice(0, s.heading)" :key="i"><span :class="{ ink: s.ink }" :style="{ '--ink-flow': inkFlow(i) }">{{ word }}</span>{{ ' ' }}</template></h2>
               <p v-if="s.line"><template v-for="(word, i) in lineWords.slice(0, s.line)" :key="i"><span :class="{ ink: s.ink }" :style="{ '--ink-flow': inkFlow(i) }">{{ word }}</span>{{ ' ' }}</template></p>
               <div v-if="s.figure" :ref="setRef('figure')" class="not-prose my-6" :class="!reduced && 'animate-blur-in'">
-                <Diagram :label="demo.answer.figure.label" class="rounded-[var(--radius-xl)] bg-bg-subtle p-4 sm:p-6">
+                <Diagram :label="demo.answer.figure.label" class="w-full">
                   <p class="figure-title">{{ demo.answer.figure.title }}</p>
-                  <DiagramGroup layout="row">
+                  <DiagramGroup layout="row" class="w-full justify-between">
                     <DiagramChip :icon="User" :color="COLORS.url"><span class="whitespace-nowrap">{{ demo.answer.figure.you }}</span></DiagramChip>
                     <DiagramArrow :label="demo.answer.figure.arrows[0]" />
                     <DiagramChip :icon="Globe"><span class="whitespace-nowrap">{{ demo.answer.figure.network }}</span></DiagramChip>

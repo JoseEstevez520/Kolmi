@@ -1,5 +1,5 @@
 <script setup>
-import { Button, IconLink, IconLinks, StickyHeader, ThemeToggle } from 'elastic-ui'
+import { Button, Logo, StickyHeader, ThemeToggle } from 'elastic-ui'
 import { siGithub } from 'simple-icons'
 import LocaleToggle from '../components/LocaleToggle.vue'
 import { copy } from '../i18n.js'
@@ -24,10 +24,13 @@ import { copy } from '../i18n.js'
 
     <template #actions>
       <LocaleToggle />
-      <IconLinks variant="ghost" :label="copy.nav.code">
-        <IconLink :icon="siGithub" label="GitHub" :href="copy.links.repo" />
-      </IconLinks>
+      <!-- A ghost button as the rest of the bar: the same grey, no tray of the brand's colour. -->
+      <Button variant="ghost" size="sm" :href="copy.links.repo" :aria-label="`${copy.nav.code}: GitHub`">
+        <Logo :icon="siGithub" mono alt="" />
+        GitHub
+      </Button>
       <ThemeToggle />
     </template>
   </StickyHeader>
 </template>
+
