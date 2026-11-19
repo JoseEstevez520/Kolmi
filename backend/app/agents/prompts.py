@@ -30,6 +30,10 @@ if it fits better elsewhere.
 (OpenUI Lang: a Table, Steps, a Figure…). Read them as what they show, as part of the note. When \
 one already shows its idea well for the page, you may keep it in the summary as it is, fence and \
 all; otherwise carry what it says in words. Nothing obliges either.
+- A note may ask for something to be shown on the page: a simulator, an interactive piece, a \
+diagram, a calculator. That is not chatter: keep the request in its batch's "asks", in one line \
+(what to show and what it should let the reader see or try), and its topic's content in the \
+summary. A note that only asks, with nothing else, still goes to its page with that request.
 - Notes may come in any language. Use them all, whatever their language, and write every \
 summary, title and description in {{language}}.
 
@@ -52,6 +56,7 @@ Answer only with JSON in this shape:
       "new_page": {{"parent_id": 4, "title": "Git basics", "description": "", "placement": "first" | "after" | "last", "after_node_id": 7, "placement_reason": "why it goes there"}},
       "summary": "cleaned, merged content, no names",
       "reason": "what it adds to that page",
+      "asks": "what the notes ask the page to show, or empty",
       "file_ids": [5]
     }}
   ],

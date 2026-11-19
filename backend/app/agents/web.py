@@ -32,7 +32,9 @@ class Page:
     visuals: list[dict[str, Any]] = field(default_factory=list)
 
 
-def _brief(*, title: str, markdown: str, existing_web: str, language: str, index: str = "") -> str:
+def _brief(
+    *, title: str, markdown: str, existing_web: str, language: str, index: str = "", asks: str = ""
+) -> str:
     # The language goes in the brief: through the Gateway the system prompt is its own.
     parts = [
         language_line(language),
@@ -50,6 +52,13 @@ def _brief(*, title: str, markdown: str, existing_web: str, language: str, index
             "page, you may reuse its statements as they are (without its root line, renaming any "
             "name that clashes) instead of drawing it again; redraw it when a better piece fits.",
         ]
+    if asks.strip():
+        parts += [
+            "",
+            f"The students ask this page to show: {asks.strip()}",
+            "Give it to them: an Artifact (or a Diagram, or the piece made for it) with a precise "
+            "brief, built from what the notes say, in the place of the page it explains.",
+        ]
     if existing_web.strip():
         parts += ["", "Current page, in OpenUI Lang (keep what still holds):", existing_web]
     parts += tree_lines(index)
@@ -64,13 +73,19 @@ def write_web(
     existing_web: str = "",
     language: str = FALLBACK_LANGUAGE,
     index: str = "",
+    asks: str = "",
 ) -> Page:
     """Ask a model to turn the page's notes (`markdown`) into the page in OpenUI Lang.
 
     Raises when the call fails or the answer is not a page.
     """
     brief = _brief(
-        title=title, markdown=markdown, existing_web=existing_web, language=language, index=index
+        title=title,
+        markdown=markdown,
+        existing_web=existing_web,
+        language=language,
+        index=index,
+        asks=asks,
     )
     # The Gateway expands its short config block; any other model gets the whole catalogue.
     system = openui.gateway_prompt() if getattr(web_llm, "gateway", False) else openui.full_prompt()
@@ -364,6 +379,7 @@ def build_page(
     existing_web: str = "",
     language: str = FALLBACK_LANGUAGE,
     index: str = "",
+    asks: str = "",
 ) -> Page:
     """Turn the page's notes (`markdown`) into its web, in the class `language`.
 
@@ -386,6 +402,7 @@ def build_page(
                 existing_web=existing_web,
                 language=language,
                 index=index,
+                asks=asks,
             )
         except Exception as exc:  # any failure moves on to the next model; the pass goes on
             reasons.append(f"{_name(writer)} failed: {exc}")

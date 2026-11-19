@@ -578,3 +578,13 @@ def test_a_named_import_over_several_lines_is_accepted():
     spread = PIECE.replace("import { ref } from 'vue'", "import {\n  ref,\n  computed,\n} from 'vue'")
 
     assert _problem("piece", spread)[1] == ""
+
+
+def test_what_the_notes_ask_for_reaches_the_web_writer():
+    from app.agents.web import _brief
+
+    with_ask = _brief(
+        title="Ohm", markdown="V = I R", existing_web="", language="es", asks="a simulator of V, I and R"
+    )
+    assert "The students ask this page to show: a simulator of V, I and R" in with_ask
+    assert "students ask" not in _brief(title="Ohm", markdown="V = I R", existing_web="", language="es")

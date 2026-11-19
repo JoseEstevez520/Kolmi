@@ -135,6 +135,7 @@ def _write_batch(
         existing_web=existing_web,
         language=language,
         index=index,
+        asks=batch.asks,
     )
 
     # The model calls are done: only now does a new page enter the tree, with its content.

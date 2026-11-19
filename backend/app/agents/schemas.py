@@ -24,6 +24,9 @@ class Batch(BaseModel):
     new_page: NewPage | None = None
     summary: str
     reason: str = ""
+    # What the notes ask the page to show (a simulator, a diagram, a calculator…), in a line for
+    # the agent that writes the page's web; "" when they ask for nothing.
+    asks: str = ""
     # Files of those notes that stay: they are attached to the page.
     file_ids: list[int] = Field(default_factory=list)
 
