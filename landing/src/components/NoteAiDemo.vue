@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { ArrowLeft, Globe, Maximize2, Radio, RotateCcw, Sparkles } from '@lucide/vue'
+import { ArrowLeft, Cpu, Globe, Maximize2, Monitor, Radio, RotateCcw, Sparkles, User } from '@lucide/vue'
 import {
   Button,
   Diagram,
@@ -21,17 +21,18 @@ import { libraryLabels } from '../i18n.js'
 
 // The AI in a note, played back as one scene, the way a product demo shows it: the note editor as
 // the app draws it and a student taking notes in class. A question typed in the middle and
-// Ctrl+Enter (a key press in a floating pill): the line dims while the AI thinks, and notes on it
-// take its place, their words landing in ink. A rough line of their own and Ctrl+Enter again: it
-// stays, and the diagram that shows it comes under it. It starts once in view, pauses when it
-// leaves, and plays again from the button under the note. Under reduced motion it shows the end,
-// still. The scene is made up; `demo` holds its texts, in each language.
+// Ctrl+Enter (a key press in a floating pill): the line dims while the AI thinks, and the answer
+// takes its place, its heading and line landing in ink, then the figure that walks the answer,
+// then the table's rows. It starts once in view, pauses when it leaves, and plays again from the
+// button under the note. Under reduced motion it shows the end, still. The scene is made up;
+// `demo` holds its texts, in each language.
 const props = defineProps({
   demo: { type: Object, required: true },
 })
 
-// The figure's colours, from the app's figure palette (violet and green).
-const COLORS = { character: '#7c3aed', planet: 'var(--color-success)' }
+// The figure's colours, from the app's figure palette: blue for what the student does, violet for
+// the browser's engine, green for the screen. The network keeps the app's own grey.
+const COLORS = { url: '#2563eb', render: '#7c3aed', screen: 'var(--color-success)' }
 
 // ---- What the note shows at any moment ----
 function initial() {
@@ -39,18 +40,17 @@ function initial() {
     l0: '', // the student's first lines, typed
     l1: '',
     q: '', // the question, typed
-    qGone: false, // the notes on it, in its place
+    qGone: false, // the answer, in its place
     asked: false, // sent: the line dims while the AI thinks
     heading: 0, // words of the heading shown
     line: 0, // words of the line under it
+    figure: false, // the figure that walks the answer, there
     rows: -1, // -1 no table yet, 0 its header, n its rows
     ink: false, // the answer's words in ink, until it is written
-    r: '', // the rough line, typed
-    figure: false, // the diagram, there
     keys: false, // Ctrl+Enter on show
     pressed: null, // null, 'ctrl' or 'both'
-    caret: 'l0', // 'l0', 'l1', 'q', 'r', 'after' or null
-    lit: null, // the line the keys go on: 'q' or 'r'
+    caret: 'l0', // 'l0', 'l1', 'q', 'after' or null
+    lit: null, // the line the keys go on: 'q'
   }
 }
 const s = reactive(initial())
@@ -136,8 +136,8 @@ async function scene() {
   await wait(600)
   await ctrlEnter('q')
 
-  // The question stays, dimmed, while the AI thinks; then the notes on it take its place, word by
-  // word, in ink.
+  // The question stays, dimmed, while the AI thinks; then the answer takes its place: the heading
+  // and the line word by word, in ink, then the figure that walks it, then the table's rows.
   s.asked = true
   await wait(700)
   s.qGone = true
@@ -152,7 +152,11 @@ async function scene() {
     s.line = i
     await wait(70)
   }
-  await wait(220)
+  await wait(320)
+  s.figure = true
+  await nextTick()
+  revealTop('figure')
+  await wait(1000)
   for (let i = 0; i <= d.answer.rows.length; i++) {
     s.rows = i
     await nextTick()
@@ -161,18 +165,6 @@ async function scene() {
   }
   // The answer is written: the ink dries into the note's own colour, as it does in the app.
   s.ink = false
-  await wait(1800)
-
-  // A rough line of the student's own, and Ctrl+Enter again.
-  await type('r', d.rough)
-  await wait(600)
-  await ctrlEnter('r')
-
-  // That line stays as it is; the diagram that shows it comes under it.
-  await wait(700)
-  s.figure = true
-  await nextTick()
-  reveal('figure')
   await wait(1400)
 
   // The student goes on writing under it.
@@ -190,9 +182,8 @@ function showEnd() {
     qGone: true,
     heading: headingWords.value.length,
     line: lineWords.value.length,
-    rows: d.answer.rows.length,
-    r: d.rough,
     figure: true,
+    rows: d.answer.rows.length,
     caret: null,
   })
 }
@@ -247,6 +238,17 @@ function reveal(name) {
   box.scrollTo({ top, behavior: reduced.value ? 'auto' : 'smooth' })
 }
 
+// A piece taller than the note's own screen (the figure on a phone): its first part comes to the
+// top, so the flow is read from where it starts.
+function revealTop(name) {
+  const box = screen.value
+  const el = refs[name]
+  if (!box || !el) return
+  const b = box.getBoundingClientRect()
+  const r = el.getBoundingClientRect()
+  box.scrollTo({ top: box.scrollTop + r.top - b.top - 28, behavior: reduced.value ? 'auto' : 'smooth' })
+}
+
 // ---- Starting where it is looked at ----
 const root = ref(null)
 let observer = null
@@ -296,11 +298,11 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
 </script>
 
 <template>
-  <div ref="root" class="mx-auto flex w-full max-w-[44rem] flex-col items-center gap-3">
+  <div ref="root" class="mx-auto flex w-full max-w-[54rem] flex-col items-center gap-3">
     <!-- One note on a calm surface, as the app draws it. Watched, not used: it plays by itself. -->
     <div class="w-full rounded-[2rem] bg-bg-muted/50 p-3 sm:p-5">
       <div
-        class="relative flex h-[26rem] flex-col overflow-hidden rounded-[1.75rem] border border-border bg-bg shadow-[0_18px_40px_-24px_rgb(0_0_0/0.35)] sm:h-[30rem]"
+        class="relative flex h-[28rem] flex-col overflow-hidden rounded-[1.75rem] border border-border bg-bg shadow-[0_18px_40px_-24px_rgb(0_0_0/0.35)] sm:h-[36rem]"
         aria-hidden="true"
         inert
       >
@@ -325,7 +327,7 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
               </p>
             </template>
 
-            <!-- A question, typed; sent, it dims while the AI thinks and the notes on it take its
+            <!-- A question, typed; sent, it dims while the AI thinks and the answer takes its
                  place. -->
             <template v-if="!s.qGone">
               <p
@@ -338,6 +340,20 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
             <template v-else>
               <h2 v-if="s.heading"><template v-for="(word, i) in headingWords.slice(0, s.heading)" :key="i"><span :class="{ ink: s.ink }" :style="{ '--ink-flow': inkFlow(i) }">{{ word }}</span>{{ ' ' }}</template></h2>
               <p v-if="s.line"><template v-for="(word, i) in lineWords.slice(0, s.line)" :key="i"><span :class="{ ink: s.ink }" :style="{ '--ink-flow': inkFlow(i) }">{{ word }}</span>{{ ' ' }}</template></p>
+              <div v-if="s.figure" :ref="setRef('figure')" class="not-prose my-6" :class="!reduced && 'animate-blur-in'">
+                <Diagram :label="demo.answer.figure.label" class="rounded-[var(--radius-xl)] bg-bg-subtle p-4 sm:p-6">
+                  <p class="figure-title">{{ demo.answer.figure.title }}</p>
+                  <DiagramGroup layout="row">
+                    <DiagramChip :icon="User" :color="COLORS.url"><span class="whitespace-nowrap">{{ demo.answer.figure.you }}</span></DiagramChip>
+                    <DiagramArrow :label="demo.answer.figure.arrows[0]" />
+                    <DiagramChip :icon="Globe"><span class="whitespace-nowrap">{{ demo.answer.figure.network }}</span></DiagramChip>
+                    <DiagramArrow :label="demo.answer.figure.arrows[1]" />
+                    <DiagramChip :icon="Cpu" :color="COLORS.render"><span class="whitespace-nowrap">{{ demo.answer.figure.render }}</span></DiagramChip>
+                    <DiagramArrow :label="demo.answer.figure.arrows[2]" />
+                    <DiagramChip :icon="Monitor" :color="COLORS.screen"><span class="whitespace-nowrap">{{ demo.answer.figure.screen }}</span></DiagramChip>
+                  </DiagramGroup>
+                </Diagram>
+              </div>
               <div v-if="s.rows >= 0" :ref="setRef('table')" class="not-prose my-5">
                 <Table :aria-label="demo.answer.label">
                   <TableHeader :class="!reduced && 'animate-blur-in'">
@@ -359,23 +375,6 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
               </div>
             </template>
 
-            <!-- A rough line of their own: it stays, and the diagram that shows it goes under it. -->
-            <p v-if="s.r || s.caret === 'r'" :ref="setRef('r')" class="note-line" :class="{ 'note-line--lit': s.lit === 'r' }">
-              <template v-for="(part, j) in pieces(s.r)" :key="j">
-                <span v-if="part === '→'" class="inline-arrow">→</span><template v-else>{{ part }}</template>
-              </template><span v-if="s.caret === 'r'" class="note-caret" :class="playing && 'note-caret--typing'" />
-            </p>
-            <div v-if="s.figure" :ref="setRef('figure')" class="not-prose my-6" :class="!reduced && 'animate-blur-in'">
-              <Diagram :label="demo.figure.label" class="rounded-[var(--radius-xl)] bg-bg-subtle p-5 sm:p-6">
-                <DiagramGroup layout="row">
-                  <DiagramGroup layout="column">
-                    <DiagramChip v-for="name in demo.figure.characters" :key="name" :color="COLORS.character">{{ name }}</DiagramChip>
-                  </DiagramGroup>
-                  <DiagramArrow label="homeworld" />
-                  <DiagramChip :icon="Globe" :color="COLORS.planet" :note="demo.figure.planetNote">{{ demo.figure.planet }}</DiagramChip>
-                </DiagramGroup>
-              </Diagram>
-            </div>
             <p v-if="s.caret === 'after'" :ref="setRef('after')"><span class="note-caret" /></p>
           </Prose>
         </div>
@@ -414,6 +413,15 @@ const pieces = (text) => text.split(/(→)/).filter(Boolean)
   line-height: 1.3;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* The figure's title, above what it walks. */
+.figure-title {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-fg);
 }
 
 /* The editor's caret: still while typing, blinking when it waits. */

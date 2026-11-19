@@ -14,7 +14,7 @@ the landing shows the real thing, built from the app's own parts:
 | `before-after` | the two notes as cards with their status, and the page the pass wrote from them, with its diagram |
 | How it works | an `AgentReplay` of that night's pass (made up and shortened, and it says so), then the table |
 | `chat` | a made-up conversation drawn with `ChatMessage` and `ChatProposal`; the card works (Confirm and Cancel move it through its states) with nothing behind it |
-| (not in the README yet) The AI in a note | a scripted scene of the note editor (`NoteAiDemo`): a student types, a question becomes notes with a `Table`, a rough line gets a `Diagram` under it. Made up, and it says so; it plays once in view, has play, steps and restart like `AgentReplay`, and shows its end under reduced motion |
+| (not in the README yet) The AI in a note | a scripted scene of the note editor (`NoteAiDemo`): a student types, and a question becomes an answer with a heading, a line, a `Diagram` of the way from click to pixel and a `Table` of the steps. Made up, and it says so; it plays once in view, pauses when it leaves and shows its end under reduced motion |
 | Your own AI, connected | one small `Diagram` (material read by your AI, notes left in Kolmi) and the command for a client |
 | Around the notes | six small cards |
 
