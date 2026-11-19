@@ -1,4 +1,4 @@
-import { accessToken, authReady, isWaiting, profile, ready } from './auth.js'
+import { accessToken, authReady, freshToken, isWaiting, profile, ready } from './auth.js'
 import { t } from './i18n.js'
 
 export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -27,10 +27,10 @@ async function checkAccess() {
 }
 
 // `keepalive` lets a request outlive the page, for a save as the tab closes.
-async function request(path, { method = 'GET', body, keepalive = false } = {}) {
+async function request(path, { method = 'GET', body, keepalive = false, renewed = false } = {}) {
   // A reload draws the shell before Supabase has refreshed a stale token: wait for it.
   if (!ready.value) await authReady
-  const token = accessToken()
+  const token = await freshToken({ force: renewed })
   const headers = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
@@ -57,6 +57,11 @@ async function request(path, { method = 'GET', body, keepalive = false } = {}) {
     }
   }
 
+  // A token the server no longer takes: renew the session once and ask again.
+  if (response.status === 401 && token && !renewed) {
+    return request(path, { method, body, keepalive, renewed: true })
+  }
+
   if (!response.ok) {
     const message =
       (data && typeof data === 'object' && data.detail) || response.statusText || t('api.failed')
@@ -69,7 +74,7 @@ async function request(path, { method = 'GET', body, keepalive = false } = {}) {
 
 // A file comes back as the response's body: the same session header, the bytes kept as they are.
 async function fetchFile(path) {
-  const token = accessToken()
+  const token = await freshToken()
   let response
   try {
     response = await fetch(`${BASE_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
@@ -121,7 +126,7 @@ function upload({ file, noteId = null, nodeId = null, onProgress }) {
 
 // The profile photo goes up as the request's body, like a file; removing it has none.
 async function avatar(method, blob) {
-  const token = accessToken()
+  const token = await freshToken()
   const headers = {}
   if (token) headers.Authorization = `Bearer ${token}`
   if (blob) headers['Content-Type'] = blob.type
@@ -303,7 +308,7 @@ export const api = {
   // `extra.signal` (an AbortSignal) stops it: it then ends quietly with what arrived.
   async streamChat(question, history, onEvent, nodeId = null, liveId = null, extra = {}) {
     const { signal, ...more } = extra
-    const token = accessToken()
+    const token = await freshToken()
     let response
     try {
       response = await fetch(`${BASE_URL}/chat/stream`, {

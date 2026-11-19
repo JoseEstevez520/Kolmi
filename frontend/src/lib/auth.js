@@ -105,6 +105,18 @@ export function accessToken() {
   return session.value?.access_token ?? null
 }
 
+// The token for a request, renewed first when it has expired or is about to. A tab left in the
+// background can miss Supabase's own refresh (the browser slows its timers), and every request
+// would then fail until something else renewed the session.
+export async function freshToken({ force = false } = {}) {
+  const expiresAt = session.value?.expires_at
+  if (force || (expiresAt && expiresAt * 1000 - Date.now() < 60_000)) {
+    const { data } = force ? await supabase.auth.refreshSession() : await supabase.auth.getSession()
+    if (data?.session) setSession(data.session)
+  }
+  return accessToken()
+}
+
 // The name to prefill Register with, from the Google account when there is one.
 export function displayName() {
   const user = session.value?.user
