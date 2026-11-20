@@ -99,15 +99,35 @@ _COLUMN_SETS = [
 ]
 
 
+def _missing_column(exc: Exception) -> bool:
+    """Whether the read failed for a column (or the table) the database does not have yet.
+
+    PostgREST says so with Postgres' undefined_column/undefined_table or its own PGRST204.
+    """
+    code = str(getattr(exc, "code", "") or "")
+    text = str(exc).lower()
+    return code in {"42703", "42P01", "PGRST204", "PGRST205"} or (
+        "does not exist" in text and ("column" in text or "relation" in text)
+    )
+
+
 def _row(client) -> dict[str, Any] | None:
     error: Exception | None = None
     for columns in _COLUMN_SETS:
-        try:
-            rows = _select(client, columns)
-        except Exception as exc:  # a column, or the table, is not there yet; or Supabase is down
-            error = exc
-            continue
-        return rows[0] if rows else None
+        # A dropped connection or a timeout is asked again with the same columns: falling back
+        # to fewer would answer with defaults (the chat off) for a row that has them all.
+        for attempt in range(2):
+            try:
+                rows = _select(client, columns)
+            except Exception as exc:
+                error = exc
+                if _missing_column(exc):
+                    break  # an instance whose migrations are behind: fewer columns
+                if attempt == 0:
+                    continue
+                log.warning("could not read the settings row, using the environment: %s", exc)
+                return None
+            return rows[0] if rows else None
     log.warning("could not read the settings row, using the environment: %s", error)
     return None
 
