@@ -3,10 +3,11 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import MomentSection from './MomentSection.vue'
 
 // After the hero, the chapters (Jose, 2026-11-21: the pinned stage driven by script was "muy
-// confuso"). Following the usual advice for this kind of page, the scroll is the browser's own, not
-// taken over: each chapter fills one screen and the page snaps to it (CSS scroll-snap, `proximity`
-// in style.css, so the hero and the footer scroll freely), the way it moves is always the same, and
-// keys and trackpads behave as everywhere else. Each chapter's animation plays by itself when it
+// confuso"; he wants it "más satisfactorio y sencillo"). The scroll stays the browser's own, so keys,
+// trackpads and scrolling up behave as everywhere else; each chapter fills one screen, and when the
+// scroll comes to rest near the chapters, the page finishes the move by itself and settles on the
+// chapter it was heading to, up or down. (CSS scroll-snap was tried: `mandatory` sent a small turn
+// of the wheel back to where it started.) Each chapter's animation plays by itself when it
 // arrives (MomentSection). Dots on the side show where you are and take you to a chapter; they show
 // only while the chapters are on screen.
 defineProps({
@@ -16,11 +17,58 @@ defineProps({
 
 const root = ref(null)
 const active = ref(0)
+
+// ---- Settling on a chapter when the scroll rests ----
+const SETTLE_MS = 140 // the scroll counts as at rest after this long without moving
+let lastY = 0
+let direction = 0
+let settling = false
+let restTimer = 0
+function onScroll() {
+  const y = scrollY
+  if (y !== lastY) direction = Math.sign(y - lastY)
+  lastY = y
+  clearTimeout(restTimer)
+  restTimer = setTimeout(settle, SETTLE_MS)
+}
+function settle() {
+  if (settling) {
+    settling = false
+    return
+  }
+  const chapters = [...root.value.querySelectorAll('[data-chapter]')]
+  const mid = innerHeight / 2
+  // Only between the middle of the first chapter's screen and the last one's: the hero and the
+  // footer scroll freely.
+  const first = chapters[0].getBoundingClientRect()
+  const last = chapters.at(-1).getBoundingClientRect()
+  if (first.top > mid || last.bottom < mid) return
+  // Leaving the chapters: going up past the first one's centre, or down past the last one's, the
+  // page is let go towards the hero or the footer.
+  if (direction < 0 && first.top + first.height / 2 > mid) return
+  if (direction > 0 && last.top + last.height / 2 < mid) return
+  // The chapter whose centre is nearest the screen's, nudged towards the way the scroll was going.
+  let best = 0
+  let bestGap = Infinity
+  chapters.forEach((el, i) => {
+    const r = el.getBoundingClientRect()
+    const gap = r.top + r.height / 2 - mid
+    const score = Math.abs(gap) - (Math.sign(gap) === direction ? innerHeight * 0.25 : 0)
+    if (score < bestGap) (bestGap = score), (best = i)
+  })
+  const r = chapters[best].getBoundingClientRect()
+  const target = scrollY + r.top + r.height / 2 - mid
+  if (Math.abs(target - scrollY) < 2) return
+  settling = true
+  scrollTo({ top: target, behavior: 'smooth' })
+}
 const inView = ref(false)
 let watchChapters = null
 let watchRegion = null
 
 onMounted(() => {
+  lastY = scrollY
+  addEventListener('scroll', onScroll, { passive: true })
   const sections = [...root.value.querySelectorAll('[data-chapter]')]
   watchChapters = new IntersectionObserver(
     (entries) => {
@@ -33,6 +81,8 @@ onMounted(() => {
   watchRegion.observe(root.value)
 })
 onBeforeUnmount(() => {
+  removeEventListener('scroll', onScroll)
+  clearTimeout(restTimer)
   watchChapters?.disconnect()
   watchRegion?.disconnect()
 })
@@ -67,12 +117,11 @@ function go(i) {
 </template>
 
 <style scoped>
-/* One chapter, one screen, and the page snaps to its centre. */
+/* One chapter, one screen. */
 .chapter {
   display: flex;
   min-height: 100svh;
   align-items: center;
-  scroll-snap-align: center;
 }
 .dots {
   position: fixed;

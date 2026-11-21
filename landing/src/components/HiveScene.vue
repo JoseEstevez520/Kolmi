@@ -2,80 +2,46 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { copy } from '../i18n.js'
 
-// What the night pass does, as one physical gesture (Jose, 2026-11-21: the first version, notes
-// flying into a glowing logo, was "muy slop"). Loose notes from four students slide in one by one
-// and land on a pile in the centre, each a little askew; the pile presses together, and the page of
-// the class unfolds out of it, its lines coming in one after the other. It holds, folds back into
-// the pile, and after a rest the notes slide out and it all starts again (a loop with a pause, as
-// Jose asked). The timeline is a list of steps in milliseconds, so it reads and changes easily.
-// Under reduced motion it shows the page, still.
+// What the night pass does, flat and in order (Jose, 2026-11-21: the earlier scenes were "slop",
+// with shadows that are not his style and everything piled up). Two columns, no shadows, no
+// borders, surfaces in the page's own greys: on the left the loose notes of four students, one under
+// the other; on the right the page of the class. One note at a time lights up, and the part of the
+// page that comes from it appears, so you see each note become part of the page. It holds, clears,
+// rests and plays again; it starts when reached. Under reduced motion it shows the end, still.
+const STEP_MS = 1100 // between one note and the next
+const HOLD_MS = 4200 // the finished page, before it clears
+const REST_MS = 1400 // empty, before it plays again
 
-// Where each note comes from, and how it sits on the pile.
-const NOTES = [
-  { from: '-60vw', lean: -5, kind: 'sticky' },
-  { from: '60vw', lean: 3, kind: 'card' },
-  { from: '-60vw', lean: 6, kind: 'card' },
-  { from: '60vw', lean: -3, kind: 'sticky' },
-]
-// The scene's timeline (ms): when each state starts.
-const STEPS = [
-  [400, 'note0'],
-  [800, 'note1'],
-  [1200, 'note2'],
-  [1600, 'note3'],
-  [2500, 'press'],
-  [3000, 'page'],
-  [3300, 'line0'],
-  [3600, 'line1'],
-  [3900, 'line2'],
-  [4200, 'line3'],
-  [8200, 'fold'],
-  [8900, 'leave'],
-  [11000, 'restart'], // the rest before it plays again
-]
-
-const landed = ref(0) // how many notes are on the pile
-const pressed = ref(false)
-const page = ref(false)
-const lines = ref(0)
-const folding = ref(false)
-const leaving = ref(false)
-const reduced = ref(false)
+const active = ref(-1) // the note lighting up now
+const shown = ref(0) // how many parts of the page are on
 const root = ref(null)
 let timers = []
 let observer = null
 
-function reset() {
-  landed.value = 0
-  pressed.value = false
-  page.value = false
-  lines.value = 0
-  folding.value = false
-  leaving.value = false
+function later(ms, fn) {
+  timers.push(setTimeout(fn, ms))
 }
 function play() {
-  reset()
-  timers = STEPS.map(([ms, step]) =>
-    setTimeout(() => {
-      if (step.startsWith('note')) landed.value = Number(step.slice(4)) + 1
-      else if (step === 'press') pressed.value = true
-      else if (step === 'page') page.value = true
-      else if (step.startsWith('line')) lines.value = Number(step.slice(4)) + 1
-      else if (step === 'fold') folding.value = true
-      else if (step === 'leave') leaving.value = true
-      else if (step === 'restart') play()
-    }, ms),
-  )
+  timers.forEach(clearTimeout)
+  timers = []
+  active.value = -1
+  shown.value = 0
+  const n = copy.value.hive.notes.length
+  for (let i = 0; i < n; i++) {
+    later(400 + i * STEP_MS, () => (active.value = i))
+    later(400 + i * STEP_MS + 350, () => (shown.value = i + 1))
+  }
+  const end = 400 + n * STEP_MS
+  later(end, () => (active.value = -1))
+  later(end + HOLD_MS, () => (shown.value = 0))
+  later(end + HOLD_MS + REST_MS, play)
 }
 
 onMounted(() => {
-  reduced.value = matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduced.value) {
-    page.value = true
-    lines.value = 4
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    shown.value = copy.value.hive.notes.length
     return
   }
-  // It starts when it is reached, from the beginning.
   observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
@@ -83,7 +49,7 @@ onMounted(() => {
         observer.disconnect()
       }
     },
-    { threshold: 0.5 },
+    { rootMargin: '-35% 0px -35% 0px' },
   )
   observer.observe(root.value)
 })
@@ -91,128 +57,109 @@ onBeforeUnmount(() => {
   timers.forEach(clearTimeout)
   observer?.disconnect()
 })
-
-function noteStyle(i) {
-  const n = NOTES[i]
-  const on = i < landed.value && !leaving.value
-  const stackY = (i - 1.5) * -6
-  return {
-    transform: on
-      ? `translate(-50%, calc(-50% + ${pressed.value ? 0 : stackY}px)) rotate(${pressed.value ? n.lean / 3 : n.lean}deg) scale(${pressed.value ? 0.92 : 1})`
-      : `translate(calc(-50% + ${n.from}), -50%) rotate(${n.lean * 2}deg)`,
-    opacity: on && !(page.value && !folding.value) ? 1 : 0,
-    zIndex: i,
-  }
-}
 </script>
 
 <template>
   <figure ref="root" class="scene m-0" :aria-label="copy.hive.label">
-    <div class="stage" aria-hidden="true">
-      <div v-for="(text, i) in copy.hive.notes" :key="i" class="note" :class="NOTES[i].kind" :style="noteStyle(i)">
-        <p class="m-0">{{ text }}</p>
-        <p class="by">{{ copy.hive.by[i] }}</p>
-      </div>
+    <div class="grid gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-6" aria-hidden="true">
+      <!-- The notes, as each student left it. -->
+      <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+        <li v-for="(text, i) in copy.hive.notes" :key="i" class="note" :class="{ on: active === i, used: i < shown && active !== i }">
+          <span class="who">{{ copy.hive.by[i] }}</span>
+          <span class="text">{{ text }}</span>
+        </li>
+      </ul>
 
-      <article class="page" :class="{ open: page && !folding }">
-        <p class="page-title" :class="{ on: lines >= 1 }">{{ copy.hive.page.title }}</p>
-        <p class="page-line" :class="{ on: lines >= 2 }">{{ copy.hive.page.line }}</p>
-        <div class="steps" :class="{ on: lines >= 3 }">
+      <!-- The page they become, part by part. -->
+      <article class="page">
+        <p class="part title" :class="{ in: shown >= 1 }">{{ copy.hive.page.title }}</p>
+        <p class="part line" :class="{ in: shown >= 2 }">{{ copy.hive.page.line }}</p>
+        <div class="part steps" :class="{ in: shown >= 3 }">
           <template v-for="(step, i) in copy.hive.page.steps" :key="i">
             <span class="chip" :class="`chip-${i}`">{{ step }}</span>
             <span v-if="i < copy.hive.page.steps.length - 1" class="arrow">→</span>
           </template>
         </div>
-        <p class="page-foot" :class="{ on: lines >= 4 }">{{ copy.hive.page.foot }}</p>
+        <p class="part rollback" :class="{ in: shown >= 4 }">{{ copy.hive.page.rollback }}</p>
+        <p class="part foot" :class="{ in: shown >= 4 }">{{ copy.hive.page.foot }}</p>
       </article>
     </div>
   </figure>
 </template>
 
 <style scoped>
-.stage {
-  position: relative;
-  width: 100%;
-  height: clamp(20rem, 50vh, 26rem);
-}
-
-/* A note: it slides in from its side and lands on the pile with a little give. */
+/* A note: the page's muted grey, no shadow, no border. Lit, it turns honey; used, it rests. */
 .note {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(19rem, 80vw);
-  padding: 0.95rem 1.05rem 0.8rem;
-  border-radius: 0.9rem;
-  background: #fff;
-  box-shadow: 0 10px 24px -16px rgb(60 40 0 / 0.35), 0 0 0 1px rgb(0 0 0 / 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: var(--color-bg-muted);
+  transition:
+    background-color 350ms ease,
+    opacity 350ms ease;
+}
+.note.on {
+  background: #fbe7bf;
+}
+.note.used {
+  opacity: 0.55;
+}
+.who {
+  font-size: 0.75rem;
+  font-weight: 550;
+  color: var(--color-fg-muted);
+}
+.text {
   font-size: 0.95rem;
   line-height: 1.4;
-  color: #3a3a36;
-  text-align: left;
-  transition:
-    transform 700ms cubic-bezier(0.34, 1.3, 0.64, 1),
-    opacity 380ms ease;
-}
-.note.sticky {
-  background: #fff3b8;
-  border-radius: 0.35rem;
-}
-.by {
-  margin: 0.45rem 0 0;
-  font-size: 0.75rem;
-  color: #8a867c;
+  color: var(--color-fg);
 }
 
-/* The page: it unfolds out of the pile (from its size to its own), then its lines come in. */
+/* The page: one flat surface, a step lighter than the notes. */
 .page {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(34rem, 94%);
-  padding: 1.5rem 1.6rem 1.25rem;
-  border-radius: 1.2rem;
-  background: #fff;
-  box-shadow: 0 30px 60px -32px rgb(60 40 0 / 0.4), 0 0 0 1px rgb(0 0 0 / 0.04);
+  min-height: 100%;
+  padding: 1.6rem 1.7rem;
+  border-radius: 1.4rem;
+  background: var(--color-bg-subtle);
   text-align: left;
+}
+.part {
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.56, 0.4);
+  transform: translateY(8px);
+  filter: blur(4px);
   transition:
-    transform 650ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 250ms ease;
+    opacity 500ms ease,
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 500ms ease;
 }
-.page.open {
-  opacity: 1;
-  transform: translate(-50%, -50%);
-}
-.page > * {
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity 450ms ease,
-    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.page > .on {
+.part.in {
   opacity: 1;
   transform: none;
+  filter: none;
 }
-.page-title {
-  margin: 0 0 0.5rem;
-  font-size: 1.25rem;
+.title {
+  margin: 0 0 0.6rem;
+  font-size: 1.35rem;
   font-weight: 650;
   letter-spacing: -0.01em;
-  color: #1a1a18;
+  color: var(--color-fg);
 }
-.page-line {
+.line,
+.rollback {
   margin: 0 0 1rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: #4a4842;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-fg-secondary);
 }
-.page-foot {
+.rollback {
   margin: 1rem 0 0;
+}
+.foot {
+  margin: 1.1rem 0 0;
   font-size: 0.75rem;
-  color: #8a867c;
+  color: var(--color-fg-muted);
 }
 .steps {
   display: flex;
@@ -221,12 +168,12 @@ function noteStyle(i) {
   gap: 0.4rem;
 }
 .chip {
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.55rem;
-  font-size: 0.82rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
   font-weight: 550;
-  background: #f1f0ec;
-  color: #2d2b27;
+  background: var(--color-bg-muted);
+  color: var(--color-fg);
 }
 .chip-1 {
   background: #efe9fe;
@@ -241,14 +188,13 @@ function noteStyle(i) {
   color: #1c7c45;
 }
 .arrow {
-  color: #a19d92;
+  color: var(--color-fg-muted);
   font-size: 0.85rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .note,
-  .page,
-  .page > * {
+  .part {
     transition: none;
   }
 }

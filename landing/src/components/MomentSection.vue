@@ -9,7 +9,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 // componente abajo, también texto a los lados"). On a phone it is always stacked.
 //
 // Motion plays by itself, not with the scroll (Jose: "quiero que vayan solas"): when the moment is
-// reached, its sentence lights up word by word and the picture comes up and in, once. Under reduced
+// near the middle of the screen, its sentence lights up word by word and the picture comes up and in, once. Under reduced
 // motion all is still.
 const props = defineProps({
   id: { type: String, default: undefined },
@@ -46,7 +46,7 @@ onMounted(() => {
         observer.disconnect()
       }
     },
-    { rootMargin: '0px 0px -30% 0px' },
+    { rootMargin: '-40% 0px -40% 0px' }, // only once it sits near the middle of the screen
   )
   observer.observe(root.value)
 })

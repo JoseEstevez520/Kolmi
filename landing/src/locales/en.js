@@ -42,7 +42,8 @@ export default {
       title: 'CI/CD with GitHub Actions and Docker',
       line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
       steps: ['git push', 'GitHub Actions', 'registry', 'server'],
-      foot: 'From 5 notes · last night',
+      rollback: 'Rollback: deploy the previous image.',
+      foot: 'From 4 notes · last night',
     },
   },
 

@@ -40,7 +40,8 @@ export default {
       title: 'CI/CD con GitHub Actions y Docker',
       line: 'Cada push pasa los tests, construye una imagen de Docker y la sube a un registry, de donde la baja el servidor.',
       steps: ['git push', 'GitHub Actions', 'registry', 'servidor'],
-      foot: 'De 5 notas · anoche',
+      rollback: 'Rollback: se despliega la imagen anterior.',
+      foot: 'De 4 notas · anoche',
     },
   },
 

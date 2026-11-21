@@ -1,5 +1,4 @@
 <script setup>
-import { ScrollIndicator } from 'elastic-ui'
 import AskDemo from './components/AskDemo.vue'
 import PinnedChapters from './components/PinnedChapters.vue'
 import HiveScene from './components/HiveScene.vue'
@@ -16,7 +15,7 @@ import { copy } from './i18n.js'
 </script>
 
 <template>
-  <div id="top">
+  <div id="top" class="relative">
     <LandingHeader />
     <main>
       <HeroSection />
@@ -33,6 +32,5 @@ import { copy } from './i18n.js'
       </PinnedChapters>
     </main>
     <LandingFooter />
-    <ScrollIndicator />
   </div>
 </template>
