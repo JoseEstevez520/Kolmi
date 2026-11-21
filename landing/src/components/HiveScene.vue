@@ -1,195 +1,200 @@
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { copy } from '../i18n.js'
 
-// What the night pass does, as a picture that plays by itself (Jose, 2026-11-21: the diagram of the
-// first chapter "no me gusta… algo más chulo y visual"): loose notes from four students and a photo
-// of the whiteboard float around Kolmi's logo, fly into it one after the other, the hive glows, and
-// one page of the class comes out of it. Then the page goes back in, the notes come out again, and
-// it loops. Each note sits at a spot (--x, --y, from the centre, in container units of the stage)
-// and travels to the centre.
+// What the night pass does, as one physical gesture (Jose, 2026-11-21: the first version, notes
+// flying into a glowing logo, was "muy slop"). Loose notes from four students slide in one by one
+// and land on a pile in the centre, each a little askew; the pile presses together, and the page of
+// the class unfolds out of it, its lines coming in one after the other. It holds, folds back into
+// the pile, and after a rest the notes slide out and it all starts again (a loop with a pause, as
+// Jose asked). The timeline is a list of steps in milliseconds, so it reads and changes easily.
 // Under reduced motion it shows the page, still.
-const SPOTS = [
-  { x: '-30cqw', y: '-28cqh', r: '-6deg', kind: 'sticky' },
-  { x: '29cqw', y: '-30cqh', r: '4deg', kind: 'card' },
-  { x: '-31cqw', y: '24cqh', r: '3deg', kind: 'card' },
-  { x: '30cqw', y: '26cqh', r: '-4deg', kind: 'sticky' },
+
+// Where each note comes from, and how it sits on the pile.
+const NOTES = [
+  { from: '-60vw', lean: -5, kind: 'sticky' },
+  { from: '60vw', lean: 3, kind: 'card' },
+  { from: '-60vw', lean: 6, kind: 'card' },
+  { from: '60vw', lean: -3, kind: 'sticky' },
 ]
+// The scene's timeline (ms): when each state starts.
+const STEPS = [
+  [400, 'note0'],
+  [800, 'note1'],
+  [1200, 'note2'],
+  [1600, 'note3'],
+  [2500, 'press'],
+  [3000, 'page'],
+  [3300, 'line0'],
+  [3600, 'line1'],
+  [3900, 'line2'],
+  [4200, 'line3'],
+  [8200, 'fold'],
+  [8900, 'leave'],
+  [11000, 'restart'], // the rest before it plays again
+]
+
+const landed = ref(0) // how many notes are on the pile
+const pressed = ref(false)
+const page = ref(false)
+const lines = ref(0)
+const folding = ref(false)
+const leaving = ref(false)
+const reduced = ref(false)
+const root = ref(null)
+let timers = []
+let observer = null
+
+function reset() {
+  landed.value = 0
+  pressed.value = false
+  page.value = false
+  lines.value = 0
+  folding.value = false
+  leaving.value = false
+}
+function play() {
+  reset()
+  timers = STEPS.map(([ms, step]) =>
+    setTimeout(() => {
+      if (step.startsWith('note')) landed.value = Number(step.slice(4)) + 1
+      else if (step === 'press') pressed.value = true
+      else if (step === 'page') page.value = true
+      else if (step.startsWith('line')) lines.value = Number(step.slice(4)) + 1
+      else if (step === 'fold') folding.value = true
+      else if (step === 'leave') leaving.value = true
+      else if (step === 'restart') play()
+    }, ms),
+  )
+}
+
+onMounted(() => {
+  reduced.value = matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reduced.value) {
+    page.value = true
+    lines.value = 4
+    return
+  }
+  // It starts when it is reached, from the beginning.
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        play()
+        observer.disconnect()
+      }
+    },
+    { threshold: 0.5 },
+  )
+  observer.observe(root.value)
+})
+onBeforeUnmount(() => {
+  timers.forEach(clearTimeout)
+  observer?.disconnect()
+})
+
+function noteStyle(i) {
+  const n = NOTES[i]
+  const on = i < landed.value && !leaving.value
+  const stackY = (i - 1.5) * -6
+  return {
+    transform: on
+      ? `translate(-50%, calc(-50% + ${pressed.value ? 0 : stackY}px)) rotate(${pressed.value ? n.lean / 3 : n.lean}deg) scale(${pressed.value ? 0.92 : 1})`
+      : `translate(calc(-50% + ${n.from}), -50%) rotate(${n.lean * 2}deg)`,
+    opacity: on && !(page.value && !folding.value) ? 1 : 0,
+    zIndex: i,
+  }
+}
 </script>
 
 <template>
-  <figure class="hive m-0" :aria-label="copy.hive.label">
+  <figure ref="root" class="scene m-0" :aria-label="copy.hive.label">
     <div class="stage" aria-hidden="true">
-      <div
-        v-for="(text, i) in copy.hive.notes"
-        :key="i"
-        class="note"
-        :class="SPOTS[i].kind"
-        :style="{ '--x': SPOTS[i].x, '--y': SPOTS[i].y, '--r': SPOTS[i].r, '--d': `${i * 0.18}s` }"
-      >
+      <div v-for="(text, i) in copy.hive.notes" :key="i" class="note" :class="NOTES[i].kind" :style="noteStyle(i)">
         <p class="m-0">{{ text }}</p>
         <p class="by">{{ copy.hive.by[i] }}</p>
       </div>
-      <div class="note photo" style="--x: 0cqw; --y: 36cqh; --r: -2deg; --d: 0.72s">
-        <svg viewBox="0 0 220 56" class="block w-full">
-          <g fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round">
-            <rect x="6" y="14" width="38" height="26" rx="3" /><rect x="62" y="14" width="38" height="26" rx="3" />
-            <rect x="118" y="14" width="38" height="26" rx="3" /><rect x="174" y="14" width="40" height="26" rx="3" />
-            <path d="M44 27h16M100 27h16M156 27h16" />
-          </g>
-          <g font-size="10" fill="#2b2b2b" text-anchor="middle" font-family="ui-rounded, system-ui">
-            <text v-for="(w, i) in copy.hive.sketch" :key="i" :x="25 + i * 56" y="31">{{ w }}</text>
-          </g>
-        </svg>
-      </div>
 
-      <!-- The hive: Kolmi's logo, glowing when the notes go in. -->
-      <div class="logo"><img src="/logo.svg" alt="" /></div>
-
-      <!-- The page the notes become. -->
-      <article class="page">
-        <p class="page-title">{{ copy.hive.page.title }}</p>
-        <p class="page-line">{{ copy.hive.page.line }}</p>
-        <div class="steps">
+      <article class="page" :class="{ open: page && !folding }">
+        <p class="page-title" :class="{ on: lines >= 1 }">{{ copy.hive.page.title }}</p>
+        <p class="page-line" :class="{ on: lines >= 2 }">{{ copy.hive.page.line }}</p>
+        <div class="steps" :class="{ on: lines >= 3 }">
           <template v-for="(step, i) in copy.hive.page.steps" :key="i">
             <span class="chip" :class="`chip-${i}`">{{ step }}</span>
             <span v-if="i < copy.hive.page.steps.length - 1" class="arrow">→</span>
           </template>
         </div>
-        <p class="page-foot">{{ copy.hive.page.foot }}</p>
+        <p class="page-foot" :class="{ on: lines >= 4 }">{{ copy.hive.page.foot }}</p>
       </article>
     </div>
   </figure>
 </template>
 
 <style scoped>
-.hive {
-  --loop: 9s;
-}
 .stage {
   position: relative;
-  container-type: size;
   width: 100%;
-  height: clamp(24rem, 58vh, 32rem);
+  height: clamp(20rem, 50vh, 26rem);
 }
+
+/* A note: it slides in from its side and lands on the pile with a little give. */
 .note {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(14rem, 30cqw);
-  padding: 0.8rem 0.95rem 0.7rem;
+  width: min(19rem, 80vw);
+  padding: 0.95rem 1.05rem 0.8rem;
   border-radius: 0.9rem;
   background: #fff;
-  box-shadow: 0 14px 30px -18px rgb(80 50 0 / 0.4);
-  font-size: 0.9rem;
-  line-height: 1.35;
+  box-shadow: 0 10px 24px -16px rgb(60 40 0 / 0.35), 0 0 0 1px rgb(0 0 0 / 0.04);
+  font-size: 0.95rem;
+  line-height: 1.4;
   color: #3a3a36;
   text-align: left;
-  animation: into var(--loop) cubic-bezier(0.65, 0, 0.35, 1) var(--d) infinite both;
+  transition:
+    transform 700ms cubic-bezier(0.34, 1.3, 0.64, 1),
+    opacity 380ms ease;
 }
 .note.sticky {
   background: #fff3b8;
   border-radius: 0.35rem;
 }
-.note.photo {
-  width: min(15rem, 32cqw);
-  padding: 0.45rem;
-  border: 5px solid #fff;
-  background: #f4f4f1;
-}
 .by {
-  margin: 0.4rem 0 0;
-  font-size: 0.72rem;
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
   color: #8a867c;
 }
-/* A note shows at its spot, floats, then flies into the hive and stays hidden while the page shows. */
-@keyframes into {
-  0% {
-    opacity: 0;
-    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y) + 12px)) rotate(var(--r)) scale(0.95);
-  }
-  8%,
-  30% {
-    opacity: 1;
-    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r));
-  }
-  42% {
-    opacity: 0;
-    transform: translate(-50%, -50%) rotate(0deg) scale(0.2);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.2);
-  }
-}
 
-.logo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 4.5rem;
-  height: 4.5rem;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
-  animation: hive var(--loop) cubic-bezier(0.22, 1, 0.36, 1) infinite both;
-}
-.logo img {
-  width: 3.4rem;
-}
-@keyframes hive {
-  0%,
-  30% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgb(240 170 60 / 0);
-    transform: translate(-50%, -50%) scale(1);
-  }
-  44% {
-    box-shadow: 0 0 0 1.2rem rgb(240 170 60 / 0.18), 0 0 3rem 1rem rgb(240 170 60 / 0.35);
-    transform: translate(-50%, -50%) scale(1.18);
-  }
-  52%,
-  90% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
+/* The page: it unfolds out of the pile (from its size to its own), then its lines come in. */
 .page {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(32rem, 94%);
+  width: min(34rem, 94%);
   padding: 1.5rem 1.6rem 1.25rem;
-  border-radius: 1.4rem;
+  border-radius: 1.2rem;
   background: #fff;
-  box-shadow: 0 30px 60px -30px rgb(80 50 0 / 0.45);
+  box-shadow: 0 30px 60px -32px rgb(60 40 0 / 0.4), 0 0 0 1px rgb(0 0 0 / 0.04);
   text-align: left;
-  animation: out var(--loop) cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.56, 0.4);
+  transition:
+    transform 650ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 250ms ease;
 }
-@keyframes out {
-  0%,
-  46% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.3);
-    filter: blur(10px);
-  }
-  58%,
-  88% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    filter: none;
-  }
-  97%,
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.3);
-    filter: blur(8px);
-  }
+.page.open {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+.page > * {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 450ms ease,
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.page > .on {
+  opacity: 1;
+  transform: none;
 }
 .page-title {
   margin: 0 0 0.5rem;
@@ -242,12 +247,9 @@ const SPOTS = [
 
 @media (prefers-reduced-motion: reduce) {
   .note,
-  .logo {
-    display: none;
-  }
-  .page {
-    animation: none;
-    transform: translate(-50%, -50%);
+  .page,
+  .page > * {
+    transition: none;
   }
 }
 </style>

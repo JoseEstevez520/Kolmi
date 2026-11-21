@@ -2,75 +2,56 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import MomentSection from './MomentSection.vue'
 
-// After the hero, the page stops scrolling down and becomes one stage pinned to the screen (Jose,
-// 2026-11-21: normal scroll only from the hero to the first section; then "que se quede en el
-// centro"). Each screen of scrolling moves to the next chapter: the one on show leaves, the next
-// comes in, and its own animation plays by itself (Jose: "que vayan solas", not tied to the scroll).
-// Chapters are mounted when they come on, so their scenes start from the beginning. Dots on the
-// side show where you are. Under reduced motion the chapters are simply one under the other.
-const props = defineProps({
+// After the hero, the chapters (Jose, 2026-11-21: the pinned stage driven by script was "muy
+// confuso"). Following the usual advice for this kind of page, the scroll is the browser's own, not
+// taken over: each chapter fills one screen and the page snaps to it (CSS scroll-snap, `proximity`
+// in style.css, so the hero and the footer scroll freely), the way it moves is always the same, and
+// keys and trackpads behave as everywhere else. Each chapter's animation plays by itself when it
+// arrives (MomentSection). Dots on the side show where you are and take you to a chapter; they show
+// only while the chapters are on screen.
+defineProps({
   // [{ id, title, layout }], one slot per id with the chapter's picture
   chapters: { type: Array, required: true },
 })
 
-const SCREENS_PER_CHAPTER = 0.6 // shorter: a chapter changes with less scrolling
-const track = ref(null)
+const root = ref(null)
 const active = ref(0)
-const reduced = ref(false)
-let frame = 0
-
-function measure() {
-  frame = 0
-  const el = track.value
-  if (!el) return
-  const total = el.offsetHeight - innerHeight
-  const p = Math.min(0.9999, Math.max(0, -el.getBoundingClientRect().top / total))
-  active.value = Math.floor(p * props.chapters.length)
-}
-const onScroll = () => {
-  if (!frame) frame = requestAnimationFrame(measure)
-}
+const inView = ref(false)
+let watchChapters = null
+let watchRegion = null
 
 onMounted(() => {
-  reduced.value = matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduced.value) return
-  measure()
-  addEventListener('scroll', onScroll, { passive: true })
-  addEventListener('resize', onScroll)
+  const sections = [...root.value.querySelectorAll('[data-chapter]')]
+  watchChapters = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) if (e.isIntersecting) active.value = Number(e.target.dataset.chapter)
+    },
+    { rootMargin: '-45% 0px -45% 0px' },
+  )
+  sections.forEach((s) => watchChapters.observe(s))
+  watchRegion = new IntersectionObserver(([e]) => (inView.value = e.isIntersecting), { rootMargin: '-40% 0px -40% 0px' })
+  watchRegion.observe(root.value)
 })
 onBeforeUnmount(() => {
-  removeEventListener('scroll', onScroll)
-  removeEventListener('resize', onScroll)
-  cancelAnimationFrame(frame)
+  watchChapters?.disconnect()
+  watchRegion?.disconnect()
 })
 
-// A dot takes you to its chapter.
 function go(i) {
-  const el = track.value
-  const total = el.offsetHeight - innerHeight
-  const top = el.getBoundingClientRect().top + scrollY
-  scrollTo({ top: top + ((i + 0.5) / props.chapters.length) * total, behavior: 'smooth' })
+  root.value.querySelector(`[data-chapter="${i}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 </script>
 
 <template>
-  <!-- Reduced motion: no pinning, one chapter under the other. -->
-  <div v-if="reduced">
-    <MomentSection v-for="c in chapters" :id="c.id" :key="c.id" :title="c.title" :layout="c.layout">
-      <slot :name="c.id" />
-    </MomentSection>
-  </div>
+  <div ref="root">
+    <div v-for="(c, i) in chapters" :key="c.id" :data-chapter="i" class="chapter">
+      <MomentSection :id="c.id" class="w-full" :title="c.title" :layout="c.layout">
+        <slot :name="c.id" />
+      </MomentSection>
+    </div>
 
-  <div v-else ref="track" class="relative" :style="{ height: `${chapters.length * SCREENS_PER_CHAPTER * 100 + 100}vh` }">
-    <span v-for="c in chapters" :id="c.id" :key="`anchor-${c.id}`" class="anchor" />
-    <div class="sticky top-0 flex h-svh items-center overflow-hidden">
-      <Transition name="chapter" mode="out-in">
-        <MomentSection :key="chapters[active].id" class="w-full" :title="chapters[active].title" :layout="chapters[active].layout">
-          <slot :name="chapters[active].id" />
-        </MomentSection>
-      </Transition>
-
-      <nav class="dots" aria-label="Chapters">
+    <Transition name="dots">
+      <nav v-if="inView" class="dots" aria-label="Chapters">
         <button
           v-for="(c, i) in chapters"
           :key="c.id"
@@ -81,33 +62,23 @@ function go(i) {
           @click="go(i)"
         />
       </nav>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-.anchor {
-  position: absolute;
-  top: 0;
-}
-.chapter-enter-active,
-.chapter-leave-active {
-  transition:
-    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.chapter-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-.chapter-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
+/* One chapter, one screen, and the page snaps to its centre. */
+.chapter {
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  scroll-snap-align: center;
 }
 .dots {
-  position: absolute;
+  position: fixed;
   right: clamp(0.75rem, 2.5vw, 2rem);
   top: 50%;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -128,5 +99,13 @@ function go(i) {
 .dots button.on {
   height: 1.4rem;
   background: var(--color-fg);
+}
+.dots-enter-active,
+.dots-leave-active {
+  transition: opacity 250ms;
+}
+.dots-enter-from,
+.dots-leave-to {
+  opacity: 0;
 }
 </style>

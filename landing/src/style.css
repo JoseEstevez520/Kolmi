@@ -24,6 +24,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* The chapters snap to the screen's centre (PinnedChapters); proximity leaves the hero and the
+     footer to scroll freely. */
+  scroll-snap-type: y proximity;
 }
 
 body {

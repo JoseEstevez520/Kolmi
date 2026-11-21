@@ -10,8 +10,8 @@ import LandingHeader from './sections/LandingHeader.vue'
 import { copy } from './i18n.js'
 
 // The landing with few words (Jose, 2026-11-21: the old one "tiene demasiado texto"): a simple
-// hero scrolled as usual, then a pinned stage (PinnedChapters) that the scroll steps through, three
-// chapters, each one sentence and its picture (the night pass, the AI in a note,
+// hero scrolled as usual, then three chapters of one screen each that the page snaps to
+// (PinnedChapters), each one sentence and its picture (the night pass, the AI in a note,
 // the chat); the footer closes with the code. The long explanations live in the README and the docs.
 </script>
 
