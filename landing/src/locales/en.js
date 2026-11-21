@@ -21,6 +21,12 @@ export default {
     switchLocale: 'Leer en español',
   },
 
+  short: {
+    lead: 'The class’s notes in one place, and an AI that writes them with you.',
+    pages: 'Leave your notes however you take them. Every night, the hive turns them into the class’s pages.',
+    ask: 'Ask the notes anything.',
+  },
+
   hero: {
     slogan: 'Learn as a hive.',
     lead: 'The class’s notes are scattered across chats and drives, and nobody knows which to trust. Kolmi keeps them in one place: everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.',

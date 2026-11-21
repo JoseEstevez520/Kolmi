@@ -1,20 +1,16 @@
 <script setup>
 import { ScrollIndicator } from 'elastic-ui'
-import AiSection from './sections/AiSection.vue'
-import AskSection from './sections/AskSection.vue'
+import AskDemo from './components/AskDemo.vue'
+import MomentSection from './components/MomentSection.vue'
+import BeforeAfter from './sections/BeforeAfter.vue'
 import HeroSection from './sections/HeroSection.vue'
-import HowSection from './sections/HowSection.vue'
 import LandingFooter from './sections/LandingFooter.vue'
 import LandingHeader from './sections/LandingHeader.vue'
-import LinksSection from './sections/LinksSection.vue'
-import NoteAiSection from './sections/NoteAiSection.vue'
-import RunSection from './sections/RunSection.vue'
-import TodaySection from './sections/TodaySection.vue'
-import WhatSection from './sections/WhatSection.vue'
+import { copy } from './i18n.js'
 
-// The landing follows the README, section by section, with each of its images made of the app's
-// own parts. Grey between the honey: the aurora opens and closes the page, and the replay brings
-// its own.
+// The landing with few words (Jose, 2026-11-21: the old one "tiene demasiado texto"): the hero with
+// the note writing itself, then two moments, each one sentence and its picture; the footer closes with the code. The long
+// explanations live in the README and the docs.
 </script>
 
 <template>
@@ -22,14 +18,8 @@ import WhatSection from './sections/WhatSection.vue'
     <LandingHeader />
     <main>
       <HeroSection />
-      <WhatSection />
-      <HowSection />
-      <AskSection />
-      <NoteAiSection />
-      <AiSection />
-      <TodaySection />
-      <RunSection />
-      <LinksSection />
+      <MomentSection id="what" :title="copy.short.pages"><BeforeAfter /></MomentSection>
+      <MomentSection id="chat" :title="copy.short.ask"><AskDemo /></MomentSection>
     </main>
     <LandingFooter />
     <ScrollIndicator />

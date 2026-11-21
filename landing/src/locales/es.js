@@ -19,6 +19,12 @@ export default {
     switchLocale: 'Read in English',
   },
 
+  short: {
+    lead: 'Los apuntes de la clase en un sitio, y una IA que los escribe contigo.',
+    pages: 'Deja tus apuntes como los tomes. Cada noche, la colmena los convierte en las páginas de la clase.',
+    ask: 'Pregunta lo que sea a los apuntes.',
+  },
+
   hero: {
     slogan: 'Aprende en colmena.',
     lead: 'Los apuntes de la clase están repartidos entre chats y carpetas en la nube, y nadie sabe de cuáles fiarse. Kolmi los junta en un sitio: cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.',
