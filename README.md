@@ -24,10 +24,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/before-after.en.png" alt="Two loose notes about CI/CD on the left, and on the right the shared page Kolmi wrote from them, with a flow diagram and sections" width="100%">
+  <img src="assets/readme/before-after.en.png" alt="Six loose notes about CI/CD from two students on the left, and on the right the shared page written from them, with a pipeline you can try and its key points" width="100%">
 </p>
 
-<p align="center"><sub>Two loose notes in, one page out. This one is a real run of the nightly pass.</sub></p>
+<p align="center"><sub>Loose notes from two students in, one page out, with a piece to try. Drawn with the app's parts, as on the website.</sub></p>
 
 ## What is Kolmi?
 
@@ -58,10 +58,10 @@ gatekeeper lets through, and the web agent lays it out as a page.
 | Names and private data | whatever you wrote | stripped |
 
 <p align="center">
-  <img src="assets/readme/page.en.png" alt="Part of a page written by Kolmi: a short explanation, a YAML file in a code block and a warning" width="720">
+  <img src="assets/readme/page.en.png" alt="A page written by Kolmi: a title, one line, a pipeline you can switch between tests passing and failing, and two key points" width="720">
 </p>
 
-<p align="center"><sub>A page can hold more than text: diagrams, code you can copy, numbered steps.</sub></p>
+<p align="center"><sub>A page can hold more than text: diagrams, code you can copy, numbered steps, and pieces to try.</sub></p>
 
 ## Ask the notes
 

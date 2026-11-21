@@ -24,10 +24,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/before-after.es.png" alt="Dos notas sueltas sobre CI/CD a la izquierda y, a la derecha, la página compartida que Kolmi escribió con ellas, con un diagrama de flujo y secciones" width="100%">
+  <img src="assets/readme/before-after.es.png" alt="Seis notas sueltas sobre CI/CD de dos estudiantes a la izquierda y, a la derecha, la página compartida escrita con ellas, con un pipeline que se puede probar y sus puntos clave" width="100%">
 </p>
 
-<p align="center"><sub>Dos notas sueltas entran, una página sale. Es una pasada nocturna real.</sub></p>
+<p align="center"><sub>Entran notas sueltas de dos estudiantes y sale una página, con una pieza para probar. Dibujado con las piezas de la app, como en la web.</sub></p>
 
 ## ¿Qué es Kolmi?
 
@@ -58,10 +58,10 @@ deja pasar, y el agente web lo maqueta como página.
 | Nombres y datos privados | lo que hayas escrito | eliminados |
 
 <p align="center">
-  <img src="assets/readme/page.en.png" alt="Parte de una página escrita por Kolmi: una explicación corta, un archivo YAML en un bloque de código y un aviso" width="720">
+  <img src="assets/readme/page.es.png" alt="Una página escrita por Kolmi: un título, una línea, un pipeline que se cambia entre tests que pasan y que fallan, y dos puntos clave" width="720">
 </p>
 
-<p align="center"><sub>Una página puede llevar más que texto: diagramas, código que se copia, pasos numerados. (Esta está en inglés.)</sub></p>
+<p align="center"><sub>Una página puede llevar más que texto: diagramas, código que se copia, pasos numerados y piezas para probar.</sub></p>
 
 ## Pregunta a los apuntes
 
