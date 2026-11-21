@@ -34,10 +34,26 @@ const props = defineProps({
 // The figure's colours, from the app's figure palette: violet for your app, green for the service.
 const COLORS = { app: '#7c3aed', service: 'var(--color-success)' }
 
-// A line's words as plain text, for the ink that writes it word by word; once written, the line
-// is drawn with its bold, italics and code.
-const plain = (text) => text.replace(/\*\*|\*|`/g, '')
-const words = (text) => plain(text).split(' ')
+// A line as words that keep their bold, italics and code. The whole line is laid out from its first
+// word, and the words not written yet are only invisible, so nothing moves or rewraps while the
+// answer streams in.
+function tokens(text) {
+  const out = []
+  for (const part of text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/).filter(Boolean)) {
+    let tag = null
+    let body = part
+    if (part.startsWith('**')) (tag = 'strong'), (body = part.slice(2, -2))
+    else if (part.startsWith('`')) (tag = 'code'), (body = part.slice(1, -1))
+    else if (part.startsWith('*') && part.length > 2) (tag = 'em'), (body = part.slice(1, -1))
+    for (const piece of body.split(/(\s+)/)) {
+      if (!piece) continue
+      if (/^\s+$/.test(piece)) out.push({ space: true, text: piece })
+      else out.push({ tag, text: piece })
+    }
+  }
+  return out
+}
+const words = (text) => tokens(text).filter((t) => !t.space)
 
 // ---- What the note shows at any moment ----
 function step() {
@@ -218,21 +234,27 @@ function startAgain() {
 // ---- Keeping the newest line in view ----
 // The note has a fixed height and scrolls inside, so it never takes half the page: as the answer
 // grows, the note follows its end.
+// One eased loop follows the end of the note: each frame it closes a part of the distance to the
+// bottom, so the scroll glides at the pace the answer grows and never restarts or jumps.
 const scroller = ref(null)
-watch(
-  () => JSON.stringify(s.steps) + s.ink,
-  () =>
-    nextTick(() => {
-      const el = scroller.value
-      if (el && playing.value) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-    }),
-)
+const FOLLOW = 0.08 // share of the distance covered per frame
+let following = 0
+function follow() {
+  const el = scroller.value
+  if (el && playing.value) {
+    const target = el.scrollHeight - el.clientHeight
+    const gap = target - el.scrollTop
+    if (Math.abs(gap) > 0.5) el.scrollTop += gap * FOLLOW
+  }
+  following = requestAnimationFrame(follow)
+}
 
 // ---- Starting where it is looked at ----
 const root = ref(null)
 let observer = null
 
 onMounted(() => {
+  following = requestAnimationFrame(follow)
   reduced.value =
     document.documentElement.dataset.motion === 'none' ||
     (document.documentElement.dataset.motion !== 'full' && matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -258,6 +280,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  cancelAnimationFrame(following)
   run++
   observer?.disconnect()
 })
@@ -272,9 +295,11 @@ watch(
   },
 )
 
-// A line while it is written: its first `n` words, each landing in ink.
-const shown = (text, n) => words(text).slice(0, n)
-const done = (text, n) => n >= words(text).length
+// A line while it is written: every word in place, the first `n` shown, each landing in ink.
+function laid(text, n) {
+  let k = 0
+  return tokens(text).map((t) => (t.space ? t : { ...t, k, on: k++ < n }))
+}
 </script>
 
 <template>
@@ -295,12 +320,10 @@ const done = (text, n) => n >= words(text).length
 
             <template v-if="s.steps[i].gone">
               <h2 v-if="s.steps[i].heading">
-                <template v-if="s.ink === i"><template v-for="(word, k) in shown(d.heading, s.steps[i].heading)" :key="k"><span class="ink" :style="{ '--ink-flow': inkFlow(k) }">{{ word }}</span>{{ ' ' }}</template></template>
-                <template v-else>{{ d.heading }}</template>
+                <template v-for="(t, j) in laid(d.heading, s.steps[i].heading)" :key="j"><template v-if="t.space">{{ t.text }}</template><span v-else class="word" :class="{ off: !t.on, ink: t.on && s.ink === i }" :style="{ '--ink-flow': inkFlow(t.k) }">{{ t.text }}</span></template>
               </h2>
               <p v-if="d.line && s.steps[i].line">
-                <template v-if="s.ink === i && !done(d.line, s.steps[i].line)"><template v-for="(word, k) in shown(d.line, s.steps[i].line)" :key="k"><span class="ink" :style="{ '--ink-flow': inkFlow(k) }">{{ word }}</span>{{ ' ' }}</template></template>
-                <RichText v-else :text="d.line" />
+                <template v-for="(t, j) in laid(d.line, s.steps[i].line)" :key="j"><template v-if="t.space">{{ t.text }}</template><component :is="t.tag === 'code' ? 'code' : t.tag || 'span'" v-else class="word" :class="{ off: !t.on, ink: t.on && s.ink === i, 'inline-code': t.tag === 'code' }" :style="{ '--ink-flow': inkFlow(t.k) }">{{ t.text }}</component></template>
               </p>
               <div v-if="d.figure && s.steps[i].figure" class="not-prose my-6" :class="!reduced && 'animate-blur-in'">
                 <Diagram :label="d.figure.label" class="w-full">
@@ -328,8 +351,7 @@ const done = (text, n) => n >= words(text).length
                 </Table>
               </div>
               <p v-if="d.after && s.steps[i].after">
-                <template v-if="s.ink === i && !done(d.after, s.steps[i].after)"><template v-for="(word, k) in shown(d.after, s.steps[i].after)" :key="k"><span class="ink" :style="{ '--ink-flow': inkFlow(k) }">{{ word }}</span>{{ ' ' }}</template></template>
-                <RichText v-else :text="d.after" />
+                <template v-for="(t, j) in laid(d.after, s.steps[i].after)" :key="j"><template v-if="t.space">{{ t.text }}</template><component :is="t.tag === 'code' ? 'code' : t.tag || 'span'" v-else class="word" :class="{ off: !t.on, ink: t.on && s.ink === i, 'inline-code': t.tag === 'code' }" :style="{ '--ink-flow': inkFlow(t.k) }">{{ t.text }}</component></template>
               </p>
             </template>
           </template>
@@ -384,20 +406,38 @@ const done = (text, n) => n >= words(text).length
 /* The editor's caret: still while typing, blinking when it waits. */
 .note-caret {
   display: inline-block;
-  width: 2px;
-  height: 1.15em;
+  width: 1.5px;
+  height: 1.05em;
   margin-left: 1px;
-  vertical-align: text-bottom;
-  background: var(--color-fg);
-  animation: note-blink 1.1s steps(1) infinite;
+  border-radius: 1px;
+  vertical-align: -0.12em;
+  background: var(--caret, #e0a43a);
+  animation: note-blink 1.2s ease-in-out infinite;
 }
 .note-caret--typing {
   animation: none;
 }
 @keyframes note-blink {
-  50% {
-    opacity: 0;
+  0%,
+  45% {
+    opacity: 1;
   }
+  60%,
+  85% {
+    opacity: 0.15;
+  }
+}
+
+/* Words not written yet keep their place, invisible. */
+.word.off {
+  visibility: hidden;
+}
+.inline-code {
+  border-radius: 0.25rem;
+  background: var(--color-bg-muted);
+  padding: 0.15em 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
 }
 
 /* The AI's words land in ink and dry into the text's colour, as the app writes them (elastic-ui's
