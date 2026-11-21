@@ -33,7 +33,7 @@ const COLORS = {
   <figure class="flex flex-col gap-4" :aria-label="copy.demo.label">
     <div class="grid items-center gap-4 lg:grid-cols-[minmax(0,2fr)_auto_minmax(0,3fr)] lg:gap-6">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-        <Card v-for="(note, i) in copy.demo.notes" :key="i" size="sm">
+        <Card v-for="(note, i) in copy.demo.notes" :key="i" size="sm" class="ba-in" :style="{ animationDelay: `${300 + i * 250}ms` }">
           <CardContent class="leading-relaxed text-fg-secondary">{{ note }}</CardContent>
           <CardFooter class="mt-auto justify-between gap-3">
             <span class="text-meta text-fg-muted">{{ copy.demo.noteDate }}</span>
@@ -42,10 +42,10 @@ const COLORS = {
         </Card>
       </div>
 
-      <ArrowDown class="size-5 justify-self-center text-fg-muted lg:hidden" :stroke-width="1.5" aria-hidden="true" />
-      <ArrowRight class="hidden size-5 text-fg-muted lg:block" :stroke-width="1.5" aria-hidden="true" />
+      <ArrowDown class="ba-in size-5 justify-self-center text-fg-muted lg:hidden" style="animation-delay: 900ms" :stroke-width="1.5" aria-hidden="true" />
+      <ArrowRight class="ba-in hidden size-5 text-fg-muted lg:block" style="animation-delay: 900ms" :stroke-width="1.5" aria-hidden="true" />
 
-      <Card>
+      <Card class="ba-in ba-page" style="animation-delay: 1150ms">
         <CardContent>
           <Prose>
             <h3>{{ copy.demo.page.title }}</h3>
@@ -81,3 +81,31 @@ const COLORS = {
 
   </figure>
 </template>
+
+<style scoped>
+/* When the picture comes on, the notes arrive one by one, then the arrow, then the page they became. */
+.ba-in {
+  animation: ba-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.ba-page {
+  animation-name: ba-page;
+}
+@keyframes ba-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes ba-page {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ba-in {
+    animation: none;
+  }
+}
+</style>
