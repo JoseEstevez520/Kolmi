@@ -11,8 +11,6 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 const props = defineProps({
   id: { type: String, default: undefined },
   title: { type: String, required: true },
-  // The page's colour while this moment is in the middle of the screen (App.vue fades between them).
-  tone: { type: String, default: undefined },
 })
 
 const DIM = 0.22 // opacity of a word not lit yet
@@ -62,7 +60,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section :id="id" :data-tone="tone" class="scroll-mt-20 py-20 sm:py-32">
+  <section :id="id" class="scroll-mt-20 py-20 sm:py-32">
     <div class="mx-auto flex w-[min(100%-2rem,64rem)] flex-col items-center gap-10">
       <h2
         ref="heading"
