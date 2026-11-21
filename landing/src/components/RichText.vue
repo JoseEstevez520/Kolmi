@@ -63,13 +63,12 @@ const parts = computed(() =>
   line-height: 1.5;
   text-align: center;
   color: var(--color-fg);
-  vertical-align: 0.08em;
+  vertical-align: baseline;
 }
-/* An icon, with its label or alone, in the app's honey. */
+/* An icon, with its label or alone, in the app's honey. Inline-block on the text's baseline, so the
+   label sits on the same line as the words around it (Jose: they sat higher). */
 .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
+  display: inline-block;
   margin: 0 0.05em;
   padding: 0.05em 0.5em 0.08em 0.4em;
   border-radius: 999px;
@@ -78,9 +77,17 @@ const parts = computed(() =>
   font-weight: 600;
   line-height: 1.5;
   color: #6b4a0f;
-  vertical-align: 0.05em;
+  vertical-align: baseline;
+}
+.chip svg {
+  display: inline-block;
+  margin-right: 0.3em;
+  vertical-align: -0.12em;
 }
 .chip.solo {
-  padding: 0.25em;
+  padding: 0.05em 0.3em 0.08em;
+}
+.chip.solo svg {
+  margin-right: 0;
 }
 </style>
