@@ -28,6 +28,24 @@ export default {
     ask: 'Ask the notes anything.',
   },
 
+  hive: {
+    label: 'Loose notes from four students fly into the hive and come out as one page of the class',
+    notes: [
+      'ci/cd = github actions runs the tests on every push',
+      'if the tests pass → it builds the docker image',
+      'image goes to a registry, the server pulls it',
+      'rollback: just deploy the previous image!!',
+    ],
+    by: ['Ana', 'Leo', 'Marta', 'Iván'],
+    sketch: ['push', 'test', 'build', 'deploy'],
+    page: {
+      title: 'CI/CD with GitHub Actions and Docker',
+      line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
+      steps: ['git push', 'GitHub Actions', 'registry', 'server'],
+      foot: 'From 5 notes · last night',
+    },
+  },
+
   hero: {
     slogan: 'Learn as a hive.',
     lead: 'The class’s notes are scattered across chats and drives, and nobody knows which to trust. Kolmi keeps them in one place: everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.',

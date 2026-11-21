@@ -13,7 +13,7 @@ const props = defineProps({
   chapters: { type: Array, required: true },
 })
 
-const SCREENS_PER_CHAPTER = 0.9
+const SCREENS_PER_CHAPTER = 0.6 // shorter: a chapter changes with less scrolling
 const track = ref(null)
 const active = ref(0)
 const reduced = ref(false)
@@ -93,16 +93,16 @@ function go(i) {
 .chapter-enter-active,
 .chapter-leave-active {
   transition:
-    opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .chapter-enter-from {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(20px);
 }
 .chapter-leave-to {
   opacity: 0;
-  transform: translateY(-28px);
+  transform: translateY(-20px);
 }
 .dots {
   position: absolute;

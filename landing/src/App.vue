@@ -2,7 +2,7 @@
 import { ScrollIndicator } from 'elastic-ui'
 import AskDemo from './components/AskDemo.vue'
 import PinnedChapters from './components/PinnedChapters.vue'
-import BeforeAfter from './sections/BeforeAfter.vue'
+import HiveScene from './components/HiveScene.vue'
 import HeroSection from './sections/HeroSection.vue'
 import NoteAiDemo from './components/NoteAiDemo.vue'
 import LandingFooter from './sections/LandingFooter.vue'
@@ -27,7 +27,7 @@ import { copy } from './i18n.js'
           { id: 'chat', title: copy.short.ask, layout: 'right' },
         ]"
       >
-        <template #what><BeforeAfter /></template>
+        <template #what><HiveScene /></template>
         <template #note><NoteAiDemo :demo="copy.noteAi.demo" /></template>
         <template #chat><AskDemo /></template>
       </PinnedChapters>
