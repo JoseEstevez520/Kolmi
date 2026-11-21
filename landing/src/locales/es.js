@@ -26,6 +26,40 @@ export default {
     ask: 'Pregunta lo que sea a los apuntes.',
   },
 
+  story: {
+    lines: [
+      'Cada uno deja sus apuntes, como los tome.',
+      'Cada noche, la colmena los convierte en las páginas de la clase.',
+      'Pregunta en tu nota y la IA escribe la respuesta ahí mismo.',
+      'Pregunta lo que sea a los apuntes de la clase.',
+    ],
+    notes: [
+      'ci/cd = github actions pasa los tests en cada push',
+      'si pasan los tests → construye la imagen docker',
+      'la imagen va a un registry y el servidor la baja',
+      'rollback: desplegar la imagen anterior y listo!!',
+    ],
+    by: ['Ana', 'Leo', 'Marta', 'Iván'],
+    page: {
+      title: 'CI/CD con GitHub Actions y Docker',
+      line: 'Cada push pasa los tests, construye una imagen de Docker y la sube a un registry, de donde la baja el servidor.',
+      steps: ['git push', 'GitHub Actions', 'registry', 'servidor'],
+      foot: 'De 4 notas · anoche',
+    },
+    ask: {
+      question: '¿Qué es un registry?',
+      heading: 'Registry',
+      line: 'Un almacén de imágenes de Docker: el pipeline sube ahí cada imagen nueva y el servidor la descarga para desplegarla.',
+      flow: ['pipeline', 'registry', 'servidor'],
+    },
+    chat: {
+      question: '¿Qué pasa si fallan los tests?',
+      answer: 'No se despliega nada: el pipeline se para antes de construir la imagen, así que el servidor sigue con la versión anterior.',
+      source: 'De la página CI/CD con GitHub Actions y Docker',
+    },
+    scroll: 'Desliza',
+  },
+
   hero: {
     slogan: 'Aprende en colmena.',
     lead: 'Los apuntes de la clase están repartidos entre chats y carpetas en la nube, y nadie sabe de cuáles fiarse. Kolmi los junta en un sitio: cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.',
