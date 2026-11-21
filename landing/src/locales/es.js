@@ -263,6 +263,8 @@ export default {
   links: {
     repo,
     linkedin: 'https://www.linkedin.com/in/jose-est%C3%A9vez-b9b761388',
+    github: 'https://github.com/JoseEstevez520',
+    x: 'https://x.com/JoseEstevez520',
     run: `${blob}/README.es.md#en-local`,
     license: `${blob}/LICENSE`,
     security: `${blob}/SECURITY.md`,

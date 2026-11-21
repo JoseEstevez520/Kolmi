@@ -79,6 +79,5 @@ const COLORS = {
       </Card>
     </div>
 
-    <figcaption class="text-center text-sm text-fg-muted">{{ copy.demo.caption }}</figcaption>
   </figure>
 </template>

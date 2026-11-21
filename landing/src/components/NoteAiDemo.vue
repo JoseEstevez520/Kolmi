@@ -1,8 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { Code, RotateCcw, Server } from '@lucide/vue'
+import { Code, Server } from '@lucide/vue'
 import {
-  Button,
   Diagram,
   DiagramArrow,
   DiagramChip,
@@ -17,7 +16,6 @@ import {
   inkFlow,
 } from 'elastic-ui'
 import RichText from './RichText.vue'
-import { libraryLabels } from '../i18n.js'
 
 // The AI in a note, played back as one scene with what the app really returned (2026-11-21): just
 // the note, no app around it. A student asks "What is an API?" and presses Ctrl+Enter (a key press
@@ -25,7 +23,7 @@ import { libraryLabels } from '../i18n.js'
 // a definition in ink, a figure of a request and its response, an analogy. Then the student asks
 // "GraphQL vs REST API" and gets a comparison table, row by row, and a summary. Nothing moves the
 // view, so each answer is seen as it is generated. It starts once in view, pauses when it leaves,
-// and plays again from the button under the note. Under reduced motion it shows the end, still.
+// and plays again by itself after a pause. Under reduced motion it shows the end, still.
 // `demo` holds the texts, in each language.
 const props = defineProps({
   demo: { type: Object, required: true },
@@ -210,13 +208,14 @@ async function play() {
   const mine = ++run
   try {
     await scene()
+    // The note stays a moment, finished, and the scene starts again by itself (no replay button).
+    await wait(3500)
   } catch (e) {
     if (!(e instanceof Cancelled)) throw e
     return
   }
   if (mine !== run) return
-  playing.value = false
-  finished.value = true
+  startAgain()
 }
 
 function restart() {
@@ -392,15 +391,6 @@ function laid(text, n) {
         </div>
       </Transition>
     </div>
-
-    <Button
-      variant="ghost"
-      size="icon"
-      class="rounded-full text-fg-muted"
-      :icon="RotateCcw"
-      :aria-label="libraryLabels.restart"
-      @click="startAgain"
-    />
   </div>
 </template>
 
@@ -452,7 +442,11 @@ function laid(text, n) {
   }
 }
 
-/* Words not written yet keep their place, invisible. */
+/* Every word is its own box from the start and keeps it: written or not, in ink or dry, the line
+   never rewraps. Words not written yet only hide. */
+.word {
+  display: inline-block;
+}
 .word.off {
   visibility: hidden;
 }

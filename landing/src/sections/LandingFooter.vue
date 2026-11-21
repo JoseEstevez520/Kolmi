@@ -1,12 +1,12 @@
 <script setup>
 import { Aurora, Button, IconLink, IconLinks, Logo } from 'elastic-ui'
-import { siGithub } from 'simple-icons'
+import { siGithub, siX } from 'simple-icons'
 import LocaleToggle from '../components/LocaleToggle.vue'
 import { copy } from '../i18n.js'
 import { linkedin } from '../linkedin.js'
 
-// The page ends where it began, in honey: the call again, the slogan, how to reach me and the
-// licence.
+// The page ends where it began, in honey: the call again, the slogan, how to reach me (GitHub, X and
+// LinkedIn, as the contact links of my portfolio) and the licence.
 </script>
 
 <template>
@@ -23,13 +23,14 @@ import { linkedin } from '../linkedin.js'
       </Button>
       <div class="flex flex-col items-center gap-3">
         <p class="text-fg-secondary">{{ copy.footer.contact }}</p>
-        <IconLinks variant="ghost" expanded :label="copy.footer.contact">
-          <IconLink :icon="linkedin" label="LinkedIn" :href="copy.links.linkedin" />
+        <IconLinks :label="copy.footer.contact">
+          <IconLink :icon="siGithub" label="JoseEstevez520" :href="copy.links.github" />
+          <IconLink :icon="siX" label="@JoseEstevez520" :href="copy.links.x" />
+          <IconLink :icon="linkedin" label="Jose Estévez" :href="copy.links.linkedin" />
         </IconLinks>
       </div>
       <div class="flex flex-col items-center gap-1 text-sm text-fg-secondary">
         <a :href="copy.links.license" class="underline-offset-2 hover:underline">{{ copy.footer.license }}</a>
-        <a :href="copy.links.security" class="underline-offset-2 hover:underline">{{ copy.footer.security }}</a>
       </div>
       <LocaleToggle />
     </Aurora>
