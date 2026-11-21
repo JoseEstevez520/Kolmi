@@ -4,8 +4,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 // The chapters after the hero, as Apple, Arc and Framer do it (research, 2026-11-21, in the vault:
 // Kolmi/investigacion_scroll.md): the scroll is the browser's own and is never taken over, a stage
 // stays fixed beside the text (`position: sticky`) while the chapters' sentences scroll past it, and
-// when a sentence reaches the middle of the screen it lights up and the stage changes to its
-// chapter, whose scene then plays by itself. No snapping, so no jerks and no fight with a trackpad's
+// as a sentence scrolls into the middle its words light up with the scroll, and the stage changes
+// to its chapter, whose scene then plays by itself. No snapping, so no jerks and no fight with a trackpad's
 // momentum (Jose: the snapping version "da tirones raros"). On a phone, and under reduced motion,
 // each chapter is simply its sentence and its picture, one under the other.
 const props = defineProps({
@@ -18,7 +18,6 @@ const DIM = 0.2 // opacity of a word not lit yet
 // The sentence and the stage stay put for (HOLD - 1) screens; this is the pinning Apple and Arc use
 // (a sticky element inside a taller section), so it pauses without taking over the scroll.
 const HOLD = 1.8
-const WORD_MS = 70 // between two words lighting up
 
 const root = ref(null)
 const active = ref(0)
@@ -26,17 +25,24 @@ const lit = ref(props.chapters.map(() => 0)) // words lit in each sentence
 const stacked = ref(false)
 const words = computed(() => props.chapters.map((c) => c.title.split(' ')))
 let observer = null
-const timers = []
 
-// A sentence lights up word by word, once, the first time it reaches the middle.
-function light(i) {
-  if (lit.value[i] > 0) return
-  let k = 0
-  const t = setInterval(() => {
-    lit.value[i] = ++k
-    if (k >= words.value[i].length) clearInterval(t)
-  }, WORD_MS)
-  timers.push(t)
+// The words light up with the scroll (Jose, 2026-11-21: "el iluminar las letras debería ser con
+// scroll"): from a little before the sentence settles in the middle until most of its hold is
+// scrolled, each section's progress lights its words in reading order, and scrolling back dims them.
+let frame = 0
+function measure() {
+  frame = 0
+  const vh = innerHeight
+  const start = vh * 0.35 // the section's top when the first word lights
+  const span = start + (HOLD - 1) * vh * 0.7 // scrolling over which all the words light
+  root.value?.querySelectorAll('[data-chapter]').forEach((el) => {
+    const i = Number(el.dataset.chapter)
+    const t = Math.min(1, Math.max(0, (start - el.getBoundingClientRect().top) / span))
+    lit.value[i] = Math.round(t * words.value[i].length)
+  })
+}
+const onScroll = () => {
+  if (!frame) frame = requestAnimationFrame(measure)
 }
 
 onMounted(() => {
@@ -52,16 +58,20 @@ onMounted(() => {
         if (!e.isIntersecting) continue
         const i = Number(e.target.dataset.chapter)
         active.value = i
-        light(i)
       }
     },
     { rootMargin: '-49% 0px -49% 0px' },
   )
   root.value.querySelectorAll('[data-chapter]').forEach((el) => observer.observe(el))
+  measure()
+  addEventListener('scroll', onScroll, { passive: true })
+  addEventListener('resize', onScroll)
 })
 onBeforeUnmount(() => {
   observer?.disconnect()
-  timers.forEach(clearInterval)
+  removeEventListener('scroll', onScroll)
+  removeEventListener('resize', onScroll)
+  cancelAnimationFrame(frame)
 })
 </script>
 
@@ -111,7 +121,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .word {
-  transition: opacity 300ms ease-out;
+  transition: opacity 160ms linear;
 }
 .stage-enter-active,
 .stage-leave-active {
