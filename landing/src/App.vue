@@ -4,12 +4,13 @@ import AskDemo from './components/AskDemo.vue'
 import MomentSection from './components/MomentSection.vue'
 import BeforeAfter from './sections/BeforeAfter.vue'
 import HeroSection from './sections/HeroSection.vue'
+import NoteAiDemo from './components/NoteAiDemo.vue'
 import LandingFooter from './sections/LandingFooter.vue'
 import LandingHeader from './sections/LandingHeader.vue'
 import { copy } from './i18n.js'
 
 // The landing with few words (Jose, 2026-11-21: the old one "tiene demasiado texto"): the hero with
-// the note writing itself, then two moments, each one sentence and its picture; the footer closes with the code. The long
+// the note writing itself, then three moments, each one sentence and its picture (the night pass, the AI in a note, the chat); the footer closes with the code. The long
 // explanations live in the README and the docs.
 </script>
 
@@ -19,6 +20,7 @@ import { copy } from './i18n.js'
     <main>
       <HeroSection />
       <MomentSection id="what" :title="copy.short.pages"><BeforeAfter /></MomentSection>
+      <MomentSection id="note" :title="copy.short.note"><div class="mx-auto max-w-[46rem]"><NoteAiDemo :demo="copy.noteAi.demo" /></div></MomentSection>
       <MomentSection id="chat" :title="copy.short.ask"><AskDemo /></MomentSection>
     </main>
     <LandingFooter />

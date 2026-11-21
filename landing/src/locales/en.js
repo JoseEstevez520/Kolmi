@@ -24,7 +24,26 @@ export default {
   short: {
     lead: 'The class’s notes in one place, and an AI that writes them with you.',
     pages: 'Leave your notes however you take them. Every night, the hive turns them into the class’s pages.',
+    note: 'Ask in your note with Ctrl+Enter, and the AI writes the answer right there.',
     ask: 'Ask the notes anything.',
+  },
+
+  flow: {
+    label: 'Loose notes from several students about CI/CD come together into one page of the class',
+    notes: [
+      'ci/cd = github actions runs the tests on every push',
+      'if the tests pass → it builds the docker image',
+      'image goes to a registry, the server pulls it',
+      'rollback: just deploy the previous image!!',
+    ],
+    sketch: ['push', 'test', 'build', 'deploy'],
+    by: ['Ana', 'Leo', 'Marta', 'Iván'],
+    page: {
+      title: 'CI/CD with GitHub Actions and Docker',
+      line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
+      steps: ['git push', 'GitHub Actions', 'registry', 'server'],
+      foot: 'From 5 notes · tonight',
+    },
   },
 
   hero: {

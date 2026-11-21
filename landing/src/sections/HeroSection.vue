@@ -1,11 +1,11 @@
 <script setup>
 import { Aurora, Button, Logo } from 'elastic-ui'
 import { siGithub } from 'simple-icons'
-import NoteAiDemo from '../components/NoteAiDemo.vue'
+import HeroFlow from '../components/HeroFlow.vue'
 import { copy } from '../i18n.js'
 
 // The first screen: the honey aurora, the slogan large, one line and one button, and under them
-// the note writing itself with Ctrl+Enter, large, as the picture of what Kolmi does. Few words
+// what Kolmi does: loose notes from the class gathering into one page. Few words
 // (Jose, 2026-11-21). It starts under the header (h-14), so the bar shows the honey through its blur.
 </script>
 
@@ -20,8 +20,8 @@ import { copy } from '../i18n.js'
         {{ copy.hero.primary }}
       </Button>
     </div>
-    <div class="mt-16 w-full max-w-[54rem] text-left">
-      <NoteAiDemo :demo="copy.noteAi.demo" />
+    <div class="mt-10 w-full max-w-[64rem]">
+      <HeroFlow />
     </div>
   </Aurora>
 </template>

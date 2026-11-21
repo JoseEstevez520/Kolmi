@@ -22,7 +22,26 @@ export default {
   short: {
     lead: 'Los apuntes de la clase en un sitio, y una IA que los escribe contigo.',
     pages: 'Deja tus apuntes como los tomes. Cada noche, la colmena los convierte en las páginas de la clase.',
+    note: 'Pregunta en tu nota con Ctrl+Intro y la IA escribe la respuesta ahí mismo.',
     ask: 'Pregunta lo que sea a los apuntes.',
+  },
+
+  flow: {
+    label: 'Notas sueltas de varios estudiantes sobre CI/CD se juntan en una página de la clase',
+    notes: [
+      'ci/cd = github actions pasa los tests en cada push',
+      'si pasan los tests → construye la imagen docker',
+      'la imagen va a un registry y el servidor la baja',
+      'rollback: desplegar la imagen anterior y listo!!',
+    ],
+    sketch: ['push', 'test', 'build', 'deploy'],
+    by: ['Ana', 'Leo', 'Marta', 'Iván'],
+    page: {
+      title: 'CI/CD con GitHub Actions y Docker',
+      line: 'Cada push pasa los tests, construye una imagen de Docker y la sube a un registry, de donde la baja el servidor.',
+      steps: ['git push', 'GitHub Actions', 'registry', 'servidor'],
+      foot: 'De 5 notas · esta noche',
+    },
   },
 
   hero: {

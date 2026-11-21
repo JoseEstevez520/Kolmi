@@ -207,12 +207,26 @@ function restart() {
   playing.value = false
   finished.value = false
   Object.assign(s, initial())
+  scroller.value?.scrollTo({ top: 0 })
 }
 
 function startAgain() {
   restart()
   play()
 }
+
+// ---- Keeping the newest line in view ----
+// The note has a fixed height and scrolls inside, so it never takes half the page: as the answer
+// grows, the note follows its end.
+const scroller = ref(null)
+watch(
+  () => JSON.stringify(s.steps) + s.ink,
+  () =>
+    nextTick(() => {
+      const el = scroller.value
+      if (el && playing.value) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    }),
+)
 
 // ---- Starting where it is looked at ----
 const root = ref(null)
@@ -267,7 +281,7 @@ const done = (text, n) => n >= words(text).length
   <div ref="root" class="mx-auto flex w-full max-w-[46rem] flex-col items-center gap-3">
     <!-- Just the note, on a calm sheet. Watched, not used: it plays by itself. -->
     <div class="sheet w-full overflow-hidden rounded-[2rem] bg-bg" aria-hidden="true" inert>
-      <div class="flex min-h-[50rem] flex-col justify-start px-8 pt-10 pb-14 sm:min-h-[52rem] sm:px-14 sm:pt-12 sm:pb-16">
+      <div ref="scroller" class="note-scroll h-[26rem] overflow-y-auto scrollbar-none px-7 pt-8 pb-24 sm:h-[30rem] sm:px-12 sm:pt-10">
         <p class="m-0 mb-8 text-display text-fg">{{ demo.title }}</p>
         <Prose class="note-body">
           <template v-for="(d, i) in demo.steps" :key="i">
@@ -345,6 +359,11 @@ const done = (text, n) => n >= words(text).length
 </template>
 
 <style scoped>
+/* The note's own scroll fades at its top and bottom edges. */
+.note-scroll {
+  mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 3rem), transparent);
+}
+
 /* The sheet the note sits on: no app around it, only a soft edge. */
 .sheet {
   position: relative;
