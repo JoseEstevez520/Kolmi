@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { copy } from '../i18n.js'
+import PipelineArtifact from './PipelineArtifact.vue'
 
 // What the night pass does (Jose, 2026-11-21): notes from two students, more of them and not neatly
 // laid out, as people really leave them; and beside them the joint page, the crafted thing: rounded,
 // well set, with its flow and its points. The page is not built note by note (that is not how it
 // works): the notes come in, a beat, and the page appears whole and writes itself in, part after
-// part. Flat, no shadows. It holds, clears, rests and plays again; it starts when reached. Under
+// part, with an artifact in it: the pipeline the notes describe, to try (PipelineArtifact). Flat, no shadows. It plays once, when reached, and stays. Under
 // reduced motion it shows the end, still.
 
 // Each note sits a little off: a nudge sideways and a slight lean, so the column looks left by hand.
@@ -21,8 +22,6 @@ const LOOSE = [
 const NOTE_MS = 280 // between two notes coming in
 const PAGE_AT = 2600 // the page appears
 const PART_MS = 380 // between two parts of the page
-const HOLD_MS = 4800
-const REST_MS = 1300
 
 const notes = computed(() => copy.value.hive.notes)
 const shownNotes = ref(0)
@@ -42,9 +41,8 @@ function play() {
   notes.value.forEach((_, i) => later(300 + i * NOTE_MS, () => (shownNotes.value = i + 1)))
   later(PAGE_AT, () => (pageOn.value = true))
   for (let k = 1; k <= 5; k++) later(PAGE_AT + 200 + k * PART_MS, () => (parts.value = k))
-  const end = PAGE_AT + 200 + 5 * PART_MS + HOLD_MS
-  later(end, () => ((pageOn.value = false), (shownNotes.value = 0), (parts.value = 0)))
-  later(end + REST_MS, play)
+  // Once written, it stays: the notes and the page remain on the page (Jose, 2026-11-21: "que se
+  // quede ahí, no aparecer y desaparecer").
 }
 
 onMounted(() => {
@@ -97,11 +95,9 @@ onBeforeUnmount(() => {
           <p class="title">{{ copy.hive.page.title }}</p>
         </div>
         <p class="part line" :class="{ in: parts >= 2 }">{{ copy.hive.page.line }}</p>
-        <div class="part flow" :class="{ in: parts >= 3 }">
-          <template v-for="(step, i) in copy.hive.page.steps" :key="i">
-            <span class="chip" :class="`c${i}`">{{ step }}</span>
-            <svg v-if="i < copy.hive.page.steps.length - 1" viewBox="0 0 20 10" class="arrow"><path d="M1 5h16m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          </template>
+        <!-- The artifact: the pipeline the notes describe, to try. -->
+        <div class="part" :class="{ in: parts >= 3 }">
+          <PipelineArtifact v-if="parts >= 3" />
         </div>
         <ul class="part points" :class="{ in: parts >= 4 }">
           <li v-for="(p, i) in copy.hive.page.points" :key="i">{{ p }}</li>

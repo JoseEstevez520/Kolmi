@@ -29,6 +29,14 @@ export default {
       { by: 'Ana', text: 'si fallan los tests NO se despliega nada' },
       { by: 'Leo', text: 'rollback = desplegar la imagen de antes!!' },
     ],
+    artifact: {
+      tag: 'Artefacto',
+      title: 'Prueba el pipeline',
+      toggle: ['Los tests pasan', 'Los tests fallan'],
+      steps: ['push', 'tests', 'build', 'registry', 'despliegue'],
+      ok: 'Desplegado: el servidor usa la imagen nueva.',
+      stop: 'Parado en los tests: no se despliega nada.',
+    },
     page: {
       title: 'CI/CD con GitHub Actions y Docker',
       line: 'Cada push pasa los tests, construye una imagen de Docker y la sube a un registry, de donde la baja el servidor.',

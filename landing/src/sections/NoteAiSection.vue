@@ -10,11 +10,12 @@ import { copy } from '../i18n.js'
 
 <template>
   <LandingSection id="note-ai" :title="copy.noteAi.title">
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.noteAi.body" /></p>
-
-    <figure class="m-0 flex flex-col gap-4" :aria-label="copy.noteAi.label">
-      <div class="mx-auto w-full max-w-[46rem]"><NoteAiDemo :demo="copy.noteAi.demo" /></div>
-    </figure>
-
+    <!-- The text on the left, the note writing itself on the right (Jose, 2026-11-21). -->
+    <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+      <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.noteAi.body" /></p>
+      <figure class="m-0" :aria-label="copy.noteAi.label">
+        <NoteAiDemo :demo="copy.noteAi.demo" />
+      </figure>
+    </div>
   </LandingSection>
 </template>

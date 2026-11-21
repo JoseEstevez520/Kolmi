@@ -31,6 +31,14 @@ export default {
       { by: 'Ana', text: 'if the tests fail NOTHING gets deployed' },
       { by: 'Leo', text: 'rollback = deploy the image from before!!' },
     ],
+    artifact: {
+      tag: 'Artifact',
+      title: 'Try the pipeline',
+      toggle: ['Tests pass', 'Tests fail'],
+      steps: ['push', 'tests', 'build', 'registry', 'deploy'],
+      ok: 'Deployed: the server runs the new image.',
+      stop: 'Stopped at the tests: nothing is deployed.',
+    },
     page: {
       title: 'CI/CD with GitHub Actions and Docker',
       line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
