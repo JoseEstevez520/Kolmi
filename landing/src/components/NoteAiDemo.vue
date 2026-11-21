@@ -145,6 +145,7 @@ async function write(i, key, text, pace = 55) {
 async function ask(i) {
   const d = props.demo.steps[i]
   const st = s.steps[i]
+  if (i > 0) await makeRoom(i)
   await type(i, d.question)
   await wait(500)
   await ctrlEnter(i)
@@ -223,6 +224,7 @@ function restart() {
   playing.value = false
   finished.value = false
   Object.assign(s, initial())
+  anchor = 0
   scroller.value?.scrollTo({ top: 0 })
 }
 
@@ -234,19 +236,38 @@ function startAgain() {
 // ---- Keeping the newest line in view ----
 // The note has a fixed height and scrolls inside, so it never takes half the page: as the answer
 // grows, the note follows its end.
-// One eased loop follows the end of the note: each frame it closes a part of the distance to the
-// bottom, so the scroll glides at the pace the answer grows and never restarts or jumps.
+// The scroll looks ahead: before a new question is typed, the note glides so that line sits near the
+// top, with room under it, so the answer grows into empty space instead of pushing the note up word
+// by word. Only if an answer gets longer than that room does the note follow its end. One eased
+// loop does the moving: each frame closes a part of the distance, so it glides and never jumps.
 const scroller = ref(null)
-const FOLLOW = 0.08 // share of the distance covered per frame
+const spacer = ref(null)
+const FOLLOW = 0.07 // share of the distance covered per frame
+const ROOM = 40 // px kept under the last line when following the end
+const AHEAD = 28 // px left above a new question when the note makes room for it
+let anchor = 0
 let following = 0
 function follow() {
   const el = scroller.value
   if (el && playing.value) {
-    const target = el.scrollHeight - el.clientHeight
+    const end = el.scrollHeight - (spacer.value?.offsetHeight ?? 0) + ROOM - el.clientHeight
+    const target = Math.min(Math.max(anchor, end), el.scrollHeight - el.clientHeight)
     const gap = target - el.scrollTop
     if (Math.abs(gap) > 0.5) el.scrollTop += gap * FOLLOW
   }
   following = requestAnimationFrame(follow)
+}
+
+// Makes room for step i's question: its line goes near the top of the note.
+async function makeRoom(i) {
+  const el = scroller.value
+  if (!el) return
+  s.caret = { step: i }
+  await nextTick()
+  const line = el.querySelector(`[data-q="${i}"]`)
+  if (!line) return
+  anchor = Math.max(0, line.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - AHEAD)
+  await wait(900)
 }
 
 // ---- Starting where it is looked at ----
@@ -314,6 +335,7 @@ function laid(text, n) {
                  place. -->
             <p
               v-if="!s.steps[i].gone && (s.steps[i].q || s.caret?.step === i)"
+              :data-q="i"
               class="note-line"
               :class="{ 'note-line--lit': s.lit === i, 'note-line--asked': s.steps[i].asked }"
             >{{ s.steps[i].q }}<span v-if="s.caret?.step === i" class="note-caret" :class="playing && 'note-caret--typing'" /></p>
@@ -358,6 +380,8 @@ function laid(text, n) {
 
           <p v-if="s.caret === 'end'"><span class="note-caret" /></p>
         </Prose>
+        <!-- Empty room under the note, so a new question can be brought near the top. -->
+        <div ref="spacer" class="h-[22rem] sm:h-[26rem]" />
       </div>
 
       <!-- Ctrl+Enter, as product demos show a key press. -->
