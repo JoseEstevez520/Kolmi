@@ -42,7 +42,7 @@ export default {
     slogan: 'Aprende en colmena.',
     lead: 'Los apuntes de la clase en un sitio, y una IA que los escribe contigo.',
     scope: 'Para una clase, en su propio servidor.',
-    primary: 'Móntalo en tu clase',
+    primary: 'Llévalo a tu clase',
   },
 
   demo: {
@@ -223,18 +223,18 @@ export default {
   today: {
     title: 'Alrededor de los apuntes',
     items: [
-      { title: 'Apuntes en directo', text: 'Durante una clase, alguien comparte lo que escribe y el resto lo sigue según aparece. La nota sigue siendo una nota normal y pasa por la pasada nocturna.' },
-      { title: 'El horario', text: 'La semana de la clase en una pantalla. Un admin la edita arrastrando sobre la cuadrícula.' },
-      { title: 'Descargas', text: 'Cualquier sección como archivos Markdown, para guardarla o subirla a NotebookLM. Las páginas también pueden llevar archivos para descargar.' },
-      { title: 'El registro de la IA', text: 'Qué leyó cada pasada, qué cambió y por qué descartó una nota.' },
-      { title: 'Los admins son estudiantes', text: 'Un estudiante con más permisos: lanza la pasada, organiza el árbol y deja entrar a gente nueva.' },
-      { title: 'Una interfaz tranquila', text: 'Poco texto, iconos que dicen su nombre al pasar el ratón, y la app en español o inglés.' },
+      { title: 'Apuntes en directo', text: 'Comparte lo que escribes en clase y el resto lo sigue al momento.' },
+      { title: 'El horario', text: 'La semana de la clase en una pantalla.' },
+      { title: 'Descargas', text: 'Cualquier sección en Markdown, lista para NotebookLM.' },
+      { title: 'El registro de la IA', text: 'Qué leyó cada pasada y qué cambió.' },
+      { title: 'Los admins son estudiantes', text: 'Un estudiante con más permisos organiza la clase.' },
+      { title: 'Una interfaz tranquila', text: 'Poco texto, y en español o inglés.' },
     ],
   },
 
   run: {
-    title: 'Móntalo en tu clase',
-    body: 'Necesitas Python 3, Node 20 o superior, un proyecto de Supabase y una clave de API de un modelo. El backend se publica como imagen de Docker, y la pasada nocturna es una tarea de cron en el mismo servidor. Los pasos están en el README y en el del backend (en inglés).',
+    title: 'Llévalo a tu clase',
+    body: 'Necesitas Python, Node, un proyecto de Supabase y una clave de API de un modelo. Cada clase lleva su propia instancia; los pasos están en el README.',
     scope: 'Cada clase lleva su propia instancia, con su propio proyecto de Supabase y su propio servidor. No se comparte nada entre clases, y las claves se quedan en tu `.env`.',
     cta: 'Leer los pasos',
   },

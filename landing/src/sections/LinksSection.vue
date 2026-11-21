@@ -8,7 +8,7 @@ import { copy } from '../i18n.js'
 </script>
 
 <template>
-  <LandingSection v-for="group in [copy.docs, copy.ecosystem]" :key="group.title" :title="group.title">
+  <LandingSection v-for="group in [copy.ecosystem]" :key="group.title" :title="group.title">
     <div class="grid gap-4 sm:grid-cols-2">
       <Card v-for="item in group.items" :key="item.href" :href="item.href" size="sm">
         <CardHeader>

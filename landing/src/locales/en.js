@@ -44,7 +44,7 @@ export default {
     slogan: 'Learn as a hive.',
     lead: 'The class’s notes in one place, and an AI that writes them with you.',
     scope: 'For one class, self-hosted.',
-    primary: 'Run it for your class',
+    primary: 'Bring it to your class',
   },
 
   demo: {
@@ -225,18 +225,18 @@ export default {
   today: {
     title: 'Around the notes',
     items: [
-      { title: 'Live notes', text: 'During a class, someone shares what they are writing and the rest follow it as it appears. The note stays an ordinary note and goes through the nightly pass.' },
-      { title: 'The timetable', text: 'The class’s week on one screen. An admin edits it by dragging on the grid.' },
-      { title: 'Downloads', text: 'Any section as Markdown files, to keep or to upload to NotebookLM. Pages can carry files to download too.' },
-      { title: 'The AI log', text: 'What each pass read, what it changed and why it discarded a note.' },
-      { title: 'Admins are students', text: 'A student with more permissions: runs the pass, shapes the tree and lets new people in.' },
-      { title: 'A quiet interface', text: 'Little text, icons that say their name on hover, and the app in English or Spanish.' },
+      { title: 'Live notes', text: 'Share what you write in class, and the rest follow it live.' },
+      { title: 'The timetable', text: 'The class’s week on one screen.' },
+      { title: 'Downloads', text: 'Any section as Markdown, ready for NotebookLM.' },
+      { title: 'The AI log', text: 'What each pass read and what it changed.' },
+      { title: 'Admins are students', text: 'A student with more permissions runs the class.' },
+      { title: 'A quiet interface', text: 'Little text, in English or Spanish.' },
     ],
   },
 
   run: {
-    title: 'Run it for your class',
-    body: 'You need Python 3, Node 20 or higher, a Supabase project and an API key for a model. The backend ships as a Docker image, and the nightly pass is a cron job on the same server. The steps are in the README and in the backend’s README.',
+    title: 'Bring it to your class',
+    body: 'You need Python, Node, a Supabase project and an API key for a model. Each class runs its own instance; the steps are in the README.',
     scope: 'Each class runs its own instance, with its own Supabase project and server. Nothing is shared between classes, and the keys stay in your `.env`.',
     cta: 'Read the steps',
   },
