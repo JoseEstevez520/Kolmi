@@ -19,9 +19,9 @@ const socials = computed(() => [
 
 <template>
   <footer>
-    <Aurora class="relative flex flex-col items-center gap-8 px-4 pt-48 pb-20 text-center">
+    <Aurora class="relative flex flex-col items-center gap-8 px-4 pt-72 pb-20 text-center">
       <!-- The page melts into the honey here, as the hero melts out of it at the top. -->
-      <div class="fade-in pointer-events-none absolute inset-x-0 top-0 h-64" aria-hidden="true" />
+      <div class="fade-in pointer-events-none absolute inset-x-0 top-0 h-40" aria-hidden="true" />
       <div class="flex flex-col items-center gap-4">
         <img src="/logo.svg" alt="" width="48" height="48" class="size-12" />
         <p class="text-3xl font-semibold tracking-tight text-balance text-fg sm:text-4xl">{{ copy.footer.cta }}</p>

@@ -10,7 +10,7 @@ import { copy } from '../i18n.js'
 </script>
 
 <template>
-  <Aurora class="relative flex min-h-svh flex-col items-center justify-center px-4 pt-32 pb-40 text-center">
+  <Aurora class="relative flex min-h-svh flex-col items-center justify-center px-4 pt-32 pb-56 text-center">
     <div class="flex max-w-3xl flex-col items-center gap-7">
       <img src="/logo.svg" alt="" width="64" height="64" class="size-16" />
       <h1 class="text-6xl leading-[0.95] font-semibold tracking-tight text-balance text-fg sm:text-8xl">{{ copy.hero.slogan }}</h1>
@@ -21,7 +21,7 @@ import { copy } from '../i18n.js'
       </Button>
     </div>
     <!-- The honey fades into the page instead of stopping at a line. -->
-    <div class="fade pointer-events-none absolute inset-x-0 bottom-0 h-64" aria-hidden="true" />
+    <div class="fade pointer-events-none absolute inset-x-0 bottom-0 h-40" aria-hidden="true" />
   </Aurora>
 </template>
 
