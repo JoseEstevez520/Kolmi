@@ -1,45 +1,57 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { copy } from '../i18n.js'
 
-// What the night pass does, flat and in order (Jose, 2026-11-21: the earlier scenes were "slop",
-// with shadows that are not his style and everything piled up). Two columns, no shadows, no
-// borders, surfaces in the page's own greys: on the left the loose notes of four students, one under
-// the other; on the right the page of the class. One note at a time lights up, and the part of the
-// page that comes from it appears, so you see each note become part of the page. It holds, clears,
-// rests and plays again; it starts when reached. Under reduced motion it shows the end, still.
-const STEP_MS = 1100 // between one note and the next
-const HOLD_MS = 4200 // the finished page, before it clears
-const REST_MS = 1400 // empty, before it plays again
+// What the night pass does (Jose, 2026-11-21): notes from two students, more of them and not neatly
+// laid out, as people really leave them; and beside them the joint page, the crafted thing: rounded,
+// well set, with its flow and its points. The page is not built note by note (that is not how it
+// works): the notes come in, a beat, and the page appears whole and writes itself in, part after
+// part. Flat, no shadows. It holds, clears, rests and plays again; it starts when reached. Under
+// reduced motion it shows the end, still.
 
-const active = ref(-1) // the note lighting up now
-const shown = ref(0) // how many parts of the page are on
+// Each note sits a little off: a nudge sideways and a slight lean, so the column looks left by hand.
+const LOOSE = [
+  { x: 0, r: -1.5, w: 92 },
+  { x: 14, r: 1.2, w: 84 },
+  { x: 4, r: 0.6, w: 70 },
+  { x: 22, r: -1, w: 80 },
+  { x: 2, r: 1.8, w: 88 },
+  { x: 16, r: -0.8, w: 86 },
+]
+const NOTE_MS = 280 // between two notes coming in
+const PAGE_AT = 2600 // the page appears
+const PART_MS = 380 // between two parts of the page
+const HOLD_MS = 4800
+const REST_MS = 1300
+
+const notes = computed(() => copy.value.hive.notes)
+const shownNotes = ref(0)
+const pageOn = ref(false)
+const parts = ref(0) // title, line, flow, points, foot
 const root = ref(null)
 let timers = []
 let observer = null
 
-function later(ms, fn) {
-  timers.push(setTimeout(fn, ms))
-}
+const later = (ms, fn) => timers.push(setTimeout(fn, ms))
 function play() {
   timers.forEach(clearTimeout)
   timers = []
-  active.value = -1
-  shown.value = 0
-  const n = copy.value.hive.notes.length
-  for (let i = 0; i < n; i++) {
-    later(400 + i * STEP_MS, () => (active.value = i))
-    later(400 + i * STEP_MS + 350, () => (shown.value = i + 1))
-  }
-  const end = 400 + n * STEP_MS
-  later(end, () => (active.value = -1))
-  later(end + HOLD_MS, () => (shown.value = 0))
-  later(end + HOLD_MS + REST_MS, play)
+  shownNotes.value = 0
+  pageOn.value = false
+  parts.value = 0
+  notes.value.forEach((_, i) => later(300 + i * NOTE_MS, () => (shownNotes.value = i + 1)))
+  later(PAGE_AT, () => (pageOn.value = true))
+  for (let k = 1; k <= 5; k++) later(PAGE_AT + 200 + k * PART_MS, () => (parts.value = k))
+  const end = PAGE_AT + 200 + 5 * PART_MS + HOLD_MS
+  later(end, () => ((pageOn.value = false), (shownNotes.value = 0), (parts.value = 0)))
+  later(end + REST_MS, play)
 }
 
 onMounted(() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    shown.value = copy.value.hive.notes.length
+    shownNotes.value = notes.value.length
+    pageOn.value = true
+    parts.value = 5
     return
   }
   observer = new IntersectionObserver(
@@ -49,7 +61,7 @@ onMounted(() => {
         observer.disconnect()
       }
     },
-    { rootMargin: '-35% 0px -35% 0px' },
+    { rootMargin: '-30% 0px -30% 0px' },
   )
   observer.observe(root.value)
 })
@@ -60,70 +72,97 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <figure ref="root" class="scene m-0" :aria-label="copy.hive.label">
-    <div class="grid gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-6" aria-hidden="true">
-      <!-- The notes, as each student left it. -->
-      <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
-        <li v-for="(text, i) in copy.hive.notes" :key="i" class="note" :class="{ on: active === i, used: i < shown && active !== i }">
-          <span class="who">{{ copy.hive.by[i] }}</span>
-          <span class="text">{{ text }}</span>
-        </li>
-      </ul>
+  <figure ref="root" class="m-0" :aria-label="copy.hive.label">
+    <div class="grid items-center gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-8" aria-hidden="true">
+      <!-- The notes, as two people left them: not quite in line. -->
+      <div class="notes">
+        <p
+          v-for="(n, i) in notes"
+          :key="i"
+          class="note"
+          :class="[n.by === notes[0].by ? 'a' : 'b', { in: i < shownNotes }]"
+          :style="{ '--x': `${LOOSE[i].x}px`, '--r': `${LOOSE[i].r}deg`, width: `${LOOSE[i].w}%` }"
+        >
+          <span class="who">{{ n.by }}</span>{{ n.text }}
+        </p>
+      </div>
 
-      <!-- The page they become, part by part. -->
-      <article class="page">
-        <p class="part title" :class="{ in: shown >= 1 }">{{ copy.hive.page.title }}</p>
-        <p class="part line" :class="{ in: shown >= 2 }">{{ copy.hive.page.line }}</p>
-        <div class="part steps" :class="{ in: shown >= 3 }">
+      <!-- The joint page: rounded, set with care, written in part after part. -->
+      <article class="page" :class="{ on: pageOn }">
+        <div class="part" :class="{ in: parts >= 1 }">
+          <p class="kicker">
+            <span class="face a">{{ notes[0].by[0] }}</span><span class="face b">{{ notes[1].by[0] }}</span>
+            {{ copy.hive.page.foot }}
+          </p>
+          <p class="title">{{ copy.hive.page.title }}</p>
+        </div>
+        <p class="part line" :class="{ in: parts >= 2 }">{{ copy.hive.page.line }}</p>
+        <div class="part flow" :class="{ in: parts >= 3 }">
           <template v-for="(step, i) in copy.hive.page.steps" :key="i">
-            <span class="chip" :class="`chip-${i}`">{{ step }}</span>
-            <span v-if="i < copy.hive.page.steps.length - 1" class="arrow">→</span>
+            <span class="chip" :class="`c${i}`">{{ step }}</span>
+            <svg v-if="i < copy.hive.page.steps.length - 1" viewBox="0 0 20 10" class="arrow"><path d="M1 5h16m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </template>
         </div>
-        <p class="part rollback" :class="{ in: shown >= 4 }">{{ copy.hive.page.rollback }}</p>
-        <p class="part foot" :class="{ in: shown >= 4 }">{{ copy.hive.page.foot }}</p>
+        <ul class="part points" :class="{ in: parts >= 4 }">
+          <li v-for="(p, i) in copy.hive.page.points" :key="i">{{ p }}</li>
+        </ul>
       </article>
     </div>
   </figure>
 </template>
 
 <style scoped>
-/* A note: the page's muted grey, no shadow, no border. Lit, it turns honey; used, it rests. */
-.note {
+/* Notes: flat, in the page's grey, each a little off its line. Two people, two tints. */
+.notes {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.85rem 1rem;
-  border-radius: 1rem;
-  background: var(--color-bg-muted);
-  transition:
-    background-color 350ms ease,
-    opacity 350ms ease;
+  gap: 0.55rem;
 }
-.note.on {
-  background: #fbe7bf;
-}
-.note.used {
-  opacity: 0.55;
-}
-.who {
-  font-size: 0.75rem;
-  font-weight: 550;
-  color: var(--color-fg-muted);
-}
-.text {
-  font-size: 0.95rem;
+.note {
+  margin: 0;
+  padding: 0.7rem 0.95rem;
+  border-radius: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.4;
   color: var(--color-fg);
+  opacity: 0;
+  transform: translate(calc(var(--x) - 12px), 8px) rotate(var(--r));
+  transition:
+    opacity 380ms ease,
+    transform 520ms cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+.note.in {
+  opacity: 1;
+  transform: translate(var(--x), 0) rotate(var(--r));
+}
+.note.a {
+  background: #fdf0cf;
+}
+.note.b {
+  background: var(--color-bg-muted);
+}
+.who {
+  margin-right: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
 }
 
-/* The page: one flat surface, a step lighter than the notes. */
+/* The joint page: one rounded surface, generous, the crafted piece. */
 .page {
-  min-height: 100%;
-  padding: 1.6rem 1.7rem;
-  border-radius: 1.4rem;
+  padding: 1.9rem 2rem 1.8rem;
+  border-radius: 1.8rem;
   background: var(--color-bg-subtle);
   text-align: left;
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity 450ms ease,
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.page.on {
+  opacity: 1;
+  transform: none;
 }
 .part {
   opacity: 0;
@@ -139,61 +178,107 @@ onBeforeUnmount(() => {
   transform: none;
   filter: none;
 }
-.title {
-  margin: 0 0 0.6rem;
-  font-size: 1.35rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: var(--color-fg);
-}
-.line,
-.rollback {
-  margin: 0 0 1rem;
-  font-size: 1rem;
-  line-height: 1.55;
-  color: var(--color-fg-secondary);
-}
-.rollback {
-  margin: 1rem 0 0;
-}
-.foot {
-  margin: 1.1rem 0 0;
-  font-size: 0.75rem;
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0 0 0.9rem;
+  font-size: 0.78rem;
   color: var(--color-fg-muted);
 }
-.steps {
+.face {
+  display: inline-grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: #3a2c12;
+}
+.face.a {
+  background: #f6d896;
+}
+.face.b {
+  margin: 0 0.45rem 0 -0.35rem;
+  background: #ddd9d0;
+  outline: 2px solid var(--color-bg-subtle);
+}
+.title {
+  margin: 0;
+  font-size: 1.55rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--color-fg);
+}
+.line {
+  margin: 0.8rem 0 1.2rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-fg-secondary);
+}
+.flow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  padding: 0.8rem;
+  border-radius: 1.1rem;
+  background: var(--color-bg);
 }
 .chip {
-  padding: 0.3rem 0.65rem;
-  border-radius: 0.6rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.7rem;
   font-size: 0.85rem;
   font-weight: 550;
   background: var(--color-bg-muted);
   color: var(--color-fg);
 }
-.chip-1 {
+.c1 {
   background: #efe9fe;
   color: #5b3fd6;
 }
-.chip-2 {
+.c2 {
   background: #e7f0ff;
   color: #2563eb;
 }
-.chip-3 {
+.c3 {
   background: #e6f6ec;
   color: #1c7c45;
 }
 .arrow {
+  width: 1.1rem;
   color: var(--color-fg-muted);
-  font-size: 0.85rem;
+}
+.points {
+  display: grid;
+  gap: 0.45rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.points li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-fg-secondary);
+}
+.points li::before {
+  content: '';
+  position: absolute;
+  left: 0.15rem;
+  top: 0.62em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: #f0aa3c;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .note,
+  .page,
   .part {
     transition: none;
   }

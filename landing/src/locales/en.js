@@ -29,21 +29,21 @@ export default {
   },
 
   hive: {
-    label: 'Loose notes from four students fly into the hive and come out as one page of the class',
+    label: 'Loose notes from two students, and the page of the class written from all of them',
     notes: [
-      'ci/cd = github actions runs the tests on every push',
-      'if the tests pass → it builds the docker image',
-      'image goes to a registry, the server pulls it',
-      'rollback: just deploy the previous image!!',
+      { by: 'Ana', text: 'ci/cd: github actions runs the tests on every push' },
+      { by: 'Leo', text: 'if they pass → docker build + push to the registry' },
+      { by: 'Ana', text: 'the yaml goes in .github/workflows' },
+      { by: 'Leo', text: 'the server pulls the image from there' },
+      { by: 'Ana', text: 'if the tests fail NOTHING gets deployed' },
+      { by: 'Leo', text: 'rollback = deploy the image from before!!' },
     ],
-    by: ['Ana', 'Leo', 'Marta', 'Iván'],
-    sketch: ['push', 'test', 'build', 'deploy'],
     page: {
       title: 'CI/CD with GitHub Actions and Docker',
       line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
       steps: ['git push', 'GitHub Actions', 'registry', 'server'],
-      rollback: 'Rollback: deploy the previous image.',
-      foot: 'From 4 notes · last night',
+      points: ['If the tests fail, nothing is deployed.', 'Rollback: deploy the previous image.'],
+      foot: 'From 6 notes by Ana and Leo · last night',
     },
   },
 
