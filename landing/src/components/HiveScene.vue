@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
         <p class="part line" :class="{ in: parts >= 2 }">{{ copy.hive.page.line }}</p>
         <!-- The artifact: the pipeline the notes describe, to try. -->
         <div class="part" :class="{ in: parts >= 3 }">
-          <PipelineArtifact v-if="parts >= 3" />
+          <PipelineArtifact :active="parts >= 3" />
         </div>
         <ul class="part points" :class="{ in: parts >= 4 }">
           <li v-for="(p, i) in copy.hive.page.points" :key="i">{{ p }}</li>

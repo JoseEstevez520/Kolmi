@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { copy } from '../i18n.js'
 
 // A small artifact inside the joint page (Jose, 2026-11-21: "cúrratelo más interfaz… con hasta
@@ -8,6 +8,9 @@ import { copy } from '../i18n.js'
 // tests and greys out the rest. It plays a passing run, then a failing one, by itself; touching the
 // switch takes over. Under reduced motion it shows the result at once.
 const STEP_MS = 420
+
+// It is always laid out (so the page around it keeps its size) and starts running when `active`.
+const props = defineProps({ active: { type: Boolean, default: true } })
 
 const a = computed(() => copy.value.hive.artifact)
 const failing = ref(false)
@@ -49,11 +52,18 @@ function state(i) {
 }
 const result = computed(() => (done.value ? (failing.value ? a.value.stop : a.value.ok) : ''))
 
-onMounted(() => {
-  reduced.value = matchMedia('(prefers-reduced-motion: reduce)').matches
+function start() {
   run()
   if (!reduced.value) demo = [setTimeout(() => ((failing.value = true), run()), 4200)]
+}
+onMounted(() => {
+  reduced.value = matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (props.active) start()
 })
+watch(
+  () => props.active,
+  (on) => on && start(),
+)
 onBeforeUnmount(() => {
   clearInterval(timer)
   demo.forEach(clearTimeout)
@@ -63,7 +73,6 @@ onBeforeUnmount(() => {
 <template>
   <div class="artifact">
     <div class="head">
-      <span class="tag">{{ a.tag }}</span>
       <p class="name">{{ a.title }}</p>
       <div class="switch" role="radiogroup" :aria-label="a.title">
         <button
@@ -106,14 +115,6 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.5rem 0.6rem;
   margin-bottom: 1rem;
-}
-.tag {
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: #fbe7bf;
-  color: #7a4d06;
 }
 .name {
   margin: 0;
