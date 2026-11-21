@@ -28,6 +28,13 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  /* The page's colour follows the section in the middle of the screen (App.vue). */
+  background: var(--page-bg, var(--color-bg));
+  transition: background-color 800ms cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--color-fg);
+}
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }

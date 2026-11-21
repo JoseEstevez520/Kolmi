@@ -1,9 +1,17 @@
 <script setup>
-import { Aurora, Button, IconLink, IconLinks, Logo } from 'elastic-ui'
+import { computed } from 'vue'
+import { Aurora, Button, Logo } from 'elastic-ui'
 import { siGithub, siX } from 'simple-icons'
 import LocaleToggle from '../components/LocaleToggle.vue'
 import { copy } from '../i18n.js'
 import { linkedin } from '../linkedin.js'
+
+// Read when drawn, as the texts follow the chosen language.
+const socials = computed(() => [
+  { icon: siGithub, label: 'JoseEstevez520', href: copy.value.links.github },
+  { icon: siX, label: '@JoseEstevez520', href: copy.value.links.x },
+  { icon: linkedin, label: 'Jose Estévez', href: copy.value.links.linkedin },
+])
 
 // The page ends where it began, in honey: the call again, the slogan, how to reach me (GitHub, X and
 // LinkedIn, as the contact links of my portfolio) and the licence.
@@ -23,11 +31,18 @@ import { linkedin } from '../linkedin.js'
       </Button>
       <div class="flex flex-col items-center gap-3">
         <p class="text-fg-secondary">{{ copy.footer.contact }}</p>
-        <IconLinks :label="copy.footer.contact">
-          <IconLink :icon="siGithub" label="JoseEstevez520" :href="copy.links.github" />
-          <IconLink :icon="siX" label="@JoseEstevez520" :href="copy.links.x" />
-          <IconLink :icon="linkedin" label="Jose Estévez" :href="copy.links.linkedin" />
-        </IconLinks>
+        <!-- My links, as the portfolio's contact (icon and name), with no background (Jose, 2026-11-21). -->
+        <nav :aria-label="copy.footer.contact" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+          <a
+            v-for="link in socials"
+            :key="link.href"
+            :href="link.href"
+            class="inline-flex items-center gap-2 text-fg-secondary transition-colors hover:text-fg"
+          >
+            <Logo :icon="link.icon" mono alt="" class="size-4" />
+            <span>{{ link.label }}</span>
+          </a>
+        </nav>
       </div>
       <div class="flex flex-col items-center gap-1 text-sm text-fg-secondary">
         <a :href="copy.links.license" class="underline-offset-2 hover:underline">{{ copy.footer.license }}</a>
