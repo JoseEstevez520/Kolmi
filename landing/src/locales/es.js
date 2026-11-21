@@ -26,24 +26,6 @@ export default {
     ask: 'Pregunta lo que sea a los apuntes.',
   },
 
-  flow: {
-    label: 'Notas sueltas de varios estudiantes sobre CI/CD se juntan en una página de la clase',
-    notes: [
-      'ci/cd = github actions pasa los tests en cada push',
-      'si pasan los tests → construye la imagen docker',
-      'la imagen va a un registry y el servidor la baja',
-      'rollback: desplegar la imagen anterior y listo!!',
-    ],
-    sketch: ['push', 'test', 'build', 'deploy'],
-    by: ['Ana', 'Leo', 'Marta', 'Iván'],
-    page: {
-      title: 'CI/CD con GitHub Actions y Docker',
-      line: 'Cada push pasa los tests, construye una imagen de Docker y la sube a un registry, de donde la baja el servidor.',
-      steps: ['git push', 'GitHub Actions', 'registry', 'servidor'],
-      foot: 'De 5 notas · esta noche',
-    },
-  },
-
   hero: {
     slogan: 'Aprende en colmena.',
     lead: 'Los apuntes de la clase están repartidos entre chats y carpetas en la nube, y nadie sabe de cuáles fiarse. Kolmi los junta en un sitio: cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.',

@@ -1,16 +1,15 @@
 <script setup>
 import { Aurora, Button, Logo } from 'elastic-ui'
 import { siGithub } from 'simple-icons'
-import HeroFlow from '../components/HeroFlow.vue'
 import { copy } from '../i18n.js'
 
-// The first screen: the honey aurora, the slogan large, one line and one button, and under them
-// what Kolmi does: loose notes from the class gathering into one page. Few words
+// The first screen, simple (Jose, 2026-11-21: "lo prefiero simple"): the honey aurora, the logo,
+// the slogan large, one line and one button. What Kolmi does comes right after, as you scroll. Few words
 // (Jose, 2026-11-21). It starts under the header (h-14), so the bar shows the honey through its blur.
 </script>
 
 <template>
-  <Aurora class="-mt-14 flex flex-col items-center px-4 pt-32 pb-16 text-center">
+  <Aurora class="-mt-14 flex min-h-svh flex-col items-center justify-center px-4 pt-32 pb-20 text-center">
     <div class="flex max-w-3xl flex-col items-center gap-7">
       <img src="/logo.svg" alt="" width="64" height="64" class="size-16" />
       <h1 class="text-6xl leading-[0.95] font-semibold tracking-tight text-balance text-fg sm:text-8xl">{{ copy.hero.slogan }}</h1>
@@ -19,9 +18,6 @@ import { copy } from '../i18n.js'
         <Logo :icon="siGithub" mono alt="" />
         {{ copy.hero.primary }}
       </Button>
-    </div>
-    <div class="mt-10 w-full max-w-[64rem]">
-      <HeroFlow />
     </div>
   </Aurora>
 </template>
