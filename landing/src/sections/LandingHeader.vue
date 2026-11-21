@@ -1,5 +1,5 @@
 <script setup>
-import { Button, Logo, StickyHeader, ThemeToggle } from 'elastic-ui'
+import { Button, Logo, StickyHeader } from 'elastic-ui'
 import { siGithub } from 'simple-icons'
 import LocaleToggle from '../components/LocaleToggle.vue'
 import { copy } from '../i18n.js'
@@ -29,7 +29,6 @@ import { copy } from '../i18n.js'
         <Logo :icon="siGithub" mono alt="" />
         GitHub
       </Button>
-      <ThemeToggle />
     </template>
   </StickyHeader>
 </template>

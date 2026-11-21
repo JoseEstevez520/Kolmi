@@ -9,7 +9,7 @@ import { copy } from '../i18n.js'
 </script>
 
 <template>
-  <Aurora class="-mt-14 flex min-h-svh items-center justify-center px-4 pt-34 pb-20 text-center">
+  <Aurora class="relative -mt-14 flex min-h-svh items-center justify-center px-4 pt-34 pb-40 text-center">
     <div class="flex max-w-xl flex-col items-center gap-8">
       <div class="flex flex-col items-center gap-4">
         <img src="/logo.svg" alt="" width="72" height="72" class="size-[72px]" />
@@ -26,8 +26,15 @@ import { copy } from '../i18n.js'
           <Logo :icon="siGithub" mono alt="" />
           {{ copy.hero.primary }}
         </Button>
-        <p class="text-sm text-fg-secondary">{{ copy.hero.scope }}</p>
       </div>
     </div>
+    <!-- The honey melts into the page instead of stopping at a line. -->
+    <div class="fade pointer-events-none absolute inset-x-0 bottom-0 h-40" aria-hidden="true" />
   </Aurora>
 </template>
+
+<style scoped>
+.fade {
+  background: linear-gradient(to bottom, transparent, var(--color-bg) 85%);
+}
+</style>

@@ -27,7 +27,6 @@ const events = computed(() =>
 <template>
   <LandingSection id="how" :title="copy.how.title">
     <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.how.body" /></p>
-    <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.how.lead }}</p>
 
     <AgentReplay :events="events" :intro="copy.how.intro" />
 

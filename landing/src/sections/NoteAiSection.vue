@@ -11,13 +11,10 @@ import { copy } from '../i18n.js'
 <template>
   <LandingSection id="note-ai" :title="copy.noteAi.title">
     <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.noteAi.body" /></p>
-    <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.noteAi.lead }}</p>
 
     <figure class="m-0 flex flex-col gap-4" :aria-label="copy.noteAi.label">
-      <NoteAiDemo :demo="copy.noteAi.demo" />
-      <figcaption class="text-center text-sm text-fg-muted">{{ copy.noteAi.caption }}</figcaption>
+      <div class="mx-auto w-full max-w-[46rem]"><NoteAiDemo :demo="copy.noteAi.demo" /></div>
     </figure>
 
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.noteAi.after" /></p>
   </LandingSection>
 </template>

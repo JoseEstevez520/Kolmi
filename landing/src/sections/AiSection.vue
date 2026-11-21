@@ -28,6 +28,5 @@ const AI = '#7c3aed'
     </Diagram>
     <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.ai.connect" /></p>
     <CodeBlock :code="copy.ai.command" language="bash" wrap />
-    <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.ai.limits }}</p>
   </LandingSection>
 </template>

@@ -11,7 +11,6 @@ import { copy } from '../i18n.js'
 <template>
   <LandingSection id="run" :title="copy.run.title">
     <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.run.body" /></p>
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.run.scope" /></p>
     <div>
       <Button variant="secondary" :href="copy.links.run">{{ copy.run.cta }}</Button>
     </div>

@@ -1,8 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { Code, RotateCcw, Server } from '@lucide/vue'
+import { Code, Server } from '@lucide/vue'
 import {
-  Button,
   Diagram,
   DiagramArrow,
   DiagramChip,
@@ -17,7 +16,6 @@ import {
   inkFlow,
 } from 'elastic-ui'
 import RichText from './RichText.vue'
-import { libraryLabels } from '../i18n.js'
 
 // The AI in a note, played back as one scene with what the app really returned (2026-11-21): just
 // the note, no app around it. A student asks "What is an API?" and presses Ctrl+Enter (a key press
@@ -25,7 +23,7 @@ import { libraryLabels } from '../i18n.js'
 // a definition in ink, a figure of a request and its response, an analogy. Then the student asks
 // "GraphQL vs REST API" and gets a comparison table, row by row, and a summary. Nothing moves the
 // view, so each answer is seen as it is generated. It starts once in view, pauses when it leaves,
-// and plays again from the button under the note. Under reduced motion it shows the end, still.
+// and plays again by itself after a pause. Under reduced motion it shows the end, still.
 // `demo` holds the texts, in each language.
 const props = defineProps({
   demo: { type: Object, required: true },
@@ -34,10 +32,26 @@ const props = defineProps({
 // The figure's colours, from the app's figure palette: violet for your app, green for the service.
 const COLORS = { app: '#7c3aed', service: 'var(--color-success)' }
 
-// A line's words as plain text, for the ink that writes it word by word; once written, the line
-// is drawn with its bold, italics and code.
-const plain = (text) => text.replace(/\*\*|\*|`/g, '')
-const words = (text) => plain(text).split(' ')
+// A line as words that keep their bold, italics and code. The whole line is laid out from its first
+// word, and the words not written yet are only invisible, so nothing moves or rewraps while the
+// answer streams in.
+function tokens(text) {
+  const out = []
+  for (const part of text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/).filter(Boolean)) {
+    let tag = null
+    let body = part
+    if (part.startsWith('**')) (tag = 'strong'), (body = part.slice(2, -2))
+    else if (part.startsWith('`')) (tag = 'code'), (body = part.slice(1, -1))
+    else if (part.startsWith('*') && part.length > 2) (tag = 'em'), (body = part.slice(1, -1))
+    for (const piece of body.split(/(\s+)/)) {
+      if (!piece) continue
+      if (/^\s+$/.test(piece)) out.push({ space: true, text: piece })
+      else out.push({ tag, text: piece })
+    }
+  }
+  return out
+}
+const words = (text) => tokens(text).filter((t) => !t.space)
 
 // ---- What the note shows at any moment ----
 function step() {
@@ -129,6 +143,7 @@ async function write(i, key, text, pace = 55) {
 async function ask(i) {
   const d = props.demo.steps[i]
   const st = s.steps[i]
+  if (i > 0) await makeRoom(i)
   await type(i, d.question)
   await wait(500)
   await ctrlEnter(i)
@@ -193,13 +208,14 @@ async function play() {
   const mine = ++run
   try {
     await scene()
+    // The note stays a moment, finished, and the scene starts again by itself (no replay button).
+    await wait(3500)
   } catch (e) {
     if (!(e instanceof Cancelled)) throw e
     return
   }
   if (mine !== run) return
-  playing.value = false
-  finished.value = true
+  startAgain()
 }
 
 function restart() {
@@ -207,6 +223,8 @@ function restart() {
   playing.value = false
   finished.value = false
   Object.assign(s, initial())
+  anchor = 0
+  scroller.value?.scrollTo({ top: 0 })
 }
 
 function startAgain() {
@@ -214,11 +232,49 @@ function startAgain() {
   play()
 }
 
+// ---- Keeping the newest line in view ----
+// The note has a fixed height and scrolls inside, so it never takes half the page: as the answer
+// grows, the note follows its end.
+// The scroll looks ahead: before a new question is typed, the note glides so that line sits near the
+// top, with room under it, so the answer grows into empty space instead of pushing the note up word
+// by word. Only if an answer gets longer than that room does the note follow its end. One eased
+// loop does the moving: each frame closes a part of the distance, so it glides and never jumps.
+const scroller = ref(null)
+const spacer = ref(null)
+const FOLLOW = 0.07 // share of the distance covered per frame
+const ROOM = 40 // px kept under the last line when following the end
+const AHEAD = 28 // px left above a new question when the note makes room for it
+let anchor = 0
+let following = 0
+function follow() {
+  const el = scroller.value
+  if (el && playing.value) {
+    const end = el.scrollHeight - (spacer.value?.offsetHeight ?? 0) + ROOM - el.clientHeight
+    const target = Math.min(Math.max(anchor, end), el.scrollHeight - el.clientHeight)
+    const gap = target - el.scrollTop
+    if (Math.abs(gap) > 0.5) el.scrollTop += gap * FOLLOW
+  }
+  following = requestAnimationFrame(follow)
+}
+
+// Makes room for step i's question: its line goes near the top of the note.
+async function makeRoom(i) {
+  const el = scroller.value
+  if (!el) return
+  s.caret = { step: i }
+  await nextTick()
+  const line = el.querySelector(`[data-q="${i}"]`)
+  if (!line) return
+  anchor = Math.max(0, line.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - AHEAD)
+  await wait(900)
+}
+
 // ---- Starting where it is looked at ----
 const root = ref(null)
 let observer = null
 
 onMounted(() => {
+  following = requestAnimationFrame(follow)
   reduced.value =
     document.documentElement.dataset.motion === 'none' ||
     (document.documentElement.dataset.motion !== 'full' && matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -244,6 +300,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  cancelAnimationFrame(following)
   run++
   observer?.disconnect()
 })
@@ -258,16 +315,18 @@ watch(
   },
 )
 
-// A line while it is written: its first `n` words, each landing in ink.
-const shown = (text, n) => words(text).slice(0, n)
-const done = (text, n) => n >= words(text).length
+// A line while it is written: every word in place, the first `n` shown, each landing in ink.
+function laid(text, n) {
+  let k = 0
+  return tokens(text).map((t) => (t.space ? t : { ...t, k, on: k++ < n }))
+}
 </script>
 
 <template>
   <div ref="root" class="mx-auto flex w-full max-w-[46rem] flex-col items-center gap-3">
     <!-- Just the note, on a calm sheet. Watched, not used: it plays by itself. -->
     <div class="sheet w-full overflow-hidden rounded-[2rem] bg-bg" aria-hidden="true" inert>
-      <div class="flex min-h-[50rem] flex-col justify-start px-8 pt-10 pb-14 sm:min-h-[52rem] sm:px-14 sm:pt-12 sm:pb-16">
+      <div ref="scroller" class="note-scroll h-[26rem] overflow-y-auto scrollbar-none px-7 pt-8 pb-24 sm:h-[30rem] sm:px-12 sm:pt-10">
         <p class="m-0 mb-8 text-display text-fg">{{ demo.title }}</p>
         <Prose class="note-body">
           <template v-for="(d, i) in demo.steps" :key="i">
@@ -275,18 +334,17 @@ const done = (text, n) => n >= words(text).length
                  place. -->
             <p
               v-if="!s.steps[i].gone && (s.steps[i].q || s.caret?.step === i)"
+              :data-q="i"
               class="note-line"
               :class="{ 'note-line--lit': s.lit === i, 'note-line--asked': s.steps[i].asked }"
             >{{ s.steps[i].q }}<span v-if="s.caret?.step === i" class="note-caret" :class="playing && 'note-caret--typing'" /></p>
 
             <template v-if="s.steps[i].gone">
               <h2 v-if="s.steps[i].heading">
-                <template v-if="s.ink === i"><template v-for="(word, k) in shown(d.heading, s.steps[i].heading)" :key="k"><span class="ink" :style="{ '--ink-flow': inkFlow(k) }">{{ word }}</span>{{ ' ' }}</template></template>
-                <template v-else>{{ d.heading }}</template>
+                <template v-for="(t, j) in laid(d.heading, s.steps[i].heading)" :key="j"><template v-if="t.space">{{ t.text }}</template><span v-else class="word" :class="{ off: !t.on, ink: t.on && s.ink === i }" :style="{ '--ink-flow': inkFlow(t.k) }">{{ t.text }}</span></template>
               </h2>
               <p v-if="d.line && s.steps[i].line">
-                <template v-if="s.ink === i && !done(d.line, s.steps[i].line)"><template v-for="(word, k) in shown(d.line, s.steps[i].line)" :key="k"><span class="ink" :style="{ '--ink-flow': inkFlow(k) }">{{ word }}</span>{{ ' ' }}</template></template>
-                <RichText v-else :text="d.line" />
+                <template v-for="(t, j) in laid(d.line, s.steps[i].line)" :key="j"><template v-if="t.space">{{ t.text }}</template><component :is="t.tag === 'code' ? 'code' : t.tag || 'span'" v-else class="word" :class="{ off: !t.on, ink: t.on && s.ink === i, 'inline-code': t.tag === 'code' }" :style="{ '--ink-flow': inkFlow(t.k) }">{{ t.text }}</component></template>
               </p>
               <div v-if="d.figure && s.steps[i].figure" class="not-prose my-6" :class="!reduced && 'animate-blur-in'">
                 <Diagram :label="d.figure.label" class="w-full">
@@ -314,14 +372,15 @@ const done = (text, n) => n >= words(text).length
                 </Table>
               </div>
               <p v-if="d.after && s.steps[i].after">
-                <template v-if="s.ink === i && !done(d.after, s.steps[i].after)"><template v-for="(word, k) in shown(d.after, s.steps[i].after)" :key="k"><span class="ink" :style="{ '--ink-flow': inkFlow(k) }">{{ word }}</span>{{ ' ' }}</template></template>
-                <RichText v-else :text="d.after" />
+                <template v-for="(t, j) in laid(d.after, s.steps[i].after)" :key="j"><template v-if="t.space">{{ t.text }}</template><component :is="t.tag === 'code' ? 'code' : t.tag || 'span'" v-else class="word" :class="{ off: !t.on, ink: t.on && s.ink === i, 'inline-code': t.tag === 'code' }" :style="{ '--ink-flow': inkFlow(t.k) }">{{ t.text }}</component></template>
               </p>
             </template>
           </template>
 
           <p v-if="s.caret === 'end'"><span class="note-caret" /></p>
         </Prose>
+        <!-- Empty room under the note, so a new question can be brought near the top. -->
+        <div ref="spacer" class="h-[22rem] sm:h-[26rem]" />
       </div>
 
       <!-- Ctrl+Enter, as product demos show a key press. -->
@@ -332,19 +391,15 @@ const done = (text, n) => n >= words(text).length
         </div>
       </Transition>
     </div>
-
-    <Button
-      variant="ghost"
-      size="icon"
-      class="rounded-full text-fg-muted"
-      :icon="RotateCcw"
-      :aria-label="libraryLabels.restart"
-      @click="startAgain"
-    />
   </div>
 </template>
 
 <style scoped>
+/* The note's own scroll fades at its top and bottom edges. */
+.note-scroll {
+  mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 3rem), transparent);
+}
+
 /* The sheet the note sits on: no app around it, only a soft edge. */
 .sheet {
   position: relative;
@@ -365,20 +420,42 @@ const done = (text, n) => n >= words(text).length
 /* The editor's caret: still while typing, blinking when it waits. */
 .note-caret {
   display: inline-block;
-  width: 2px;
-  height: 1.15em;
+  width: 1.5px;
+  height: 1.05em;
   margin-left: 1px;
-  vertical-align: text-bottom;
-  background: var(--color-fg);
-  animation: note-blink 1.1s steps(1) infinite;
+  border-radius: 1px;
+  vertical-align: -0.12em;
+  background: var(--caret, #e0a43a);
+  animation: note-blink 1.2s ease-in-out infinite;
 }
 .note-caret--typing {
   animation: none;
 }
 @keyframes note-blink {
-  50% {
-    opacity: 0;
+  0%,
+  45% {
+    opacity: 1;
   }
+  60%,
+  85% {
+    opacity: 0.15;
+  }
+}
+
+/* Every word is its own box from the start and keeps it: written or not, in ink or dry, the line
+   never rewraps. Words not written yet only hide. */
+.word {
+  display: inline-block;
+}
+.word.off {
+  visibility: hidden;
+}
+.inline-code {
+  border-radius: 0.25rem;
+  background: var(--color-bg-muted);
+  padding: 0.15em 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
 }
 
 /* The AI's words land in ink and dry into the text's colour, as the app writes them (elastic-ui's

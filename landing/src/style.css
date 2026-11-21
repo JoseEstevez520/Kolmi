@@ -9,6 +9,8 @@
  * logo's own amber. Keep the two files in step.
  */
 :root {
+  /* Light only (Jose, 2026-11-21), whatever the system asks for. */
+  color-scheme: light;
   --color-accent: light-dark(#18181b, #f4f4f5);
   --color-accent-hover: light-dark(#3f3f46, #d4d4d8);
   --color-accent-subtle: light-dark(#e9e9eb, #18181b);

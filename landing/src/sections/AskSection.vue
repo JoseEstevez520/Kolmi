@@ -46,9 +46,7 @@ function confirm() {
           </template>
         </ChatMessage>
       </div>
-      <figcaption class="text-center text-sm text-fg-muted">{{ copy.ask.caption }}</figcaption>
     </figure>
 
-    <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.ask.acts }}</p>
   </LandingSection>
 </template>

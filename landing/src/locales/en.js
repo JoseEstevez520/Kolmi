@@ -21,9 +21,28 @@ export default {
     switchLocale: 'Leer en español',
   },
 
+  hive: {
+    label: 'Loose notes from two students, and the page of the class written from all of them',
+    notes: [
+      { by: 'Ana', text: 'ci/cd: github actions runs the tests on every push' },
+      { by: 'Leo', text: 'if they pass → docker build + push to the registry' },
+      { by: 'Ana', text: 'the yaml goes in .github/workflows' },
+      { by: 'Leo', text: 'the server pulls the image from there' },
+      { by: 'Ana', text: 'if the tests fail NOTHING gets deployed' },
+      { by: 'Leo', text: 'rollback = deploy the image from before!!' },
+    ],
+    page: {
+      title: 'CI/CD with GitHub Actions and Docker',
+      line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
+      steps: ['git push', 'GitHub Actions', 'registry', 'server'],
+      points: ['If the tests fail, nothing is deployed.', 'Rollback: deploy the previous image.'],
+      foot: 'From 6 notes by Ana and Leo · last night',
+    },
+  },
+
   hero: {
     slogan: 'Learn as a hive.',
-    lead: 'The class’s notes are scattered across chats and drives, and nobody knows which to trust. Kolmi keeps them in one place: everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.',
+    lead: 'The class’s notes in one place, and an AI that writes them with you.',
     scope: 'For one class, self-hosted.',
     primary: 'Run it for your class',
   },
@@ -258,6 +277,8 @@ export default {
   links: {
     repo,
     linkedin: 'https://www.linkedin.com/in/jose-est%C3%A9vez-b9b761388',
+    github: 'https://github.com/JoseEstevez520',
+    x: 'https://x.com/JoseEstevez520',
     run: `${blob}/README.md#run-it-locally`,
     license: `${blob}/LICENSE`,
     security: `${blob}/SECURITY.md`,

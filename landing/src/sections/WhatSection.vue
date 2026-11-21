@@ -1,6 +1,6 @@
 <script setup>
 import LandingSection from '../components/LandingSection.vue'
-import BeforeAfter from './BeforeAfter.vue'
+import HiveScene from '../components/HiveScene.vue'
 import { copy } from '../i18n.js'
 
 // "What is Kolmi?": the before and after first, as the README opens with it, then the problem
@@ -9,10 +9,9 @@ import { copy } from '../i18n.js'
 
 <template>
   <LandingSection id="what" :title="copy.what.title">
-    <BeforeAfter />
+    <HiveScene />
     <div class="flex flex-col gap-4 text-lg leading-relaxed text-fg-secondary">
-      <p v-for="(paragraph, i) in copy.what.body" :key="i">{{ paragraph }}</p>
+      <p>{{ copy.what.body[0] }}</p>
     </div>
-    <p class="text-lg leading-relaxed text-fg-secondary">{{ copy.what.scope }}</p>
   </LandingSection>
 </template>
