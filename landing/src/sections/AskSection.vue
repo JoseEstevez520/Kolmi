@@ -4,6 +4,7 @@ import { NotebookPen } from '@lucide/vue'
 import { ChatMessage, ChatProposal } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
 import RichText from '../components/RichText.vue'
+import RichParas from '../components/RichParas.vue'
 import { copy } from '../i18n.js'
 
 // The chat, shown as the app draws it: a question answered from the notes with its sources, and
@@ -47,7 +48,7 @@ function confirm() {
           </ChatMessage>
         </div>
       </figure>
-      <p class="order-1 text-lg leading-relaxed text-fg-secondary lg:order-2"><RichText :text="copy.ask.body" /></p>
+      <RichParas class="order-1 lg:order-2" :text="copy.ask.body" />
     </div>
   </LandingSection>
 </template>

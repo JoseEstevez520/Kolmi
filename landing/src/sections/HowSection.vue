@@ -11,7 +11,7 @@ import {
   TableRow,
 } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
-import RichText from '../components/RichText.vue'
+import RichParas from '../components/RichParas.vue'
 import { copy } from '../i18n.js'
 
 // How the pass works, shown as a session rather than boxes and arrows (USAGE 9): a made-up,
@@ -26,7 +26,7 @@ const events = computed(() =>
 
 <template>
   <LandingSection id="how" :title="copy.how.title">
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.how.body" /></p>
+    <RichParas :text="copy.how.body" />
 
     <AgentReplay :events="events" :intro="copy.how.intro" />
 

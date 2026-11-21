@@ -1,7 +1,7 @@
 <script setup>
 import { Button } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
-import RichText from '../components/RichText.vue'
+import RichParas from '../components/RichParas.vue'
 import { copy } from '../i18n.js'
 
 // For whoever would host it: what it needs and where the steps are, with no commands copied here
@@ -10,7 +10,7 @@ import { copy } from '../i18n.js'
 
 <template>
   <LandingSection id="run" :title="copy.run.title">
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.run.body" /></p>
+    <RichParas :text="copy.run.body" />
     <div>
       <Button variant="secondary" :href="copy.links.run">{{ copy.run.cta }}</Button>
     </div>

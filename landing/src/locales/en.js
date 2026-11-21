@@ -87,7 +87,7 @@ export default {
   what: {
     title: 'What is Kolmi?',
     body: [
-      'Every class ends up with the same mess. The notes sit in chats, personal drives and photos of the whiteboard. Two people wrote the same thing down differently, nobody knows which version is right, and what you need before the exam is in someone else’s notebook.',
+      'Every class ends up with the same mess. The notes sit in chats, personal drives and photos of the whiteboard.\n\nTwo people wrote the same thing down differently, nobody knows which version is right, and what you need before the exam is in someone else’s notebook.',
       'In Kolmi everyone leaves what they have, in their own words and in no particular format. Each night the hive reads what is new and judges every note: it joins it with what the class already has, strips names and private data and drops what adds nothing. What is left becomes the class’s pages, laid out like a study guide, with a diagram where an idea has parts and a table or chart where the numbers matter. The raw note stays private.',
     ],
     scope: 'Kolmi is for one class. Each class runs its own copy, with its own data. An admin is a student who looks after the class; there is no teacher account.',
@@ -95,7 +95,7 @@ export default {
 
   how: {
     title: 'How it works',
-    body: 'A team of agents runs once a day, on the schedule an admin sets. The **gatekeeper** reads each new note, strips names and private data, discards what adds nothing and decides which page it belongs to. The reason for each decision is kept in the AI log. The **notes agent** writes what the gatekeeper lets through, and the **web agent** lays it out as a page.',
+    body: 'A team of agents runs once a day, on the schedule an admin sets.\n\nThe [[@shield gatekeeper]] reads each new note, strips names and private data, discards what adds nothing and decides which page it belongs to. The reason for each decision is kept in the AI log.\n\nThe [[@notebook notes agent]] writes what the gatekeeper lets through, and the [[@layout web agent]] lays it out as a page.',
     lead: 'Watch one pass take the two notes from above. It is a made-up session, shortened.',
     intro: 'At night the pass wakes up and takes what is new.',
     events: [
@@ -155,7 +155,7 @@ export default {
 
   ask: {
     title: 'Ask the notes',
-    body: 'The chat answers from the class’s own pages, not from what a model remembers. It finds the passages closest to your question, answers with them and says which pages it used. Ask for a table or the steps of a procedure and it draws one.',
+    body: 'The chat answers from the class’s own pages, not from what a model remembers.\n\nIt finds the passages closest to your question, answers with them and says which pages it used.\n\nAsk for a table or the steps of a procedure and it draws one.',
     label: 'A made-up conversation: a question answered from the notes, with its sources, and a note the chat proposes to make, waiting for a confirmation',
     question: 'What do the notes say about bean scopes?',
     answer: 'A scope decides when Spring creates a bean and how long it is reused. Most beans are `singleton`, one for the whole app. Use `request` when the bean holds state for a single request.',
@@ -174,7 +174,7 @@ export default {
 
   noteAi: {
     title: 'The AI in a note',
-    body: 'The chat asks the class’s notes what you don’t know. The AI in a note helps you write them, in class, where the topic is usually new. Press **Ctrl+Enter** on a line, or select some text and click the sparkles. A question becomes notes on it, in its place. A line of your own stays, and the piece that shows it goes under it.',
+    body: 'The chat asks the class’s notes what you don’t know. The AI in a note helps you write them, in class, where the topic is usually new.\n\nPress [[Ctrl]] + [[Enter]] on a line, or select some text and click [[@sparkles]].\n\nA question becomes notes on it, in its place. A line of your own stays, and the piece that shows it goes under it.',
     lead: 'Watch a student in a web development class ask two things in a note. It is a made-up example, written with what the AI in a note actually returned. It is a made-up example.',
     label: 'A made-up example: the question “What is an API?” becomes a heading, a definition, a figure of a request and its response and an analogy; then “GraphQL vs REST API” becomes a comparison table and a summary',
     caption: 'A made-up example, drawn with the app’s own parts.',
@@ -216,7 +216,7 @@ export default {
 
   ai: {
     title: 'Your own AI, connected',
-    body: 'Kolmi is also an MCP server, so the AI you already use can work with the class’s notes as you. Say your course is on Moodle and the practice code is in a GitHub repo. With Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week’s material and write it up. It reads the class’s tree first, sees what the pages already say and leaves one note per topic, each with the link it came from. An admin’s AI can fold the material straight into a page instead.',
+    body: 'Kolmi is also an MCP server, so the AI you already use can work with the class’s notes as you.\n\nSay your course is on Moodle and the practice code is in a GitHub repo. With Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week’s material and write it up.\n\nIt reads the class’s tree first, sees what the pages already say and leaves one note per topic, each with the link it came from. An admin’s AI can fold the material straight into a page instead.',
     label: 'Moodle and a GitHub repo are read by your AI assistant, which leaves notes in Kolmi',
     material: 'Your material',
     moodle: 'Moodle',
@@ -225,7 +225,7 @@ export default {
     assistant: 'your AI',
     leaves: 'leaves',
     notes: 'notes in Kolmi',
-    connect: 'In Settings, under **Connect your AI**, you name the connection and get a token, shown once, and the command for your client with your instance’s address already in it. For Claude Code it has this shape:',
+    connect: 'In Settings, under **Connect your AI**, you name the connection and get a token, shown once.\n\nWith it comes the command for your client, with your instance’s address already in it. For Claude Code it has this shape:',
     command: 'claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"',
     limits: 'There are instructions for Claude Code, Gemini CLI and Codex CLI, and for any other client that takes a bearer token. Chat apps whose connectors need an OAuth sign-in are not supported yet. Reading is free. Your AI acts with your role, and anything that changes something asks you first.',
   },
@@ -244,7 +244,7 @@ export default {
 
   run: {
     title: 'Bring it to your class',
-    body: 'You need Python, Node, a Supabase project and an API key for a model. Each class runs its own instance; the steps are in the README.',
+    body: 'You need Python, Node, a Supabase project and an API key for a model.\n\nEach class runs its own instance; the steps are in the README.',
     scope: 'Each class runs its own instance, with its own Supabase project and server. Nothing is shared between classes, and the keys stay in your `.env`.',
     cta: 'Read the steps',
   },

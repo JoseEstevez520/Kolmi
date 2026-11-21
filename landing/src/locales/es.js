@@ -85,7 +85,7 @@ export default {
   what: {
     title: '¿Qué es Kolmi?',
     body: [
-      'Todas las clases acaban igual. Los apuntes están en chats, en carpetas en la nube y en fotos de la pizarra. Dos personas apuntaron lo mismo de forma distinta, nadie sabe qué versión es la buena, y lo que necesitas antes del examen está en el cuaderno de otro.',
+      'Todas las clases acaban igual. Los apuntes están en chats, en carpetas en la nube y en fotos de la pizarra.\n\nDos personas apuntaron lo mismo de forma distinta, nadie sabe qué versión es la buena, y lo que necesitas antes del examen está en el cuaderno de otro.',
       'En Kolmi cada uno deja lo que tiene, con sus palabras y sin formato. Cada noche la colmena lee lo nuevo y juzga cada nota: la junta con lo que la clase ya tiene, quita nombres y datos privados y descarta lo que no aporta. Lo que queda se convierte en las páginas de la clase, organizadas como una guía de estudio, con un diagrama donde una idea tiene partes y una tabla o gráfica donde importan los números. La nota en bruto sigue siendo privada.',
     ],
     scope: 'Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos. Un admin es un estudiante que cuida de la clase; no hay cuenta de profesor.',
@@ -93,7 +93,7 @@ export default {
 
   how: {
     title: 'Cómo funciona',
-    body: 'Un equipo de agentes trabaja una vez al día, con el horario que fija un admin. El **portero** lee cada nota nueva, quita nombres y datos privados, descarta lo que no aporta y decide a qué página va. El motivo de cada decisión queda en el registro de la IA. El **agente de notas** escribe lo que el portero deja pasar, y el **agente web** la maqueta como página.',
+    body: 'Un equipo de agentes trabaja una vez al día, con el horario que fija un admin.\n\nEl [[@shield portero]] lee cada nota nueva, quita nombres y datos privados, descarta lo que no aporta y decide a qué página va. El motivo de cada decisión queda en el registro de la IA.\n\nEl [[@notebook agente de notas]] escribe lo que el portero deja pasar, y el [[@layout agente web]] la maqueta como página.',
     lead: 'Mira una pasada con las dos notas de arriba. Es una sesión inventada y resumida.',
     intro: 'De noche la pasada se despierta y recoge lo nuevo.',
     events: [
@@ -153,7 +153,7 @@ export default {
 
   ask: {
     title: 'Pregunta a los apuntes',
-    body: 'El chat responde con las páginas de la clase, no con lo que un modelo recuerda. Busca los pasajes más cercanos a tu pregunta, responde con ellos y dice qué páginas usó. Si pides una tabla o los pasos de un procedimiento, la dibuja.',
+    body: 'El chat responde con las páginas de la clase, no con lo que un modelo recuerda.\n\nBusca los pasajes más cercanos a tu pregunta, responde con ellos y dice qué páginas usó.\n\nSi pides una tabla o los pasos de un procedimiento, la dibuja.',
     label: 'Una conversación inventada: una pregunta respondida con los apuntes, con sus fuentes, y una nota que el chat propone crear, a la espera de confirmación',
     question: '¿Qué dicen los apuntes sobre los scopes de un bean?',
     answer: 'Un scope decide cuándo crea Spring un bean y cuánto tiempo se reutiliza. Casi todos son `singleton`, uno para toda la aplicación. Usa `request` cuando el bean guarda estado de una sola petición.',
@@ -172,7 +172,7 @@ export default {
 
   noteAi: {
     title: 'La IA en una nota',
-    body: 'El chat le pregunta a los apuntes de la clase lo que no sabes. La IA en una nota te ayuda a escribirlos, en clase, cuando el tema suele ser nuevo. Pulsa **Ctrl+Intro** en una línea, o selecciona un texto y pulsa los destellos. Una pregunta se convierte en apuntes sobre ella, en su sitio. Una línea tuya se queda, y debajo aparece la pieza que la muestra.',
+    body: 'El chat le pregunta a los apuntes de la clase lo que no sabes. La IA en una nota te ayuda a escribirlos, en clase, cuando el tema suele ser nuevo.\n\nPulsa [[Ctrl]] + [[Intro]] en una línea, o selecciona un texto y pulsa [[@sparkles]].\n\nUna pregunta se convierte en apuntes sobre ella, en su sitio. Una línea tuya se queda, y debajo aparece la pieza que la muestra.',
     lead: 'Mira a un estudiante de un ciclo de desarrollo web preguntar dos cosas en una nota. Es un ejemplo inventado, escrito con lo que de verdad devolvió la IA en una nota.',
     label: 'Un ejemplo inventado: la pregunta «¿Qué es una API?» se convierte en un título, una definición, una figura de una petición y su respuesta y una analogía; después, «GraphQL vs API REST» se convierte en una tabla comparativa y un resumen',
     caption: 'Un ejemplo inventado, dibujado con las piezas de la app.',
@@ -214,7 +214,7 @@ export default {
 
   ai: {
     title: 'Tu propia IA, conectada',
-    body: 'Kolmi también es un servidor MCP, así que la IA que ya usas puede trabajar con los apuntes de la clase en tu nombre. Pongamos que el curso está en Moodle y el código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo asistente, le pides que lea el material de esta semana y lo pase a limpio. Lee primero el árbol de la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.',
+    body: 'Kolmi también es un servidor MCP, así que la IA que ya usas puede trabajar con los apuntes de la clase en tu nombre.\n\nPongamos que el curso está en Moodle y el código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo asistente, le pides que lea el material de esta semana y lo pase a limpio.\n\nLee primero el árbol de la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.',
     label: 'Tu asistente de IA lee Moodle y un repo de GitHub, y deja notas en Kolmi',
     material: 'Tu material',
     moodle: 'Moodle',
@@ -223,7 +223,7 @@ export default {
     assistant: 'tu IA',
     leaves: 'deja',
     notes: 'notas en Kolmi',
-    connect: 'En Ajustes, en **Conecta tu IA**, le pones nombre a la conexión y recibes un token, que se muestra una sola vez, y el comando para tu cliente con la dirección de tu instancia ya puesta. Para Claude Code tiene esta forma:',
+    connect: 'En Ajustes, en **Conecta tu IA**, le pones nombre a la conexión y recibes un token, que se muestra una sola vez.\n\nCon él va el comando para tu cliente, con la dirección de tu instancia ya puesta. Para Claude Code tiene esta forma:',
     command: 'claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"',
     limits: 'Hay instrucciones para Claude Code, Gemini CLI y Codex CLI, y para cualquier otro cliente que acepte un token de portador. Las apps de chat cuyos conectores piden iniciar sesión con OAuth aún no se admiten. Leer es libre. Tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta antes.',
   },
@@ -242,7 +242,7 @@ export default {
 
   run: {
     title: 'Llévalo a tu clase',
-    body: 'Necesitas Python, Node, un proyecto de Supabase y una clave de API de un modelo. Cada clase lleva su propia instancia; los pasos están en el README.',
+    body: 'Necesitas Python, Node, un proyecto de Supabase y una clave de API de un modelo.\n\nCada clase lleva su propia instancia; los pasos están en el README.',
     scope: 'Cada clase lleva su propia instancia, con su propio proyecto de Supabase y su propio servidor. No se comparte nada entre clases, y las claves se quedan en tu `.env`.',
     cta: 'Leer los pasos',
   },

@@ -2,7 +2,7 @@
 import { BookOpen, Bot, GitBranch, Library, NotebookPen } from '@lucide/vue'
 import { CodeBlock, Diagram, DiagramArea, DiagramArrow, DiagramChip, DiagramGroup } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
-import RichText from '../components/RichText.vue'
+import RichParas from '../components/RichParas.vue'
 import { copy } from '../i18n.js'
 
 // The MCP, told as the case it is for: a member's own AI reads the material (here Moodle and a
@@ -13,7 +13,7 @@ const AI = '#7c3aed'
 
 <template>
   <LandingSection id="ai" :title="copy.ai.title">
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.ai.body" /></p>
+    <RichParas :text="copy.ai.body" />
     <Diagram :label="copy.ai.label">
       <DiagramGroup>
         <DiagramArea :title="copy.ai.material" :icon="Library" layout="row">
@@ -26,7 +26,7 @@ const AI = '#7c3aed'
         <DiagramChip :icon="NotebookPen">{{ copy.ai.notes }}</DiagramChip>
       </DiagramGroup>
     </Diagram>
-    <p class="text-lg leading-relaxed text-fg-secondary"><RichText :text="copy.ai.connect" /></p>
+    <RichParas :text="copy.ai.connect" />
     <CodeBlock :code="copy.ai.command" language="bash" wrap />
   </LandingSection>
 </template>

@@ -5,10 +5,9 @@ import PipelineArtifact from './PipelineArtifact.vue'
 
 // What the night pass does (Jose, 2026-11-21): notes from two students, more of them and not neatly
 // laid out, as people really leave them; and beside them the joint page, the crafted thing: rounded,
-// well set, with its flow and its points. The page is not built note by note (that is not how it
-// works): the notes come in, a beat, and the page appears whole and writes itself in, part after
-// part, with an artifact in it: the pipeline the notes describe, to try (PipelineArtifact). Flat, no shadows. It plays once, when reached, and stays. Under
-// reduced motion it shows the end, still.
+// well set, with its flow, its points and an artifact in it: the pipeline the notes describe, to try
+// (PipelineArtifact). Flat, no shadows. It is there from the start, already composed (Jose: the
+// entrance "tarda demasiado"); only the artifact starts running once the scene is reached.
 
 // Each note sits a little off: a nudge sideways and a slight lean, so the column looks left by hand.
 const LOOSE = [
@@ -19,54 +18,28 @@ const LOOSE = [
   { x: 2, r: 1.8, w: 88 },
   { x: 16, r: -0.8, w: 86 },
 ]
-const NOTE_MS = 280 // between two notes coming in
-const PAGE_AT = 2600 // the page appears
-const PART_MS = 380 // between two parts of the page
 
 const notes = computed(() => copy.value.hive.notes)
-const shownNotes = ref(0)
-const pageOn = ref(false)
-const parts = ref(0) // title, line, flow, points, foot
+const shownNotes = computed(() => notes.value.length)
+const pageOn = true
+const parts = 5 // title, line, flow, points, foot: all shown
+const seen = ref(false) // the artifact runs once the scene is in view
 const root = ref(null)
-let timers = []
 let observer = null
 
-const later = (ms, fn) => timers.push(setTimeout(fn, ms))
-function play() {
-  timers.forEach(clearTimeout)
-  timers = []
-  shownNotes.value = 0
-  pageOn.value = false
-  parts.value = 0
-  notes.value.forEach((_, i) => later(300 + i * NOTE_MS, () => (shownNotes.value = i + 1)))
-  later(PAGE_AT, () => (pageOn.value = true))
-  for (let k = 1; k <= 5; k++) later(PAGE_AT + 200 + k * PART_MS, () => (parts.value = k))
-  // Once written, it stays: the notes and the page remain on the page (Jose, 2026-11-21: "que se
-  // quede ahí, no aparecer y desaparecer").
-}
-
 onMounted(() => {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    shownNotes.value = notes.value.length
-    pageOn.value = true
-    parts.value = 5
-    return
-  }
   observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
-        play()
+        seen.value = true
         observer.disconnect()
       }
     },
-    { rootMargin: '-30% 0px -30% 0px' },
+    { rootMargin: '-20% 0px -20% 0px' },
   )
   observer.observe(root.value)
 })
-onBeforeUnmount(() => {
-  timers.forEach(clearTimeout)
-  observer?.disconnect()
-})
+onBeforeUnmount(() => observer?.disconnect())
 </script>
 
 <template>
@@ -97,7 +70,7 @@ onBeforeUnmount(() => {
         <p class="part line" :class="{ in: parts >= 2 }">{{ copy.hive.page.line }}</p>
         <!-- The artifact: the pipeline the notes describe, to try. -->
         <div class="part" :class="{ in: parts >= 3 }">
-          <PipelineArtifact :active="parts >= 3" />
+          <PipelineArtifact :active="seen" />
         </div>
         <ul class="part points" :class="{ in: parts >= 4 }">
           <li v-for="(p, i) in copy.hive.page.points" :key="i">{{ p }}</li>
