@@ -28,40 +28,6 @@ export default {
     ask: 'Ask the notes anything.',
   },
 
-  story: {
-    lines: [
-      'Everyone leaves their notes, however they take them.',
-      'Every night, the hive turns them into the class’s pages.',
-      'Ask in your note, and the AI writes the answer right there.',
-      'Ask the class’s notes anything.',
-    ],
-    notes: [
-      'ci/cd = github actions runs the tests on every push',
-      'if the tests pass → it builds the docker image',
-      'image goes to a registry, the server pulls it',
-      'rollback: just deploy the previous image!!',
-    ],
-    by: ['Ana', 'Leo', 'Marta', 'Iván'],
-    page: {
-      title: 'CI/CD with GitHub Actions and Docker',
-      line: 'Every push runs the tests, builds a Docker image and pushes it to a registry, where the server pulls it from.',
-      steps: ['git push', 'GitHub Actions', 'registry', 'server'],
-      foot: 'From 4 notes · last night',
-    },
-    ask: {
-      question: 'What is a registry?',
-      heading: 'Registry',
-      line: 'A store for Docker images: the pipeline pushes each new image there, and the server pulls it to deploy.',
-      flow: ['pipeline', 'registry', 'server'],
-    },
-    chat: {
-      question: 'What happens if the tests fail?',
-      answer: 'Nothing is deployed: the pipeline stops before it builds the image, so the server keeps the previous version.',
-      source: 'From the page CI/CD with GitHub Actions and Docker',
-    },
-    scroll: 'Scroll',
-  },
-
   hero: {
     slogan: 'Learn as a hive.',
     lead: 'The class’s notes are scattered across chats and drives, and nobody knows which to trust. Kolmi keeps them in one place: everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.',

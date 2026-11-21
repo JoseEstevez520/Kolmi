@@ -4,86 +4,88 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 // One moment of the landing: a single sentence, large, and the picture that shows it. No more text
 // than that (Jose, 2026-11-21: the old landing "tiene demasiado texto").
 //
-// Two quiet scroll effects, nothing flashy (Jose, 2026-11-21: "no buscaba nada tan llamativo"; of
-// the references he liked the text that lights up word by word, henning-tillmann.de): the sentence
-// starts dimmed and its words light up in reading order as it rises through the screen, and the
-// picture comes up a little and in once, when it is reached. Under reduced motion all is still.
+// Layout: the sentence above the picture (`stack`), or beside it (`left`, `right`: the side the
+// sentence goes on), so the page does not repeat the same shape (Jose: "no solo texto arriba y
+// componente abajo, también texto a los lados"). On a phone it is always stacked.
+//
+// Motion plays by itself, not with the scroll (Jose: "quiero que vayan solas"): when the moment is
+// reached, its sentence lights up word by word and the picture comes up and in, once. Under reduced
+// motion all is still.
 const props = defineProps({
   id: { type: String, default: undefined },
   title: { type: String, required: true },
+  layout: { type: String, default: 'stack' }, // 'stack' | 'left' | 'right'
 })
 
-const DIM = 0.22 // opacity of a word not lit yet
+const DIM = 0.2 // opacity of a word not lit yet
+const WORD_MS = 90 // time between two words lighting up
 const words = computed(() => props.title.split(' '))
 const lit = ref(words.value.length)
 const shown = ref(true)
-const heading = ref(null)
-const picture = ref(null)
+const root = ref(null)
 let observer = null
-let frame = 0
+let timer = 0
 
-// How much of the sentence is lit: none when its top is at 90% of the screen, all at 45%.
-function update() {
-  frame = 0
-  const el = heading.value
-  if (!el) return
-  const top = el.getBoundingClientRect().top
-  const h = window.innerHeight
-  const progress = Math.min(1, Math.max(0, (h * 0.9 - top) / (h * 0.45)))
-  lit.value = Math.round(progress * words.value.length)
-}
-const onScroll = () => {
-  if (!frame) frame = requestAnimationFrame(update)
+function play() {
+  lit.value = 0
+  shown.value = true
+  timer = setInterval(() => {
+    lit.value++
+    if (lit.value >= words.value.length) clearInterval(timer)
+  }, WORD_MS)
 }
 
 onMounted(() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  lit.value = 0
   shown.value = false
-  update()
-  addEventListener('scroll', onScroll, { passive: true })
   observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
-        shown.value = true
+        play()
         observer.disconnect()
       }
     },
-    { rootMargin: '0px 0px -15% 0px' },
+    { rootMargin: '0px 0px -30% 0px' },
   )
-  observer.observe(picture.value)
+  observer.observe(root.value)
 })
 onBeforeUnmount(() => {
-  removeEventListener('scroll', onScroll)
-  cancelAnimationFrame(frame)
+  clearInterval(timer)
   observer?.disconnect()
 })
+
+const side = computed(() => props.layout !== 'stack')
 </script>
 
 <template>
-  <section :id="id" class="scroll-mt-20 py-20 sm:py-32">
-    <div class="mx-auto flex w-[min(100%-2rem,64rem)] flex-col items-center gap-10">
+  <section :id="id" ref="root" class="scroll-mt-20 py-20 sm:py-28">
+    <div
+      class="mx-auto grid w-[min(100%-2rem,72rem)] items-center gap-10"
+      :class="side ? 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16' : 'justify-items-center'"
+    >
       <h2
-        ref="heading"
-        class="max-w-2xl text-center text-3xl leading-tight font-semibold tracking-tight text-balance text-fg sm:text-4xl"
+        class="text-3xl leading-tight font-semibold tracking-tight text-balance text-fg sm:text-4xl"
+        :class="[side ? 'lg:text-5xl' : 'max-w-2xl text-center', layout === 'right' && 'lg:order-2']"
         :aria-label="title"
       >
         <template v-for="(word, i) in words" :key="i"><span class="word" :style="{ opacity: i < lit ? 1 : DIM }" aria-hidden="true">{{ word }}</span>{{ ' ' }}</template>
       </h2>
-      <div ref="picture" class="picture w-full" :class="{ in: shown }"><slot /></div>
+      <div class="picture w-full" :class="[{ in: shown }, layout === 'right' && 'lg:order-1']"><slot /></div>
     </div>
   </section>
 </template>
 
 <style scoped>
 .word {
-  transition: opacity 260ms ease-out;
+  transition: opacity 300ms ease-out;
 }
 .picture {
   opacity: 0;
   transform: translateY(18px);
   transition:
-    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 250ms,
+    transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 250ms;
 }
 .picture.in {
   opacity: 1;
