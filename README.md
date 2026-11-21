@@ -18,6 +18,7 @@
 </p>
 
 <p align="center">
+  <a href="https://kolmi.es">Website</a> ·
   <a href="#run-it-locally">Run locally</a> ·
   <a href="README.es.md">Español</a>
 </p>
@@ -79,6 +80,21 @@ showing what would change, and it happens when you confirm. A student can leave 
 notes this way. An admin can also move pages, edit the timetable and look after the class's
 people. It can report a problem with the app too. An admin turns the chat on and sets a daily
 limit per student. See [docs/chat.md](docs/chat.md).
+
+## Write with the AI in a note
+
+The chat asks the class's notes what you don't know. The AI in a note helps you write them, in
+class, where the topic is usually new.
+
+Jot a line, press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>, or select some text and click the sparkles.
+A question becomes notes on it, in its place: a heading, a sentence and the piece that shows it.
+A line of your own stays, and the piece goes under it.
+
+<p align="center">
+  <img src="assets/readme/note-ai.gif" alt="A note: 'how git works' is typed, Ctrl+Enter is pressed, and the line becomes a heading, a sentence and a diagram of the working directory, the staging area, the local repo and GitHub" width="540">
+</p>
+
+<p align="center"><sub>A dressed-up replay of the app, made for the demo.</sub></p>
 
 ## Your own AI, connected
 

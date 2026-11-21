@@ -18,6 +18,7 @@
 </p>
 
 <p align="center">
+  <a href="https://kolmi.es">Web</a> ·
   <a href="#en-local">En local</a> ·
   <a href="README.md">English</a>
 </p>
@@ -79,6 +80,21 @@ enseña qué cambiaría, y ocurre cuando lo confirmas. Un estudiante puede dejar
 así. Un admin además puede mover páginas, editar el horario y cuidar de la gente de la clase.
 También puede avisar de un problema de la app. Un admin enciende el chat y fija un límite diario
 por estudiante. Más en [docs/chat.md](docs/chat.md) (en inglés).
+
+## Escribe con la IA en una nota
+
+El chat le pregunta a los apuntes de la clase lo que no sabes. La IA en una nota te ayuda a
+escribirlos, en clase, cuando el tema suele ser nuevo.
+
+Escribe una línea y pulsa <kbd>Ctrl</kbd> + <kbd>Intro</kbd>, o selecciona un texto y pulsa los
+destellos. Una pregunta se convierte en apuntes sobre ella, en su sitio: un título, una frase y la
+pieza que la muestra. Una línea tuya se queda, y la pieza aparece debajo.
+
+<p align="center">
+  <img src="assets/readme/note-ai.gif" alt="Una nota: se escribe 'how git works', se pulsa Ctrl+Intro y la línea se convierte en un título, una frase y un diagrama de la carpeta de trabajo, el stage, el repo local y GitHub" width="540">
+</p>
+
+<p align="center"><sub>Una reproducción retocada de la app, hecha para la demo (en inglés).</sub></p>
 
 ## Tu propia IA, conectada
 
