@@ -14,6 +14,10 @@ const props = defineProps({
 })
 
 const DIM = 0.2 // opacity of a word not lit yet
+// How long each chapter holds, in screens of scrolling (Jose, 2026-11-21: it "pasa muy fácil").
+// The sentence and the stage stay put for (HOLD - 1) screens; this is the pinning Apple and Arc use
+// (a sticky element inside a taller section), so it pauses without taking over the scroll.
+const HOLD = 1.8
 const WORD_MS = 70 // between two words lighting up
 
 const root = ref(null)
@@ -51,7 +55,7 @@ onMounted(() => {
         light(i)
       }
     },
-    { rootMargin: '-45% 0px -45% 0px' },
+    { rootMargin: '-49% 0px -49% 0px' },
   )
   root.value.querySelectorAll('[data-chapter]').forEach((el) => observer.observe(el))
 })
@@ -79,11 +83,15 @@ onBeforeUnmount(() => {
           :id="c.id"
           :key="c.id"
           :data-chapter="i"
-          class="flex min-h-[85svh] items-center"
+          :style="{ height: `${HOLD * 100}svh` }"
         >
-          <h2 class="text-5xl leading-[1.08] font-semibold tracking-tight text-balance text-fg" :aria-label="c.title">
-            <template v-for="(word, k) in words[i]" :key="k"><span class="word" :style="{ opacity: k < lit[i] ? 1 : DIM }" aria-hidden="true">{{ word }}</span>{{ ' ' }}</template>
-          </h2>
+          <!-- The sentence holds in the middle for a while (sticky inside its tall section), then the
+               next one pushes it up: a short pause at each chapter without touching the scroll. -->
+          <div class="sticky top-0 flex h-svh items-center">
+            <h2 class="text-5xl leading-[1.08] font-semibold tracking-tight text-balance text-fg" :aria-label="c.title">
+              <template v-for="(word, k) in words[i]" :key="k"><span class="word" :style="{ opacity: k < lit[i] ? 1 : DIM }" aria-hidden="true">{{ word }}</span>{{ ' ' }}</template>
+            </h2>
+          </div>
         </section>
       </div>
 
