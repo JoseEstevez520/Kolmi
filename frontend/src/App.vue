@@ -80,10 +80,16 @@ const indicator = ref(null)
     <SidebarLayout v-if="withSidebar" :bare="zen">
       <AppSidebar />
 
-      <div class="min-w-0 flex-1">
-        <SidebarLayoutHeader :toggle-label="t('app.openMenu')" class="shadow-none">
+      <div class="@container min-w-0 flex-1">
+        <!-- In zen mode it fades but keeps its room, so the page under it doesn't move up. -->
+        <SidebarLayoutHeader :toggle-label="t('app.openMenu')" :class="['shadow-none', zen && 'h-14']">
           <AppBreadcrumbs />
           <template #end>
+            <!-- A screen may put its own controls here, in the header's row (NoteWriteView). They
+                 end where the page's article ends, not at the header's edge, as if they were still
+                 atop the page: the article's margin, less the header's padding (1rem), the theme
+                 toggle (1.75rem) and the gap (0.5rem). -->
+            <div id="header-actions" class="header-actions flex items-center gap-2 empty:hidden" />
             <!-- It stays through a language switch, and reads a default text only once. -->
             <ThemeToggle
               :light-label="libraryLabels.switchToLight"
@@ -91,6 +97,10 @@ const indicator = ref(null)
             />
           </template>
         </SidebarLayoutHeader>
+        <!-- The same controls while the header is faded (zen mode): in its place, over the page. -->
+        <div class="pointer-events-none fixed inset-x-0 top-0 z-30 flex h-14 items-center">
+          <div id="zen-actions" class="article pointer-events-auto flex justify-end empty:hidden" />
+        </div>
 
         <main class="pt-4 pb-24">
           <RouterView v-slot="{ Component, route: current }">
@@ -148,3 +158,9 @@ const indicator = ref(null)
     <ScrollIndicator ref="indicator" :class="tocShown && '2xl:hidden'" />
   </MotionConfig>
 </template>
+
+<style scoped>
+.header-actions {
+  margin-right: max(0px, (100cqw - min(var(--article-width, 46rem), 100cqw - 2.5rem)) / 2 - 3.25rem);
+}
+</style>

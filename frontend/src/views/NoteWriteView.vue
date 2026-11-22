@@ -3,7 +3,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch 
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusText, TextMorph } from 'elastic-ui'
-import { ArrowLeft, Maximize2, Minimize2, Paperclip, Radio, Sparkles } from '@lucide/vue'
+import { Maximize2, Minimize2, Paperclip, Radio, Sparkles } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import LiveFollowers from '../components/LiveFollowers.vue'
 import NodePicker from '../components/NodePicker.vue'
@@ -12,6 +12,7 @@ import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
 import { invalidate } from '../lib/cached.js'
 import { loadNodes } from '../lib/content.js'
+import { crumbTitle } from '../lib/crumb.js'
 import { joinNote, splitNote } from '../lib/notes.js'
 import { usePolling } from '../lib/polling.js'
 import { useIdleChrome } from '../lib/idleChrome.js'
@@ -95,6 +96,13 @@ const hintId = ref(null)
 
 const content = computed(() => joinNote(title.value, body.value))
 
+// The breadcrumbs name the note by its title as saved, not at every key, so the crumb doesn't
+// morph while it is typed. Leaving the screen clears it.
+function nameCrumb() {
+  crumbTitle.value = splitNote(saved.content).title.trim()
+}
+onBeforeUnmount(() => (crumbTitle.value = ''))
+
 // What the server has, to save only a change from it.
 let saved = { content: '', hintId: null }
 
@@ -113,6 +121,7 @@ async function load() {
       body.value = parts.body
       hintId.value = note.node_id
       saved = { content: content.value, hintId: hintId.value }
+      nameCrumb()
       findLive()
     }
   } catch (e) {
@@ -225,6 +234,7 @@ function ensureNote(keepalive = false) {
     })
     noteId.value = note.id
     saved = sent
+    nameCrumb()
     // The URL becomes the note's own, so going back and reopening finds it.
     if (!leaving) router.replace({ name: 'note', params: { id: note.id } })
     return note.id
@@ -252,6 +262,7 @@ function save(keepalive = false) {
         await api.updateNote({ ...fields, noteId: noteId.value })
       }
       saved = sent
+      nameCrumb()
       endSaving('saved')
       pushLive(keepalive)
     } catch {
@@ -315,6 +326,20 @@ function toText() {
   editor.value?.focus()
 }
 
+// The controls go up into the header only where it has room for them next to the breadcrumbs; on
+// a narrower screen they stay atop the page. In zen mode the header fades but keeps its room, and
+// they move to the same place over it (App's #zen-actions), so nothing on the page moves.
+const roomy = ref(true)
+let roomyQuery = null
+const onRoomy = () => (roomy.value = roomyQuery.matches)
+onMounted(() => {
+  roomyQuery = matchMedia('(min-width: 1024px)')
+  onRoomy()
+  roomyQuery.addEventListener('change', onRoomy)
+})
+onBeforeUnmount(() => roomyQuery?.removeEventListener('change', onRoomy))
+const inPage = computed(() => !roomy.value)
+
 // The bar above the note fades while you write (also when the pointer rests, in zen mode) and
 // comes back with the pointer.
 const bar = ref(null)
@@ -333,84 +358,87 @@ onMounted(() => loadNodes().catch(() => {}))
     :disabled="loading || !!closed || !!error"
     @add="picker?.add($event)"
   >
-    <div
-      ref="bar"
-      class="mb-10 flex items-center justify-between gap-3 transition-opacity duration-300 motion-reduce:transition-none"
-      :class="barHidden && 'opacity-0'"
-      :inert="barHidden"
-    >
-      <Button variant="ghost" size="sm" :icon="ArrowLeft" to="/notes">{{ t('notes.write.back') }}</Button>
-      <div v-if="!closed && !error" class="flex min-w-0 items-center gap-2">
-        <NodePicker
-          v-if="!loading"
-          v-model="hintId"
-          :placeholder="t('notes.write.hintEmpty')"
-          :none-label="t('notes.write.hintNotSure')"
-          :label="t('notes.write.hintLabel')"
-        />
-        <!-- Attaching works before anything is written: the first file makes the note. -->
-        <PopoverMorph
-          v-if="!loading"
-          variant="ghost"
-          size="sm"
-          align="end"
-          fluid
-          class="text-fg-muted"
-          :label="t('files.label')"
+    <!-- The note's controls sit in the app's header, in the row of the breadcrumbs (`inPage`). -->
+    <div :class="inPage ? 'mb-10 flex justify-end' : 'mb-6'">
+      <Teleport defer :to="zen ? '#zen-actions' : '#header-actions'" :disabled="inPage">
+        <div
+          v-if="!closed && !error"
+          ref="bar"
+          class="flex min-w-0 items-center gap-2 transition-opacity duration-300 motion-reduce:transition-none"
+          :class="barHidden && 'opacity-0'"
+          :inert="barHidden"
         >
-          <template #trigger>
-            <Paperclip class="size-4 shrink-0" aria-hidden="true" />
-            <!-- On a phone the bar has no room for the words: the paperclip stands for them. -->
-            <TextMorph
-              class="max-sm:sr-only"
-              :text="fileCount ? t('files.count', fileCount) : t('files.attachButton')"
-            />
-          </template>
-          <div class="flex flex-col gap-3">
-            <p class="text-meta text-fg-muted">{{ t('files.hint') }}</p>
-            <FilePicker ref="picker" compact :note-id="noteId" :ensure-note="ensureNote" @count="fileCount = $event" />
-          </div>
-        </PopoverMorph>
-        <StatusText v-if="aiError" class="text-meta" :text="aiError" error />
-        <StatusText
-          v-if="status"
-          :class="['text-meta', status !== 'error' && 'text-fg-muted']"
-          :text="statusText"
-          :working="status === 'saving'"
-          :error="status === 'error'"
-        />
-        <LiveFollowers v-if="liveId != null" :followers="followers" />
-        <Button
-          variant="ghost"
-          size="icon"
-          :icon="Radio"
-          :class="liveId != null && 'bg-bg-muted text-fg'"
-          :disabled="liveBusy"
-          :aria-pressed="liveId != null"
-          :aria-label="t('live.share')"
-          :title="t('live.share')"
-          @click="toggleLive"
-        />
-        <Button
-          v-if="chatEnabled"
-          variant="ghost"
-          size="icon"
-          :icon="Sparkles"
-          :class="aiOn && 'bg-bg-muted text-fg'"
-          :aria-pressed="aiOn"
-          :aria-label="t('notes.ai.toggle')"
-          :title="t('notes.ai.toggle')"
-          @click="toggleAi"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          :icon="zen ? Minimize2 : Maximize2"
-          :aria-label="zen ? t('notes.write.zenExit') : t('notes.write.zen')"
-          :aria-pressed="zen"
-          @click="toggleZen"
-        />
-      </div>
+          <NodePicker
+            v-if="!loading"
+            v-model="hintId"
+            :placeholder="t('notes.write.hintEmpty')"
+            :none-label="t('notes.write.hintNotSure')"
+            :label="t('notes.write.hintLabel')"
+          />
+          <!-- Attaching works before anything is written: the first file makes the note. -->
+          <PopoverMorph
+            v-if="!loading"
+            variant="ghost"
+            size="sm"
+            align="end"
+            fluid
+            class="text-fg-muted"
+            :label="t('files.label')"
+          >
+            <template #trigger>
+              <Paperclip class="size-4 shrink-0" aria-hidden="true" />
+              <!-- On a phone the bar has no room for the words: the paperclip stands for them. -->
+              <TextMorph
+                class="max-sm:sr-only"
+                :text="fileCount ? t('files.count', fileCount) : t('files.attachButton')"
+              />
+            </template>
+            <div class="flex flex-col gap-3">
+              <p class="text-meta text-fg-muted">{{ t('files.hint') }}</p>
+              <FilePicker ref="picker" compact :note-id="noteId" :ensure-note="ensureNote" @count="fileCount = $event" />
+            </div>
+          </PopoverMorph>
+          <StatusText v-if="aiError" class="text-meta" :text="aiError" error />
+          <StatusText
+            v-if="status"
+            :class="['text-meta', status !== 'error' && 'text-fg-muted']"
+            :text="statusText"
+            :working="status === 'saving'"
+            :error="status === 'error'"
+          />
+          <LiveFollowers v-if="liveId != null" :followers="followers" />
+          <Button
+            variant="ghost"
+            size="icon"
+            :icon="Radio"
+            :class="liveId != null && 'bg-bg-muted text-fg'"
+            :disabled="liveBusy"
+            :aria-pressed="liveId != null"
+            :aria-label="t('live.share')"
+            :title="t('live.share')"
+            @click="toggleLive"
+          />
+          <Button
+            v-if="chatEnabled"
+            variant="ghost"
+            size="icon"
+            :icon="Sparkles"
+            :class="aiOn && 'bg-bg-muted text-fg'"
+            :aria-pressed="aiOn"
+            :aria-label="t('notes.ai.toggle')"
+            :title="t('notes.ai.toggle')"
+            @click="toggleAi"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            :icon="zen ? Minimize2 : Maximize2"
+            :aria-label="zen ? t('notes.write.zenExit') : t('notes.write.zen')"
+            :aria-pressed="zen"
+            @click="toggleZen"
+          />
+        </div>
+      </Teleport>
     </div>
 
     <TextSkeleton v-if="loading" heading />
