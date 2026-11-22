@@ -460,6 +460,12 @@ Same tools, same loop, another trigger.
 
 ## Ideas, not committed
 
+- **Curio inside Kolmi.** Bring [Curio](https://github.com/JoseEstevez520/curio)'s in-place
+  explanations to pages and notes: click a word or select a phrase and a one-sentence glance
+  opens right there, explained against its own sentence; "See more" grows it into a composed
+  panel (OpenUI components), with deeper clicks and a breadcrumb back. Nothing is underlined at
+  rest. Curio is React + TypeScript; Kolmi would need a Vue version of the reader layer.
+
 - **Kolmi Notes and Kolmi Class.** Split the product into two modes on the same base: *Notes*
   for one person (your own notes with the AI inside the note) as the way in, and *Class* for a
   group (the shared notebook that the daily pass turns into pages) as the next step, with an
