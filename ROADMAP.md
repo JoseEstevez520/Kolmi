@@ -460,5 +460,11 @@ Same tools, same loop, another trigger.
 
 ## Ideas, not committed
 
+- **Kolmi Notes and Kolmi Class.** Split the product into two modes on the same base: *Notes*
+  for one person (your own notes with the AI inside the note) as the way in, and *Class* for a
+  group (the shared notebook that the daily pass turns into pages) as the next step, with an
+  "invite your class" or "create a shared space" option. One app and one codebase, with a
+  landing message for each audience. Sign-up and the home screen would stop assuming a class.
+
 - Export the notes to PDF.
 - Link a topic to NotebookLM, so a section's notes can be studied there too.
