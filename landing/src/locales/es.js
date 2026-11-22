@@ -177,7 +177,7 @@ export default {
 
   ai: {
     title: 'Tu propia IA, conectada',
-    body: 'Kolmi también es un servidor MCP, así que la IA que ya usas puede trabajar con los apuntes de la clase en tu nombre.\n\nPongamos que el curso está en Moodle y el código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo asistente, le pides que lea el material de esta semana y lo pase a limpio.\n\nLee primero el árbol de la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.',
+    body: 'Kolmi también es un servidor MCP: la IA que ya usas puede leer los apuntes de la clase y dejar notas por ti.\n\nPor ejemplo, con Moodle y GitHub conectados al mismo asistente, le pides que pase a limpio el material de la semana, y deja una nota por tema con el enlace de donde salió.',
     label: 'Tu asistente de IA lee Moodle y un repo de GitHub, y deja notas en Kolmi',
     material: 'Tu material',
     moodle: 'Moodle',
@@ -186,7 +186,7 @@ export default {
     assistant: 'tu IA',
     leaves: 'deja',
     notes: 'notas en Kolmi',
-    connect: 'En Ajustes, en **Conecta tu IA**, le pones nombre a la conexión y recibes un token, que se muestra una sola vez.\n\nCon él va el comando para tu cliente, con la dirección de tu instancia ya puesta. Para Claude Code tiene esta forma:',
+    connect: 'En Ajustes, en **Conecta tu IA**, creas un token (se ve una sola vez) y copias el comando para tu cliente. Para Claude Code:',
     command: 'claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"',
     limits: 'Hay instrucciones para Claude Code, Gemini CLI y Codex CLI, y para cualquier otro cliente que acepte un token de portador. Las apps de chat cuyos conectores piden iniciar sesión con OAuth aún no se admiten. Leer es libre. Tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta antes.',
   },

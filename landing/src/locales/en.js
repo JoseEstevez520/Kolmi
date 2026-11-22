@@ -179,7 +179,7 @@ export default {
 
   ai: {
     title: 'Your own AI, connected',
-    body: 'Kolmi is also an MCP server, so the AI you already use can work with the class’s notes as you.\n\nSay your course is on Moodle and the practice code is in a GitHub repo. With Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week’s material and write it up.\n\nIt reads the class’s tree first, sees what the pages already say and leaves one note per topic, each with the link it came from. An admin’s AI can fold the material straight into a page instead.',
+    body: 'Kolmi is also an MCP server: the AI you already use can read the class’s notes and leave notes as you.\n\nSay Moodle and GitHub are connected to the same assistant: you ask it to write up this week’s material, and it leaves one note per topic with the link it came from.',
     label: 'Moodle and a GitHub repo are read by your AI assistant, which leaves notes in Kolmi',
     material: 'Your material',
     moodle: 'Moodle',
@@ -188,7 +188,7 @@ export default {
     assistant: 'your AI',
     leaves: 'leaves',
     notes: 'notes in Kolmi',
-    connect: 'In Settings, under **Connect your AI**, you name the connection and get a token, shown once.\n\nWith it comes the command for your client, with your instance’s address already in it. For Claude Code it has this shape:',
+    connect: 'In Settings, under **Connect your AI**, you create a token (shown once) and copy the command for your client. For Claude Code:',
     command: 'claude mcp add --transport http kolmi <url> --header "Authorization: Bearer <token>"',
     limits: 'There are instructions for Claude Code, Gemini CLI and Codex CLI, and for any other client that takes a bearer token. Chat apps whose connectors need an OAuth sign-in are not supported yet. Reading is free. Your AI acts with your role, and anything that changes something asks you first.',
   },
