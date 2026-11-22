@@ -5,12 +5,14 @@ import { copy } from '../i18n.js'
 
 // The first screen, laid out as the class invitation (docs/brand-visuals.md): the honey aurora
 // fills it and one centred column sits on top, with no card and no second surface. It starts
-// under the header (h-14), so the bar shows the honey through its blur.
+// under the header (h-14), so the bar shows the honey through its blur. The column sits in the
+// middle of the screen under the bar, and the honey goes on a little past it before it melts
+// into the page over a shorter ramp (Jose, 2026-11-23: centred in height, the honey reaching lower).
 </script>
 
 <template>
-  <Aurora class="relative -mt-14 flex min-h-svh items-center justify-center px-4 pt-34 pb-72 text-center">
-    <div class="flex max-w-xl flex-col items-center gap-8">
+  <Aurora class="relative -mt-14 px-4 pb-40 text-center">
+    <div class="mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center gap-8 pt-14">
       <div class="flex flex-col items-center gap-4">
         <img src="/logo.svg" alt="" width="72" height="72" class="size-[72px]" />
         <div class="flex flex-col gap-2">
@@ -29,19 +31,19 @@ import { copy } from '../i18n.js'
       </div>
     </div>
     <!-- The honey melts into the page instead of stopping at a line. -->
-    <div class="fade pointer-events-none absolute inset-x-0 bottom-0 h-96" aria-hidden="true" />
+    <div class="fade pointer-events-none absolute inset-x-0 bottom-0 h-64" aria-hidden="true" />
   </Aurora>
 </template>
 
 <style scoped>
 .fade {
-  /* An eased ramp (several stops) so the honey thins out gently instead of in a straight band. */
+  /* A shorter, eased ramp: the honey holds most of the way and thins out near the end. */
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    color-mix(in oklab, var(--color-bg) 12%, transparent) 25%,
-    color-mix(in oklab, var(--color-bg) 38%, transparent) 50%,
-    color-mix(in oklab, var(--color-bg) 72%, transparent) 75%,
+    color-mix(in oklab, var(--color-bg) 10%, transparent) 30%,
+    color-mix(in oklab, var(--color-bg) 45%, transparent) 60%,
+    color-mix(in oklab, var(--color-bg) 85%, transparent) 85%,
     var(--color-bg) 100%
   );
 }
