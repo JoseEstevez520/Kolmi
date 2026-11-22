@@ -310,7 +310,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('pagehide', onHide)
 })
 
-// Escape leaves zen mode, unless it was closing the "/" menu. Leaving the screen leaves it too.
+// Escape leaves zen mode, unless something took it (a menu closing). In the text the editor says
+// so itself (`@escape`). Leaving the screen leaves it too.
 function onKey(event) {
   if (zen.value && event.key === 'Escape' && !event.defaultPrevented) exitZen()
 }
@@ -340,8 +341,8 @@ onMounted(() => {
 onBeforeUnmount(() => roomyQuery?.removeEventListener('change', onRoomy))
 const inPage = computed(() => !roomy.value)
 
-// The bar above the note fades while you write (also when the pointer rests, in zen mode) and
-// comes back with the pointer.
+// The bar above the note fades while you write (and in zen mode, whenever the pointer is away from
+// it) and comes back when the pointer reaches for it.
 const bar = ref(null)
 const { hidden: barHidden } = useIdleChrome(ref(true), bar, zen)
 
@@ -468,6 +469,7 @@ onMounted(() => loadNodes().catch(() => {}))
         :placeholder="t('notes.write.bodyPlaceholder')"
         :assist="noteAssist"
         @ai-error="onAiError"
+        @escape="exitZen"
       />
     </template>
   </FileDropZone>

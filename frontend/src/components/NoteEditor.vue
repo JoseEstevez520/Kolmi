@@ -24,7 +24,9 @@ import { AI_LANGUAGE, AiCodeBlock, aiWriting, withoutAi } from '../lib/editor/ai
 // Markdown in and out (v-model), so the daily pass reads it as it reads any note.
 const model = defineModel({ type: String, default: '' })
 // When the AI couldn't write (no session, the day's limit, a failed answer): its message.
-const emit = defineEmits(['ai-error'])
+// `escape`: Escape pressed with nothing of the editor's own to close (the "/" menu, the AI
+// writing). ProseMirror marks every Escape as handled, so the page can't tell from the event.
+const emit = defineEmits(['ai-error', 'escape'])
 
 const props = defineProps({
   placeholder: { type: String, default: '' },
@@ -113,7 +115,11 @@ const editor = useEditor({
     },
     // Ctrl/Cmd+Enter: the AI on the selection, or on the line the cursor is on.
     handleKeyDown: (view, event) => {
-      if (event.key === 'Escape') return stopAll()
+      if (event.key === 'Escape') {
+        if (stopAll()) return true
+        if (!slash.open) emit('escape')
+        return false
+      }
       if (!props.assist || event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) return false
       return run()
     },
