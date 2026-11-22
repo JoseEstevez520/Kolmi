@@ -4,8 +4,9 @@ import { ArrowDown } from '@lucide/vue'
 import { copy } from '../i18n.js'
 import PipelineArtifact from './PipelineArtifact.vue'
 
-// What the night pass does (Jose, 2026-11-21): notes from two students, more of them and not neatly
-// laid out, as people really leave them; and beside them the joint page, the crafted thing: rounded,
+// What the night pass does (Jose, 2026-11-21): notes from two students, not neatly laid out, as
+// people really leave them; four of them, each saying something the page says (Jose, 2026-11-23:
+// fewer notes, and only what ends up written); and beside them the joint page, the crafted thing: rounded,
 // well set, with its flow, its points and an artifact in it: the pipeline the notes describe, to try
 // (PipelineArtifact). Flat, no shadows. It is there from the start, already composed (Jose: the
 // entrance "tarda demasiado"); only the artifact starts running once the scene is reached.
@@ -250,7 +251,7 @@ onBeforeUnmount(() => observer?.disconnect())
   background: #f0aa3c;
 }
 
-/* Phones: the notes become a small pile (three of them, overlapping a little) so the page is
+/* Phones: the notes become a small pile (overlapping a little) so the page is
    reached at once, with the line that joins them in between. */
 .join {
   display: none;
@@ -268,9 +269,6 @@ onBeforeUnmount(() => observer?.disconnect())
   }
   .notes {
     gap: 0;
-  }
-  .note:nth-child(n + 4) {
-    display: none;
   }
   .note + .note {
     margin-top: -0.35rem;

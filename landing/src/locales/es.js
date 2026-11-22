@@ -23,12 +23,10 @@ export default {
     join: 'Por la noche, Kolmi las convierte en un apunte',
     label: 'Notas sueltas de dos estudiantes, y la página de la clase escrita a partir de todas',
     notes: [
-      { by: 'Ana', text: 'ci/cd: github actions pasa los tests en cada push' },
-      { by: 'Leo', text: 'si pasan → docker build + push al registry' },
-      { by: 'Ana', text: 'el yaml va en .github/workflows' },
-      { by: 'Leo', text: 'el server hace pull de la imagen' },
-      { by: 'Ana', text: 'si fallan los tests NO se despliega nada' },
-      { by: 'Leo', text: 'rollback = desplegar la imagen de antes!!' },
+      { by: 'Ana', text: 'github actions pasa los tests en cada push' },
+      { by: 'Leo', text: 'si pasan → imagen de docker al registry' },
+      { by: 'Ana', text: 'el servidor la baja de ahí' },
+      { by: 'Leo', text: 'si fallan no se despliega nada. rollback = imagen anterior' },
     ],
     artifact: {
       tag: 'Artefacto',
@@ -43,7 +41,7 @@ export default {
       line: 'Cada push pasa los tests, construye una imagen de Docker y la sube a un registry, de donde la baja el servidor.',
       steps: ['git push', 'GitHub Actions', 'registry', 'servidor'],
       points: ['Si fallan los tests, no se despliega nada.', 'Rollback: se despliega la imagen anterior.'],
-      foot: 'De 6 notas de Ana y Leo · anoche',
+      foot: 'De 4 notas de Ana y Leo · anoche',
     },
   },
 
