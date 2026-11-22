@@ -1,13 +1,13 @@
 <script setup>
 import { BookOpen, Bot, GitBranch, Library, NotebookPen } from '@lucide/vue'
-import { CodeBlock, Diagram, DiagramArea, DiagramArrow, DiagramChip, DiagramGroup } from 'elastic-ui'
+import { Diagram, DiagramArea, DiagramArrow, DiagramChip, DiagramGroup } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
 import RichParas from '../components/RichParas.vue'
 import { copy } from '../i18n.js'
 
 // The MCP, told as the case it is for: a member's own AI reads the material (here Moodle and a
-// repo) and leaves notes in Kolmi, as that member. One small diagram and the command a coding
-// agent runs to connect, as docs/mcp.md has it.
+// repo) and leaves notes in Kolmi, as that member. One sentence and one small diagram; how to
+// connect lives in the app and in docs/mcp.md (Jose, 2026-11-23: the command here was too much).
 const AI = '#7c3aed'
 </script>
 
@@ -26,7 +26,5 @@ const AI = '#7c3aed'
         <DiagramChip :icon="NotebookPen">{{ copy.ai.notes }}</DiagramChip>
       </DiagramGroup>
     </Diagram>
-    <RichParas :text="copy.ai.connect" />
-    <CodeBlock :code="copy.ai.command" language="bash" wrap />
   </LandingSection>
 </template>

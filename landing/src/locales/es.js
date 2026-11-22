@@ -177,7 +177,7 @@ export default {
 
   ai: {
     title: 'Tu propia IA, conectada',
-    body: 'Kolmi también es un servidor MCP: la IA que ya usas puede leer los apuntes de la clase y dejar notas por ti.',
+    body: 'Kolmi también es un servidor MCP: la IA que ya usas puede leer los apuntes de la clase, dejar notas por ti o saber qué tienes que estudiar.',
     label: 'Tu asistente de IA lee Moodle y un repo de GitHub, y deja notas en Kolmi',
     material: 'Tu material',
     moodle: 'Moodle',
