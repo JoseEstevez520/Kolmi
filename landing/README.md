@@ -57,3 +57,7 @@ library, bump `package.json` here too.
 
 `npm run build` gives a static folder, `dist/`, that any web server can serve. Where yours runs
 (the server, the domain, the certificate) is personal setup and goes in `LOCAL.md`, never here.
+
+Visits are counted by the script in `index.html`, which points at a self-hosted Umami: no cookies,
+no personal data. Its explanation lives here, not in a comment there: the built page ships its
+comments, and to a crawler that runs no JavaScript they are most of what the page says.
