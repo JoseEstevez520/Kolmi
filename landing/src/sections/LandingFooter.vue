@@ -43,9 +43,16 @@ const socials = computed(() => [
         <p class="text-fg-secondary">{{ copy.footer.contact }}</p>
         <!-- My links: the icon alone, opening into its name when pointed at, with no tray (as the
              people in my portfolio's posts). -->
-        <IconLinks variant="ghost" :label="copy.footer.contact">
+        <IconLinks variant="ghost" :label="copy.footer.contact" class="hidden sm:flex">
           <IconLink v-for="link in socials" :key="link.href" :icon="link.icon" :label="link.label" :href="link.href" />
         </IconLinks>
+        <!-- On a phone there is no pointer to open them, so the row would show every name and wrap
+             (Jose, 2026-11-23): there, just the three marks in a line. -->
+        <nav class="flex gap-3 sm:hidden" :aria-label="copy.footer.contact">
+          <Button v-for="link in socials" :key="link.href" variant="ghost" size="icon" :href="link.href" :aria-label="link.label">
+            <Logo :icon="link.icon" alt="" />
+          </Button>
+        </nav>
       </div>
       <div class="flex flex-col items-center gap-1 text-sm text-fg-secondary">
         <a :href="copy.links.license" class="underline-offset-2 hover:underline">{{ copy.footer.license }}</a>
