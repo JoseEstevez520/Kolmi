@@ -61,7 +61,7 @@ onBeforeUnmount(() => observer?.disconnect())
 
       <!-- On phones the two columns stack, so the link between them is said out loud (Jose,
            2026-11-22: on mobile the scene "quizás no se entiende"). -->
-      <p class="join md:hidden"><ArrowDown class="size-4" />{{ copy.hive.join }}</p>
+      <p class="join"><ArrowDown class="size-4" />{{ copy.hive.join }}</p>
 
       <!-- The joint page: rounded, set with care, written in part after part. -->
       <article class="page" :class="{ on: pageOn }">
@@ -253,7 +253,7 @@ onBeforeUnmount(() => observer?.disconnect())
 /* Phones: the notes become a small pile (three of them, overlapping a little) so the page is
    reached at once, with the line that joins them in between. */
 .join {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
@@ -263,6 +263,9 @@ onBeforeUnmount(() => observer?.disconnect())
   color: var(--color-fg-muted);
 }
 @media (max-width: 767px) {
+  .join {
+    display: flex;
+  }
   .notes {
     gap: 0;
   }
