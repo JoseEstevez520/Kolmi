@@ -179,7 +179,7 @@ export default {
 
   ai: {
     title: 'Your own AI, connected',
-    body: 'Kolmi is also an MCP server: the AI you already use can read the class’s notes and leave notes as you.\n\nSay Moodle and GitHub are connected to the same assistant: you ask it to write up this week’s material, and it leaves one note per topic with the link it came from.',
+    body: 'Kolmi is also an MCP server: the AI you already use can read the class’s notes and leave notes as you.',
     label: 'Moodle and a GitHub repo are read by your AI assistant, which leaves notes in Kolmi',
     material: 'Your material',
     moodle: 'Moodle',
