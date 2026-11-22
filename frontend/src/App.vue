@@ -82,7 +82,7 @@ const indicator = ref(null)
 
       <div class="@container min-w-0 flex-1">
         <!-- In zen mode it fades but keeps its room, so the page under it doesn't move up. -->
-        <SidebarLayoutHeader :toggle-label="t('app.openMenu')" :class="['shadow-none', zen && 'h-14']">
+        <SidebarLayoutHeader :toggle-label="t('app.openMenu')" keep-room class="shadow-none">
           <AppBreadcrumbs />
           <template #end>
             <!-- A screen may put its own controls here, in the header's row (NoteWriteView). They
