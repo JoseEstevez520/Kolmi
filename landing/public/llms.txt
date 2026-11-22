@@ -1,0 +1,43 @@
+# Kolmi
+
+> Kolmi is where a class keeps its notes together: everyone leaves theirs, and every night an AI pass turns them into shared pages the class can read and ask questions of. It is for one class, self-hosted, and open source.
+
+Kolmi is a collaboration app for a single class. The backend is Python with FastAPI, the web app is Vue 3 with Vite, and the public page is static. A raw note stays private to its author and the admins until the pass takes it; what the pass writes becomes a page the whole class sees.
+
+The nightly pass is a team of agents that runs once a day, on the schedule an admin sets. The gatekeeper reads each new note, strips names and private data, discards what adds nothing and decides which page it belongs to, keeping the reason for each decision in the AI log. The notes agent writes what the gatekeeper lets through, and the web agent lays it out as a page, with a diagram where an idea has parts and a table or chart where the numbers matter.
+
+Each class runs its own instance, with its own Supabase project and server. Nothing is shared between classes and the keys stay in that instance's `.env`. There is no multitenancy and no teacher account: an admin is a student who looks after the class.
+
+Status: in development. The nightly pass, the chat, the MCP server and live notes are built; a forum and OAuth sign-in for chat apps come next.
+
+## Website
+
+- [kolmi.es](https://kolmi.es): the project's public page, for whoever is thinking of bringing Kolmi to their class. It is not part of a class's instance and a deployed instance doesn't need it.
+
+## Source
+
+- [Kolmi on GitHub](https://github.com/JoseEstevez520/Kolmi): the repository: backend, frontend, landing, docs and database schema.
+- [README](https://github.com/JoseEstevez520/Kolmi/blob/main/README.md): what Kolmi is, how it works, the chat, the AI in a note, the MCP and how to run it.
+- [Run it locally](https://github.com/JoseEstevez520/Kolmi/blob/main/README.md#run-it-locally): needs Python 3, Node 20 or higher, a Supabase project and an API key for a model; the tables are created from `supabase/schema.sql`.
+- [Roadmap](https://github.com/JoseEstevez520/Kolmi/blob/main/ROADMAP.md): what is built and what comes next.
+- [MIT license](https://github.com/JoseEstevez520/Kolmi/blob/main/LICENSE): Kolmi is open source under the MIT license.
+- [Security policy](https://github.com/JoseEstevez520/Kolmi/blob/main/SECURITY.md): security issues follow this file, never a public issue.
+
+## Documentation
+
+- [The idea](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/idea.md): the problem, the team of agents and why raw notes stay private.
+- [Authentication and users](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/authentication.md): accounts, roles and the class code.
+- [Features and actions](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/features.md): what the app does and how each action is built.
+- [The chat](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/chat.md): what the model writes, how a question travels and how a change is proposed.
+- [Actions as tools](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/tools.md): how one action serves the web, the chat and the MCP, with the role and params checked in one place.
+- [Live notes](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/live-notes.md): following a class through someone's notes as they are written.
+- [Page format](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/page-format.md): how a page goes from the pass to the screen.
+- [The MCP](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/mcp.md): connecting your own AI: tokens, resources, prompt and evals.
+- [Testing with real cases](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/testing.md): the plan for trying it before the class does.
+- [Data and privacy](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/privacy.md): what is stored, who sees it and what leaves the instance.
+
+## Optional
+
+- [Brand tone](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/brand-tone.md): how Kolmi sounds.
+- [Brand visuals](https://github.com/JoseEstevez520/Kolmi/blob/main/docs/brand-visuals.md): how to make an image that looks like Kolmi.
+- [Landing](https://github.com/JoseEstevez520/Kolmi/blob/main/landing/README.md): what the public page says and how it is built.

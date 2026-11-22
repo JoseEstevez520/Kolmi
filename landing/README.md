@@ -41,6 +41,14 @@ The tokens at the top of `src/style.css` are a copy of `frontend/src/style.css`'
 step. The library's Spanish labels are not copied: they are read from the app's
 `frontend/src/locales/elastic-ui.es.js`.
 
+## Search engines and AIs
+
+The page is drawn by JavaScript, and most AI crawlers don't run it, so what they read is the
+`<head>` of `index.html` and the files in `public/`: the canonical URL, the Open Graph tags and
+their image (`og.png`, the README's `before-after` at 1200×630), the JSON-LD, `robots.txt`,
+`sitemap.xml` and `llms.txt` (the project in Markdown, from the README, as llmstxt.org lays it
+out). When the README changes what Kolmi is or does, update `llms.txt` in the same commit.
+
 ## Run it
 
 ```bash
