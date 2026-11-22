@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { NotebookPen } from '@lucide/vue'
-import { ChatMessage, ChatProposal } from 'elastic-ui'
+import { Aurora, ChatMessage, ChatProposal } from 'elastic-ui'
 import LandingSection from '../components/LandingSection.vue'
 import RichText from '../components/RichText.vue'
 import RichParas from '../components/RichParas.vue'
@@ -21,12 +21,13 @@ function confirm() {
 
 <template>
   <LandingSection id="chat" :title="copy.ask.title">
-    <!-- Laid out as the AI-in-a-note section above it: the text on the left, the conversation in its
-         box on the right (Jose, 2026-11-23). -->
-    <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
-      <RichParas :text="copy.ask.body" />
-      <figure class="chat-box m-0" :aria-label="copy.ask.label">
-        <div class="flex flex-col gap-5">
+    <!-- The conversation on the left this time, to break the run of text-left sections, and drawn
+         as a chat: over the same aurora as the replay in "How it works" (Jose, 2026-11-23). On a
+         phone the text comes first. -->
+    <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12">
+      <figure class="chat-box relative m-0 overflow-hidden order-2 lg:order-1" :aria-label="copy.ask.label">
+        <Aurora class="absolute inset-0" settled />
+        <div class="relative flex flex-col gap-5">
           <ChatMessage role="user">{{ copy.ask.question }}</ChatMessage>
           <div class="flex flex-col gap-1.5">
             <ChatMessage role="assistant"><RichText :text="copy.ask.answer" /></ChatMessage>
@@ -50,15 +51,16 @@ function confirm() {
           </ChatMessage>
         </div>
       </figure>
+      <RichParas class="order-1 lg:order-2" :text="copy.ask.body" />
     </div>
   </LandingSection>
 </template>
 
 <style scoped>
-/* A sheet like the note's video in the section above: the page's own colour, a soft edge, rounded. */
+/* The chat's sheet, as AgentReplay draws it: rounded, a soft edge, the aurora behind. */
 .chat-box {
   padding: 1.75rem;
-  border-radius: 2rem;
-  background: #fff;
+  border-radius: 1.75rem;
+  border: 1px solid var(--color-border);
 }
 </style>
