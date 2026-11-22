@@ -35,7 +35,18 @@ class _Query:
         return self
 
     def gte(self, column, value):
-        self.tests.append(lambda row: str(row.get(column) or "") >= value)
+        # Compared as moments, as Postgres does: "23:27+00:00" and "00:00+01:00" are the same day in
+        # Madrid but sort the other way as text, which broke the cap test after midnight there.
+        def at_or_after(row):
+            have = row.get(column)
+            if not have:
+                return False
+            try:
+                return datetime.fromisoformat(str(have)) >= datetime.fromisoformat(str(value))
+            except ValueError:
+                return str(have) >= str(value)
+
+        self.tests.append(at_or_after)
         return self
 
     def in_(self, column, values):
