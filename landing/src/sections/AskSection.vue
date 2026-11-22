@@ -21,9 +21,11 @@ function confirm() {
 
 <template>
   <LandingSection id="chat" :title="copy.ask.title">
-    <!-- The conversation in a box like the note's on the left, the text on the right (Jose, 2026-11-21). -->
-    <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12">
-      <figure class="chat-box m-0 order-2 lg:order-1" :aria-label="copy.ask.label">
+    <!-- Laid out as the AI-in-a-note section above it: the text on the left, the conversation in its
+         box on the right (Jose, 2026-11-23). -->
+    <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+      <RichParas :text="copy.ask.body" />
+      <figure class="chat-box m-0" :aria-label="copy.ask.label">
         <div class="flex flex-col gap-5">
           <ChatMessage role="user">{{ copy.ask.question }}</ChatMessage>
           <div class="flex flex-col gap-1.5">
@@ -48,17 +50,15 @@ function confirm() {
           </ChatMessage>
         </div>
       </figure>
-      <RichParas class="order-1 lg:order-2" :text="copy.ask.body" />
     </div>
   </LandingSection>
 </template>
 
 <style scoped>
-/* The same sheet as the note in the section above: the page's own colour, a soft edge, rounded. */
+/* A sheet like the note's video in the section above: the page's own colour, a soft edge, rounded. */
 .chat-box {
   padding: 1.75rem;
   border-radius: 2rem;
-  background: var(--color-bg);
-  box-shadow: 0 0 0 1px var(--color-border);
+  background: #fff;
 }
 </style>

@@ -171,7 +171,7 @@ export default {
 
   noteAi: {
     title: 'La IA en una nota',
-    body: 'El chat le pregunta a los apuntes de la clase lo que no sabes. La IA en una nota te ayuda a escribirlos, en clase, cuando el tema suele ser nuevo.\n\nPulsa [[Ctrl]] + [[Intro]] en una línea, o selecciona un texto y pulsa [[@sparkles]].\n\nUna pregunta se convierte en apuntes sobre ella, en su sitio. Una línea tuya se queda, y debajo aparece la pieza que la muestra.',
+    body: 'La IA en una nota te ayuda a escribir tus apuntes en clase, cuando el tema suele ser nuevo.\n\nPulsa [[Ctrl]] + [[Intro]] en una línea, o selecciona un texto y pulsa [[@sparkles]].\n\nUna pregunta se convierte en apuntes sobre ella, en su sitio. Una línea tuya se queda, y debajo aparece la pieza que la muestra.',
     label: 'Una nota donde «how git works» más Ctrl + Intro se convierte en un título, una frase y un diagrama de los cuatro sitios por los que pasa tu código',
   },
 

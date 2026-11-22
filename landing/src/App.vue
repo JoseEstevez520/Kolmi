@@ -24,8 +24,8 @@ import WhatSection from './sections/WhatSection.vue'
       <HeroSection />
       <WhatSection />
       <HowSection />
-      <AskSection />
       <NoteAiSection />
+      <AskSection />
       <AiSection />
       <TodaySection />
       <RunSection />

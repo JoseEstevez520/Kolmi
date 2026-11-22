@@ -173,7 +173,7 @@ export default {
 
   noteAi: {
     title: 'The AI in a note',
-    body: 'The chat asks the class’s notes what you don’t know. The AI in a note helps you write them, in class, where the topic is usually new.\n\nPress [[Ctrl]] + [[Enter]] on a line, or select some text and click [[@sparkles]].\n\nA question becomes notes on it, in its place. A line of your own stays, and the piece that shows it goes under it.',
+    body: 'The AI in a note helps you write your notes in class, where the topic is usually new.\n\nPress [[Ctrl]] + [[Enter]] on a line, or select some text and click [[@sparkles]].\n\nA question becomes notes on it, in its place. A line of your own stays, and the piece that shows it goes under it.',
     label: 'A note where “how git works” plus Ctrl + Enter becomes a heading, a sentence and a diagram of the four places your code goes',
   },
 
