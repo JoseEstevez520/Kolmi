@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { ArrowDown } from '@lucide/vue'
 import { copy } from '../i18n.js'
 import PipelineArtifact from './PipelineArtifact.vue'
 
@@ -57,6 +58,10 @@ onBeforeUnmount(() => observer?.disconnect())
           <span class="who">{{ n.by }}</span>{{ n.text }}
         </p>
       </div>
+
+      <!-- On phones the two columns stack, so the link between them is said out loud (Jose,
+           2026-11-22: on mobile the scene "quizás no se entiende"). -->
+      <p class="join md:hidden"><ArrowDown class="size-4" />{{ copy.hive.join }}</p>
 
       <!-- The joint page: rounded, set with care, written in part after part. -->
       <article class="page" :class="{ on: pageOn }">
@@ -243,6 +248,38 @@ onBeforeUnmount(() => observer?.disconnect())
   height: 0.4rem;
   border-radius: 999px;
   background: #f0aa3c;
+}
+
+/* Phones: the notes become a small pile (three of them, overlapping a little) so the page is
+   reached at once, with the line that joins them in between. */
+.join {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: -0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 550;
+  color: var(--color-fg-muted);
+}
+@media (max-width: 767px) {
+  .notes {
+    gap: 0;
+  }
+  .note:nth-child(n + 4) {
+    display: none;
+  }
+  .note + .note {
+    margin-top: -0.35rem;
+  }
+  .note.a {
+    position: relative;
+    z-index: 1;
+  }
+  .page {
+    padding: 1.5rem 1.35rem 1.4rem;
+    border-radius: 1.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

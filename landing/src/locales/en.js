@@ -22,6 +22,7 @@ export default {
   },
 
   hive: {
+    join: 'Overnight, Kolmi turns them into one page',
     label: 'Loose notes from two students, and the page of the class written from all of them',
     notes: [
       { by: 'Ana', text: 'ci/cd: github actions runs the tests on every push' },
@@ -175,43 +176,7 @@ export default {
   noteAi: {
     title: 'The AI in a note',
     body: 'The chat asks the class’s notes what you don’t know. The AI in a note helps you write them, in class, where the topic is usually new.\n\nPress [[Ctrl]] + [[Enter]] on a line, or select some text and click [[@sparkles]].\n\nA question becomes notes on it, in its place. A line of your own stays, and the piece that shows it goes under it.',
-    lead: 'Watch a student in a web development class ask two things in a note. It is a made-up example, written with what the AI in a note actually returned. It is a made-up example.',
-    label: 'A made-up example: the question “What is an API?” becomes a heading, a definition, a figure of a request and its response and an analogy; then “GraphQL vs REST API” becomes a comparison table and a summary',
-    caption: 'A made-up example, drawn with the app’s own parts.',
-    after: '**A question becomes notes, and your own notes get the piece that shows them. Either way, what the AI writes is part of the note and is saved with it.** It writes from what it knows, with the note so far as context, and takes no actions. It is there when the class has the chat on, each student turns it on in the note’s bar, and it counts against the chat’s daily limit.',
-    demo: {
-      keys: ['Ctrl', 'Enter'],
-      title: 'Today’s class',
-      steps: [
-        {
-          question: 'What is an API?',
-          heading: 'API',
-          line: 'An **API** (Application Programming Interface) is the contract a program offers so another one can use it: what it can ask for, with what data and what comes back. Whoever calls it doesn’t need to know how it works inside.',
-          figure: {
-            label: 'Your app asks a service, which exposes the API, for something: request and response',
-            app: 'Your app',
-            appNote: 'asks for something',
-            arrow: 'request / response',
-            service: 'Service',
-            serviceNote: 'exposes the API',
-          },
-          after: 'It is like a restaurant menu: you order a dish (a *request*) and the kitchen serves it (the *response*), without you going in to cook.',
-        },
-        {
-          question: 'GraphQL vs REST API',
-          heading: 'GraphQL vs REST API',
-          label: 'REST and GraphQL compared',
-          head: ['', 'REST', 'GraphQL'],
-          rows: [
-            ['How you ask', 'one URL per resource (`GET /users/1`)', 'a single endpoint (`POST /graphql`) with a *query*'],
-            ['What comes back', 'the whole resource, set by the server', 'only the fields you ask for'],
-            ['N+1', 'several calls for related data', 'one call with nested data'],
-            ['Caching', 'easy (each URL is unique)', 'harder (everything goes through POST)'],
-          ],
-          after: 'REST exposes **resources** with URLs; GraphQL exposes a **graph** you query with a *query* language. With REST the server decides the shape of the answer; with GraphQL the client does.',
-        },
-      ],
-    },
+    label: 'A note where “how git works” plus Ctrl + Enter becomes a heading, a sentence and a diagram of the four places your code goes',
   },
 
   ai: {
