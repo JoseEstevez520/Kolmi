@@ -198,8 +198,6 @@ export default {
       { title: 'El horario', text: 'La semana de la clase en una pantalla.' },
       { title: 'Descargas', text: 'Cualquier sección en Markdown, lista para NotebookLM.' },
       { title: 'El registro de la IA', text: 'Qué leyó cada pasada y qué cambió.' },
-      { title: 'Los admins son estudiantes', text: 'Un estudiante con más permisos organiza la clase.' },
-      { title: 'Una interfaz tranquila', text: 'Poco texto, y en español o inglés.' },
     ],
   },
 
@@ -207,7 +205,8 @@ export default {
     title: 'Llévalo a tu clase',
     body: 'Necesitas Python, Node, un proyecto de Supabase y una clave de API de un modelo.\n\nCada clase lleva su propia instancia; los pasos están en el README.',
     scope: 'Cada clase lleva su propia instancia, con su propio proyecto de Supabase y su propio servidor. No se comparte nada entre clases, y las claves se quedan en tu `.env`.',
-    cta: 'Leer los pasos',
+    cta: 'Cómo montarlo',
+    short: 'Necesitas Python, Node, un proyecto de Supabase y una clave de API. Cada clase lleva su propia instancia.',
   },
 
   docs: {

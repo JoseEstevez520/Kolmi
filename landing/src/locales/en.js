@@ -200,8 +200,6 @@ export default {
       { title: 'The timetable', text: 'The class’s week on one screen.' },
       { title: 'Downloads', text: 'Any section as Markdown, ready for NotebookLM.' },
       { title: 'The AI log', text: 'What each pass read and what it changed.' },
-      { title: 'Admins are students', text: 'A student with more permissions runs the class.' },
-      { title: 'A quiet interface', text: 'Little text, in English or Spanish.' },
     ],
   },
 
@@ -209,7 +207,8 @@ export default {
     title: 'Bring it to your class',
     body: 'You need Python, Node, a Supabase project and an API key for a model.\n\nEach class runs its own instance; the steps are in the README.',
     scope: 'Each class runs its own instance, with its own Supabase project and server. Nothing is shared between classes, and the keys stay in your `.env`.',
-    cta: 'Read the steps',
+    cta: 'How to run it',
+    short: 'You need Python, Node, a Supabase project and an API key. Each class runs its own instance.',
   },
 
   docs: {

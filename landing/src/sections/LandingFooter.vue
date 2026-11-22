@@ -19,7 +19,7 @@ const socials = computed(() => [
 
 <template>
   <footer>
-    <Aurora class="relative flex flex-col items-center gap-8 px-4 pt-72 pb-20 text-center">
+    <Aurora class="relative flex flex-col items-center gap-8 px-4 pt-40 pb-20 sm:pt-48 text-center">
       <!-- The page melts into the honey here, as the hero melts out of it at the top. -->
       <div class="fade-in pointer-events-none absolute inset-x-0 top-0 h-40" aria-hidden="true" />
       <div class="flex flex-col items-center gap-4">
@@ -27,10 +27,18 @@ const socials = computed(() => [
         <p class="text-3xl font-semibold tracking-tight text-balance text-fg sm:text-4xl">{{ copy.footer.cta }}</p>
         <p class="text-lg text-fg-secondary">{{ copy.hero.slogan }}</p>
       </div>
-      <Button size="lg" :href="copy.links.repo">
-        <Logo :icon="siGithub" mono alt="" />
-        {{ copy.footer.primary }}
-      </Button>
+      <!-- How to run it lives here now, under the call, instead of a section of its own (Jose,
+           2026-11-23): the code and the steps side by side, and what it needs in one line. -->
+      <div class="flex flex-col items-center gap-3">
+        <div class="flex flex-wrap justify-center gap-2">
+          <Button size="lg" :href="copy.links.repo">
+            <Logo :icon="siGithub" mono alt="" />
+            {{ copy.footer.primary }}
+          </Button>
+          <Button size="lg" variant="secondary" :href="copy.links.run">{{ copy.run.cta }}</Button>
+        </div>
+        <p class="m-0 max-w-md text-sm text-balance text-fg-secondary">{{ copy.run.short }}</p>
+      </div>
       <div class="flex flex-col items-center gap-3">
         <p class="text-fg-secondary">{{ copy.footer.contact }}</p>
         <!-- My links: the icon alone, opening into its name when pointed at, with no tray (as the
