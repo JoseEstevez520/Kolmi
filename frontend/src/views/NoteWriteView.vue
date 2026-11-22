@@ -364,8 +364,8 @@ onMounted(() => loadNodes().catch(() => {}))
         <div
           v-if="!closed && !error"
           ref="bar"
-          class="flex min-w-0 items-center gap-2 transition-opacity duration-300 motion-reduce:transition-none"
-          :class="barHidden && 'opacity-0'"
+          class="flex min-w-0 items-center gap-2 transition-opacity motion-reduce:transition-none"
+          :class="barHidden ? 'opacity-0 duration-100' : 'duration-200'"
           :inert="barHidden"
         >
           <NodePicker

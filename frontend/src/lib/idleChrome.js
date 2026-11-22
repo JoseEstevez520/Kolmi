@@ -5,7 +5,7 @@ import { onBeforeUnmount, ref, watch } from 'vue'
 // next pointer move, a touch or the Tab key. Writing in the controls themselves (a search box) doesn't hide them, nor
 // does resting the pointer on them, nor does focus inside them: a keyboard user is never left with
 // controls they can't see. The same pattern as Ulysses' minimal mode, Novlr and FocusWriter.
-const IDLE_MS = 2500
+const IDLE_MS = 1500
 const MOVE_PX = 4
 
 export function useIdleChrome(active, chrome, idle = ref(false)) {
@@ -66,8 +66,10 @@ export function useIdleChrome(active, chrome, idle = ref(false)) {
     window.removeEventListener('input', onInput, true)
   })
 
-  // Leaving zen mode stops the resting timer, and brings the controls back.
-  watch(idle, (on) => (on ? show() : (clearTimeout(timer), (hidden.value = false))))
+  // Entering zen mode hides them at once, with the rest of the app's chrome, even under the pointer
+  // that just turned it on; the next move brings them back. Leaving it stops the resting timer and
+  // brings them back.
+  watch(idle, (on) => (on ? hide() : (clearTimeout(timer), (hidden.value = false))))
 
   watch(active, (on) => {
     if (on) show()
