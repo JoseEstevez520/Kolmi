@@ -465,6 +465,8 @@ Same tools, same loop, another trigger.
   opens right there, explained against its own sentence; "See more" grows it into a composed
   panel (OpenUI components), with deeper clicks and a breadcrumb back. Nothing is underlined at
   rest. Curio is React + TypeScript; Kolmi would need a Vue version of the reader layer.
+  Only where notes are read (pages and a note being viewed), not while one is being written,
+  so it never gets in the way of typing (Jose, 2026-11-23).
 
 - **Kolmi Notes and Kolmi Class.** Split the product into two modes on the same base: *Notes*
   for one person (your own notes with the AI inside the note) as the way in, and *Class* for a
