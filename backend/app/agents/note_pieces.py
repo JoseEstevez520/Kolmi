@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 from . import openui
 from .client import LLM
+from .web import draw_visuals
 
 log = logging.getLogger(__name__)
 
@@ -48,27 +49,32 @@ class Mend:
     program: str | None  # the mended program, or None to drop the piece
 
 
-def mend_pieces(llm: LLM, answer: str, parts: str) -> list[Mend]:
+def mend_pieces(
+    llm: LLM, answer: str, parts: str, *, language: str = "en", notes: str = ""
+) -> list[Mend]:
     """For each piece of `answer` that doesn't hold up, the model's fix (asked once, with the
     problems), or None when the fix doesn't hold up either."""
     mends: list[Mend] = []
     for index, match in enumerate(FENCE.finditer(answer)):
         program = match.group(1).strip()
         found = piece_problems(program)
-        if not found:
-            continue
-        fixed: str | None = None
+        fixed: str | None = program if not found else None
         try:
-            reply = llm.complete_text(
-                _MEND.replace("{parts}", parts),
-                "Problems:\n" + "\n".join(f"- {p}" for p in found) + f"\n\nThe piece:\n{program}",
-            )
-            candidate = openui.strip_fence(reply).strip()
-            if candidate and not piece_problems(candidate):
-                fixed = candidate
+            if found:
+                reply = llm.complete_text(
+                    _MEND.replace("{parts}", parts),
+                    "Problems:\n" + "\n".join(f"- {p}" for p in found) + f"\n\nThe piece:\n{program}",
+                )
+                candidate = openui.strip_fence(reply).strip()
+                if candidate and not piece_problems(candidate):
+                    fixed = candidate
+            if fixed is not None:
+                fixed, _ = draw_visuals(llm, fixed, language=language, notes=notes)
         except Exception as exc:  # a failed call drops the piece, never the answer
             log.warning("couldn't mend a note's piece: %s", exc)
-        mends.append(Mend(index, fixed))
+            fixed = None
+        if fixed != program:
+            mends.append(Mend(index, fixed))
     return mends
 
 

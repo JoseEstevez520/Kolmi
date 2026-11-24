@@ -379,8 +379,7 @@ export function buildLibrary(renderers, { chat = false } = {}) {
 
   const Page = component('Page', z.object({ blocks: z.array(Block) }))
 
-  // The chat's own parts, and the answer's root: a subset of the blocks above (no Diagram or
-  // Artifact, which a second model draws after the page is written) plus Sources and Proposal.
+  // The answer catalogue also serves notes, whose Artifact briefs are drawn after streaming.
   const Sources = component(
     'Sources',
     z.object({ ids: z.array(z.number()).describe('The ids of the pages the answer comes from') }),
@@ -401,6 +400,7 @@ export function buildLibrary(renderers, { chat = false } = {}) {
     Cards.ref,
     Chart.ref,
     Figure.ref,
+    Artifact.ref,
     Sources.ref,
     Proposal.ref,
   ])
@@ -412,7 +412,7 @@ export function buildLibrary(renderers, { chat = false } = {}) {
       components: [
         Answer, Text, CodeBlock, CodeDiff, Callout, Steps, StepItem, Table, DescriptionList,
         DescriptionItem, Accordion, AccordionItem, Cards, Card, Chart, ChartSeries, Figure, Group,
-        Area, Chip, Label, Arrow, Sources, Proposal,
+        Area, Chip, Label, Arrow, Artifact, Sources, Proposal,
       ],
     })
   }

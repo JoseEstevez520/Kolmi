@@ -596,7 +596,10 @@ def stream_chat(ctx: Context, params: AskChatParams):
             if in_note:
                 # Each piece checked as the pass checks a page's, and mended once: one that would
                 # show as code is fixed in place (`fix`), or dropped (`program` null).
-                mends = mend_pieces(get_chat_llm(), program, chat_parts(NOTE_PARTS))
+                mends = mend_pieces(
+                    get_chat_llm(), program, chat_parts(NOTE_PARTS),
+                    language=language, notes=params.note or question,
+                )
                 for mend in mends:
                     yield sse("fix", {"index": mend.index, "program": mend.program})
                 program = apply_mends(program, mends)

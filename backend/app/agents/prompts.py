@@ -319,6 +319,7 @@ NOTE_PARTS = (
     "Arrow",
     "Chart",
     "CodeBlock",
+    "Artifact",
 )
 
 _NOTE = """\
@@ -341,6 +342,11 @@ procedure, Steps; terms, a DescriptionList; a trap students fall in, a Callout; 
 whole, a flow or several things sharing one, a Figure (draw the idea's own shape: a row of \
 Arrows only for things that follow each other; several sharing one, the several in a column \
 Group, one Arrow, the one); values, a Chart; code, a CodeBlock.
+
+For an interactive simulation, calculator or experiment, use Artifact with a precise brief:
+what the controls do, what state changes, and what the student should learn by using it.
+Leave `piece` out: the server builds the Vue component after your answer. When the student
+asks for interaction, include that Artifact rather than substituting a static Figure or prose.
 
 Some guidance, not a template; follow the student first:
 - If the text says how they want it ("brief", "with an example", "the code", "a table"), do that.

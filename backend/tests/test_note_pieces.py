@@ -56,3 +56,35 @@ def test_the_stream_sends_a_fix_before_done(monkeypatch):
     assert [n for n, _ in events][-2:] == ["fix", "done"]
     assert events[-2][1] == {"index": 0, "program": GOOD}
     assert GOOD in client.rows("chat_messages")[0]["answer"]
+
+
+def test_note_artifact_is_generated_sent_and_saved(monkeypatch):
+    from app.agents import openui
+    from tests.test_web_agent import PIECE
+
+    brief = 'root = Answer([a])\na = Artifact("Scopes", "Compare instance ids with a button", 300)'
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = [_answer(brief)]
+    llm.text_response = [PIECE]
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    params = AskChatParams(question="Build a simulator", mode="note", note="Singleton shares an instance")
+    events = _events(list(stream_chat(_ctx(client), params)))
+    fixes = [data for name, data in events if name == "fix"]
+    assert len(fixes) == 1
+    fixed = fixes[0]["program"]
+    artifact = openui.parse(fixed.replace("Answer(", "Page(", 1)).args[0][0]
+    assert artifact.args[3] == PIECE
+    assert fixed in client.rows("chat_messages")[0]["answer"]
+    assert events[-1][0] == "done"
+    assert "Singleton shares an instance" in llm.calls[-1][2]
+
+
+def test_failed_note_artifact_keeps_other_content():
+    brief = 'root = Answer([t, a])\nt = Table(["Scope"], [["singleton"]])\na = Artifact("Scopes", "Compare ids", 300)'
+    llm = FakeLLM()
+    llm.text_response = ["invalid", "invalid again"]
+    [mend] = mend_pieces(llm, _answer(brief), "parts")
+    assert "Artifact(" not in mend.program
+    assert "Table(" in mend.program
+    assert "Text." in apply_mends(_answer(brief), [mend])
