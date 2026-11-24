@@ -4,6 +4,7 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
+from html.parser import HTMLParser
 from typing import Any
 
 from ..class_settings import FALLBACK_LANGUAGE
@@ -120,13 +121,59 @@ _OUTSIDE = re.compile(r"""(?:src|href)\s*=\s*["']?\s*(?:https?:)?//""", re.I)
 _IMPORTABLE = {"vue", "@joseestevez/vue-elastic-ui"}
 _NAMED_IMPORT = re.compile(r"""^\s*import\s*\{[^}]*\}\s*from\s*['"]([^'"]+)['"]\s*;?""", re.M)
 _ANY_IMPORT = re.compile(r"^\s*import\b.*$", re.M)
+_VOID_TAGS = {
+    "area", "base", "br", "col", "embed", "hr", "img", "input",
+    "link", "meta", "param", "source", "track", "wbr",
+}
+
+
+class _TemplateTagChecker(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.stack: list[str] = []
+        self.error = ""
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag not in _VOID_TAGS and not self.error:
+            self.stack.append(tag)
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        pass
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in _VOID_TAGS or self.error:
+            return
+        if not self.stack or self.stack[-1] != tag:
+            self.error = (
+                f"the <template> has an unexpected </{tag}>"
+                if tag not in self.stack
+                else f"the <template> leaves <{self.stack[-1]}> unclosed before </{tag}>"
+            )
+            return
+        self.stack.pop()
+
+
+def _template_problem(template: str) -> str:
+    checker = _TemplateTagChecker()
+    checker.feed(re.sub(r"\{\{.*?\}\}", "", template, flags=re.S))
+    if checker.error:
+        return checker.error
+    if checker.stack:
+        return f"the <template> leaves <{checker.stack[-1]}> unclosed"
+    return ""
 
 
 def _piece_problem(piece: str) -> str:
     """What stops a piece running on the sandbox runtime, or "" when nothing does."""
-    if not re.search(r"<template(\s[^>]*)?>", piece, re.I):
-        return "there is no <template>"
-    script = re.search(r"<script(\s[^>]*)?>(.*?)</script>", piece, re.S | re.I)
+    open_tpl = re.search(r"<template(\s[^>]*)?>", piece, re.I)
+    close_tpl = piece.lower().rfind("</template>")
+    if not open_tpl or close_tpl < open_tpl.end():
+        return "there is no complete <template>...</template>"
+    tpl_problem = _template_problem(piece[open_tpl.end() : close_tpl])
+    if tpl_problem:
+        return tpl_problem
+    rest = piece[: open_tpl.start()] + piece[close_tpl + len("</template>") :]
+    script = re.search(r"<script(\s[^>]*)?>(.*?)</script>", rest, re.S | re.I)
     if not script:
         return "there is no <script> with export default { setup() { ... } }"
     if re.search(r"\bsetup\b", script.group(1) or ""):
@@ -134,6 +181,8 @@ def _piece_problem(piece: str) -> str:
             "<script setup> cannot run in the frame: write a plain <script> with "
             "export default { setup() { ... return { ... } } }"
         )
+    if re.search(r"<style(\s[^>]*)?>", rest, re.I) and not re.search(r"</style>", rest, re.I):
+        return "the <style> has no closing </style>"
     body = script.group(2)
     if not re.search(r"\bexport\s+default\b", body):
         return "the <script> has no export default"

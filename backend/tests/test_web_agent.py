@@ -580,6 +580,18 @@ def test_a_named_import_over_several_lines_is_accepted():
     assert _problem("piece", spread)[1] == ""
 
 
+def test_a_piece_with_unclosed_template_tags_is_sent_back():
+    broken = PIECE.replace("<Button @click=\"n++\">Ask</Button>", "<div><Button @click=\"n++\">Ask</Button>")
+    llm = ScriptedLLM([SVG, broken, PIECE])
+
+    source, report = write_visuals(llm)
+
+    assert "leaves <div> unclosed" in llm.calls[2][2]
+    assert openui.parse(source).args[0][2].args[3] == PIECE
+    assert report[1] == {"kind": "Artifact", "label": "Compare scopes", "drawn": True, "reason": ""}
+
+
+
 def test_what_the_notes_ask_for_reaches_the_web_writer():
     from app.agents.web import _brief
 

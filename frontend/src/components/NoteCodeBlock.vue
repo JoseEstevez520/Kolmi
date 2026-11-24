@@ -18,7 +18,7 @@ const isAi = computed(() => props.node.attrs.language === AI_LANGUAGE)
 
 <template>
   <NodeViewWrapper v-if="isAi" class="group relative my-4" contenteditable="false" data-ai-block>
-    <ChatAnswer :text="node.textContent" :streaming="node.attrs.streaming || aiWriting" />
+    <ChatAnswer :text="node.textContent" :streaming="Boolean(node.attrs.streaming || aiWriting)" :paced="false" />
     <Button
       v-if="!node.attrs.streaming && !aiWriting && editor.isEditable"
       variant="ghost"

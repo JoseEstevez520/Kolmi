@@ -31,6 +31,8 @@ import {
   Markdown,
   Prose,
   SandboxFrame,
+  Skeleton,
+  StatusText,
   Steps,
   StepsItem,
   Table,
@@ -43,7 +45,7 @@ import {
   TerminalReplay,
   slugify,
 } from 'elastic-ui'
-import { createParser } from '@openuidev/vue-lang'
+import { createParser, useIsStreaming } from '@openuidev/vue-lang'
 // The runtime an Artifact's piece runs on, served as a file of its own: only a page with a piece
 // loads it, inside the piece's frame.
 import sandboxRuntime from 'elastic-ui/sandbox-runtime.js?url'
@@ -59,7 +61,13 @@ import { logoFor } from './logos.js'
 const declared = ['props', 'renderNode']
 
 function renderer(render) {
-  return { props: declared, setup: (p) => () => render(p.props ?? {}, p.renderNode) }
+  return {
+    props: declared,
+    setup: (p) => {
+      const streaming = useIsStreaming()
+      return () => render(p.props ?? {}, p.renderNode, streaming.value)
+    },
+  }
 }
 
 // A Markdown block that flows in the page's own Prose instead of opening a second article.
@@ -270,10 +278,11 @@ export const renderers = {
   Arrow: renderer(({ label, both }) => h(DiagramArrow, { label, both: !!both })),
 
   // Drawn as an image by the library, so the SVG cannot run scripts or reach the page. A page
-  // written before briefs carried the SVG as its second argument.
-  Diagram: renderer(({ label = '', brief = '', caption, svg }) => {
+  // written before briefs carried the SVG as its second argument. While the drawing is still
+  // being built from its brief, a placeholder holds its place.
+  Diagram: renderer(({ label = '', brief = '', caption, svg }, _, streaming) => {
     const source = svg || (brief.trim().startsWith('<svg') ? brief : '')
-    if (!source) return null
+    if (!/<\/svg>\s*$/i.test(source)) return streaming ? visualPlaceholder(label) : null
     return h(Diagram, { label, caption, class: 'rounded-[var(--radius-xl)] bg-bg-subtle p-4 sm:p-5' }, () =>
       h(DiagramImage, { svg: source }),
     )
@@ -306,12 +315,42 @@ export const renderers = {
   // theme's tokens, and as tall as what it holds. `height` is only where it starts. A piece made
   // of the library's parts (a Vue component, from <template>) runs on the sandbox runtime; a page
   // written before it carries a whole HTML document, in that slot or, older, in the brief's.
-  Artifact: renderer(({ title = '', brief = '', height, piece }) => {
+  // While the server builds the component from its brief, a placeholder shows its title and shape.
+  Artifact: renderer(({ title = '', brief = '', height, piece }, _, streaming) => {
     const common = { label: title, height: Number(height) > 0 ? Number(height) : undefined, bare: true }
-    if (/^\s*<template[\s>]/i.test(piece ?? '')) return h(SandboxFrame, { ...common, piece, runtime: sandboxRuntime })
-    const html = piece || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '')
-    return html ? h(SandboxFrame, { ...common, html }) : null
+    if (hasPiece(piece)) return h(SandboxFrame, { ...common, piece, runtime: sandboxRuntime })
+    const html = !/^\s*<template[\s>]/i.test(piece ?? '') ? piece || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '') : ''
+    if (html && (!streaming || /<\/(html|body|script|div)>\s*$/i.test(html))) return h(SandboxFrame, { ...common, html })
+    return streaming ? visualPlaceholder(title, true) : null
   }),
+}
+
+const hasPiece = (piece) =>
+  /^\s*<template[\s>]/i.test(piece ?? '') &&
+  /<\/template>/i.test(piece) &&
+  (!/<script[\s>]/i.test(piece) || /<\/script>/i.test(piece)) &&
+  (!/<style[\s>]/i.test(piece) || /<\/style>\s*$/i.test(piece))
+
+function visualPlaceholder(title, controls = false) {
+  return h(
+    'div',
+    {
+      'aria-busy': 'true',
+      class: 'flex flex-col gap-3 rounded-[var(--radius-xl)] bg-bg-subtle p-5 sm:p-6 [--skeleton-bg:var(--color-border)]',
+    },
+    [
+      title
+        ? h(StatusText, { text: title, working: true, class: 'text-label font-medium text-fg-secondary' })
+        : h(Skeleton, { class: 'h-4 w-2/5' }),
+      controls
+        ? h('div', { class: 'flex gap-2' }, [
+            h(Skeleton, { class: 'h-8 w-24 rounded-[var(--radius-md)]' }),
+            h(Skeleton, { class: 'h-8 w-24 rounded-[var(--radius-md)]' }),
+          ])
+        : null,
+      h(Skeleton, { class: 'h-36 w-full rounded-[var(--radius-md)]' }),
+    ],
+  )
 }
 
 export const pageLibrary = buildLibrary(renderers)

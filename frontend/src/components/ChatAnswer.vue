@@ -10,13 +10,17 @@ import { usePacedText } from '../lib/pacedText.js'
 const props = defineProps({
   text: { type: String, default: '' },
   streaming: { type: Boolean, default: false },
+  paced: { type: Boolean, default: true },
 })
 
 // Drawn at the library's steady pace, not in the model's bursts: the same as a chat's plain text.
-const { paced, settling } = usePacedText(
-  () => props.text,
-  () => props.streaming,
+// A note's editor already paces the stream, so it passes `paced: false` to draw the text as it is.
+const { paced: pacedText, settling } = usePacedText(
+  () => (props.paced ? props.text : ''),
+  () => props.paced && props.streaming,
 )
+const drawn = computed(() => (props.paced ? pacedText.value : props.text))
+const isStreaming = computed(() => props.streaming || (props.paced && settling.value))
 
 const openui = ref(null)
 const failed = ref(false)
@@ -50,10 +54,10 @@ const asMarkdown = computed(
   <Markdown v-if="asMarkdown" :source="text" />
   <component
     :is="openui.Renderer"
-    v-else-if="openui && paced"
-    :response="paced"
+    v-else-if="openui && drawn"
+    :response="drawn"
     :library="openui.chatLibrary"
-    :is-streaming="settling"
+    :is-streaming="isStreaming"
     :on-error="onError"
   />
 </template>
