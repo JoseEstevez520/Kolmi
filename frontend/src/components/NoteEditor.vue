@@ -194,23 +194,16 @@ function run() {
   ed.commands.setTextSelection(blockEnd + 1)
   setAiRegion(ed, id, { from: blockStart, to: blockEnd, mid: null, status: t('notes.ai.thinking') })
 
-  // Replace the arriving part (mid..to) with `markdown`, keeping the line being written where it
-  // is on screen when the answer grows above it.
+  // Replace only the arriving part. Streaming must not move the viewport away from
+  // the text the writer is reading; scrolling remains under their control.
   const put = (markdown) => {
     const r = aiRegion(ed, id)
-    const head = ed.state.selection.head
-    const above = head >= r.to
-    const top = above ? ed.view.coordsAtPos(head).top : 0
     // Delete, then insert between blocks: replacing a whole paragraph in one go would pour the
     // new blocks into it (a heading would arrive as a paragraph).
     own((c) => {
       const chain = r.to > r.mid ? c.deleteRange({ from: r.mid, to: r.to }) : c
       return markdown ? chain.insertContentAt(r.mid, markdown, { contentType: 'markdown', updateSelection: false }) : chain
     })
-    if (above) {
-      const moved = ed.view.coordsAtPos(ed.state.selection.head).top - top
-      if (moved) window.scrollBy(0, moved)
-    }
   }
 
   // Where the finished blocks of `markdown` end: the last blank line outside a fence.
