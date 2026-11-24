@@ -8,6 +8,6 @@ defineProps({ code: { type: String, default: '' } })
 
 <template>
   <div class="not-prose my-4">
-    <ChatAnswer :text="code" />
+    <ChatAnswer :text="code" :paced="false" />
   </div>
 </template>

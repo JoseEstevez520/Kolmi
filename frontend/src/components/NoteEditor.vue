@@ -137,7 +137,10 @@ watch(model, (value) => {
   if (value !== written) current.commands.setContent(value, { contentType: 'markdown', emitUpdate: false })
 })
 
-onBeforeUnmount(() => editor.value?.destroy())
+onBeforeUnmount(() => {
+  stopAll()
+  editor.value?.destroy()
+})
 
 // The "+" opens the same menu as typing does.
 function openBlocks() {
@@ -280,10 +283,12 @@ function run() {
     finished = true
     pace.stop()
     try {
-      revealed = received.includes('\n') ? received : received + '\n'
-      render(true)
+      if (!ed.isDestroyed) {
+        revealed = received.includes('\n') ? received : received + '\n'
+        render(true)
+      }
     } finally {
-      setAiRegion(ed, id, null)
+      if (!ed.isDestroyed) setAiRegion(ed, id, null)
       running.delete(controller)
       aiWriting.value--
     }
@@ -355,12 +360,23 @@ function run() {
     })
     .finally(() => {
       done = true
-      // Stopped by the writer: what is on show stays, at once. Otherwise the rest comes in at
-      // the pace's flush and the answer ends when it has caught up.
-      if (textDone) {
+      // Stopped by the writer: what is on show stays, at once, without an unfinished artifact
+      // brief. Otherwise the rest comes in at the pace's flush and the answer ends when caught up.
+      if (controller.signal.aborted) {
+        if (!textDone) received = revealed
+        const cleaned = received.replace(/```kolmi-ai[^\n]*\n[\s\S]*?```\n?/g, (fence) =>
+          /\bArtifact\s*\(/.test(fence) && !/<\/template>/i.test(fence) ? '' : fence,
+        )
+        if (cleaned !== received && !ed.isDestroyed) {
+          received = cleaned
+          const r = aiRegion(ed, id)
+          if (r && r.mid != null) {
+            setAiRegion(ed, id, { mid: r.from })
+            committed = 0
+          }
+        }
         finish()
-      } else if (controller.signal.aborted) {
-        received = revealed
+      } else if (textDone) {
         finish()
       } else {
         pace.update(received, false)
