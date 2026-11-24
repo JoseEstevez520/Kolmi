@@ -29,6 +29,7 @@ class FakeLLM:
         self.tool_error = tool_error
         self.stream_tokens: list[str] = []
         self.stream_error: Exception | None = None
+        self.finish_reason: str | None = "stop"
         self.tool_results: list[str] = []
         self.calls: list[tuple[str, str, str]] = []
         self.offered_tools: list[list[str]] = []
@@ -59,6 +60,8 @@ class FakeLLM:
             yield {"type": "token", "text": piece}
         if self.stream_error:
             raise self.stream_error
+        if self.finish_reason != "stop":
+            raise ValueError(f"the model stopped early ({self.finish_reason or 'incomplete stream'})")
 
     def complete_text(self, system: str, user: str) -> str:
         self.calls.append(("text", system, user))

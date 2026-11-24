@@ -187,10 +187,14 @@ class OpenAILLM:
             )
             text = ""
             calls: dict[int, dict[str, str]] = {}
+            finish_reason: str | None = None
             for chunk in stream:
                 if not chunk.choices:
                     continue
-                delta = chunk.choices[0].delta
+                choice = chunk.choices[0]
+                if choice.finish_reason:
+                    finish_reason = choice.finish_reason
+                delta = choice.delta
                 # Tool calls arrive in pieces, told apart by their index.
                 for piece in getattr(delta, "tool_calls", None) or []:
                     call = calls.setdefault(piece.index, {"id": "", "name": "", "arguments": ""})
@@ -205,6 +209,8 @@ class OpenAILLM:
                     text += delta.content
                     yield {"type": "token", "text": delta.content}
             if not calls:
+                if finish_reason != "stop":
+                    raise ValueError(f"the model stopped early ({finish_reason or 'incomplete stream'})")
                 if text.strip():
                     return
                 empty_answers += 1
@@ -212,6 +218,8 @@ class OpenAILLM:
                     raise ValueError("the model answered with nothing")
                 messages.append({"role": "user", "content": EMPTY_ANSWER_TEXT})
                 continue
+            if finish_reason not in ("tool_calls", "stop"):
+                raise ValueError(f"the model stopped early ({finish_reason or 'incomplete stream'})")
             ordered = [calls[i] for i in sorted(calls)]
             messages.append(
                 {
@@ -247,9 +255,17 @@ class OpenAILLM:
             stream=True,
             extra_body=self._no_thinking,
         )
+        finish_reason = None
         for chunk in final:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield {"type": "token", "text": chunk.choices[0].delta.content}
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+            if choice.delta.content:
+                yield {"type": "token", "text": choice.delta.content}
+        if finish_reason != "stop":
+            raise ValueError(f"the model stopped early ({finish_reason or 'incomplete stream'})")
 
     def complete_text(self, system: str, user: str) -> str:
         response = self._client.chat.completions.create(
@@ -261,7 +277,10 @@ class OpenAILLM:
             temperature=0.2,
             extra_body=self._no_thinking,
         )
-        return response.choices[0].message.content or ""
+        choice = response.choices[0]
+        if getattr(choice, "finish_reason", "stop") not in (None, "stop"):
+            raise ValueError(f"the model stopped early ({choice.finish_reason})")
+        return choice.message.content or ""
 
 
 @lru_cache

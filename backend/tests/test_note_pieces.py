@@ -90,3 +90,22 @@ def test_failed_note_artifact_keeps_other_content():
     assert "Artifact(" not in mend.program
     assert "Table(" in mend.program
     assert "Text." in apply_mends(_answer(brief), [mend])
+
+
+def test_truncated_note_stream_does_not_emit_text_done_or_build_artifacts(monkeypatch):
+    brief = 'root = Answer([a])\na = Artifact("Scopes", "Compare instance ids", 300)'
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = [_answer(brief)]
+    llm.finish_reason = "length"
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    params = AskChatParams(question="Build a simulator", mode="note", note="Singleton shares an instance")
+    events = _events(list(stream_chat(_ctx(client), params)))
+    names = [name for name, _ in events]
+    assert "text_done" not in names
+    assert "fix" not in names
+    assert "done" not in names
+    assert names[-1] == "error"
+    assert [c[0] for c in llm.calls] == ["stream"]
+    assert client.rows("chat_messages")[0]["answer"] == _answer(brief)
+

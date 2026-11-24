@@ -318,3 +318,35 @@ def test_a_chat_question_ignores_a_note(monkeypatch):
     _, system, user = llm.calls[0]
     assert "<note>" not in user
     assert "in a student's note" not in system
+
+
+def _stream_llm(chunks):
+    from types import SimpleNamespace
+    from app.agents.client import OpenAILLM
+
+    llm = OpenAILLM.__new__(OpenAILLM)
+    llm.model = "fake"
+    llm._no_thinking = None
+    llm._client = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **_: iter(chunks)))
+    )
+    return llm
+
+
+def _chunk(content=None, finish_reason=None, tool_calls=None):
+    from types import SimpleNamespace
+
+    delta = SimpleNamespace(content=content, tool_calls=tool_calls)
+    return SimpleNamespace(choices=[SimpleNamespace(delta=delta, finish_reason=finish_reason)])
+
+
+def test_openai_stream_requires_stop_finish_reason():
+    llm = _stream_llm([_chunk("hello "), _chunk("world", finish_reason="stop")])
+    events = list(llm.stream_with_tools("sys", "user", [], lambda n, a: ""))
+    assert events == [{"type": "token", "text": "hello "}, {"type": "token", "text": "world"}]
+
+    for bad_reason in ("length", "content_filter", None):
+        truncated = _stream_llm([_chunk("partial answer", finish_reason=bad_reason)])
+        with pytest.raises(ValueError, match="stopped early"):
+            list(truncated.stream_with_tools("sys", "user", [], lambda n, a: ""))
+
