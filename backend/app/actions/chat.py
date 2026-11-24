@@ -594,6 +594,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
             if not program.strip():
                 raise ValueError("the model answered with nothing")
             if in_note:
+                yield sse("text_done", {})
                 # Each piece checked as the pass checks a page's, and mended once: one that would
                 # show as code is fixed in place (`fix`), or dropped (`program` null).
                 mends = mend_pieces(

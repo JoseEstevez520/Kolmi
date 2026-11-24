@@ -70,6 +70,8 @@ def test_note_artifact_is_generated_sent_and_saved(monkeypatch):
     monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
     params = AskChatParams(question="Build a simulator", mode="note", note="Singleton shares an instance")
     events = _events(list(stream_chat(_ctx(client), params)))
+    names = [name for name, _ in events]
+    assert names.index("text_done") < names.index("fix") < names.index("done")
     fixes = [data for name, data in events if name == "fix"]
     assert len(fixes) == 1
     fixed = fixes[0]["program"]

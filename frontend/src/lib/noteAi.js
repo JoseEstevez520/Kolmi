@@ -12,6 +12,7 @@ export async function streamNoteAi(text, note, { onToken, onFix, onStatus, signa
     (name, data) => {
       if (name === 'token') onToken(data.text)
       if (name === 'fix') onFix?.(data.index, data.program)
+      if (name === 'text_done') onStatus?.('', 'text_done')
       if (name === 'status') onStatus?.(data.text)
       if (name === 'error') error = true
     },

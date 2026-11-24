@@ -258,6 +258,7 @@ function run() {
     setAiRegion(ed, id, { status: null })
   }
 
+  let textDone = false
   let quiet = false
   // A photo's line (a long link nobody reads) is shown whole as soon as it has arrived, so the
   // pace doesn't spend seconds on it while nothing seems to happen.
@@ -325,10 +326,21 @@ function run() {
           setAiRegion(ed, id, { mid: r.from })
           committed = 0
         }
-        pace.update(received, true)
+        if (textDone) {
+          revealed = received
+          render(true)
+        } else pace.update(received, true)
       },
       // What it is doing while nothing arrives: thinking, or looking for an image.
-      (status) => {
+      (status, phase) => {
+        if (phase === 'text_done') {
+          textDone = true
+          pace.stop()
+          revealed = received
+          render(true)
+          setAiRegion(ed, id, { writing: false })
+          return
+        }
         const r = aiRegion(ed, id)
         if (r && (r.mid == null || /image/i.test(status))) {
           setAiRegion(ed, id, { status: /image/i.test(status) ? t('notes.ai.searchingImage') : t('notes.ai.thinking') })
@@ -345,7 +357,9 @@ function run() {
       done = true
       // Stopped by the writer: what is on show stays, at once. Otherwise the rest comes in at
       // the pace's flush and the answer ends when it has caught up.
-      if (controller.signal.aborted) {
+      if (textDone) {
+        finish()
+      } else if (controller.signal.aborted) {
         received = revealed
         finish()
       } else {
