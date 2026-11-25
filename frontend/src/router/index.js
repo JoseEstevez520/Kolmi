@@ -182,7 +182,8 @@ confirmed.then(() => {
 })
 
 router.afterEach((to) => {
-  setChatPage(to.name === 'node' ? Number(to.params.id) : null)
+  if (to.name === 'node') setChatPage(Number(to.params.id))
+  else if (to.name !== 'note') setChatPage(null)
   setChatLive(to.name === 'live-note' ? Number(to.params.id) : null)
 })
 

@@ -84,11 +84,16 @@ def _prompt(
     open_page = ""
     if page:
         where = page.get("path") or page.get("title") or ""
-        route = page.get("route") or f"/node/{page['id']}"
-        open_page = (
-            f"\n\nThe person has this page open: {where} (id {page['id']}, route {route}). "
-            f"Read it with read_page({page['id']}) if the question is about it."
-        )
+        about = (page.get("about") or "").strip()
+        if note is not None:
+            open_page = f"\n\nSubject for this note: {where}" + (f"\n{about}" if about else "")
+        else:
+            route = page.get("route") or f"/node/{page['id']}"
+            detail = f"\n{about}" if about else ""
+            open_page = (
+                f"\n\nThe person has this page open: {where} (id {page['id']}, route {route}). "
+                f"Read it with read_page({page['id']}) if the question is about it.{detail}"
+            )
     if live:
         by = f" by {live['author']}" if live.get("author") else ""
         open_page += (

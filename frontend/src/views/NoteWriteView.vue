@@ -17,7 +17,7 @@ import { joinNote, splitNote } from '../lib/notes.js'
 import { usePolling } from '../lib/polling.js'
 import { useIdleChrome } from '../lib/idleChrome.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
-import { chatEnabled, loadChatEnabled } from '../lib/chat.js'
+import { chatEnabled, loadChatEnabled, setChatPage } from '../lib/chat.js'
 import { streamNoteAi } from '../lib/noteAi.js'
 
 // Writing a note, as a page of its own: a title and the text under it, nothing else in the
@@ -79,7 +79,15 @@ function toggleAi() {
 
 // Streams what the AI writes into the note; resolves when it ends, rejects when it fails.
 function assist(text, note, onToken, onFix, onStatus, signal) {
-  return streamNoteAi(text, note, { onToken, onFix, onStatus, signal, liveId: liveId.value, failed: t('notes.ai.failed') })
+  return streamNoteAi(text, joinNote(title.value, note), {
+    onToken,
+    onFix,
+    onStatus,
+    signal,
+    nodeId: hintId.value,
+    liveId: liveId.value,
+    failed: t('notes.ai.failed'),
+  })
 }
 const noteAssist = computed(() => (aiOn.value && chatEnabled.value ? assist : null))
 
@@ -93,6 +101,7 @@ function onAiError(message) {
 }
 
 const hintId = ref(null)
+watch(hintId, (id) => setChatPage(id), { immediate: true })
 
 const content = computed(() => joinNote(title.value, body.value))
 

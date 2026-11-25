@@ -145,14 +145,16 @@ def test_the_prompt_says_the_open_page_is_part_of_what_it_gets(monkeypatch):
 
 def test_a_page_is_named_by_its_place_in_the_tree():
     nodes = [
-        {"id": 1, "parent_id": None, "title": "Tools"},
-        {"id": 2, "parent_id": 1, "title": "Git"},
+        {"id": 1, "parent_id": None, "title": "Tools", "description": "Developer tools and workflows"},
+        {"id": 2, "parent_id": 1, "title": "Git", "description": "Version control"},
         {"id": 3, "parent_id": 99, "title": "Orphan"},
     ]
     assert _open_page(nodes, 2)["path"] == "Tools › Git"
     assert _open_page(nodes, 2)["route"] == "/node/2"
+    assert _open_page(nodes, 2)["about"] == "Tools: Developer tools and workflows\nGit: Version control"
     # A parent that isn't in the tree stops the walk instead of losing the page.
     assert _open_page(nodes, 3)["path"] == "Orphan"
+    assert _open_page(nodes, 3)["about"] == ""
 
 
 def test_an_unknown_page_is_ignored(monkeypatch):
@@ -318,6 +320,31 @@ def test_a_chat_question_ignores_a_note(monkeypatch):
     _, system, user = llm.calls[0]
     assert "<note>" not in user
     assert "in a student's note" not in system
+
+
+def test_the_ai_in_a_note_gets_the_picked_subject_and_its_description(monkeypatch):
+    client = _Client()
+    client.rows("nodes")[0]["description"] = "Client-side web development in JavaScript and Vue"
+    client.rows("nodes")[1]["description"] = "DOM events, bubbling and delegation"
+    llm = FakeLLM()
+    llm.stream_tokens = PROGRAM
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.agents.search.web_search", lambda q: "")
+    params = AskChatParams(
+        question="addEventListener",
+        mode="note",
+        note="# Eventos\n\naddEventListener",
+        node_id=20,
+    )
+    events = _events(list(stream_chat(_ctx(client), params)))
+
+    assert events[-1] == ("done", {})
+    _, _, user = llm.calls[0]
+    assert "Subject for this note: Tools › Git" in user
+    assert "Tools: Client-side web development in JavaScript and Vue" in user
+    assert "Git: DOM events, bubbling and delegation" in user
+    assert "read_page" not in user
+    assert "Tree:" not in user
 
 
 def _stream_llm(chunks):

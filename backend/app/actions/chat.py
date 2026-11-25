@@ -184,34 +184,55 @@ def _read_page(client):
     return read
 
 
-def _node_path(by_id: dict[int, dict[str, Any]], node: dict[str, Any]) -> str:
-    """Where a node sits in the tree, its own title last: "Tools › Git". Walks up the parents it
-    was loaded with, and stops at a broken chain rather than loop on it."""
-    titles: list[str] = []
+def _node_chain(by_id: dict[int, dict[str, Any]], node: dict[str, Any]) -> list[dict[str, Any]]:
+    """The nodes from the root down to `node`, stopping at a broken parent link rather than loop."""
+    chain: list[dict[str, Any]] = []
     seen: set[int] = set()
     current: dict[str, Any] | None = node
     while current is not None and current["id"] not in seen:
         seen.add(current["id"])
-        title = (current.get("title") or "").strip()
-        if title:
-            titles.append(title)
+        chain.append(current)
         parent_id = current.get("parent_id")
         current = by_id.get(parent_id) if parent_id is not None else None
-    return " › ".join(reversed(titles))
+    chain.reverse()
+    return chain
+
+
+def _node_path(by_id: dict[int, dict[str, Any]], node: dict[str, Any]) -> str:
+    """Where a node sits in the tree, its own title last: "Tools › Git"."""
+    titles = [(n.get("title") or "").strip() for n in _node_chain(by_id, node)]
+    return " › ".join(t for t in titles if t)
+
+
+def _node_about(by_id: dict[int, dict[str, Any]], node: dict[str, Any]) -> str:
+    """Each node in the chain from root to `node` that carries a description, as `title: description`."""
+    lines = []
+    for n in _node_chain(by_id, node):
+        title = (n.get("title") or "").strip()
+        description = (n.get("description") or "").strip()
+        if title and description:
+            lines.append(f"{title}: {description}")
+    return "\n".join(lines)
 
 
 def _open_page(nodes: list[dict[str, Any]], node_id: int | None) -> dict[str, Any] | None:
-    """The page the person has open, from the tree already loaded for them (so one they can't
-    see is simply not there); None when there is none or it isn't in the tree. It carries the
-    route the web shows it at and its path in the tree, so the assistant can name the page it is
-    asked about and read it with `read_page`."""
+    """The page or section the person has open (or picked for their note), from the tree already
+    loaded for them (so one they can't see is simply not there); None when there is none or it
+    isn't in the tree. It carries the route the web shows it at, its path in the tree and the
+    descriptions along that path, so the assistant knows the subject and can read a page with
+    `read_page`."""
     if node_id is None:
         return None
     by_id = {n["id"]: n for n in nodes}
     node = by_id.get(node_id)
     if node is None:
         return None
-    return {**node, "route": f"/node/{node['id']}", "path": _node_path(by_id, node)}
+    return {
+        **node,
+        "route": f"/node/{node['id']}",
+        "path": _node_path(by_id, node),
+        "about": _node_about(by_id, node),
+    }
 
 
 def _open_live(ctx: Context, live_id: int | None) -> dict[str, Any] | None:
@@ -526,12 +547,16 @@ def stream_chat(ctx: Context, params: AskChatParams):
             with ThreadPoolExecutor(max_workers=4) as pool:
                 found = pool.submit(lambda: [] if in_note else search(client, _search_query(history, question)))
                 loaded = pool.submit(
-                    lambda: [] if in_note else client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
+                    lambda: []
+                    if (in_note and params.node_id is None)
+                    else client.table("nodes").select(LIST_COLUMNS).order("position").execute().data
                 )
                 lang = pool.submit(class_language, client)
                 language = lang.result()
                 schedule = pool.submit(_schedule_text, client, settings, language)
                 nodes, passages, schedule_text = loaded.result(), found.result(), schedule.result()
+            open_page = _open_page(nodes, params.node_id)
+            note_text = _note(params)
             message = (
                 client.table("chat_messages")
                 .insert({"user_id": ctx.user_id, "question": question, "answer": "", "sources": []})
@@ -561,7 +586,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
             for event in run_chat_stream(
                 get_chat_llm(),
                 question,
-                nodes,
+                [] if in_note else nodes,
                 read_page=None if in_note else _read_page(client),
                 language=language,
                 today=_today_text(language),
@@ -571,10 +596,10 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 actions=None if in_note else schemas(ctx, "chat"),
                 run_action=None if in_note else run_action,
                 history=history,
-                page=_open_page(nodes, params.node_id),
+                page=open_page,
                 live=_open_live(ctx, params.live_id),
                 passages=passages,
-                note=_note(params),
+                note=note_text,
                 system=_NOTE_SYSTEMS[params.mode](language) if in_note else None,
                 # From a note it may show a real thing with a photo from Wikimedia Commons.
                 extra_tools=[SEARCH_IMAGES_TOOL] if in_note else None,
@@ -595,11 +620,16 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 raise ValueError("the model answered with nothing")
             if in_note:
                 yield sse("text_done", {})
+                subject = ""
+                if open_page:
+                    where = open_page.get("path") or open_page.get("title") or ""
+                    about = (open_page.get("about") or "").strip()
+                    subject = f"Subject: {where}" + (f"\n{about}" if about else "") + "\n\n"
                 # Each piece checked as the pass checks a page's, and mended once: one that would
                 # show as code is fixed in place (`fix`), or dropped (`program` null).
                 mends = mend_pieces(
                     get_chat_llm(), program, chat_parts(NOTE_PARTS),
-                    language=language, notes=params.note or question,
+                    language=language, notes=f"{subject}{note_text or question}",
                 )
                 for mend in mends:
                     yield sse("fix", {"index": mend.index, "program": mend.program})
