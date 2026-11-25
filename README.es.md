@@ -49,30 +49,28 @@ Cada estudiante deja sus notas con sus palabras: texto suelto, fragmentos de có
 
 ### IA dentro de la nota
 
-Pulsa <kbd>Ctrl</kbd> + <kbd>Intro</kbd> en una línea o selección mientras tomas apuntes en clase. Una pregunta se sustituye por apuntes sobre ese tema; tus propias notas se conservan y reciben debajo un diagrama, una tabla, pasos o un simulador interactivo.
+<img src="assets/readme/note-ai.gif" alt="Al pulsar Ctrl+Intro en una nota, una línea se convierte en título, resumen y diagrama" width="380" align="right">
 
-<p align="center">
-  <img src="assets/readme/note-ai.gif" alt="Al pulsar Ctrl+Intro en una nota, una línea se convierte en título, resumen y diagrama" width="540">
-</p>
+Pulsa <kbd>Ctrl</kbd> + <kbd>Intro</kbd> en una línea o selección mientras tomas apuntes en clase:
+
+- **Si es una pregunta:** se sustituye en el sitio por apuntes limpios sobre ese tema.
+- **Si son tus propios apuntes:** se conservan tal cual y reciben debajo un diagrama, una tabla, pasos o un simulador interactivo.
+
+<br clear="right">
 
 ### Chat con los apuntes
 
 El chat responde a partir de las páginas de la clase y cita las fuentes que ha usado. También puede actuar en tu nombre: crear o editar una nota o, si eres admin, gestionar páginas, el horario y los usuarios. Todo cambio se propone primero en una tarjeta y solo se ejecuta cuando lo confirmas. Más en [docs/chat.md](docs/chat.md).
 
 <p align="center">
-  <img src="assets/readme/chat.es.png" alt="Respuesta del chat citando su página fuente y tarjeta de propuesta esperando confirmación" width="720">
+  <img src="assets/readme/chat.es.png" alt="Respuesta del chat citando su página fuente y tarjeta de propuesta esperando confirmación" width="680">
 </p>
 
-### Conecta tu propia IA (MCP)
+### Conecta tu propia IA (MCP) y herramientas de clase
 
-Kolmi incluye un servidor MCP. Desde **Ajustes → Conecta tu IA**, genera un token para Claude Code, Gemini CLI, Codex CLI o cualquier cliente compatible. Tu asistente puede leer el árbol de la clase, cruzarlo con material externo (como Moodle o GitHub) y dejar notas o actualizar páginas con tu rol. Más en [docs/mcp.md](docs/mcp.md).
-
-### Para el día a día de la clase
-
-- **Apuntes en directo:** comparte lo que escribes durante una clase para que el resto lo siga en tiempo real ([docs/live-notes.md](docs/live-notes.md)).
-- **Horario:** cuadrícula semanal editable arrastrando los bloques.
-- **Descargas y exportación:** adjunta archivos a notas y páginas, o descarga cualquier sección en Markdown (para guardarla o subirla a NotebookLM).
-- **Autohospedado y llevado por estudiantes:** una instancia por clase, sin cuenta de profesor, interfaz en español e inglés construida con [elastic-ui](https://github.com/JoseEstevez520/elastic-ui).
+| Conecta tu propia IA (MCP) | Para el día a día de la clase |
+|---|---|
+| Kolmi incluye un servidor MCP. Desde **Ajustes → Conecta tu IA**, genera un token para Claude Code, Gemini CLI, Codex CLI o cualquier cliente compatible.<br><br>Tu asistente puede leer el árbol de la clase, cruzarlo con material externo (como Moodle o GitHub) y dejar notas o actualizar páginas con tu rol. Más en [docs/mcp.md](docs/mcp.md). | • **Apuntes en directo:** comparte lo que escribes durante una clase en tiempo real ([docs/live-notes.md](docs/live-notes.md)).<br>• **Horario:** cuadrícula semanal editable arrastrando los bloques.<br>• **Descargas y exportación:** adjunta archivos a notas y páginas, o descarga cualquier sección en Markdown (para guardarla o subirla a NotebookLM).<br>• **Autohospedado:** una instancia por clase, sin cuenta de profesor, interfaz en español e inglés construida con [elastic-ui](https://github.com/JoseEstevez520/elastic-ui). |
 
 ## En local
 

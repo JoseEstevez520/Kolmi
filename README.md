@@ -49,30 +49,28 @@ Students drop notes in their own words: rough text, code snippets, or files. On 
 
 ### Write with the AI in a note
 
-Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> on a line or selection while taking notes in class. A question is replaced with notes on that topic; your own notes stay and get a diagram, table, steps, or an interactive simulator drawn underneath.
+<img src="assets/readme/note-ai.gif" alt="Pressing Ctrl+Enter in a note turns a line into a heading, summary, and diagram" width="380" align="right">
 
-<p align="center">
-  <img src="assets/readme/note-ai.gif" alt="Pressing Ctrl+Enter in a note turns a line into a heading, summary, and diagram" width="540">
-</p>
+Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> on a line or selection while taking notes in class:
+
+- **Ask a question:** replaced in place with clean notes on that topic.
+- **Select your own notes:** kept as written, with a diagram, table, step-by-step flow, or interactive simulator drawn underneath.
+
+<br clear="right">
 
 ### Ask the notes
 
 The chat answers from the class's pages and cites the sources it used. It can also act for you: creating or editing a note, or, for admins, managing pages, the timetable, and users. Every change is proposed as a card first and only runs when you confirm. See [docs/chat.md](docs/chat.md).
 
 <p align="center">
-  <img src="assets/readme/chat.en.png" alt="Chat answer citing its source page and a proposal card waiting for confirmation" width="720">
+  <img src="assets/readme/chat.en.png" alt="Chat answer citing its source page and a proposal card waiting for confirmation" width="680">
 </p>
 
-### Connect your own AI (MCP)
+### Connect your own AI (MCP) & class tools
 
-Kolmi includes an MCP server. From **Settings → Connect your AI**, generate a bearer token for Claude Code, Gemini CLI, Codex CLI, or any MCP client. Your assistant can read the class tree, cross-reference external material (such as Moodle or GitHub), and leave notes or update pages using your role. See [docs/mcp.md](docs/mcp.md).
-
-### Built for a class
-
-- **Live notes:** stream what you are writing during a lecture so classmates can follow along in real time ([docs/live-notes.md](docs/live-notes.md)).
-- **Timetable:** weekly class schedule edited by dragging slots on the grid.
-- **Downloads & export:** attach files to notes and pages, or export any section as Markdown (ready for local archives or NotebookLM).
-- **Self-hosted & student-run:** one instance per class, no teacher account, English and Spanish UI built with [elastic-ui](https://github.com/JoseEstevez520/elastic-ui).
+| Connect your own AI (MCP) | Built for the class |
+|---|---|
+| Kolmi includes an MCP server. From **Settings → Connect your AI**, generate a bearer token for Claude Code, Gemini CLI, Codex CLI, or any MCP client.<br><br>Your assistant can read the class tree, cross-reference external material (such as Moodle or GitHub), and leave notes or update pages using your role. See [docs/mcp.md](docs/mcp.md). | • **Live notes:** stream what you write during a lecture in real time ([docs/live-notes.md](docs/live-notes.md)).<br>• **Timetable:** weekly class schedule edited by dragging slots on the grid.<br>• **Downloads & export:** attach files to notes and pages, or export any section as Markdown (for local archives or NotebookLM).<br>• **Self-hosted:** one instance per class, no teacher account, English and Spanish UI built with [elastic-ui](https://github.com/JoseEstevez520/elastic-ui). |
 
 ## Run it locally
 
