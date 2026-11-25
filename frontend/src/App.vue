@@ -99,7 +99,7 @@ const indicator = ref(null)
         </SidebarLayoutHeader>
         <!-- The same controls while the header is faded (zen mode): in its place, over the page. -->
         <div class="pointer-events-none fixed inset-x-0 top-0 z-30 flex h-14 items-center">
-          <div id="zen-actions" class="article pointer-events-auto flex justify-end empty:hidden" />
+          <div id="zen-actions" class="article pointer-events-auto flex justify-end bg-bg empty:hidden" />
         </div>
 
         <main class="pt-4 pb-24">

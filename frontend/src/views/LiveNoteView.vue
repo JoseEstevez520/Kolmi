@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { Button, Callout, ConfirmButton, Status } from 'elastic-ui'
-import { ArrowLeft } from '@lucide/vue'
+import { ArrowLeft, Maximize2, Minimize2 } from '@lucide/vue'
 import LiveFollowers from '../components/LiveFollowers.vue'
 import LiveWatch from '../components/LiveWatch.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
@@ -12,6 +12,7 @@ import { profile } from '../lib/auth.js'
 import { invalidate } from '../lib/cached.js'
 import { refreshLiveCount } from '../lib/liveCount.js'
 import { usePolling } from '../lib/polling.js'
+import { exitZen, toggleZen, zen } from '../lib/zen.js'
 
 // One live note, watched: a read-only view that follows it (LiveWatch). It asks every few
 // seconds with the `updated_at` it already has, so a note that has not changed costs a tiny
@@ -20,6 +21,15 @@ import { usePolling } from '../lib/polling.js'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+
+function onKey(event) {
+  if (event.key === 'Escape' && !event.defaultPrevented) exitZen()
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey)
+  exitZen()
+})
 
 const id = Number(route.params.id)
 const POLL = 4000
@@ -72,6 +82,17 @@ async function remove() {
 
 <template>
   <main class="py-16">
+    <Teleport defer :to="zen ? '#zen-actions' : '#header-actions'">
+      <Button
+        variant="ghost"
+        size="icon"
+        :icon="zen ? Minimize2 : Maximize2"
+        :aria-label="zen ? t('notes.write.zenExit') : t('notes.write.zen')"
+        :title="zen ? t('notes.write.zenExit') : t('notes.write.zen')"
+        :aria-pressed="zen"
+        @click="toggleZen"
+      />
+    </Teleport>
     <div class="article">
       <div class="mb-8 flex items-center justify-between gap-3">
         <Button variant="ghost" size="icon" :icon="ArrowLeft" to="/notes" :aria-label="t('notes.write.back')" :title="t('notes.write.back')" />

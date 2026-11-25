@@ -13,7 +13,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
-const following = ref(true)
+const following = ref(false)
 const end = useTemplateRef('end')
 
 // Only a note still being written has an end to follow.

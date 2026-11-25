@@ -45,6 +45,8 @@
    * No black as a highlight: a button is a tone one step below the surface it sits on, and a
    * switch is grey on and off. The accent stays the text colour, for focus rings and the like.
    */
+  --code-bg: var(--color-bg-muted);
+  --page-header-bg: var(--color-bg);
   --button-bg: var(--color-bg-inset);
   --button-fg: var(--color-fg);
   --button-bg-hover: var(--color-surface-sunk);
