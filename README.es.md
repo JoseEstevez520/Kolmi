@@ -5,11 +5,11 @@
 <h1 align="center">Kolmi</h1>
 
 <p align="center">
-  <strong>Kolmi es donde una clase junta sus apuntes. Cada uno deja los suyos y, cada noche, una IA los convierte en páginas compartidas que la clase puede leer y a las que puede preguntar.</strong>
+  <strong>Apuntes compartidos para una clase. Cada uno deja los suyos; cada noche, una IA los convierte en páginas de estudio que la clase puede leer y consultar.</strong>
 </p>
 
 <p align="center">
-  Para una clase, en su propio servidor.
+  Para una clase, en su propio servidor. Aprende en colmena.
 </p>
 
 <p align="center">
@@ -24,156 +24,92 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/before-after.es.png" alt="Seis notas sueltas sobre CI/CD de dos estudiantes a la izquierda y, a la derecha, la página compartida escrita con ellas, con un pipeline que se puede probar y sus puntos clave" width="100%">
+  <img src="assets/readme/before-after.es.png" alt="Notas sueltas de dos estudiantes a la izquierda y la página compartida generada con ellas a la derecha" width="100%">
 </p>
-
-<p align="center"><sub>Entran notas sueltas de dos estudiantes y sale una página, con una pieza para probar. Dibujado con las piezas de la app, como en la web.</sub></p>
-
-## ¿Qué es Kolmi?
-
-Todas las clases acaban igual. Los apuntes están en chats, en carpetas en la nube y en fotos de la
-pizarra. Dos personas apuntaron lo mismo de forma distinta, nadie sabe qué versión es la buena, y lo
-que necesitas antes del examen está en el cuaderno de otro.
-
-En Kolmi cada uno deja lo que tiene, con sus palabras y sin formato. Cada noche la colmena lee lo
-nuevo y juzga cada nota: la junta con lo que la clase ya tiene, quita nombres y datos privados y
-descarta lo que no aporta. Lo que queda se convierte en las páginas de la clase, organizadas como
-una guía de estudio, con un diagrama donde una idea tiene partes y una tabla o gráfica donde
-importan los números. La nota en bruto sigue siendo privada.
-
-Kolmi es para una clase. Cada clase lleva su propia copia, con sus propios datos. Un admin es un
-estudiante que cuida de la clase; no hay cuenta de profesor.
 
 ## Cómo funciona
 
-Un equipo de agentes trabaja una vez al día, con el horario que fija un admin. El portero lee cada
-nota nueva, quita nombres y datos privados, descarta lo que no aporta y decide a qué página va. El
-motivo de cada decisión queda en el registro de la IA. El agente de notas escribe lo que el portero
-deja pasar, y el agente web lo maqueta como página.
+Cada estudiante deja sus notas con sus palabras: texto suelto, fragmentos de código o archivos. En el horario que fija un admin de la clase, una pasada diaria convierte lo nuevo en las páginas compartidas:
+
+1. **Portero:** lee cada nota pendiente, quita nombres y datos personales, descarta lo que no aporta y decide a qué página va (existente o nueva). Cada decisión queda registrada.
+2. **Agente de notas:** integra el material nuevo en el Markdown de la página sin perder lo que ya estaba.
+3. **Agente web:** maqueta la página con diagramas, tablas, gráficas, recorridos paso a paso y simuladores interactivos.
 
 | | Nota en bruto | Página compartida |
 |---|---|---|
-| Quién la ve | su autor y los admins, hasta que la pasada la recoge | toda la clase |
-| Cómo es | texto libre y archivos | organizada, con diagramas, tablas, gráficas y piezas interactivas |
-| Nombres y datos privados | lo que hayas escrito | eliminados |
+| **Quién la ve** | Solo su autor y los admins | Toda la clase |
+| **Formato** | Texto libre, Markdown y archivos adjuntos | Página estructurada con diagramas, tablas, gráficas y piezas interactivas |
+| **Datos personales** | Lo que hayas escrito | Eliminados antes de publicar |
 
 <p align="center">
-  <img src="assets/readme/page.es.png" alt="Una página escrita por Kolmi: un título, una línea, un pipeline que se cambia entre tests que pasan y que fallan, y dos puntos clave" width="720">
+  <img src="assets/readme/page.es.png" alt="Una página compartida en Kolmi con un pipeline interactivo de CI/CD y puntos clave" width="720">
 </p>
 
-<p align="center"><sub>Una página puede llevar más que texto: diagramas, código que se copia, pasos numerados y piezas para probar.</sub></p>
+## Qué incluye
 
-## Pregunta a los apuntes
+### IA dentro de la nota
 
-El chat responde con las páginas de la clase, no con lo que un modelo recuerda. Busca los pasajes
-más cercanos a tu pregunta, responde con ellos y dice qué páginas usó. Si pides una tabla o los
-pasos de un procedimiento, la dibuja.
+Pulsa <kbd>Ctrl</kbd> + <kbd>Intro</kbd> en una línea o selección mientras tomas apuntes en clase. Una pregunta se sustituye por apuntes sobre ese tema; tus propias notas se conservan y reciben debajo un diagrama, una tabla, pasos o un simulador interactivo.
 
 <p align="center">
-  <img src="assets/readme/chat.es.png" alt="Una pregunta sobre los scopes de un bean respondida con los apuntes y su fuente, y una tarjeta que propone crear una nota, con Confirmar, Editar y Cancelar" width="720">
+  <img src="assets/readme/note-ai.gif" alt="Al pulsar Ctrl+Intro en una nota, una línea se convierte en título, resumen y diagrama" width="540">
 </p>
 
-<p align="center"><sub>Una conversación inventada, dibujada con las piezas de la propia app.</sub></p>
+### Chat con los apuntes
 
-El chat puede actuar, pero nunca por su cuenta. Todo lo que cambia algo vuelve como una tarjeta que
-enseña qué cambiaría, y ocurre cuando lo confirmas. Un estudiante puede dejar y editar sus notas
-así. Un admin además puede mover páginas, editar el horario y cuidar de la gente de la clase.
-También puede avisar de un problema de la app. Un admin enciende el chat y fija un límite diario
-por estudiante. Más en [docs/chat.md](docs/chat.md) (en inglés).
-
-## Escribe con la IA en una nota
-
-El chat le pregunta a los apuntes de la clase lo que no sabes. La IA en una nota te ayuda a
-escribirlos, en clase, cuando el tema suele ser nuevo.
-
-Escribe una línea y pulsa <kbd>Ctrl</kbd> + <kbd>Intro</kbd>, o selecciona un texto y pulsa los
-destellos. Una pregunta se convierte en apuntes sobre ella, en su sitio: un título, una frase y la
-pieza que la muestra. Una línea tuya se queda, y la pieza aparece debajo.
+El chat responde a partir de las páginas de la clase y cita las fuentes que ha usado. También puede actuar en tu nombre: crear o editar una nota o, si eres admin, gestionar páginas, el horario y los usuarios. Todo cambio se propone primero en una tarjeta y solo se ejecuta cuando lo confirmas. Más en [docs/chat.md](docs/chat.md).
 
 <p align="center">
-  <img src="assets/readme/note-ai.gif" alt="Una nota: se escribe 'how git works', se pulsa Ctrl+Intro y la línea se convierte en un título, una frase y un diagrama de la carpeta de trabajo, el stage, el repo local y GitHub" width="540">
+  <img src="assets/readme/chat.es.png" alt="Respuesta del chat citando su página fuente y tarjeta de propuesta esperando confirmación" width="720">
 </p>
 
-<p align="center"><sub>Una reproducción retocada de la app, hecha para la demo (en inglés).</sub></p>
+### Conecta tu propia IA (MCP)
 
-## Tu propia IA, conectada
+Kolmi incluye un servidor MCP. Desde **Ajustes → Conecta tu IA**, genera un token para Claude Code, Gemini CLI, Codex CLI o cualquier cliente compatible. Tu asistente puede leer el árbol de la clase, cruzarlo con material externo (como Moodle o GitHub) y dejar notas o actualizar páginas con tu rol. Más en [docs/mcp.md](docs/mcp.md).
 
-Kolmi también es un servidor MCP, así que la IA que ya usas (un agente de programación, un editor)
-puede trabajar con los apuntes de la clase en tu nombre. Pongamos que el curso está en Moodle y el
-código de las prácticas en un repo de GitHub. Con Moodle, GitHub y Kolmi conectados al mismo
-asistente, le pides que lea el material de esta semana y lo pase a limpio. Lee primero el árbol de
-la clase, mira lo que ya dicen las páginas y deja una nota por tema, cada una con el enlace de donde
-salió. La IA de un admin puede, en cambio, integrar el material directamente en una página.
+### Para el día a día de la clase
 
-En Ajustes, en Conecta tu IA, le pones nombre a la conexión y recibes un token, que se muestra una
-sola vez, y el comando para tu cliente con la dirección de tu instancia ya puesta. Hay instrucciones
-para Claude Code, Gemini CLI y Codex CLI, y para cualquier otro cliente que acepte un token de
-portador. Las apps de chat cuyos conectores piden iniciar sesión con OAuth aún no se admiten. Leer
-es libre. Tu IA actúa con tu rol, y todo lo que cambia algo te lo pregunta antes. Más en
-[docs/mcp.md](docs/mcp.md).
-
-## Alrededor de los apuntes
-
-- Apuntes en directo: durante una clase, alguien comparte lo que escribe y el resto lo sigue según
-  aparece. La nota sigue siendo una nota normal y pasa por la pasada nocturna.
-- El horario de la clase, que un admin edita arrastrando sobre la cuadrícula.
-- Cualquier sección se descarga como archivos Markdown, para guardarla o subirla a NotebookLM. Las
-  páginas también pueden llevar archivos para descargar.
-- La interfaz es tranquila a propósito: poco texto, iconos que dicen su nombre al pasar el ratón,
-  y la app en español o inglés.
+- **Apuntes en directo:** comparte lo que escribes durante una clase para que el resto lo siga en tiempo real ([docs/live-notes.md](docs/live-notes.md)).
+- **Horario:** cuadrícula semanal editable arrastrando los bloques.
+- **Descargas y exportación:** adjunta archivos a notas y páginas, o descarga cualquier sección en Markdown (para guardarla o subirla a NotebookLM).
+- **Autohospedado y llevado por estudiantes:** una instancia por clase, sin cuenta de profesor, interfaz en español e inglés construida con [elastic-ui](https://github.com/JoseEstevez520/elastic-ui).
 
 ## En local
 
-Necesitas Python 3, Node 20 o superior, un proyecto de Supabase y una clave de API de un modelo.
+Necesitas Python 3, Node 20+, un proyecto de Supabase y una clave de API de un modelo compatible con OpenAI.
+
+1. Aplica [supabase/schema.sql](supabase/schema.sql) en tu proyecto de Supabase.
+2. Arranca la API y la aplicación web:
 
 ```bash
-# backend, en :8000
+# Backend (:8000)
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .env.example .env    # Supabase, CLASS_CODE y las claves del modelo
+cp .env.example .env    # Credenciales de Supabase, CLASS_CODE y claves del modelo
 uvicorn app.main:app --reload
 
-# frontend, en :5173
+# Frontend (:5173)
 cd frontend
 npm install
 cp .env.example .env
 npm run dev
 ```
 
-Antes, crea las tablas con [supabase/schema.sql](supabase/schema.sql). Los `.env` se quedan fuera
-de git. Cada clase lleva su propia instancia, y el backend se publica como imagen de Docker:
-cómo construirla, ejecutarla y programar la pasada está en [backend/README.md](backend/README.md)
-(en inglés).
-
-> **Estado: en desarrollo.** La pasada, el chat, el MCP y los apuntes en directo ya están hechos.
-> Lo siguiente son un foro y el inicio de sesión con OAuth para las apps de chat. Mira
-> [ROADMAP.md](ROADMAP.md) (en inglés).
+El despliegue con Docker y la programación de la pasada diaria están en [backend/README.md](backend/README.md). El trabajo pendiente está en [ROADMAP.md](ROADMAP.md).
 
 ## Documentación
 
-La documentación está en inglés.
+La documentación detallada está en inglés:
 
-- [La idea](docs/idea.md): el problema, el equipo de agentes y por qué las notas en bruto son privadas.
-- [Autenticación y usuarios](docs/authentication.md): cuentas, roles y el código de clase.
-- [Funciones y acciones](docs/features.md): qué hace la app y cómo se construye cada acción.
-- [El chat](docs/chat.md): qué escribe el modelo, cómo viaja una pregunta y cómo se propone un cambio.
-- [Acciones como herramientas](docs/tools.md): cómo una acción sirve a la web, al chat y al MCP.
-- [Apuntes en directo](docs/live-notes.md): seguir una clase a través de los apuntes de alguien.
-- [Formato de página](docs/page-format.md): cómo llega una página de la pasada a la pantalla.
-- [El MCP](docs/mcp.md): conectar tu propia IA, sus tokens, recursos, prompt y evals.
-- [Pruebas con casos reales](docs/testing.md): el plan para probarlo antes de que lo use la clase.
-- [Datos y privacidad](docs/privacy.md): qué se guarda, quién lo ve y qué sale de la instancia.
-- [Tono de marca](docs/brand-tone.md): cómo suena Kolmi.
-- [Imágenes de marca](docs/brand-visuals.md): cómo hacer una imagen que parezca de Kolmi.
-- [Landing](landing/README.md): la página pública del proyecto. Una clase no la necesita para usar Kolmi.
-
-## Ecosistema
-
-- [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) es la librería de componentes con
-  la que está hecha la web.
+| Tema | Documento |
+|---|---|
+| Idea y agentes | [docs/idea.md](docs/idea.md), [docs/page-format.md](docs/page-format.md) |
+| Funciones, acciones y herramientas | [docs/features.md](docs/features.md), [docs/tools.md](docs/tools.md), [docs/chat.md](docs/chat.md), [docs/live-notes.md](docs/live-notes.md) |
+| Servidor MCP | [docs/mcp.md](docs/mcp.md) |
+| Autenticación, privacidad y pruebas | [docs/authentication.md](docs/authentication.md), [docs/privacy.md](docs/privacy.md), [docs/testing.md](docs/testing.md) |
+| Marca y landing pública | [docs/brand-tone.md](docs/brand-tone.md), [docs/brand-visuals.md](docs/brand-visuals.md), [landing/README.md](landing/README.md) |
 
 ## Licencia
 
-Kolmi es de código abierto bajo la [licencia MIT](LICENSE). Los problemas de seguridad se
-comunican según [SECURITY.md](SECURITY.md), nunca en una issue pública.
+Código abierto bajo la [licencia MIT](LICENSE). Los problemas de seguridad se comunican según [SECURITY.md](SECURITY.md).

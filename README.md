@@ -5,11 +5,11 @@
 <h1 align="center">Kolmi</h1>
 
 <p align="center">
-  <strong>Kolmi is where a class keeps its notes together. Everyone leaves theirs, and every night an AI turns them into shared pages the class can read and ask questions of.</strong>
+  <strong>Shared notes for a class. Everyone leaves theirs; every night, an AI turns them into study pages the class can read and ask questions of.</strong>
 </p>
 
 <p align="center">
-  For one class, self-hosted.
+  For one class, self-hosted. Learn as a hive.
 </p>
 
 <p align="center">
@@ -24,152 +24,90 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme/before-after.en.png" alt="Six loose notes about CI/CD from two students on the left, and on the right the shared page written from them, with a pipeline you can try and its key points" width="100%">
+  <img src="assets/readme/before-after.en.png" alt="Loose notes from two students on the left and the shared page written from them on the right" width="100%">
 </p>
-
-<p align="center"><sub>Loose notes from two students in, one page out, with a piece to try. Drawn with the app's parts, as on the website.</sub></p>
-
-## What is Kolmi?
-
-Every class ends up with the same mess. The notes sit in chats, personal drives and photos of the
-whiteboard. Two people wrote the same thing down differently, nobody knows which version is
-right, and what you need before the exam is in someone else's notebook.
-
-In Kolmi everyone leaves what they have, in their own words and in no particular format. Each
-night the hive reads what is new and judges every note: it joins it with what the class already
-has, strips names and private data and drops what adds nothing. What is left becomes the class's
-pages, laid out like a study guide, with a diagram where an idea has parts and a table or chart
-where the numbers matter. The raw note stays private.
-
-Kolmi is for one class. Each class runs its own copy, with its own data. An admin is a student
-who looks after the class; there is no teacher account.
 
 ## How it works
 
-A team of agents runs once a day, on the schedule an admin sets. The gatekeeper reads each new
-note, strips names and private data, discards what adds nothing and decides which page it belongs
-to. The reason for each decision is kept in the AI log. The notes agent writes what the
-gatekeeper lets through, and the web agent lays it out as a page.
+Students drop notes in their own words: rough text, code snippets, or files. On the schedule set by a class admin, a daily pass turns new notes into the class's shared pages:
+
+1. **Gatekeeper:** reads each pending note, strips names and personal data, discards what adds nothing, and routes the rest to an existing or new page. Every decision is logged.
+2. **Notes agent:** folds the new material into the page's Markdown without losing what was already there.
+3. **Web agent:** lays out the page with diagrams, tables, charts, step-by-step walkthroughs, and interactive simulators.
 
 | | Raw note | Shared page |
 |---|---|---|
-| Who sees it | its author and the admins, until the pass takes it | the whole class |
-| What it looks like | free text and files | organized, with diagrams, tables, charts and interactive pieces |
-| Names and private data | whatever you wrote | stripped |
+| **Visibility** | Author and class admins only | The whole class |
+| **Format** | Free text, Markdown, and attached files | Structured page with diagrams, tables, charts, and interactive pieces |
+| **Personal data** | Whatever the author wrote | Stripped before publishing |
 
 <p align="center">
-  <img src="assets/readme/page.en.png" alt="A page written by Kolmi: a title, one line, a pipeline you can switch between tests passing and failing, and two key points" width="720">
+  <img src="assets/readme/page.en.png" alt="A shared page in Kolmi with an interactive CI/CD pipeline and key points" width="720">
 </p>
 
-<p align="center"><sub>A page can hold more than text: diagrams, code you can copy, numbered steps, and pieces to try.</sub></p>
+## Features
 
-## Ask the notes
+### Write with the AI in a note
 
-The chat answers from the class's own pages, not from what a model remembers. It finds the
-passages closest to your question, answers with them and says which pages it used. Ask for a table
-or the steps of a procedure and it draws one.
+Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> on a line or selection while taking notes in class. A question is replaced with notes on that topic; your own notes stay and get a diagram, table, steps, or an interactive simulator drawn underneath.
 
 <p align="center">
-  <img src="assets/readme/chat.en.png" alt="A question about bean scopes answered from the notes with its source, and a card proposing to create a note, with Confirm, Edit and Cancel" width="720">
+  <img src="assets/readme/note-ai.gif" alt="Pressing Ctrl+Enter in a note turns a line into a heading, summary, and diagram" width="540">
 </p>
 
-<p align="center"><sub>A made-up conversation, drawn with the app's own parts.</sub></p>
+### Ask the notes
 
-The chat can act, but never on its own. Anything that changes something comes back as a card
-showing what would change, and it happens when you confirm. A student can leave and edit their own
-notes this way. An admin can also move pages, edit the timetable and look after the class's
-people. It can report a problem with the app too. An admin turns the chat on and sets a daily
-limit per student. See [docs/chat.md](docs/chat.md).
-
-## Write with the AI in a note
-
-The chat asks the class's notes what you don't know. The AI in a note helps you write them, in
-class, where the topic is usually new.
-
-Jot a line, press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>, or select some text and click the sparkles.
-A question becomes notes on it, in its place: a heading, a sentence and the piece that shows it.
-A line of your own stays, and the piece goes under it.
+The chat answers from the class's pages and cites the sources it used. It can also act for you: creating or editing a note, or, for admins, managing pages, the timetable, and users. Every change is proposed as a card first and only runs when you confirm. See [docs/chat.md](docs/chat.md).
 
 <p align="center">
-  <img src="assets/readme/note-ai.gif" alt="A note: 'how git works' is typed, Ctrl+Enter is pressed, and the line becomes a heading, a sentence and a diagram of the working directory, the staging area, the local repo and GitHub" width="540">
+  <img src="assets/readme/chat.en.png" alt="Chat answer citing its source page and a proposal card waiting for confirmation" width="720">
 </p>
 
-<p align="center"><sub>A dressed-up replay of the app, made for the demo.</sub></p>
+### Connect your own AI (MCP)
 
-## Your own AI, connected
+Kolmi includes an MCP server. From **Settings → Connect your AI**, generate a bearer token for Claude Code, Gemini CLI, Codex CLI, or any MCP client. Your assistant can read the class tree, cross-reference external material (such as Moodle or GitHub), and leave notes or update pages using your role. See [docs/mcp.md](docs/mcp.md).
 
-Kolmi is also an MCP server, so the AI you already use (a coding agent, an editor) can work with
-the class's notes as you. Say your course is on Moodle and the practice code is in a GitHub repo.
-With Moodle, GitHub and Kolmi connected to the same assistant, you ask it to read this week's
-material and write it up. It reads the class's tree first, sees what the pages already say and
-leaves one note per topic, each with the link it came from. An admin's AI can fold the material
-straight into a page instead.
+### Built for a class
 
-In Settings, under Connect your AI, you name the connection and get a token, shown once, and the
-command for your client with your instance's address already in it. There are instructions for
-Claude Code, Gemini CLI and Codex CLI, and for any other client that takes a bearer token. Chat
-apps whose connectors need an OAuth sign-in are not supported yet. Reading is free. Your AI acts
-with your role, and anything that changes something asks you first. See
-[docs/mcp.md](docs/mcp.md).
-
-## Around the notes
-
-- Live notes: during a class, someone shares what they are writing and the rest follow it as it
-  appears. The note stays an ordinary note and goes through the nightly pass.
-- The class timetable, which an admin edits by dragging on the grid.
-- Any section downloads as Markdown files, to keep or to upload to NotebookLM. Pages can carry
-  files to download too.
-- The interface is quiet on purpose: little text, icons that say their name on hover, and the app
-  in English or Spanish.
+- **Live notes:** stream what you are writing during a lecture so classmates can follow along in real time ([docs/live-notes.md](docs/live-notes.md)).
+- **Timetable:** weekly class schedule edited by dragging slots on the grid.
+- **Downloads & export:** attach files to notes and pages, or export any section as Markdown (ready for local archives or NotebookLM).
+- **Self-hosted & student-run:** one instance per class, no teacher account, English and Spanish UI built with [elastic-ui](https://github.com/JoseEstevez520/elastic-ui).
 
 ## Run it locally
 
-You need Python 3, Node 20 or higher, a Supabase project and an API key for a model.
+Requires Python 3, Node 20+, a Supabase project, and an OpenAI-compatible model API key.
+
+1. Apply [supabase/schema.sql](supabase/schema.sql) to your Supabase project.
+2. Start the API and the web app:
 
 ```bash
-# backend, on :8000
+# Backend (:8000)
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .env.example .env    # Supabase, CLASS_CODE and the model keys
+cp .env.example .env    # Supabase credentials, CLASS_CODE, and model keys
 uvicorn app.main:app --reload
 
-# frontend, on :5173
+# Frontend (:5173)
 cd frontend
 npm install
 cp .env.example .env
 npm run dev
 ```
 
-Create the tables first with [supabase/schema.sql](supabase/schema.sql). The `.env` files stay
-out of git. Each class runs its own instance, and the backend ships as a Docker image: build, run
-and the cron for the pass are in [backend/README.md](backend/README.md).
-
-> **Status: in development.** The pass, the chat, the MCP and live notes are built. A forum and
-> the OAuth sign-in for chat apps come next. See [ROADMAP.md](ROADMAP.md).
+Docker deployment and the cron setup for the daily pass are covered in [backend/README.md](backend/README.md). Planned work is tracked in [ROADMAP.md](ROADMAP.md).
 
 ## Documentation
 
-- [The idea](docs/idea.md): the problem, the team of agents and why raw notes stay private.
-- [Authentication and users](docs/authentication.md): accounts, roles and the class code.
-- [Features and actions](docs/features.md): what the app does and how each action is built.
-- [The chat](docs/chat.md): what the model writes, how a question travels and how a change is proposed.
-- [Actions as tools](docs/tools.md): how one action serves the web, the chat and the MCP.
-- [Live notes](docs/live-notes.md): following a class through someone's notes.
-- [Page format](docs/page-format.md): how a page goes from the pass to the screen.
-- [The MCP](docs/mcp.md): connecting your own AI, its tokens, resources, prompt and evals.
-- [Testing with real cases](docs/testing.md): the plan for trying it before the class does.
-- [Data and privacy](docs/privacy.md): what is stored, who sees it and what leaves the instance.
-- [Brand tone](docs/brand-tone.md): how Kolmi sounds.
-- [Brand visuals](docs/brand-visuals.md): how to make an image that looks like Kolmi.
-- [Landing](landing/README.md): the project's public page. A class doesn't need it to run Kolmi.
-
-## Ecosystem
-
-- [elastic-ui](https://github.com/JoseEstevez520/elastic-ui) is the component library the web
-  is built with.
+| Topic | Document |
+|---|---|
+| Core concept & agents | [docs/idea.md](docs/idea.md), [docs/page-format.md](docs/page-format.md) |
+| Features, actions & tools | [docs/features.md](docs/features.md), [docs/tools.md](docs/tools.md), [docs/chat.md](docs/chat.md), [docs/live-notes.md](docs/live-notes.md) |
+| MCP server | [docs/mcp.md](docs/mcp.md) |
+| Auth, privacy & testing | [docs/authentication.md](docs/authentication.md), [docs/privacy.md](docs/privacy.md), [docs/testing.md](docs/testing.md) |
+| Brand & public landing | [docs/brand-tone.md](docs/brand-tone.md), [docs/brand-visuals.md](docs/brand-visuals.md), [landing/README.md](landing/README.md) |
 
 ## License
 
-Kolmi is open source under the [MIT license](LICENSE). Security issues should follow
-[SECURITY.md](SECURITY.md), never a public issue.
+Open source under the [MIT license](LICENSE). Report security issues following [SECURITY.md](SECURITY.md).
