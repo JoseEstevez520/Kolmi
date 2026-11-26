@@ -18,7 +18,7 @@ async function decide(approve) {
   error.value = ''
   try {
     const method = approve ? 'approveAuthorization' : 'denyAuthorization'
-    const result = await supabase.auth.oauth[method](id)
+    const result = await supabase.auth.oauth[method](id, { skipBrowserRedirect: true })
     if (result.error) throw result.error
     if (result.data?.redirect_url) window.location.assign(result.data.redirect_url)
   } catch (e) { error.value = e.message }
