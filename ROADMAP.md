@@ -341,12 +341,13 @@ Same tools, same loop, another trigger.
   that is a Node service (`page-kit`, owning the catalogue, parser and checks, called over HTTP)
   worth weighing: it costs another container on a small server, and the compiler alone doesn't
   see runtime errors, 340 px overflow or dark mode.
-- [ ] **Pieces measured, not guessed** — the development-only bench is built
+- [x] **Pieces measured, not guessed** — the development-only bench is built
   (`backend/evals/run_piece_evals.py`, see [docs/page-format.md](docs/page-format.md)): ten briefs,
   the web model writes each piece, and a headless browser reports whether it runs, shows something
-  before it is touched, responds, fits 340 px and reads in light and dark. What is left: in the
-  app, a piece the frame can't run is written to the pass log, so a broken one shows up in
-  `/admin/log`.
+  before it is touched, responds, fits 340 px and reads in light and dark. In the app, frame
+  compile errors, runtime errors and unhandled promises are recorded in `/admin/log`. Reports
+  from stale page versions are ignored and duplicate reports are skipped. This uses elastic-ui
+  0.35.2's sandbox error event.
 
 ## Later
 

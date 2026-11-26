@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, onMounted, provide, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ActionButton, Button, Callout, Empty, Markdown, Status } from 'elastic-ui'
@@ -78,6 +78,21 @@ usePolling(async () => {
   }
 }, 4000)
 watch(id, () => { rebuilding.value = false })
+
+const reportedSources = new Set()
+provide('kolmi:piece-error', async (message) => {
+  const source = web.value
+  const nodeId = id.value
+  if (!source || reportedSources.has(source)) return
+  reportedSources.add(source)
+  try {
+    const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(source))
+    const sourceHash = Array.from(new Uint8Array(bytes), (n) => n.toString(16).padStart(2, '0')).join('')
+    await api.reportPieceFailure({ node_id: nodeId, source_hash: sourceHash, message: String(message).slice(0, 500) })
+  } catch {
+    reportedSources.delete(source)
+  }
+})
 
 // The renderer draws what it can and reports the rest; a page is still worth showing.
 function onRenderErrors(errors) {

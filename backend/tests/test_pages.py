@@ -246,3 +246,27 @@ def test_rebuild_cleanup_does_not_clear_a_newer_writer():
     with SupabaseStore(client).rebuilding(2):
         client.tables["nodes"][1]["rebuild_started_at"] = "2099-01-01T00:00:00+00:00"
     assert client.tables["nodes"][1]["rebuild_started_at"] == "2099-01-01T00:00:00+00:00"
+
+
+def test_runtime_report_checks_the_saved_source_and_records_only_one_failure():
+    import hashlib
+
+    client = _Client(_nodes())
+    ctx = _ctx(client)
+    client.tables["nodes"][1]["content_web"] = 'root = Page([a])\na = Artifact("Counter", "Click", 200, "<html></html>")'
+    params = pages.PieceFailureParams(node_id=2, source_hash='0' * 64, message='Missing counter')
+    assert pages.report_piece_failure(ctx, params) == {"recorded": False}
+    params.source_hash = hashlib.sha256((client.tables['nodes'][1].get('content_web') or '').encode()).hexdigest()
+    assert pages.report_piece_failure(ctx, params) == {"recorded": True}
+    assert pages.report_piece_failure(ctx, params) == {"recorded": False}
+    assert len(client.tables['ai_log']) == 1
+    assert 'Missing counter' in client.tables['ai_log'][0]['reason']
+
+
+def test_page_work_action_validates_params_and_expires_abandoned_work():
+    from datetime import datetime, timedelta, timezone
+
+    client = _Client(_nodes())
+    client.tables['nodes'][1]['rebuild_started_at'] = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    result = invoke(get_registry()['page_work_status'], _ctx(client, source='web'), {'node_id': 2})
+    assert result['rebuilding'] is False

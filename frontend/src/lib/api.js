@@ -237,6 +237,7 @@ export const api = {
   // its text).
   nodes: () => request('/nodes'),
 
+  reportPieceFailure: (body) => request('/page/piece-failure', { method: 'POST', body }),
   pageWork: (nodeId) => request(`/node/work?node_id=${encodeURIComponent(nodeId)}`),
   node: (nodeId) => request(`/node?node_id=${encodeURIComponent(nodeId)}`),
 

@@ -149,6 +149,7 @@ def view_node(ctx: Context, params: ViewNodeParams):
 
 @action(
     name="page_work_status",
+    params=ViewNodeParams,
     read_only=True,
     tool=False,
     mcp=False,

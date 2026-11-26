@@ -1,4 +1,4 @@
-import { h } from 'vue'
+import { h, inject } from 'vue'
 import {
   Accordion,
   AccordionContent,
@@ -65,7 +65,8 @@ function renderer(render) {
     props: declared,
     setup: (p) => {
       const streaming = useIsStreaming()
-      return () => render(p.props ?? {}, p.renderNode, streaming.value)
+      const onPieceError = inject('kolmi:piece-error', null)
+      return () => render(p.props ?? {}, p.renderNode, streaming.value, onPieceError)
     },
   }
 }
@@ -316,8 +317,8 @@ export const renderers = {
   // of the library's parts (a Vue component, from <template>) runs on the sandbox runtime; a page
   // written before it carries a whole HTML document, in that slot or, older, in the brief's.
   // While the server builds the component from its brief, a placeholder shows its title and shape.
-  Artifact: renderer(({ title = '', brief = '', height, piece }, _, streaming) => {
-    const common = { label: title, height: Number(height) > 0 ? Number(height) : undefined, bare: true }
+  Artifact: renderer(({ title = '', brief = '', height, piece }, _, streaming, onPieceError) => {
+    const common = { label: title, height: Number(height) > 0 ? Number(height) : undefined, bare: true, onError: onPieceError }
     if (hasPiece(piece)) return h(SandboxFrame, { ...common, piece, runtime: sandboxRuntime })
     const html = !/^\s*<template[\s>]/i.test(piece ?? '') ? piece || (/^\s*<(!doctype|html)/i.test(brief) ? brief : '') : ''
     if (html && (!streaming || /<\/(html|body|script|div)>\s*$/i.test(html))) return h(SandboxFrame, { ...common, html })

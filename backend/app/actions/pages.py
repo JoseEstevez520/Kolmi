@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import threading
 from typing import Any, Literal
@@ -51,6 +52,12 @@ class WritePageWebParams(BaseModel):
         max_length=2000,
         description="Where the page or its pieces come from, if anywhere. It goes in the AI log.",
     )
+
+
+class PieceFailureParams(BaseModel):
+    node_id: int = Field(..., description="The page whose displayed piece failed.")
+    source_hash: str = Field(..., pattern=r"^[0-9a-f]{64}$", description="SHA-256 of the page's OpenUI source, to reject stale reports.")
+    message: str = Field(..., min_length=1, max_length=500, description="The frame's compile or runtime error, without stack traces.")
 
 
 class PageIdParams(BaseModel):
@@ -337,3 +344,27 @@ def write_page_web(ctx: Context, params: WritePageWebParams):
     return (
         ctx.client.table("nodes").select(NODE_COLUMNS).eq("id", params.node_id).limit(1).execute().data[0]
     )
+
+
+@action(
+    name="report_piece_failure",
+    params=PieceFailureParams,
+    read_only=False,
+    tool=False,
+    mcp=False,
+    description="Record a failed page piece in the AI log, once per saved page version. Stale reports are ignored.",
+    method="POST",
+    path="/page/piece-failure",
+)
+def report_piece_failure(ctx: Context, params: PieceFailureParams):
+    check_page(ctx, params.node_id, "report_piece_failure")
+    rows = ctx.client.table("nodes").select("content_web").eq("id", params.node_id).limit(1).execute().data
+    source = (rows[0].get("content_web") or "").strip()
+    if not source or hashlib.sha256(source.encode()).hexdigest() != params.source_hash:
+        return {"recorded": False}
+    marker = f"Piece runtime failure [{params.source_hash}]: "
+    previous = ctx.client.table("ai_log").select("reason").eq("node_id", params.node_id).eq("action", "flagged").order("created_at", desc=True).limit(100).execute().data
+    if any((row.get("reason") or "").startswith(marker) for row in previous):
+        return {"recorded": False}
+    _log(ctx.client, params.node_id, "flagged", marker + params.message, ctx.user_id, ctx.source)
+    return {"recorded": True}
