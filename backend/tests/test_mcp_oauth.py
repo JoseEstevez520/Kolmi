@@ -329,3 +329,14 @@ def test_oauth_token_cannot_be_used_as_an_app_session(client):
     with pytest.raises(HTTPException) as denied:
         auth.get_context(authorization="Bearer connector-token", client=client)
     assert denied.value.status_code == 403
+
+
+def test_public_api_prefix_has_matching_discovery_and_token_audience(http, client, monkeypatch):
+    _settings(monkeypatch, enabled=True, public_url="https://class.example/api")
+    reply = http.get("/.well-known/oauth-protected-resource/api/mcp")
+    assert reply.json()["resource"] == "https://class.example/api/mcp"
+    client.auth.jwts["api-token"] = dict(sub="s1", exp=int(time.time()) + 300,
+        aud="https://class.example/api/mcp", iss="https://proj.supabase.co/auth/v1", client_id="connector")
+    assert "view_node" in _tools(http, "api-token")
+    client.auth.jwts["api-token"]["aud"] = "https://class.example/mcp"
+    assert _rpc(http, "api-token", "tools/list").status_code == 401
