@@ -3,12 +3,13 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch 
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { Button, Callout, FileDropZone, Input, Markdown, PopoverMorph, StatusText, TextMorph } from 'elastic-ui'
-import { Maximize2, Minimize2, Paperclip, Radio, Sparkles } from '@lucide/vue'
+import { TriangleAlert, Maximize2, Minimize2, Paperclip, Radio, Sparkles } from '@lucide/vue'
 import FilePicker from '../components/FilePicker.vue'
 import LiveFollowers from '../components/LiveFollowers.vue'
 import NodePicker from '../components/NodePicker.vue'
 import NoteAiFence from '../components/NoteAiFence.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
+import { useDuplicateLiveTab } from '../lib/duplicateLiveTab.js'
 import { api } from '../lib/api.js'
 import { invalidate } from '../lib/cached.js'
 import { loadNodes } from '../lib/content.js'
@@ -47,6 +48,7 @@ const fileCount = ref(0)
 // The live session mirroring this note, if it is on: its id, or null. Switched on from the
 // header; while it is on, every save of the note also sends its text to the class.
 const liveId = ref(null)
+const duplicateLiveTab = useDuplicateLiveTab(liveId)
 const liveBusy = ref(false)
 // Who is reading the session, learnt by reading it; only asked while the switch is on.
 const followers = ref([])
@@ -416,6 +418,7 @@ onMounted(() => loadNodes().catch(() => {}))
             :working="status === 'saving'"
             :error="status === 'error'"
           />
+          <TriangleAlert v-if="duplicateLiveTab" class="size-4 text-warning" role="img" :aria-label="t('live.duplicateTab')"><title>{{ t('live.duplicateTab') }}</title></TriangleAlert>
           <LiveFollowers v-if="liveId != null" :followers="followers" />
           <Button
             variant="ghost"

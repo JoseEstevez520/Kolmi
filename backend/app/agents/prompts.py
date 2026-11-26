@@ -226,6 +226,11 @@ The answer:
 - The whole page in {{language}}, even when the material or the current page is in another \
 language: translate what you keep. No level-1 heading: the title is shown already.
 - No names or personal data. Do not invent facts.
+- Before returning the page, review every link copied from the material or current page.
+  Those files belonged to the original notebook: relative paths and local images do not exist
+  here. Match a referenced topic to the supplied tree and use its exact /node/<id> route.
+  Keep working external URLs and heading anchors. If no destination can be established, keep
+  the visible words without a link. Never invent a node id or carry a source file's relative URL.
 - The material may hold ```kolmi-ai fences, pieces already drawn (a table, steps, a diagram). Keep \
 one, as it is, where it belongs when it shows that part of the page well; drop it or say it in \
 words when it doesn't fit the page.

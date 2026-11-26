@@ -317,12 +317,17 @@ Same tools, same loop, another trigger.
   are rewritten to its file; links and images that only meant something beside the notes' original
   files become plain text, so no file points at nothing. Only shared pages go out, never raw
   notes or attachments. Cost: nothing, no model is involved.
-- [ ] **Export, the rest** — the same files with the page's data on top (title, description,
+- [x] **Export, the rest** — the same files with the page's data on top (title, description,
   order, date), so an import can read them back and a notes repo can keep them; a nightly copy
   into a private repo after the pass; students downloading their own raw notes; an admin switch
   to turn the export off. And fix at the source what the export has to patch: the notes agent
   copies links written for the notes' original files (60 of them across 24 pages in the test, 19
   matching another page by title), though it is told to link as `/node/<id>`.
+  Built: YAML frontmatter, `export_pages` and `export_notes` app actions, the admin export switch,
+  and an explicit link review in the notes writer's prompt. Apply
+  `supabase/migrations/20261126160000_export_setting.sql` before deploying. The nightly CLI can
+  copy to an operator-provided private Git checkout through `BACKUP_REPO_PATH`; see the backend
+  README. Link selection still needs a real pass to verify the prompt change.
 - [ ] **One source of truth for the page format** — the format lives twice: the frontend uses the
   official OpenUI packages, and the backend carries its own Python parser
   (`app/agents/openui/`, about 560 lines) next to a prompt and schemas generated from the
@@ -366,8 +371,8 @@ Same tools, same loop, another trigger.
     `read_live_note`, `list_live_notes` and `delete_live_note` (the two reads are chat and MCP
     tools); the web polls every 4 s with `since`. Ended sessions are not listed anywhere until
     the next step turns them into notes. Who is following is built: `read_live_note` answers the
-    names of those reading in the last 15 s, shown as stacked initials. Still to do from the plan: a warning when it's open in
-    two tabs, SSE only if polling feels slow, and the live dot on the timetable.
+    names of those reading in the last 15 s, shown as stacked initials. A warning icon now shows
+    when the same live session is open for writing in two tabs of the same browser. Still to do: SSE only if polling feels slow, and the live dot on the timetable.
   - **Into the pass.** Built, with no step of its own: a live session mirrors a normal note, so the
     note itself goes through the daily pass as any other, whether or not the session ended.
     The editor stays the notes editor; the Markdown it saves is what the pass reads.

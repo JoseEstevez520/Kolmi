@@ -20,6 +20,7 @@ class ScheduleBreak(BaseModel):
 
 
 class UpdateSettingsParams(BaseModel):
+    export_enabled: bool | None = None
     class_language: str | None = None
     pass_enabled: bool | None = None
     pass_times: list[str] | None = None
@@ -133,6 +134,9 @@ def update_settings(ctx: Context, params: UpdateSettingsParams):
         if params.bug_report_daily_limit <= 0:
             raise HTTPException(422, "bug_report_daily_limit must be a positive number")
         row["bug_report_daily_limit"] = params.bug_report_daily_limit
+
+    if params.export_enabled is not None:
+        row["export_enabled"] = params.export_enabled
 
     row["updated_at"] = datetime.now(timezone.utc).isoformat()
     try:

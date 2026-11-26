@@ -261,6 +261,7 @@ export const api = {
   // Sends only what is given (JSON drops `undefined` keys), so one setting can change
   // without the rest.
   updateSettings: ({
+    exportEnabled,
     classLanguage,
     passEnabled,
     passTimes,
@@ -278,6 +279,7 @@ export const api = {
     request('/settings', {
       method: 'POST',
       body: {
+        export_enabled: exportEnabled,
         class_language: classLanguage,
         pass_enabled: passEnabled,
         pass_times: passTimes,
@@ -449,5 +451,6 @@ export const api = {
   fileLink: (fileId) => request(`/files/download?file_id=${encodeURIComponent(fileId)}`),
 
   // The shared pages as a zip of Markdown files: all of them, or the ones under a section.
+  exportNotes: () => fetchFile('/exports/notes'),
   exportPages: (nodeId = null) => fetchFile(nodeId == null ? '/export' : `/export?node_id=${encodeURIComponent(nodeId)}`),
 }

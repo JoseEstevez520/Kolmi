@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -11,6 +12,8 @@ from ..agents.schemas import Batch, GatekeeperResult, NewPage
 from ..rag import index_pages
 from ..store import Store, SupabaseStore
 from .schedule import is_due
+
+log = logging.getLogger(__name__)
 
 STALE_MINUTES = 120
 
@@ -392,6 +395,18 @@ def main() -> None:
     args = parser.parse_args()
 
     summary = run_daily_pass(dry_run=args.dry_run, if_due=args.if_due)
+    if not args.dry_run and summary.get("status") in {"done", "empty"}:
+        from ..backup import copy_notebook
+        from ..config import get_settings
+        from ..supabase_client import get_client
+
+        checkout = get_settings().backup_repo_path
+        if checkout:
+            try:
+                summary["backup"] = copy_notebook(get_client(), checkout)
+            except Exception as exc:
+                log.warning("Notebook backup failed: %s", type(exc).__name__)
+                summary["backup"] = "failed"
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 

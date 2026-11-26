@@ -70,7 +70,9 @@ def test_code_blocks_are_left_as_written():
 
 def test_page_starts_with_title_and_where_it_sits_without_repeating_the_heading():
     text = build(NODES)["01-modulos/01-backend/02-servicios-e-inyeccion.md"]
-    assert text.startswith("# Servicios e inyección\n\nMódulos > Backend\n\n")
+    assert text.startswith("---\n")
+    assert "title: \"Servicios e inyección\"" in text
+    assert "# Servicios e inyección\n\nMódulos > Backend\n\n" in text
     assert text.count("# Servicios e inyección") == 1
 
 
@@ -130,3 +132,56 @@ def test_route_refuses_an_unapproved_profile_and_unknown_or_empty_scopes():
     assert _as(approved=False).get("/export").status_code == 403
     assert _as().get("/export", params={"node_id": 99}).status_code == 404
     assert _as().get("/export", params={"node_id": 7}).status_code == 404  # a section with no pages
+
+
+def test_page_metadata_escapes_values_and_keeps_order_and_date():
+    import json
+    from app.export import render_page
+    node = {"id": 8, "title": 'Title: "quoted"', "description": "line one\nline two",
+            "position": 9, "updated_at": "2026-11-26T10:00:00Z", "parent_id": 2}
+    text = render_page(node, [], "Body")
+    fields = dict(line.split(": ", 1) for line in text.split("---\n")[1].strip().splitlines())
+    assert {key: json.loads(value) for key, value in fields.items()} == node
+
+
+def test_own_notes_export_filters_owner_and_never_queries_other_notes(monkeypatch):
+    from app.actions import get_action, invoke
+    from app.actions import exports
+    calls = []
+
+    class Notes:
+        def select(self, columns):
+            assert "user_id" not in columns
+            return self
+        def eq(self, column, value):
+            calls.append((column, value))
+            return self
+        def order(self, column):
+            return self
+        def execute(self):
+            return type("R", (), {"data": [{"id": 9, "content": "My raw note", "format": "text"}]})()
+
+    class Client:
+        def table(self, name):
+            assert name == "notes"
+            return Notes()
+
+    monkeypatch.setattr(exports, "read_settings", lambda _: {"export_enabled": True})
+    ctx = Context(user_id="mine", email=None, profile={"status": "active", "role": "student"}, client=Client())
+    response = invoke(get_action("export_notes"), ctx)
+    assert calls == [("user_id", "mine")]
+    with zipfile.ZipFile(io.BytesIO(response.body)) as archive:
+        assert archive.namelist() == ["9-my-raw-note.md"]
+        assert b"My raw note" in archive.read(archive.namelist()[0])
+
+
+def test_disabled_export_blocks_both_actions(monkeypatch):
+    from fastapi import HTTPException
+    from app.actions import get_action, invoke
+    from app.actions import exports
+    monkeypatch.setattr(exports, "read_settings", lambda _: {"export_enabled": False})
+    ctx = Context(user_id="mine", email=None, profile={"status": "active", "role": "admin"}, client=None)
+    for name in ("export_pages", "export_notes"):
+        with pytest.raises(HTTPException) as error:
+            invoke(get_action(name), ctx)
+        assert error.value.status_code == 403

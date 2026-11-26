@@ -434,3 +434,6 @@ on conflict (id) do nothing;
 -- Public bucket for profile photos: the names are random, and only members are handed the link.
 insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true)
 on conflict (id) do nothing;
+
+-- Members may download the notebook and their own notes unless disabled.
+alter table public.settings add column if not exists export_enabled boolean not null default true;

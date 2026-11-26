@@ -50,6 +50,9 @@ class Settings(BaseSettings):
 
     # Bug reports (app/bugs.py), optional: a token that may write issues on one repo (nothing
     # else), and that repo as owner/name. Without them a judged report waits for an admin.
+    # Dedicated checkout of an operator-owned private repository; empty disables backups.
+    backup_repo_path: str = ""
+
     github_token: str = ""
     github_repo: str = ""
 

@@ -455,7 +455,8 @@ def test_a_page_reads_as_the_export_writes_it(http, client):
     reply = _rpc(http, _token(client), "resources/read", {"uri": "kolmi://page/2"})
 
     text = reply.json()["result"]["contents"][0]["text"]
-    assert text.startswith("# Loops\n\nUnit 1\n\nA loop repeats.")
+    assert text.startswith("---\n")
+    assert "# Loops\n\nUnit 1\n\nA loop repeats." in text
     assert "[Functions](kolmi://page/3)" in text  # another page, as a resource
     assert "../notes/raw.md" not in text and "RAW NOTE TEXT" not in text and "root = Page" not in text
 

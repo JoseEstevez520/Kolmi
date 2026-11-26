@@ -127,6 +127,10 @@ export default {
   },
 
   export: {
+    mine: 'Download my notes',
+    enabled: 'Allow downloads',
+    title: 'Export',
+
     section: 'Download',
     working: 'Downloading',
     done: 'Downloaded',
@@ -332,6 +336,8 @@ export default {
   },
 
   live: {
+    duplicateTab: 'This live note is open for writing in another tab. Saves may overwrite each other.',
+
     error: 'Could not load the live notes',
     state: { live: 'Live', ended: 'Ended', stopped: 'Not live', private: 'Private' },
     notChecked: "One person's notes, not checked",

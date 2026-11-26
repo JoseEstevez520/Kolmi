@@ -12,6 +12,7 @@ into plain text, so no file points at nothing.
 from __future__ import annotations
 
 import io
+import json
 import posixpath
 import re
 import unicodedata
@@ -127,6 +128,21 @@ def rewrite(
     return "".join(parts)
 
 
+def frontmatter(data: dict[str, Any]) -> str:
+    # JSON scalars are valid YAML; quoting protects titles containing ':' or newlines.
+    return "---\n" + "\n".join(f"{key}: {json.dumps(value, ensure_ascii=False)}" for key, value in data.items()) + "\n---\n\n"
+
+
+def build_notes(notes: list[dict[str, Any]]) -> dict[str, str]:
+    files = {}
+    for note in notes:
+        body = note.get("content") or ""
+        title = body.splitlines()[0].lstrip("# ") if body.strip() else "Untitled"
+        metadata = {key: note.get(key) for key in ("id", "format", "status", "node_id", "created_at")}
+        files[f"{note['id']}-{slugify(title)}.md"] = frontmatter(metadata) + body + "\n"
+    return files
+
+
 def render_page(node: dict[str, Any], trail: list[str], body: str) -> str:
     """Title as the heading, where the page sits as plain text, then its Markdown."""
     title = node["title"].strip()
@@ -136,7 +152,10 @@ def render_page(node: dict[str, Any], trail: list[str], body: str) -> str:
         body = "\n".join(body.splitlines()[1:]).strip()
     where = " > ".join(trail)
     head = f"# {title}\n\n" + (f"{where}\n\n" if where else "")
-    return head + body + "\n"
+    metadata = {"id": node["id"], "title": title, "description": node.get("description") or "",
+                "parent_id": node.get("parent_id"), "position": node.get("position", 0),
+                "updated_at": node.get("updated_at")}
+    return frontmatter(metadata) + head + body + "\n"
 
 
 def build(nodes: list[dict[str, Any]], scope: int | None = None) -> dict[str, str]:

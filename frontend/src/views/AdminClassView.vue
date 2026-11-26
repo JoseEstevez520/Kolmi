@@ -1,4 +1,5 @@
 <script setup>
+import AdminExport from '../components/AdminExport.vue'
 import AdminChat from '../components/AdminChat.vue'
 import AdminClassLanguage from '../components/AdminClassLanguage.vue'
 import AdminPass from '../components/AdminPass.vue'
@@ -13,5 +14,6 @@ import AdminSignups from '../components/AdminSignups.vue'
     <AdminPass />
     <AdminChat />
     <AdminSignups />
+    <AdminExport />
   </div>
 </template>

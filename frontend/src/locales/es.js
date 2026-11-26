@@ -124,6 +124,10 @@ export default {
   },
 
   export: {
+    mine: 'Descargar mis notas',
+    enabled: 'Permitir descargas',
+    title: 'Exportación',
+
     section: 'Descargar',
     working: 'Descargando',
     done: 'Descargado',
@@ -329,6 +333,8 @@ export default {
   },
 
   live: {
+    duplicateTab: 'Esta nota en directo está abierta para escribir en otra pestaña. Los cambios pueden sobrescribirse.',
+
     error: 'No se han podido cargar los apuntes en directo',
     state: { live: 'En directo', ended: 'Terminada', stopped: 'Sin directo', private: 'Privada' },
     notChecked: 'Apuntes de una persona, sin revisar',

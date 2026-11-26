@@ -269,3 +269,18 @@ port to open, whatever fronts that one port. Pick whichever of these fits your s
 Whichever you pick, set `CORS_ORIGINS` in `backend/.env` only if something ever calls the
 API directly from a different origin than `web`'s; the app itself never needs it, since
 `/api/` is same-origin.
+
+### Private notebook backup
+
+Set `BACKUP_REPO_PATH` to an existing, dedicated checkout of a **private** repository on the
+machine running the daily pass. Provision the repository, its upstream branch, Git author and
+credentials outside Kolmi; Kolmi does not create repositories or set their visibility. Mount the
+checkout and its Git credentials into the pass container when using Docker. Keep credentials out
+of remote URLs and out of this repository.
+
+After a successful scheduled pass (including a pass with no pending notes), the CLI pulls with
+rebase, writes the shared Markdown export under `notebook/`, commits changes and pushes. The
+checkout must have no tracked changes. Only shared pages are copied; private notes and attachments
+are excluded. An admin disabling export also disables this backup. A failed backup is reported
+as `backup: failed` without changing the result of the completed AI pass; the next run retries
+an unpushed commit. An empty `BACKUP_REPO_PATH` disables backups.

@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button, Callout, Empty } from 'elastic-ui'
-import { NotebookPen, Plus } from '@lucide/vue'
+import { ActionButton, Button, Callout, Empty } from 'elastic-ui'
+import { Download, NotebookPen, Plus } from '@lucide/vue'
 import CardGrid from '../components/CardGrid.vue'
 import CardGridSkeleton from '../components/CardGridSkeleton.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
+import { downloadExport } from '../lib/export.js'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
 import { useCached } from '../lib/cached.js'
@@ -72,6 +73,7 @@ onMounted(refresh)
       <div class="not-prose">
         <div class="flex items-center gap-2">
           <Button :icon="Plus" to="/notes/new" data-tour="new-note">{{ t('notes.new') }}</Button>
+          <ActionButton variant="ghost" size="icon" :icon="Download" :label="t('export.mine')" :aria-label="t('export.mine')" :title="t('export.mine')" :action="() => downloadExport(null, true)" :working-label="t('export.working')" :done-label="t('export.done')" :error-label="t('export.error')" />
         </div>
       </div>
 
