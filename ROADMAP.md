@@ -458,7 +458,7 @@ Same tools, same loop, another trigger.
   `supabase/migrations/20261126160100_page_rebuild_and_user_cleanup.sql` before deploying.
 - [ ] Moderation and reporting tools.
 - [ ] More contribution types (links, images, files over the MCP).
-- [x] In-app activity feed: rolling weekly digest of completed AI passes and changed pages, plus replies to forum threads the member participates in (`/notifications`). No email or push delivery.
+- [x] In-app activity feed: rolling weekly digest of completed AI passes and changed pages, available at `/notifications`. Forum reply notifications remain deferred with the forum branch. No email or push delivery.
 - [ ] More languages beyond English and Spanish.
 - [ ] Better interactive pieces, if pages turn out to need them.
 
