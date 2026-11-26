@@ -19,7 +19,7 @@ from ..agents.chat import run_chat_stream
 from ..agents.images import SEARCH_IMAGES_TOOL, images_tool
 from ..agents.note_pieces import apply_mends, mend_pieces
 from ..agents.openui import chat_parts
-from ..agents.prompts import NOTE_PARTS, note_system
+from ..agents.prompts import NOTE_PARTS, note_system, reader_system
 from ..auth import Context
 from ..class_settings import class_language, read_settings
 from ..files import node_files
@@ -110,16 +110,18 @@ class AskChatParams(BaseModel):
         default=None,
         description="The live note the person is watching, if any. Ignored when it doesn't exist or isn't theirs to see.",
     )
-    mode: Literal["chat", "note"] = Field(
+    mode: Literal["chat", "note", "reader", "reader_detail"] = Field(
         default="chat",
         description=(
             "chat: a question in the chat. note: a line or passage of a note the AI helps with "
-            "from inside it (a question becomes notes on it; notes get the piece that shows them)."
+            "from inside it (a question becomes notes on it; notes get the piece that shows them). "
+            "reader: a brief contextual explanation of selected text. reader_detail: a richer "
+            "reading explanation, including visual or interactive parts where helpful."
         ),
     )
     note: str | None = Field(
         default=None,
-        description="With the note mode, the note as written so far: only its last part is used.",
+        description="For note mode, the note being written. For reader modes, the selected passage and nearby source context. At most 6000 characters are used.",
     )
 
 
@@ -128,7 +130,11 @@ class AskChatParams(BaseModel):
 NOTE_CHARS = 6000
 
 # The AI in a note: the prompt it writes with.
-_NOTE_SYSTEMS = {"note": note_system}
+_NOTE_SYSTEMS = {
+    "note": note_system,
+    "reader": reader_system,
+    "reader_detail": lambda language: reader_system(language, detailed=True),
+}
 
 
 def _note(params: "AskChatParams") -> str | None:
@@ -600,10 +606,11 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 live=_open_live(ctx, params.live_id),
                 passages=passages,
                 note=note_text,
+                reading=params.mode.startswith("reader"),
                 system=_NOTE_SYSTEMS[params.mode](language) if in_note else None,
                 # From a note it may show a real thing with a photo from Wikimedia Commons.
-                extra_tools=[SEARCH_IMAGES_TOOL] if in_note else None,
-                run_extra=images_tool() if in_note else None,
+                extra_tools=[SEARCH_IMAGES_TOOL] if params.mode == "note" else None,
+                run_extra=images_tool() if params.mode == "note" else None,
             ):
                 if event["type"] == "token":
                     program += event["text"]

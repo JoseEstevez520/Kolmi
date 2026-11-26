@@ -49,6 +49,7 @@ def _prompt(
     page: dict[str, Any] | None = None,
     live: dict[str, Any] | None = None,
     note: str | None = None,
+    reading: bool = False,
 ) -> tuple[str, str]:
     """The system prompt (with the passages' note when there are any) and the user message: the
     tree as an index, the day, the timetable, the passages, the conversation and the question."""
@@ -85,7 +86,7 @@ def _prompt(
     if page:
         where = page.get("path") or page.get("title") or ""
         about = (page.get("about") or "").strip()
-        if note is not None:
+        if note is not None and not reading:
             open_page = f"\n\nSubject for this note: {where}" + (f"\n{about}" if about else "")
         else:
             route = page.get("route") or f"/node/{page['id']}"
@@ -103,7 +104,8 @@ def _prompt(
         )
     # Asked from inside a note: the note as written so far, so "this" and "that" have something
     # to point at. The note is the student's own, unchecked; the pages come first.
-    writing = f"\n\nThe note the student is writing:\n<note>\n{note}\n</note>" if note else ""
+    label = "Source passage being read" if reading else "The note the student is writing"
+    writing = f"\n\n{label}:\n<note>\n{note}\n</note>" if note else ""
     tree = f"Tree:\n{index}" if nodes else ""
     user = f"{tree}{when}{timetable}{found}{said}{open_page}{writing}\n\nQuestion: {question}"
 
@@ -189,6 +191,7 @@ def run_chat_stream(
     live: dict[str, Any] | None = None,
     note: str | None = None,
     system: str | None = None,
+    reading: bool = False,
     extra_tools: list[dict[str, Any]] | None = None,
     run_extra: Callable[[str, dict[str, Any]], str] | None = None,
 ) -> Iterator[dict[str, str]]:
@@ -209,6 +212,7 @@ def run_chat_stream(
         passages=passages,
         history=history,
         passages_note=CHAT_PASSAGES_STREAM,
+        reading=reading,
         page=page,
         live=live,
         note=note,
