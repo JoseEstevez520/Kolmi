@@ -134,8 +134,8 @@ class AskChatParams(BaseModel):
 # now) is kept, up to this much.
 NOTE_CHARS = 6000
 
-# The AI in a note: the prompt it writes with.
-_NOTE_SYSTEMS = {
+# Contextual reading and writing modes use their own prompts and cannot call app actions.
+_CONTEXT_SYSTEMS = {
     "note": note_system,
     "reader": reader_system,
     "reader_detail": lambda language: reader_system(language, detailed=True),
@@ -552,7 +552,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
         try:
             # From a note it answers or completes, and acts on nothing. It doesn't look in the
             # class's pages either: notes are taken in class, on what is new and not written up.
-            in_note = params.mode in _NOTE_SYSTEMS
+            in_note = params.mode in _CONTEXT_SYSTEMS
             yield sse("status", {"text": "Thinking..." if in_note else "Searching the notes..."})
             history = _recent(params.history)
             # Independent reads, at the same time. The Supabase client is an httpx client, which
@@ -614,7 +614,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 passages=passages,
                 note=note_text,
                 reading=params.mode.startswith("reader") or bool(params.source_context),
-                system=_NOTE_SYSTEMS[params.mode](language) if in_note else None,
+                system=_CONTEXT_SYSTEMS[params.mode](language) if in_note else None,
                 # From a note it may show a real thing with a photo from Wikimedia Commons.
                 extra_tools=[SEARCH_IMAGES_TOOL] if params.mode == "note" else None,
                 run_extra=images_tool() if params.mode == "note" else None,
