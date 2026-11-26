@@ -321,3 +321,11 @@ def test_oauth_rejects_wrong_resource_issuer_or_missing_client(http, client, mon
     for change in ({"aud": "authenticated"}, {"iss": "https://other.example/auth/v1"}, {"client_id": ""}, {"exp": None}):
         client.auth.jwts["invalid-target"] = {**good, **change}
         assert _rpc(http, "invalid-target", "tools/list").status_code == 401
+
+
+def test_oauth_token_cannot_be_used_as_an_app_session(client):
+    from fastapi import HTTPException
+    client.auth.jwts["connector-token"] = dict(sub="s1", client_id="connector", exp=int(time.time()) + 300)
+    with pytest.raises(HTTPException) as denied:
+        auth.get_context(authorization="Bearer connector-token", client=client)
+    assert denied.value.status_code == 403

@@ -140,6 +140,8 @@ def get_context(
     if not claims:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
 
+    if claims.get("client_id"):
+        raise HTTPException(403, "OAuth connector tokens are only accepted by MCP")
     user_id = claims["sub"]
     return Context(
         user_id=user_id,
