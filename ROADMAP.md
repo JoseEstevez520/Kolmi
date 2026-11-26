@@ -459,18 +459,19 @@ Same tools, same loop, another trigger.
 - [ ] Moderation and reporting tools.
 - [ ] More contribution types (links, images, files over the MCP).
 - [x] In-app activity feed: rolling weekly digest of completed AI passes and changed pages, available at `/notifications`. Forum reply notifications remain deferred with the forum branch. No email or push delivery.
+- [x] **Curio inside Kolmi** — in-place contextual explanations where notes are read (pages,
+  watched live notes and closed notes; never in the note editor). Selecting text keeps the
+  browser's native Range and highlight and opens elastic-ui's `SelectionMenu native` (0.35.3)
+  with two icon actions and no separator: **Curio** and **Ask in chat**. Curio opens a virtual
+  `PopoverAnchor` with `PopoverContent morph` (`mode: reader` for a short contextual glance,
+  then **Explore** for `mode: reader_detail` with Markdown, OpenUI visual fences and Artifacts,
+  plus deeper selection trails and a breadcrumb back). **Ask in chat** stages the quote above
+  the composer without filling the input box or spending a model call until sent
+  (`source_context`). Dev preview at `/dev/curio` (`?fake` for simulated streams).
 - [ ] More languages beyond English and Spanish.
 - [ ] Better interactive pieces, if pages turn out to need them.
 
 ## Ideas, not committed
-
-- **Curio inside Kolmi.** Bring [Curio](https://github.com/JoseEstevez520/curio)'s in-place
-  explanations to pages and notes: click a word or select a phrase and a one-sentence glance
-  opens right there, explained against its own sentence; "See more" grows it into a composed
-  panel (OpenUI components), with deeper clicks and a breadcrumb back. Nothing is underlined at
-  rest. Curio is React + TypeScript; Kolmi would need a Vue version of the reader layer.
-  Only where notes are read (pages and a note being viewed), not while one is being written,
-  so it never gets in the way of typing (Jose, 2026-11-23).
 
 - **Kolmi Notes and Kolmi Class.** Split the product into two modes on the same base: *Notes*
   for one person (your own notes with the AI inside the note) as the way in, and *Class* for a
