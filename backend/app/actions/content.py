@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..auth import Context
+from ..class_settings import _missing_column
 from ..files import node_files
 from ..store import place_among
 from .registry import action
@@ -158,7 +159,14 @@ def view_node(ctx: Context, params: ViewNodeParams):
     path="/node/work",
 )
 def page_work_status(ctx: Context, params: ViewNodeParams):
-    rows = ctx.client.table("nodes").select("id, kind, rebuild_started_at, updated_at").eq("id", params.node_id).limit(1).execute().data
+    rows = None
+    for cols in ("id, kind, rebuild_started_at, updated_at", "id, kind, updated_at", "id, kind"):
+        try:
+            rows = ctx.client.table("nodes").select(cols).eq("id", params.node_id).limit(1).execute().data
+            break
+        except Exception as exc:
+            if not _missing_column(exc):
+                raise
     if not rows:
         raise HTTPException(404, "The page no longer exists")
     node = rows[0]
