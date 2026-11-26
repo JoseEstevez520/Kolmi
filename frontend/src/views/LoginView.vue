@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { consentDestination } from '../lib/accessRoute.js'
 import { useI18n } from 'vue-i18n'
 import { Button, Callout, Field, Input } from 'elastic-ui'
 import AuthLayout from '../components/AuthLayout.vue'
@@ -9,7 +10,7 @@ import { resetPassword, signIn, signInWithGoogle } from '../lib/auth.js'
 
 const router = useRouter()
 const route = useRoute()
-const destination = () => typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/oauth/consent?') ? route.query.redirect : '/'
+const destination = () => consentDestination(route.query.redirect) || '/'
 const { t } = useI18n()
 
 const email = ref('')

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import fcntl
+import os
 from pathlib import Path
 import subprocess
 
@@ -26,7 +27,10 @@ def copy_notebook(client, checkout: str) -> str:
     if not read_settings(client)["export_enabled"]:
         return "disabled"
     repo = Path(checkout).expanduser().resolve()
-    with (repo / ".kolmi-backup.lock").open("w") as lock:
+    if Path(_git(repo, "rev-parse", "--show-toplevel")).resolve() != repo:
+        raise ValueError("The backup checkout must be the Git repository root")
+    descriptor = os.open(repo / ".kolmi-backup.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(descriptor, "r+") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         # Keep the lock outside the worktree status without changing .gitignore.
         status = _git(repo, "status", "--porcelain", "--", ".", ":(exclude).kolmi-backup.lock")

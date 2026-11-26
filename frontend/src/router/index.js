@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { decideRoute } from '../lib/accessRoute.js'
 import { chatEnabled, loadChatEnabled, setChatLive, setChatPage } from '../lib/chat.js'
 import { openChatWide } from '../lib/chatPanel.js'
 import { authReady, confirmed, hinted, isWaiting, loadProfile, profile, session } from '../lib/auth.js'
@@ -131,17 +132,7 @@ const router = createRouter({
 
 // Where a visit goes for the person we know about: `true` to let it through, or a redirect.
 function decide(to, current) {
-  if (!session.value) return to.meta.public ? true : { name: 'login', query: to.name === 'oauth-consent' ? { redirect: to.fullPath } : {} }
-  if (!current) return to.name === 'register' ? true : { name: 'register' }
-  // Someone waiting or blocked reaches nothing but the waiting screen and login.
-  if (isWaiting(current)) {
-    return to.name === 'waiting' || to.name === 'login' ? true : { name: 'waiting' }
-  }
-  if (to.name === 'waiting' || to.name === 'login' || to.name === 'register') {
-    return { name: 'home' }
-  }
-  if (to.meta.admin && current.role !== 'admin') return { name: 'home' }
-  return true
+  return decideRoute(to, current, Boolean(session.value))
 }
 
 router.beforeEach(async (to) => {

@@ -43,3 +43,20 @@ def test_disabled_backup_never_touches_checkout(monkeypatch):
     monkeypatch.setattr(backup, "read_settings", lambda _: {"export_enabled": False})
     assert backup.copy_notebook(Client(), "/nonexistent") == "disabled"
     assert backup.copy_notebook(Client(), "") == "not-configured"
+
+
+def test_backup_rejects_symlink_lock_and_nested_checkout(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init")
+    outside = tmp_path / "important"
+    outside.write_text("keep this")
+    (repo / ".kolmi-backup.lock").symlink_to(outside)
+    monkeypatch.setattr(backup, "read_settings", lambda _: {"export_enabled": True})
+    with pytest.raises(OSError):
+        backup.copy_notebook(Client(), str(repo))
+    assert outside.read_text() == "keep this"
+    nested = repo / "nested"
+    nested.mkdir()
+    with pytest.raises(ValueError, match="repository root"):
+        backup.copy_notebook(Client(), str(nested))
