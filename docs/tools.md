@@ -252,3 +252,15 @@ Apply `supabase/migrations/20261013120000_bug_reports.sql` and `supabase/migrati
 - Tool answers are capped at 12,000 characters.
 - In the chat every write is a proposal, stored server-side and confirmed in a new request; no
   LangGraph.
+
+## Reader explanations
+
+The app's `ask_chat` stream also accepts `reader` for a plain contextual glance and
+`reader_detail` for Markdown with visual `kolmi-ai` fences. Both use the same permission,
+class switch, daily cap and message accounting as chat. They are contextual explanations:
+no notebook actions, web search or image tools are offered. Detail Artifacts use the existing
+visual generator, with `text_done` preceding any `fix` events and final `done`.
+
+A chat question opened from a selection can carry `source_context` (at most 6000 characters),
+separate from its visible question. It is source material, never system instructions. No
+request is made just by opening the chat draft.

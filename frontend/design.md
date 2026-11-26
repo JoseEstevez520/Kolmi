@@ -143,3 +143,19 @@ library, the same tokens and the app's own texts, with the Aurora as its one dec
 recipe, with the class invitation as the example, is in
 [docs/brand-visuals.md](../docs/brand-visuals.md).
 
+
+## Curio while reading
+
+Pages, watched live notes and a closed note can be explored without entering the editor.
+A native text selection opens elastic-ui's `SelectionMenu native` with two icon actions and
+no separator: Curio, and a question in the chat. The browser's Range and highlight stay intact.
+The editable note and its own selection menu are separate.
+
+Curio uses a virtual `PopoverAnchor` at that Range. Its first answer is a contextual glance;
+Explore opens a richer Markdown explanation with the existing visual parts and Artifacts.
+Selections inside a detail can be explored further, with a cached trail back. Closing or
+leaving cancels the request. The popover never scrolls the source text into view.
+
+The chat action prepares a quoted draft. Nearby source context travels separately from the
+composer and is sent only when the member sends their question. It is cleared after sending
+and on account changes. Both Curio modes use the existing chat switch and daily cap.

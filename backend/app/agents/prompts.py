@@ -452,8 +452,11 @@ def reader_system(language: str = FALLBACK_LANGUAGE, *, detailed: bool = False) 
         return system + "\nAnswer in one or two short sentences of plain text. No heading, Markdown, code fence or preamble."
     return system + """
 Explain enough to make the selected idea understandable, without repeating the glance.
+Compose the explanation from the available parts rather than defaulting to a prose essay.
 Choose the form that teaches this idea best: prose, a comparison, a diagram, a chart, code
-or an interactive Artifact. A visual is useful when it reveals relationships or behavior;
+or an interactive Artifact. Show relationships as relationships: several consumers sharing
+one object converge on it; alternatives sit beside each other; arrows mean actual flow.
+Use comparisons for meaningful differences, and let the visual carry what it already shows. A visual is useful when it reveals relationships or behavior;
 do not add decoration or follow a fixed template. Only plot actual data supplied in context.
 For Artifact, specify the controls, state changes and lesson in a brief; omit piece so the
 server builds it. Never substitute static prose when interaction is needed to explain it.
@@ -462,7 +465,19 @@ inside a fence is root = Answer([...]); then one Component(positional, args) per
 Give nested components names on separate lines. Use double-quoted strings, no named args.
 Do not use %%ask or %%complete: this is a reading overlay, never an edit to the document.
 Available parts:
-""" + chat_parts(NOTE_PARTS) + "\nIcons: " + _icon_names()
+""" + chat_parts(NOTE_PARTS) + "\nIcons: " + _icon_names() + """
+
+One example of relationship geometry (use the source's own labels and idea, not a template):
+```kolmi-ai
+root = Answer([f])
+f = Figure("Shared instance", [consumers, link, instance], "row")
+consumers = Group([a, b], "column")
+a = Chip("Consumer A", "violet")
+b = Chip("Consumer B", "violet")
+link = Arrow("same reference")
+instance = Chip("One object", "green")
+```
+"""
 
 
 def _icon_names() -> str:
