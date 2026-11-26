@@ -57,3 +57,17 @@ def test_reader_obeys_class_chat_switch_and_daily_limit(mode):
     with pytest.raises(HTTPException) as capped:
         stream_chat(_ctx(client), params)
     assert capped.value.status_code == 429
+
+
+def test_question_from_reader_has_source_context_but_keeps_chat_tools(monkeypatch):
+    client = _Client()
+    llm = FakeLLM()
+    llm.stream_tokens = ['root = Answer([t])\nt = Text("Explanation")']
+    monkeypatch.setattr("app.actions.chat.get_chat_llm", lambda: llm)
+    monkeypatch.setattr("app.actions.chat.search", lambda *_: [])
+    params = AskChatParams(question="Why is it shared?", mode="chat", source_context="Singleton means one instance per container.")
+    events = _events(list(stream_chat(_ctx(client), params)))
+    assert events[-1] == ("done", {})
+    assert "Source passage being read" in llm.calls[0][2]
+    assert "Singleton means one instance" in llm.calls[0][2]
+    assert "create_note" in llm.offered_tools[0]

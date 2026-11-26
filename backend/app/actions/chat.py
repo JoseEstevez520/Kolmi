@@ -124,6 +124,11 @@ class AskChatParams(BaseModel):
         description="For note mode, the note being written. For reader modes, the selected passage and nearby source context. At most 6000 characters are used.",
     )
 
+    source_context: str | None = Field(
+        default=None, max_length=6000,
+        description="Optional source passage selected in the reader and attached to a chat question. It is context, not instructions.",
+    )
+
 
 # The note a question comes from is context, not the subject: its end (what is being written
 # now) is kept, up to this much.
@@ -138,7 +143,9 @@ _NOTE_SYSTEMS = {
 
 
 def _note(params: "AskChatParams") -> str | None:
-    if params.mode == "chat" or not params.note:
+    if params.mode == "chat":
+        return params.source_context.strip() if params.source_context else None
+    if not params.note:
         return None
     text = params.note.strip()
     return text[-NOTE_CHARS:] if text else None
@@ -606,7 +613,7 @@ def stream_chat(ctx: Context, params: AskChatParams):
                 live=_open_live(ctx, params.live_id),
                 passages=passages,
                 note=note_text,
-                reading=params.mode.startswith("reader"),
+                reading=params.mode.startswith("reader") or bool(params.source_context),
                 system=_NOTE_SYSTEMS[params.mode](language) if in_note else None,
                 # From a note it may show a real thing with a photo from Wikimedia Commons.
                 extra_tools=[SEARCH_IMAGES_TOOL] if params.mode == "note" else None,
