@@ -9,6 +9,7 @@ import TextSkeleton from '../components/TextSkeleton.vue'
 import CardGrid from '../components/CardGrid.vue'
 import PageCard from '../components/PageCard.vue'
 import PageLayout from '../components/PageLayout.vue'
+import ReaderSelection from '../components/ReaderSelection.vue'
 import PageFiles from '../components/PageFiles.vue'
 import PageHistory from '../components/PageHistory.vue'
 import PageNav from '../components/PageNav.vue'
@@ -189,6 +190,7 @@ watch(id, load)
       <template v-else-if="isPage">
         <TextSkeleton v-if="loadingContent || waitingRenderer" />
         <template v-else>
+          <ReaderSelection :key="id" :title="title" :node-id="Number(id)">
           <component
             :is="openui.Renderer"
             v-if="showWeb"
@@ -204,6 +206,7 @@ watch(id, load)
             :description="t('node.pageEmpty')"
             :icon="FileText"
           />
+          </ReaderSelection>
           <PageFiles :files="node?.files ?? []" />
           <PageNav :id="id" />
         </template>

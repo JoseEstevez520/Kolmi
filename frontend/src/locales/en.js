@@ -2,6 +2,7 @@
 // vue-i18n message syntax: `{name}` is a value, `a | b` picks by count, and `@`, `$`, `{` and
 // `|` are special, so they are not used as plain characters here.
 export default {
+  reader: { selection: 'Reading actions', explain: 'Curio', chat: 'Ask in chat', back: 'Back to the explanation', close: 'Close', explore: 'Explore', thinking: 'Explaining', building: 'Building the explanation', retry: 'Try again', failed: 'The explanation could not be loaded.' },
   notifications: { title: 'Activity', week: 'This week', digest: '{pages} pages updated · {passes} AI passes', reply: 'Forum reply' },
   oauth: { invalid: 'Missing authorization request.', access: 'Access the class notebook with your permissions.', deny: 'Deny', allow: 'Allow', loading: 'Loading request' },
   app: {

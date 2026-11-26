@@ -18,6 +18,7 @@ import { joinNote, splitNote } from '../lib/notes.js'
 import { usePolling } from '../lib/polling.js'
 import { useIdleChrome } from '../lib/idleChrome.js'
 import { exitZen, toggleZen, zen } from '../lib/zen.js'
+import ReaderSelection from '../components/ReaderSelection.vue'
 import { chatEnabled, loadChatEnabled, setChatPage } from '../lib/chat.js'
 import { streamNoteAi } from '../lib/noteAi.js'
 
@@ -460,8 +461,10 @@ onMounted(() => loadNodes().catch(() => {}))
 
     <template v-else-if="closed">
       <Callout type="note" :title="t('notes.write.closedTitle')">{{ t('notes.write.closed') }}</Callout>
+      <ReaderSelection :title="title">
       <Markdown v-if="closed.format === 'markdown'" :source="closed.content" :components="{ 'kolmi-ai': NoteAiFence }" class="mt-8" />
       <p v-else class="mt-8 whitespace-pre-line text-fg-secondary">{{ closed.content }}</p>
+      </ReaderSelection>
     </template>
 
     <template v-else>

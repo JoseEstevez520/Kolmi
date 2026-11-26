@@ -16,6 +16,17 @@ export function sourceTitles(ids) {
 // Whether the admin turned the chat on for this class, read once when the app shell mounts
 // (App.vue): the bubble shows only then. `null` while unknown, so it shows only once we're sure.
 export const chatEnabled = ref(null)
+// A selection can prepare a question without sending it or filling the composer. Never persisted across accounts.
+export const draft = ref('')
+export const draftQuote = ref(null)
+
+export function stageReaderQuestion(title, text, context) {
+  draftQuote.value = { title: (title || '').trim(), text: text.trim(), context }
+}
+
+export function clearReaderQuestion() {
+  draftQuote.value = null
+}
 
 // A failed read (a redeploy, a dropped connection) doesn't switch the chat off: what was known
 // stays, and it asks again a few times, so the chat and the AI in a note don't vanish from an
@@ -123,6 +134,8 @@ watch(
 )
 
 function clearConversation() {
+  draft.value = ''
+  draftQuote.value = null
   messages.value = []
   clearStored()
   if (open.value) greet()
@@ -135,6 +148,8 @@ watch(
   (id) => {
     // `undefined` is the session not being read yet: nothing to decide.
     if (id !== undefined && id !== owner) {
+      draft.value = ''
+      draftQuote.value = null
       if (messages.value.length) clearConversation()
       owner = id
     }
@@ -166,6 +181,12 @@ export async function send(text) {
     .slice(-HISTORY_MESSAGES)
     .map((m) => ({ role: m.role, text: m.text.slice(0, HISTORY_CHARS) }))
 
+  const picked = draftQuote.value
+  const sourceContext = picked
+    ? `Selected passage: "${picked.text}"\n\n${picked.context}`.slice(0, 6000)
+    : ''
+  draftQuote.value = null
+  draft.value = ''
   messages.value.push({ id: nextId++, role: 'user', text: question })
   // `text: ''` from the start, not left out: ChatMessage only shows its "thinking" line once it
   // has a (possibly empty) text to show instead of.
@@ -200,7 +221,7 @@ export async function send(text) {
       } else if (name === 'proposal') reply.proposals.push(withLocalState(data))
       else if (name === 'done') finished = true
       else if (name === 'error') failure = data.message || t('chat.error')
-    }, pageId, liveId)
+    }, pageId, liveId, sourceContext ? { source_context: sourceContext } : {})
     // A stream that closes without `done` was cut on the way (a network or proxy that drops
     // long connections), not finished: say so instead of leaving a blank reply.
     if (!finished && !failure) failure = t('chat.dropped')

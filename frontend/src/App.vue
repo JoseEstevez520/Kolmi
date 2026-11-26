@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { MotionConfig } from 'motion-v'
 import {
+  Button,
   ChatComposer,
   ChatMorph,
   PageTransition,
@@ -14,6 +15,7 @@ import {
   Tour,
   TourStep,
 } from 'elastic-ui'
+import { X } from '@lucide/vue'
 import AppBreadcrumbs from './components/AppBreadcrumbs.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import ChatConversation from './components/ChatConversation.vue'
@@ -21,6 +23,9 @@ import { hinted, isWaiting, profile, session } from './lib/auth.js'
 import {
   activity,
   chatEnabled,
+  clearReaderQuestion,
+  draft,
+  draftQuote,
   loadChatEnabled,
   messages,
   open as chatOpen,
@@ -152,7 +157,23 @@ const indicator = ref(null)
       :activity="activity"
     >
       <ChatConversation />
-      <ChatComposer :placeholder="t('chat.placeholder')" :responding="responding" @send="send" />
+      <div v-if="draftQuote" class="mx-auto flex w-full max-w-2xl px-4 pt-2">
+        <div class="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-bg-muted px-3.5 py-2 text-meta text-fg-secondary">
+          <span class="min-w-0 flex-1 truncate">
+            <span v-if="draftQuote.title" class="text-fg-muted">{{ draftQuote.title }} · </span>“{{ draftQuote.text }}”
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            class="size-6 shrink-0"
+            :icon="X"
+            :aria-label="t('reader.close')"
+            :title="t('reader.close')"
+            @click="clearReaderQuestion"
+          />
+        </div>
+      </div>
+      <ChatComposer v-model="draft" :placeholder="t('chat.placeholder')" :responding="responding" @send="send" />
     </ChatMorph>
 
     <ScrollIndicator ref="indicator" :class="tocShown && '2xl:hidden'" />

@@ -6,6 +6,7 @@ import { Button, Callout, ConfirmButton, Status } from 'elastic-ui'
 import { ArrowLeft, Maximize2, Minimize2 } from '@lucide/vue'
 import LiveFollowers from '../components/LiveFollowers.vue'
 import LiveWatch from '../components/LiveWatch.vue'
+import ReaderSelection from '../components/ReaderSelection.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
 import { api } from '../lib/api.js'
 import { profile } from '../lib/auth.js'
@@ -121,7 +122,9 @@ async function remove() {
           <p class="text-fg-muted" :title="t('live.notChecked')">{{ note.author ?? '?' }}</p>
         </div>
 
-        <LiveWatch v-if="!note.ended || note.content" :content="note.content ?? ''" :live="note.live" />
+        <ReaderSelection :title="note.title" :live-id="id">
+          <LiveWatch v-if="!note.ended || note.content" :content="note.content ?? ''" :live="note.live" />
+        </ReaderSelection>
       </template>
     </div>
   </main>

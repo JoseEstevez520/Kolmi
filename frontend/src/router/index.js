@@ -120,6 +120,12 @@ const routes = [
           component: () => import('../views/DevNoteAiView.vue'),
           meta: { public: true },
         },
+        {
+          path: '/dev/curio',
+          name: 'dev-curio',
+          component: () => import('../views/DevCurioView.vue'),
+          meta: { public: true },
+        },
       ]
     : []),
   { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },
