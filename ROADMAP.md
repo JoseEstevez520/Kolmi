@@ -467,7 +467,9 @@ Same tools, same loop, another trigger.
   then **Explore** for `mode: reader_detail` with Markdown, OpenUI visual fences and Artifacts,
   plus deeper selection trails and a breadcrumb back). **Ask in chat** stages the quote above
   the composer without filling the input box or spending a model call until sent
-  (`source_context`). Dev preview at `/dev/curio` (`?fake` for simulated streams).
+  (`source_context`). Dev preview at `/dev/curio` (`?fake` for simulated streams). Left: open
+  Curio straight in the visual explanation without the initial plain-text glance step (#11), and
+  verify/surface how Curio counts against the class AI usage limit (#12).
 - [ ] More languages beyond English and Spanish.
 - [ ] Better interactive pieces, if pages turn out to need them.
 
