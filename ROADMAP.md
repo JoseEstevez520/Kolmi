@@ -136,7 +136,7 @@ a GitHub repo and writes the class's notes in Kolmi.
   [docs/authentication.md](docs/authentication.md).
 - [x] **Users, cleanup** — uploads, downloads and avatar requests recheck membership after a
   403, just like normal API calls. The obsolete `approved` column is removed. Apply
-  `supabase/migrations/20261126160000_page_rebuild_and_user_cleanup.sql` before deploying.
+  `supabase/migrations/20261126160100_page_rebuild_and_user_cleanup.sql` before deploying.
 - [x] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
   (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class. See
   [docs/mcp.md](docs/mcp.md). Done, in a first batch:
@@ -455,7 +455,7 @@ Same tools, same loop, another trigger.
 - [x] The page shows its working state while `write_page`, `rebuild_page` or the pass remake
   it. A shared timestamp covers API workers and the scheduled pass; the page polls the work
   status and refreshes its content when finished. Apply
-  `supabase/migrations/20261126160000_page_rebuild_and_user_cleanup.sql` before deploying.
+  `supabase/migrations/20261126160100_page_rebuild_and_user_cleanup.sql` before deploying.
 - [ ] Moderation and reporting tools.
 - [ ] More contribution types (links, images, files over the MCP).
 - [x] In-app activity feed: rolling weekly digest of completed AI passes and changed pages, plus replies to forum threads the member participates in (`/notifications`). No email or push delivery.
