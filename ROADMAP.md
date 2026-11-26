@@ -134,9 +134,9 @@ a GitHub repo and writes the class's notes in Kolmi.
   Supabase Auth; the files on shared pages stay. Apply `supabase/migrations/20261007120000_users.sql`
   and `20261008120000_first_admin.sql` before deploying it. See
   [docs/authentication.md](docs/authentication.md).
-- [ ] **Users, what's left** — one small thing (a blocked person with the app open now goes to
-  the waiting screen on their next 403, from the API client; downloads and uploads don't yet):
-  - Drop the `approved` column in its own migration, once the status has run stable for a while.
+- [x] **Users, cleanup** — uploads, downloads and avatar requests recheck membership after a
+  403, just like normal API calls. The obsolete `approved` column is removed. Apply
+  `supabase/migrations/20261126160000_page_rebuild_and_user_cleanup.sql` before deploying.
 - [x] **The MCP** — Kolmi as a server for anyone's own AI, in the same FastAPI at `/mcp`
   (streamable HTTP, the `mcp` Python SDK), so it stays one instance per class. See
   [docs/mcp.md](docs/mcp.md). Done, in a first batch:
@@ -412,7 +412,6 @@ Same tools, same loop, another trigger.
   reason shows in the note's bar.
   Tried against the real model in `/dev/note-ai` (no note saved); `?fake` streams a made-up
   answer. Left:
-  - The pass reads the fence's program as text; it should read it as what it shows, or skip it.
   - Completing in ink, step by step, for an idea to grasp (structures and data stay clean). The
     ink look itself is built: "Diagrams by hand" in Settings (off by default, in this browser)
     draws every Figure's chips, areas and arrows with Rough.js, in notes, the chat and the pages
@@ -452,8 +451,10 @@ Same tools, same loop, another trigger.
   source contents; attached photos can use an optional vision endpoint. Scanned PDFs still
   need OCR, and the model comparison remains open. Try another model for the pages' drawings, such as
   OpenUI's own.
-- [ ] The page showing it is being rebuilt, while `write_page`, `rebuild_page` or the pass remake
-  it. Needs a state per page and the web asking for it; today the new version just appears.
+- [x] The page shows its working state while `write_page`, `rebuild_page` or the pass remake
+  it. A shared timestamp covers API workers and the scheduled pass; the page polls the work
+  status and refreshes its content when finished. Apply
+  `supabase/migrations/20261126160000_page_rebuild_and_user_cleanup.sql` before deploying.
 - [ ] Moderation and reporting tools.
 - [ ] More contribution types (links, images, files over the MCP).
 - [x] In-app activity feed: rolling weekly digest of completed AI passes and changed pages, plus replies to forum threads the member participates in (`/notifications`). No email or push delivery.

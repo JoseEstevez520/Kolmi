@@ -88,6 +88,7 @@ async function fetchFile(path) {
     } catch {
       /* not JSON: the status text will do */
     }
+    if (response.status === 403) await checkAccess()
     throw new ApiError(response.status, detail || response.statusText || t('api.failed'))
   }
   const named = /filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '')
@@ -110,7 +111,7 @@ function upload({ file, noteId = null, nodeId = null, onProgress }) {
       if (event.lengthComputable) onProgress?.(event.loaded / event.total)
     }
     xhr.onerror = () => reject(new ApiError(0, t('api.unreachable')))
-    xhr.onload = () => {
+    xhr.onload = async () => {
       let data = null
       try {
         data = JSON.parse(xhr.responseText)
@@ -118,7 +119,10 @@ function upload({ file, noteId = null, nodeId = null, onProgress }) {
         // Not JSON: the status says enough.
       }
       if (xhr.status >= 200 && xhr.status < 300) resolve(data)
-      else reject(new ApiError(xhr.status, (data && data.detail) || t('api.failed')))
+      else {
+        if (xhr.status === 403) await checkAccess()
+        reject(new ApiError(xhr.status, (data && data.detail) || t('api.failed')))
+      }
     }
     xhr.send(file)
   })
@@ -142,7 +146,10 @@ async function avatar(method, blob) {
   } catch {
     // Not JSON: the status says enough.
   }
-  if (!response.ok) throw new ApiError(response.status, (data && data.detail) || t('api.failed'))
+  if (!response.ok) {
+    if (response.status === 403) await checkAccess()
+    throw new ApiError(response.status, (data && data.detail) || t('api.failed'))
+  }
   return data
 }
 
@@ -230,6 +237,7 @@ export const api = {
   // its text).
   nodes: () => request('/nodes'),
 
+  pageWork: (nodeId) => request(`/node/work?node_id=${encodeURIComponent(nodeId)}`),
   node: (nodeId) => request(`/node?node_id=${encodeURIComponent(nodeId)}`),
 
   // Admin, the AI log: the passes, what the AI did with each note or page, and

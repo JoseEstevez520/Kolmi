@@ -101,7 +101,7 @@ def _create_page(
     stats["created"] += 1
 
 
-def _write_batch(
+def _write_batch_content(
     store: Store,
     llm: LLM,
     web_llm: LLM | None,
@@ -176,6 +176,11 @@ def _write_batch(
     if decisions:
         entry["decisions"] = decisions
     stats["pages"].append(entry)
+
+
+def _write_batch(store, llm, web_llm, pass_id, batch, page, stats, language):
+    with store.rebuilding(page["id"]):
+        _write_batch_content(store, llm, web_llm, pass_id, batch, page, stats, language)
 
 
 def _attach_files(

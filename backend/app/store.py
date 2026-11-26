@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
@@ -18,6 +19,8 @@ class Store(Protocol):
     The pass never talks to Supabase directly: it goes through this, so the
     whole flow can be tested with a fake store and no network.
     """
+
+    def rebuilding(self, node_id: int | None): ...
 
     def pending_notes(self) -> list[dict[str, Any]]: ...
 
@@ -115,6 +118,20 @@ class SupabaseStore:
 
     def __init__(self, client=None) -> None:
         self.client = client or get_client()
+
+    @contextmanager
+    def rebuilding(self, node_id: int | None):
+        """Keep previous content readable while work is shared across API and cron processes."""
+        if node_id is None:
+            yield
+            return
+        started = datetime.now(timezone.utc).isoformat()
+        self.client.table("nodes").update({"rebuild_started_at": started}).eq("id", node_id).execute()
+        try:
+            yield
+        finally:
+            # A newer writer owns its own status and must not be cleared by this one.
+            self.client.table("nodes").update({"rebuild_started_at": None}).eq("id", node_id).eq("rebuild_started_at", started).execute()
 
     def class_language(self) -> str:
         return class_language(self.client)

@@ -6,7 +6,6 @@ create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   role text not null default 'student' check (role in ('student', 'admin')),
-  approved boolean not null default true,  -- no longer read: status took over
   -- What they may do, apart from their role: active, pending (waiting for an admin) or blocked.
   -- Also in migrations/20261007120000_users.sql.
   status text not null default 'active' check (status in ('active', 'pending', 'blocked')),
@@ -27,6 +26,7 @@ create table if not exists nodes (
   position int not null default 0,
   on_home boolean not null default false,
   content_md text not null default '',   -- Markdown, derived for the RAG
+  rebuild_started_at timestamptz,
   content_web text not null default '',  -- OpenUI Lang the frontend paints
   updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()

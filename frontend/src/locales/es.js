@@ -418,6 +418,7 @@ export default {
   },
 
   node: {
+    rebuilding: 'Reconstruyendo',
     page: 'Página',
     section: 'Sección',
     error: 'No se ha podido cargar.',

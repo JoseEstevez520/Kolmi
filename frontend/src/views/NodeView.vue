@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ActionButton, Button, Callout, Empty, Markdown } from 'elastic-ui'
+import { ActionButton, Button, Callout, Empty, Markdown, Status } from 'elastic-ui'
 import { FileQuestion, FileText, Layers } from '@lucide/vue'
 import CardGridSkeleton from '../components/CardGridSkeleton.vue'
 import TextSkeleton from '../components/TextSkeleton.vue'
@@ -12,6 +12,8 @@ import PageLayout from '../components/PageLayout.vue'
 import PageFiles from '../components/PageFiles.vue'
 import PageHistory from '../components/PageHistory.vue'
 import PageNav from '../components/PageNav.vue'
+import { api } from '../lib/api.js'
+import { usePolling } from '../lib/polling.js'
 import { profile } from '../lib/auth.js'
 import { flatten, loadNode, loadNodes, nodes, pages, prefetchNode, trailTo } from '../lib/content.js'
 import { downloadExport } from '../lib/export.js'
@@ -50,6 +52,32 @@ const title = computed(() => {
   return node.value?.title || (isPage.value ? t('node.page') : t('node.section'))
 })
 const loadingContent = computed(() => isPage.value && !(id.value in pages.value))
+
+const rebuilding = ref(false)
+let workNode = null
+let revision = null
+usePolling(async () => {
+  if (!isPage.value) return
+  const currentId = id.value
+  try {
+    const state = await api.pageWork(currentId)
+    if (currentId !== id.value) return
+    if (workNode !== currentId) {
+      workNode = currentId
+      revision = state.updated_at
+      rebuilding.value = false
+    }
+    const finished = rebuilding.value && !state.rebuilding
+    rebuilding.value = state.rebuilding
+    if (!state.rebuilding && (finished || (revision != null && revision !== state.updated_at))) {
+      await loadNode(currentId, true)
+    }
+    revision = state.updated_at
+  } catch {
+    // Keep the current page readable through a failed polling beat.
+  }
+}, 4000)
+watch(id, () => { rebuilding.value = false })
 
 // The renderer draws what it can and reports the rest; a page is still worth showing.
 function onRenderErrors(errors) {
@@ -119,8 +147,9 @@ watch(id, load)
         />
       </template>
       <!-- An admin sees a page's earlier versions, and puts one back. -->
-      <template v-else-if="node && isPage && isAdmin" #actions>
-        <PageHistory :node-id="id" />
+      <template v-else-if="node && isPage" #actions>
+        <Status v-if="rebuilding" compact state="working" :label="t('node.rebuilding')" />
+        <PageHistory v-if="isAdmin" :node-id="id" />
       </template>
 
       <Empty

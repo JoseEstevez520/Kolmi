@@ -81,7 +81,7 @@ def _log(client, node_id: int, action_: str, reason: str, user_id: str, source: 
     ).execute()
 
 
-def rewrite_page(
+def _rewrite_page(
     client,
     *,
     node_id: int,
@@ -163,6 +163,11 @@ def rewrite_page(
             _log(client, node_id, "flagged", f"Could not write the page: {exc}", user_id, source)
         except Exception:
             log.exception("could not log the failure of page %s", node_id)
+
+
+def rewrite_page(client, **kwargs: Any) -> None:
+    with SupabaseStore(client).rebuilding(kwargs["node_id"]):
+        _rewrite_page(client, **kwargs)
 
 
 def start_rewrite(client, **kwargs: Any) -> None:

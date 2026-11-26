@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from fastapi import HTTPException
@@ -144,6 +145,28 @@ def view_node(ctx: Context, params: ViewNodeParams):
         .data
     )
     return node
+
+
+@action(
+    name="page_work_status",
+    read_only=True,
+    tool=False,
+    mcp=False,
+    description="Whether a page is being rebuilt, and when its saved content last changed.",
+    method="GET",
+    path="/node/work",
+)
+def page_work_status(ctx: Context, params: ViewNodeParams):
+    rows = ctx.client.table("nodes").select("id, kind, rebuild_started_at, updated_at").eq("id", params.node_id).limit(1).execute().data
+    if not rows:
+        raise HTTPException(404, "The page no longer exists")
+    node = rows[0]
+    started = node.get("rebuild_started_at")
+    rebuilding = False
+    if started:
+        moment = datetime.fromisoformat(started.replace("Z", "+00:00"))
+        rebuilding = moment > datetime.now(timezone.utc) - timedelta(minutes=30)
+    return {"rebuilding": rebuilding, "updated_at": node.get("updated_at")}
 
 
 @action(

@@ -421,6 +421,7 @@ export default {
   },
 
   node: {
+    rebuilding: 'Rebuilding',
     page: 'Page',
     section: 'Section',
     error: 'Could not load this node.',

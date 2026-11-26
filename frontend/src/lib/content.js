@@ -65,8 +65,8 @@ export function loadNodes(force = false) {
 export const pages = ref({})
 const pagesInflight = new Map()
 
-export function loadNode(id) {
-  if (id in pages.value) return Promise.resolve(pages.value[id])
+export function loadNode(id, force = false) {
+  if (!force && id in pages.value) return Promise.resolve(pages.value[id])
   if (pagesInflight.has(id)) return pagesInflight.get(id)
   const request = api
     .node(id)

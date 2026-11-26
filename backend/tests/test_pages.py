@@ -220,3 +220,29 @@ def test_restoring_a_missing_version_is_a_404():
         invoke(get_registry()["restore_version"], _ctx(_with_versions()), {"version_id": 99})
     assert err.value.status_code == 404
     assert "list_versions" in err.value.detail
+
+
+def test_rebuild_marks_the_page_while_working_and_clears_on_failure(monkeypatch):
+    from app.actions.content import ViewNodeParams, page_work_status
+
+    client = _Client(_nodes())
+    ctx = _ctx(client)
+
+    def fail(*args, **kwargs):
+        assert page_work_status(ctx, ViewNodeParams(node_id=2))["rebuilding"] is True
+        raise RuntimeError("generation failed")
+
+    monkeypatch.setattr(pages, "build_page", fail)
+    pages.rewrite_page(client, node_id=2, markdown="", mode="rebuild", user_id="u1", source="web", llm=FakeLLM())
+    assert page_work_status(ctx, ViewNodeParams(node_id=2))["rebuilding"] is False
+    assert client.tables["nodes"][1]["content_md"]
+    assert client.tables["ai_log"][-1]["action"] == "flagged"
+
+
+def test_rebuild_cleanup_does_not_clear_a_newer_writer():
+    from app.store import SupabaseStore
+
+    client = _Client(_nodes())
+    with SupabaseStore(client).rebuilding(2):
+        client.tables["nodes"][1]["rebuild_started_at"] = "2099-01-01T00:00:00+00:00"
+    assert client.tables["nodes"][1]["rebuild_started_at"] == "2099-01-01T00:00:00+00:00"

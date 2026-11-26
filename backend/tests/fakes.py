@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from typing import Any
 
 from app.store import place_among
@@ -75,6 +76,10 @@ class FakeLLM:
 
 class FakeStore:
     """The daily pass's IO, in memory."""
+
+    @contextmanager
+    def rebuilding(self, node_id):
+        yield
 
     def __init__(
         self,
