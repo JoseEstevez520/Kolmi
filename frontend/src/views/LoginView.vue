@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Button, Callout, Field, Input } from 'elastic-ui'
 import AuthLayout from '../components/AuthLayout.vue'
@@ -8,6 +8,8 @@ import GoogleIcon from '../components/GoogleIcon.vue'
 import { resetPassword, signIn, signInWithGoogle } from '../lib/auth.js'
 
 const router = useRouter()
+const route = useRoute()
+const destination = () => typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/oauth/consent?') ? route.query.redirect : '/'
 const { t } = useI18n()
 
 const email = ref('')
@@ -22,7 +24,7 @@ async function submit() {
   loading.value = true
   try {
     await signIn(email.value.trim(), password.value)
-    router.push('/')
+    router.push(destination())
   } catch (e) {
     error.value = e.message || t('login.errorLong')
   } finally {
@@ -34,7 +36,7 @@ async function withGoogle() {
   error.value = ''
   info.value = ''
   try {
-    await signInWithGoogle()
+    await signInWithGoogle(destination())
   } catch (e) {
     error.value = e.message || t('login.googleError')
   }

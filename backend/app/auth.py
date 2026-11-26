@@ -100,6 +100,25 @@ def app_only(ctx: "Context") -> None:
         raise HTTPException(403, "Not with a personal token: do this in the app")
 
 
+def verify_jwt(client: Client, token: str) -> dict[str, Any] | None:
+    """Validate a Supabase JWT access token against the project's signing keys and return its
+    claims, or None when invalid, expired or missing a user subject."""
+    if not token:
+        return None
+    try:
+        response = client.auth.get_claims(token)
+    except Exception:  # invalid, expired or forged token
+        return None
+
+    claims = response["claims"] if response else None
+    if not claims or not claims.get("sub"):
+        return None
+    exp = claims.get("exp")
+    if isinstance(exp, (int, float)) and exp < time.time():
+        return None
+    return claims
+
+
 def get_context(
     authorization: str | None = Header(default=None),
     client: Client = Depends(get_client),
@@ -117,16 +136,11 @@ def get_context(
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
         return ctx
 
-    try:
-        response = client.auth.get_claims(token)
-    except Exception as exc:  # invalid, expired or forged token
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from exc
-
-    claims = response["claims"] if response else None
-    user_id = claims.get("sub") if claims else None
-    if not user_id:
+    claims = verify_jwt(client, token)
+    if not claims:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
 
+    user_id = claims["sub"]
     return Context(
         user_id=user_id,
         email=claims.get("email"),

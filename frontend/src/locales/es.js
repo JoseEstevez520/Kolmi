@@ -1,6 +1,8 @@
 // The app's texts in Spanish (Spain, "tú"), with the same keys as en.js. Written for the
 // class, not translated word for word.
 export default {
+  notifications: { title: 'Actividad', week: 'Esta semana', digest: '{pages} páginas actualizadas · {passes} pasadas de IA', reply: 'Respuesta en el foro' },
+  oauth: { invalid: 'Falta la solicitud de autorización.', access: 'Acceder al cuaderno de clase con tus permisos.', deny: 'Denegar', allow: 'Permitir', loading: 'Cargando solicitud' },
   app: {
     title: 'Kolmi',
     slogan: 'Aprende en colmena.',

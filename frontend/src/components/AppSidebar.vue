@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { NavTree, NavTreeItem, Sidebar } from 'elastic-ui'
 import {
   CalendarDays,
+  Bell,
   FileText,
   Folder,
   Home,
@@ -78,6 +79,7 @@ async function handleSignOut() {
     </template>
 
     <NavTree :model-value="active">
+      <NavTreeItem value="/notifications" to="/notifications" :icon="Bell">{{ t('notifications.title') }}</NavTreeItem>
       <NavTreeItem value="/" to="/" :icon="Home">{{ t('sidebar.home') }}</NavTreeItem>
       <NavTreeItem value="/notes" to="/notes" :icon="NotebookPen" :count="liveCount" data-tour="nav-notes">
         {{ t('sidebar.notes') }}

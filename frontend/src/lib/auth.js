@@ -138,10 +138,10 @@ export async function signUp(email, password) {
   return data.session
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(destination = '/') {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${window.location.origin}/` },
+    options: { redirectTo: `${window.location.origin}${destination}` },
   })
   if (error) throw error
 }

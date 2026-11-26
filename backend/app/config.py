@@ -60,6 +60,13 @@ class Settings(BaseSettings):
     github_token: str = ""
     github_repo: str = ""
 
+    # Sign in over OAuth for chat apps on /mcp (app/mcp_server.py, docs/mcp.md), off by default.
+    # When on, /mcp accepts Supabase OAuth 2.1 access tokens alongside personal `kolmi_...` tokens
+    # and serves RFC 9728 protected-resource metadata. PUBLIC_URL sets the canonical origin (e.g.
+    # https://class.example.com) when a reverse proxy hides it; empty, the request's origin is used.
+    mcp_oauth_enabled: bool = False
+    public_url: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

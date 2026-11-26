@@ -147,6 +147,7 @@ async function avatar(method, blob) {
 }
 
 export const api = {
+  notifications: () => request('/notifications'),
   getProfile: () => request('/profile'),
   setAvatar: (blob) => avatar('POST', blob),
   removeAvatar: () => avatar('DELETE'),

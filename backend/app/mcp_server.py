@@ -11,14 +11,15 @@ guides an AI through turning material into class notes.
 
 The bearer token is checked with the SDK's own middleware (`BearerAuthBackend`,
 `RequireAuthMiddleware`) and a verifier of Kolmi's: an unknown or revoked token, or one whose
-owner isn't active, gets a 401. Kolmi issues its tokens itself and has no OAuth authorization
-server yet ("Sign in over OAuth" in the ROADMAP), so no protected-resource metadata is served.
+owner isn't active, gets a 401. When `MCP_OAUTH_ENABLED` is true, `/mcp` also accepts Supabase
+OAuth 2.1 access tokens and serves RFC 9728 protected-resource metadata for chat connectors.
 """
 
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from typing import Any
+from urllib.parse import urlparse
 
 import anyio
 from mcp import types
@@ -28,21 +29,31 @@ from mcp.server.auth.provider import AccessToken
 from mcp.server.lowlevel import Server
 from mcp.server.streamable_http_manager import StreamableHTTPASGIApp, StreamableHTTPSessionManager
 from mcp.server.transport_security import TransportSecuritySettings
-from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.routing import Route
-
+from mcp.shared.auth import ProtectedResourceMetadata
 from mcp.shared.exceptions import MCPError
+from pydantic import AnyHttpUrl
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+from starlette.routing import Route
+from starlette.types import Receive, Scope, Send
 
 from . import tokens
 from .agents.catalogue import TITLE as CATALOGUE_TITLE, URI as CATALOGUE_URI, catalogue_guide
 from .actions.registry import Action
 from .actions.tools import offered, run_tool
-from .auth import Context, _profile, check_active, status_of, token_context
+from .auth import Context, _profile, check_active, status_of, token_context, verify_jwt
 from .class_settings import class_language
+from .config import get_settings
 from .export import page_markdown, shared_pages
 from .supabase_client import get_client
 
 PATH = "/mcp"
+RESOURCE_METADATA_PATHS = (
+    "/.well-known/oauth-protected-resource",
+    f"/.well-known/oauth-protected-resource{PATH}",
+    f"/.well-known/oauth-protected-resource/api{PATH}",
+)
 INSTRUCTIONS = (
     "Kolmi is a class's shared notebook: notes left by its members become organized pages each "
     "night. Read the tree (list_nodes), a page (view_node) or search the pages (search_pages) "
@@ -53,17 +64,86 @@ INSTRUCTIONS = (
 )
 
 
+def _request_origin(scope: Scope) -> str:
+    headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
+    proto = (headers.get("x-forwarded-proto") or scope.get("scheme") or "http").split(",")[0].strip()
+    host = (headers.get("x-forwarded-host") or headers.get("host") or "").split(",")[0].strip()
+    if not host:
+        host_name, port = scope.get("server") or ("localhost", 8000)
+        default_port = (proto == "http" and port == 80) or (proto == "https" and port == 443)
+        host = host_name if default_port or port is None else f"{host_name}:{port}"
+    return f"{proto}://{host}"
+
+
+def _origin(scope: Scope) -> str:
+    configured = get_settings().public_url.strip().rstrip("/")
+    if configured:
+        parsed = urlparse(configured)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}"
+        return configured
+    return _request_origin(scope)
+
+
+def _public_mcp_url(scope: Scope) -> str:
+    configured = get_settings().public_url.strip().rstrip("/")
+    if configured:
+        return configured if configured.endswith(PATH) else f"{configured}{PATH}"
+    return f"{_request_origin(scope)}{PATH}"
+
+
+def _verify_personal_token(token: str) -> AccessToken | None:
+    ctx = token_context(get_client(), token)
+    # Someone pending or blocked doesn't get in through their AI either.
+    if ctx is None or status_of(ctx.profile) != "active":
+        return None
+    return AccessToken(token=token, client_id=f"kolmi:{ctx.user_id}", subject=ctx.user_id, scopes=["mcp"])
+
+
+def _verify_oauth_token(token: str) -> AccessToken | None:
+    client = get_client()
+    claims = verify_jwt(client, token)
+    if not claims:
+        return None
+    user_id = str(claims["sub"])
+    profile = _profile(client, user_id)
+    if status_of(profile) != "active":
+        return None
+    settings = get_settings()
+    resource = settings.public_url.strip().rstrip("/")
+    if resource and not resource.endswith(PATH):
+        resource += PATH
+    audience = claims.get("aud")
+    audiences = audience if isinstance(audience, list) else [audience]
+    client_id = claims.get("client_id")
+    exp = claims.get("exp")
+    if (not resource or resource not in audiences
+            or claims.get("iss") != f"{settings.supabase_url.rstrip('/')}/auth/v1"
+            or not isinstance(client_id, str) or not client_id
+            or not isinstance(exp, (int, float))):
+        return None
+    raw_scope = claims.get("scope")
+    scopes = raw_scope.split() if isinstance(raw_scope, str) else []
+    expires_at = int(exp)
+    return AccessToken(
+        token=token,
+        client_id=client_id,
+        subject=user_id,
+        scopes=scopes,
+        expires_at=expires_at,
+    )
+
+
 class KolmiTokens:
-    """The SDK's TokenVerifier for Kolmi's personal tokens. Never logs a token."""
+    """The SDK's TokenVerifier for Kolmi's personal tokens and, when enabled, Supabase OAuth JWTs.
+    Never logs a token."""
 
     async def verify_token(self, token: str) -> AccessToken | None:
-        if not tokens.is_token(token):
+        if tokens.is_token(token):
+            return await anyio.to_thread.run_sync(_verify_personal_token, token)
+        if not get_settings().mcp_oauth_enabled:
             return None
-        ctx = await anyio.to_thread.run_sync(token_context, get_client(), token)
-        # Someone pending or blocked doesn't get in through their AI either.
-        if ctx is None or status_of(ctx.profile) != "active":
-            return None
-        return AccessToken(token=token, client_id=f"kolmi:{ctx.user_id}", subject=ctx.user_id, scopes=[])
+        return await anyio.to_thread.run_sync(_verify_oauth_token, token)
 
 
 def _caller() -> Context:
@@ -298,9 +378,54 @@ sessions = StreamableHTTPSessionManager(
 )
 
 
+class _GuardedMCP:
+    """Wraps the MCP streamable HTTP transport with `RequireAuthMiddleware`, advertising the
+    RFC 9728 `resource_metadata` URL on 401 responses when OAuth is enabled."""
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        settings = get_settings()
+        metadata_url = (
+            AnyHttpUrl(f"{_origin(scope)}/.well-known/oauth-protected-resource{PATH}")
+            if settings.mcp_oauth_enabled
+            else None
+        )
+        required_scopes = []
+        middleware = RequireAuthMiddleware(
+            self.app,
+            required_scopes=required_scopes,
+            resource_metadata_url=metadata_url,
+        )
+        await middleware(scope, receive, send)
+
+
+async def _protected_resource_metadata(request: Request) -> Response:
+    settings = get_settings()
+    if not settings.mcp_oauth_enabled:
+        return JSONResponse({"detail": "Not found"}, status_code=404)
+    metadata = ProtectedResourceMetadata(
+        resource=_public_mcp_url(request.scope),
+        authorization_servers=[f"{settings.supabase_url.rstrip('/')}/auth/v1"],
+    )
+    return JSONResponse(
+        metadata.model_dump(mode="json", exclude_none=True),
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+def metadata_routes() -> list[Route]:
+    """RFC 9728 OAuth 2.0 Protected Resource Metadata endpoints, active when MCP_OAUTH_ENABLED is true."""
+    return [
+        Route(path, endpoint=_protected_resource_metadata, methods=["GET"])
+        for path in RESOURCE_METADATA_PATHS
+    ]
+
+
 def route() -> Route:
     """The /mcp route, for the FastAPI app: the transport, behind the SDK's bearer checks."""
-    guarded = RequireAuthMiddleware(StreamableHTTPASGIApp(sessions), required_scopes=[])
+    guarded = _GuardedMCP(StreamableHTTPASGIApp(sessions))
     app = AuthenticationMiddleware(AuthContextMiddleware(guarded), backend=BearerAuthBackend(KolmiTokens()))
     return Route(PATH, endpoint=app)
 

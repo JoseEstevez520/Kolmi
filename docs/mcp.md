@@ -146,3 +146,21 @@ from the app don't count.
 
 Text only: files over the MCP come later. The OAuth sign-in for chat apps, and the editors' install
 links once their formats are checked.
+
+## OAuth connectors (optional)
+
+Personal tokens continue to work. For browser consent with chat connectors, enable the
+Supabase OAuth server, configure its authorization path as `/oauth/consent`, and enable dynamic
+client registration if the connector needs it. Kolmi uses Supabase's authorization details,
+approval and denial SDK methods; it does not issue authorization codes itself.
+
+Set `MCP_OAUTH_ENABLED=true` and `PUBLIC_URL=https://class.example.com/api` on the backend.
+The resulting resource is `https://class.example.com/api/mcp`. Supabase must issue OAuth access
+tokens with that exact audience, the project's `/auth/v1` issuer and a `client_id`. Configure
+an OAuth access-token hook if needed; normal `authenticated` audience app sessions are rejected
+by MCP. Without a canonical `PUBLIC_URL`, OAuth JWTs are rejected. Configure the issuer and
+resource following Supabase's OAuth MCP guide before turning the flag on.
+
+The frontend proxy exposes protected-resource discovery at the domain root and under `/api`.
+The consent page requires an active class account and displays the requesting app and scopes.
+Admin actions retain their existing confirmation and role checks. OAuth is off by default.

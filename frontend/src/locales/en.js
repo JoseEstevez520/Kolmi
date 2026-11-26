@@ -2,6 +2,8 @@
 // vue-i18n message syntax: `{name}` is a value, `a | b` picks by count, and `@`, `$`, `{` and
 // `|` are special, so they are not used as plain characters here.
 export default {
+  notifications: { title: 'Activity', week: 'This week', digest: '{pages} pages updated · {passes} AI passes', reply: 'Forum reply' },
+  oauth: { invalid: 'Missing authorization request.', access: 'Access the class notebook with your permissions.', deny: 'Deny', allow: 'Allow', loading: 'Loading request' },
   app: {
     title: 'Kolmi',
     slogan: 'Learn as a hive.',

@@ -23,6 +23,8 @@ import WaitingView from '../views/WaitingView.vue'
 // Register, anything else to the home.
 const routes = [
   { path: '/', name: 'home', component: HomeView, meta: { layout: 'app' } },
+  { path: '/notifications', name: 'notifications', component: () => import('../views/NotificationsView.vue'), meta: { layout: 'app' } },
+  { path: '/oauth/consent', name: 'oauth-consent', component: () => import('../views/OAuthConsentView.vue') },
   { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/register', name: 'register', component: RegisterView, meta: { public: true } },
   // Signed in but not let in (pending or blocked): the only screen such a person gets. It needs a
@@ -129,7 +131,7 @@ const router = createRouter({
 
 // Where a visit goes for the person we know about: `true` to let it through, or a redirect.
 function decide(to, current) {
-  if (!session.value) return to.meta.public ? true : { name: 'login' }
+  if (!session.value) return to.meta.public ? true : { name: 'login', query: to.name === 'oauth-consent' ? { redirect: to.fullPath } : {} }
   if (!current) return to.name === 'register' ? true : { name: 'register' }
   // Someone waiting or blocked reaches nothing but the waiting screen and login.
   if (isWaiting(current)) {
