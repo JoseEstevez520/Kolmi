@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     llm_base_url: str = "https://api.deepseek.com"
     llm_model: str = "deepseek-flash"
+    # Optional vision endpoint for images attached to notes. Without it images remain unread.
+    vision_model: str = ""
+    vision_base_url: str = ""
+    vision_api_key: str = ""
     # The chat's own model, optional: a student waits on it, so a faster one may suit it better
     # than the pass's. Same endpoint and key as above; empty, the chat uses `llm_model`.
     chat_model: str = ""

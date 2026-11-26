@@ -105,7 +105,7 @@ rules and example.
 `backend/evals/pieces.json` holds ten briefs on different subjects, written the way the page model
 writes one for an Artifact. `run_piece_evals` has the web model write each piece with the pass's
 own prompt and checks (`web._draw`), draws it in headless Chromium at 340 px on the library's
-sandbox runtime, in light and in dark, and prints a row per piece: valid, runs (no script error),
+sandbox runtime, in light and in dark, and prints a row per piece: valid, compile (Vue SFC compiler), runs (no script error),
 shows (something on screen before it is touched), touch (a control exists and changes the page),
 fits (no horizontal scroll) and light/dark (text at 3:1 or better). It touches no database and
 isn't part of the image; it needs `playwright` from `requirements-dev.txt` and a Chromium
@@ -122,6 +122,37 @@ contrast skips anything with a gradient behind it. The first run, with `deepseek
 valid, nine that run, ten that show, touch and fit, ten in light and eight in dark. The one that
 didn't run passed every structural check and failed on mount, which is the case only a real draw
 catches.
+
+## Shared format checks
+
+`shared/page-format-cases.json` holds 40 completed programs, their expected acceptance and,
+for valid programs, their resolved trees. Both `pytest` and `npm test` use those same cases;
+CI runs both. Empty pages are rejected by product policy even though the streaming parser can
+represent them. This covers the page subset of OpenUI, not its query or reactive state features.
+
+The piece bench also calls `frontend/scripts/check-piece.mjs`: Vue's own SFC parser, script,
+template and style compilers, without executing the supplied script. Vue is already a dependency;
+there is no new compiler package. This stays in the development bench until measurements show
+that moving it into the daily pass is worth the extra Node runtime. The browser check remains
+necessary: compiling does not prove that a piece runs or fits.
+
+The implementation follows the [Vue compiler's documented workflow](https://github.com/vuejs/core/blob/main/packages/compiler-sfc/README.md)
+and uses [OpenUI's official parser](https://www.openui.com/docs/openui-lang/specification)
+for the frontend cases.
+
+## Reading attachments
+
+The pass extracts text layers from the first 40 PDF pages with `pypdf`, keeping at most 24,000
+characters per attachment. ZIP previews include the contents of supported text/code files and
+PDFs, up to 40 entries and 2 MB of uncompressed input; nested archives and encrypted entries are
+skipped. Files are read in memory, never extracted into the server's filesystem. The gatekeeper
+receives that source with each file and can use it in the batch's summary.
+
+Photos use an optional OpenAI-compatible vision endpoint (`VISION_MODEL`, `VISION_BASE_URL`,
+`VISION_API_KEY`); the endpoint and key fall back to the main model's configuration. Its task is
+to transcribe visible text and describe visible relationships, leaving uncertain spans explicit.
+Without a vision model, or on failure, the file says it has not been read. A scanned PDF without
+a text layer still needs OCR and is not treated as having been read.
 
 ## Regenerating the prompt
 
@@ -190,3 +221,6 @@ them.
   the Gateway. Not used yet: a page that doesn't parse falls back instead.
 - **Telemetry**: `lang-core` sends install telemetry unless `OPENUI_TELEMETRY_DISABLED=1`
   or `DO_NOT_TRACK=1` is set. `npm run page-prompt` sets it for the CLI.
+
+PDF extraction uses [pypdf's text extraction](https://pypdf.readthedocs.io/en/stable/user/extract-text.html).
+It reads the text layer; it does not recognize handwriting or text embedded in pictures.

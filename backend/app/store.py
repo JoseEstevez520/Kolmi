@@ -154,6 +154,9 @@ class SupabaseStore:
             try:
                 data = self.client.storage.from_(filelib.BUCKET).download(row["path"])
                 peek = filelib.peek(row["name"], data)
+                if filelib.kind_of(row["name"]) == "image":
+                    from .file_vision import describe_image
+                    peek = describe_image(data, row.get("mime") or "image/png")
             except Exception:  # the file is listed without a peek
                 peek = ""
             by_id[row["note_id"]]["files"].append(

@@ -30,6 +30,7 @@ import argparse
 import json
 import os
 import sys
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +44,8 @@ from app.config import get_settings  # noqa: E402
 
 CASES = Path(__file__).with_name("pieces.json")
 RUNTIME = Path(__file__).resolve().parents[2] / "frontend" / "node_modules" / "elastic-ui" / "dist" / "sandbox-runtime.js"
-COLUMNS = ["valid", "runs", "shows", "touch", "fits", "light", "dark"]
+COMPILER = Path(__file__).resolve().parents[2] / "frontend/scripts/check-piece.mjs"
+COLUMNS = ["valid", "compile", "runs", "shows", "touch", "fits", "light", "dark"]
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <style>html,body{{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font-sans);font-size:14px;line-height:1.5}}</style>
@@ -147,6 +149,19 @@ def draw(llm: Any, case: dict[str, Any], language: str) -> tuple[str, str]:
     return web._draw(llm, "piece", case["brief"], case["label"], case.get("notes", ""), language)
 
 
+def compile_piece(piece: str) -> list[str]:
+    """The official Vue SFC compiler, as a development measurement, not a pass gate."""
+    try:
+        result = subprocess.run(
+            ["node", str(COMPILER)], input=piece, text=True, capture_output=True, timeout=20,
+        )
+        if result.returncode:
+            return [result.stderr.strip() or "the Vue compiler failed"]
+        return json.loads(result.stdout)["problems"]
+    except (OSError, subprocess.TimeoutExpired, ValueError, KeyError) as exc:
+        return [str(exc)]
+
+
 def measure(browser: Any, piece: str) -> dict[str, Any]:
     """Draw the piece at 340 px in each theme and measure it."""
     result: dict[str, Any] = {}
@@ -230,6 +245,8 @@ def main() -> int:
                 piece, problem = draw(llm, case, data["language"])
                 marks: dict[str, tuple[bool, str]] = {"valid": (bool(piece), problem)}
                 if piece:
+                    compile_errors = compile_piece(piece)
+                    marks["compile"] = (not compile_errors, "; ".join(compile_errors))
                     measured = measure(browser, piece)
                     marks.update(judge(measured))
                     if options.keep:

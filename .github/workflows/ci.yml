@@ -38,7 +38,7 @@ jobs:
           cache-dependency-path: |
             frontend/package-lock.json
             landing/package-lock.json
-      - run: npm ci && npm run build
+      - run: npm ci && npm test && npm run build
         working-directory: frontend
       - run: npm ci && npm run build
         working-directory: landing

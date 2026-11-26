@@ -1,0 +1,701 @@
+[
+  {
+    "id": "text",
+    "source": "root = Page([part])\npart = Text(\"Hello\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "Hello"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "heading",
+    "source": "root = Page([part])\npart = Heading(\"Scope\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Heading",
+            "props": {
+              "text": "Scope"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "subheading",
+    "source": "root = Page([part])\npart = Heading(\"Example\", 3)",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Heading",
+            "props": {
+              "text": "Example",
+              "level": 3
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "code",
+    "source": "root = Page([part])\npart = CodeBlock(\"return 1\", \"js\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "CodeBlock",
+            "props": {
+              "code": "return 1",
+              "language": "js"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "empty-code",
+    "source": "root = Page([part])\npart = CodeBlock(\"\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "CodeBlock",
+            "props": {
+              "code": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "table",
+    "source": "root = Page([part])\npart = Table([\"Scope\", \"Instances\"], [[\"singleton\", \"one\"], [\"prototype\", \"many\"]])",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Table",
+            "props": {
+              "columns": [
+                "Scope",
+                "Instances"
+              ],
+              "rows": [
+                [
+                  "singleton",
+                  "one"
+                ],
+                [
+                  "prototype",
+                  "many"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "empty-table",
+    "source": "root = Page([part])\npart = Table([], [])",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Table",
+            "props": {
+              "columns": [],
+              "rows": []
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "callout",
+    "source": "root = Page([part])\npart = Callout(\"note\", \"Remember\", \"Same container\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Callout",
+            "props": {
+              "type": "note",
+              "text": "Remember",
+              "title": "Same container"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "artifact-brief",
+    "source": "root = Page([part])\npart = Artifact(\"Scopes\", \"Compare ids\", 320)",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Artifact",
+            "props": {
+              "title": "Scopes",
+              "brief": "Compare ids",
+              "height": 320
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "artifact-piece",
+    "source": "root = Page([part])\npart = Artifact(\"Counter\", \"Increment\", 200, \"<template><button>1</button></template>\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Artifact",
+            "props": {
+              "title": "Counter",
+              "brief": "Increment",
+              "height": 200,
+              "piece": "<template><button>1</button></template>"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "diagram",
+    "source": "root = Page([part])\npart = Diagram(\"Flow\", \"A to B\", \"Caption\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Diagram",
+            "props": {
+              "label": "Flow",
+              "brief": "A to B",
+              "caption": "Caption"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "figure",
+    "source": "root = Page([part])\npart = Figure(\"A\", [c])\nc = Chip(\"A\", \"blue\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Figure",
+            "props": {
+              "label": "A",
+              "parts": [
+                {
+                  "typeName": "Chip",
+                  "props": {
+                    "text": "A",
+                    "color": "blue"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "group",
+    "source": "root = Page([part])\npart = Figure(\"Group\", [g])\ng = Group([a, b], \"row\")\na = Chip(\"A\", \"green\")\nb = Chip(\"B\", \"violet\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Figure",
+            "props": {
+              "label": "Group",
+              "parts": [
+                {
+                  "typeName": "Group",
+                  "props": {
+                    "parts": [
+                      {
+                        "typeName": "Chip",
+                        "props": {
+                          "text": "A",
+                          "color": "green"
+                        }
+                      },
+                      {
+                        "typeName": "Chip",
+                        "props": {
+                          "text": "B",
+                          "color": "violet"
+                        }
+                      }
+                    ],
+                    "layout": "row"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "arrow",
+    "source": "root = Page([part])\npart = Figure(\"Flow\", [a, b, c])\na = Chip(\"A\")\nb = Arrow(\"calls\")\nc = Chip(\"B\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Figure",
+            "props": {
+              "label": "Flow",
+              "parts": [
+                {
+                  "typeName": "Chip",
+                  "props": {
+                    "text": "A"
+                  }
+                },
+                {
+                  "typeName": "Arrow",
+                  "props": {
+                    "label": "calls"
+                  }
+                },
+                {
+                  "typeName": "Chip",
+                  "props": {
+                    "text": "B"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "steps",
+    "source": "root = Page([part])\npart = Steps([s])\ns = StepItem(\"Create\", \"A bean\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Steps",
+            "props": {
+              "items": [
+                {
+                  "typeName": "StepItem",
+                  "props": {
+                    "title": "Create",
+                    "text": "A bean"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "description",
+    "source": "root = Page([part])\npart = DescriptionList([d])\nd = DescriptionItem(\"Scope\", \"Lifetime\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "DescriptionList",
+            "props": {
+              "items": [
+                {
+                  "typeName": "DescriptionItem",
+                  "props": {
+                    "term": "Scope",
+                    "text": "Lifetime"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "accordion",
+    "source": "root = Page([part])\npart = Accordion([a])\na = AccordionItem(\"Why?\", \"One container\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Accordion",
+            "props": {
+              "items": [
+                {
+                  "typeName": "AccordionItem",
+                  "props": {
+                    "title": "Why?",
+                    "text": "One container"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "cards",
+    "source": "root = Page([part])\npart = Cards([c])\nc = Card(\"A\", \"Details\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Cards",
+            "props": {
+              "items": [
+                {
+                  "typeName": "Card",
+                  "props": {
+                    "title": "A",
+                    "text": "Details"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "empty-page",
+    "source": "root = Page([])",
+    "valid": false
+  },
+  {
+    "id": "forward-reference",
+    "source": "root = Page([b, a])\na = Text(\"A\")\nb = Text(\"B\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "B"
+            }
+          },
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "A"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "repeated-reference",
+    "source": "root = Page([a, a])\na = Text(\"A\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "A"
+            }
+          },
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "A"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "nested-call",
+    "source": "root = Page([Text(\"Inline\")])",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "Inline"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "comment",
+    "source": "// Comment\nroot = Page([t]) // tail\nt = Text(\"Text\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "Text"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "blank-lines",
+    "source": "\nroot = Page([t])\n\nt = Text(\"Text\")\n",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "Text"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "unicode",
+    "source": "root = Page([t])\nt = Text(\"Ámbito — 一個 🐝\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "Ámbito — 一個 🐝"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "escaped-quotes",
+    "source": "root = Page([t])\nt = Text(\"a \\\"quote\\\" and \\\\ path\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "a \"quote\" and \\ path"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "escaped-newline",
+    "source": "root = Page([t])\nt = Text(\"one\\ntwo\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "one\ntwo"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "empty-text",
+    "source": "root = Page([t])\nt = Text(\"\")",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "trailing-comma",
+    "source": "root = Page([t,])\nt = Text(\"A\",)",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "A"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "single-quotes",
+    "source": "root = Page([t])\nt = Text('A')",
+    "valid": true,
+    "shape": {
+      "typeName": "Page",
+      "props": {
+        "blocks": [
+          {
+            "typeName": "Text",
+            "props": {
+              "markdown": "A"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "unknown-component",
+    "source": "root = Page([x])\nx = Missing(\"A\")",
+    "valid": false
+  },
+  {
+    "id": "text-number",
+    "source": "root = Page([t])\nt = Text(1)",
+    "valid": false
+  },
+  {
+    "id": "missing-text",
+    "source": "root = Page([t])\nt = Text()",
+    "valid": false
+  },
+  {
+    "id": "table-wrong-rows",
+    "source": "root = Page([t])\nt = Table([\"A\"], \"rows\")",
+    "valid": false
+  },
+  {
+    "id": "missing-reference",
+    "source": "root = Page([missing])",
+    "valid": false
+  },
+  {
+    "id": "wrong-root",
+    "source": "root = Text(\"A\")",
+    "valid": false
+  },
+  {
+    "id": "incomplete-call",
+    "source": "root = Page([]",
+    "valid": false
+  },
+  {
+    "id": "incomplete-string",
+    "source": "root = Page([Text(\"unfinished",
+    "valid": false
+  },
+  {
+    "id": "empty-source",
+    "source": "",
+    "valid": false
+  },
+  {
+    "id": "heading-array",
+    "source": "root = Page([h])\nh = Heading([\"A\"])",
+    "valid": false
+  }
+]

@@ -59,6 +59,9 @@ _MIMES: dict[str, tuple[str, ...]] = {
 _TEXT_KINDS = ("text", "data", "config", "code")
 PEEK_CHARS = 1500
 PEEK_ENTRIES = 40
+DOCUMENT_CHARS = 24000
+ARCHIVE_READ_BYTES = 2 * 1024 * 1024
+PDF_PAGES = 40
 
 
 def extension(name: str) -> str:
@@ -102,19 +105,58 @@ def object_key(owner: str, name: str) -> str:
     return f"{owner}/{uuid.uuid4().hex}" + (f".{ext}" if ext.isalnum() else "")
 
 
+def _pdf_text(data: bytes) -> str:
+    # No OCR: an empty extraction means the model has not read the scanned pages.
+    from pypdf import PdfReader
+
+    try:
+        reader = PdfReader(BytesIO(data))
+        chunks = []
+        remaining = DOCUMENT_CHARS
+        for index, page in enumerate(reader.pages):
+            if index >= PDF_PAGES or remaining <= 0:
+                break
+            text = (page.extract_text() or "")[:remaining]
+            chunks.append(f"Page {index + 1}:\n{text}")
+            remaining -= len(text)
+        return "\n\n".join(chunks)[:DOCUMENT_CHARS] if any(c.split(":\n", 1)[1].strip() for c in chunks) else ""
+    except Exception:
+        return ""
+
+
 def peek(name: str, data: bytes) -> str:
-    """What the gatekeeper sees of a file: a zip's entries, or the start of a text or code file."""
+    """A bounded text extraction for the pass, including source files inside an archive."""
     kind = kind_of(name)
     if kind == "zip":
         try:
             with zipfile.ZipFile(BytesIO(data)) as archive:
-                names = [i.filename for i in archive.infolist() if not i.is_dir()]
-        except zipfile.BadZipFile:
+                entries = [i for i in archive.infolist() if not i.is_dir()]
+                more = f" (and {len(entries) - PEEK_ENTRIES} more)" if len(entries) > PEEK_ENTRIES else ""
+                chunks = ["Entries: " + ", ".join(i.filename for i in entries[:PEEK_ENTRIES]) + more]
+                remaining = ARCHIVE_READ_BYTES
+                for entry in entries[:PEEK_ENTRIES]:
+                    entry_kind = kind_of(entry.filename)
+                    if entry_kind not in (*_TEXT_KINDS, "pdf") or entry.flag_bits & 1:
+                        continue
+                    if entry.file_size > remaining or entry.file_size > ARCHIVE_READ_BYTES:
+                        continue
+                    remaining -= entry.file_size
+                    with archive.open(entry) as stream:
+                        payload = stream.read(ARCHIVE_READ_BYTES + 1)
+                    if len(payload) > ARCHIVE_READ_BYTES:
+                        continue
+                    text = peek(entry.filename, payload)
+                    if text.strip():
+                        chunks.append(f"\n--- {entry.filename} ---\n{text}")
+                    if sum(map(len, chunks)) >= DOCUMENT_CHARS:
+                        break
+                return "\n".join(chunks)[:DOCUMENT_CHARS]
+        except (zipfile.BadZipFile, OSError, RuntimeError, ValueError):
             return ""
-        more = f" (and {len(names) - PEEK_ENTRIES} more)" if len(names) > PEEK_ENTRIES else ""
-        return "Entries: " + ", ".join(names[:PEEK_ENTRIES]) + more
+    if kind == "pdf":
+        return _pdf_text(data)
     if kind in _TEXT_KINDS:
-        return data[: PEEK_CHARS * 4].decode("utf-8", errors="replace")[:PEEK_CHARS]
+        return data[: DOCUMENT_CHARS * 4].decode("utf-8", errors="replace")[:DOCUMENT_CHARS]
     return ""
 
 

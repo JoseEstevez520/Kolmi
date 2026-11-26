@@ -8,3 +8,4 @@ openai
 markdown-it-py
 ddgs
 mcp>=2.3,<3
+pypdf>=5,<7

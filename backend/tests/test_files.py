@@ -284,7 +284,7 @@ def _zip(*names):
 
 
 def test_the_peek_lists_a_zip_and_starts_a_text_file():
-    assert peek("p.zip", _zip("src/a.py", "README.md")) == "Entries: src/a.py, README.md"
+    assert peek("p.zip", _zip("src/a.py", "README.md")).startswith("Entries: src/a.py, README.md")
     assert peek("a.py", b"print('hi')") == "print('hi')"
     assert peek("a.pdf", b"%PDF") == ""
     assert peek("bad.zip", b"nope") == ""
@@ -347,3 +347,46 @@ def test_a_file_of_another_batch_or_unknown_is_not_attached():
                          "file_ids": [5, 99]}], "discarded": []}
     run_daily_pass(store=store, llm=FakeLLM(json_response=plan, text_response="# Git"), language="en")
     assert store.attached == []
+
+
+def test_archive_peek_reads_source_without_extracting_paths():
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("../../Example.java", "class Bean { int id = 7; }")
+        archive.writestr("nested.zip", b"not recursively read")
+    text = peek("project.zip", buffer.getvalue())
+    assert "class Bean" in text
+    assert "not recursively read" not in text
+
+
+def test_archive_peek_skips_oversized_entries():
+    from app.files import ARCHIVE_READ_BYTES
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("large.txt", "secret-content" * ARCHIVE_READ_BYTES)
+        archive.writestr("small.txt", "useful notes")
+    text = peek("project.zip", buffer.getvalue())
+    assert "secret-content" not in text
+    assert "useful notes" in text
+
+
+def test_pdf_peek_reads_a_text_layer():
+    from pypdf import PdfWriter
+    from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
+    writer = PdfWriter()
+    page = writer.add_blank_page(width=200, height=200)
+    font = DictionaryObject({NameObject("/Type"): NameObject("/Font"), NameObject("/Subtype"): NameObject("/Type1"), NameObject("/BaseFont"): NameObject("/Helvetica")})
+    page[NameObject("/Resources")] = DictionaryObject({NameObject("/Font"): DictionaryObject({NameObject("/F1"): writer._add_object(font)})})
+    content = DecodedStreamObject()
+    content.set_data(b"BT /F1 12 Tf 10 100 Td (Singleton scope) Tj ET")
+    page[NameObject("/Contents")] = writer._add_object(content)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    assert "Singleton scope" in peek("notes.pdf", buffer.getvalue())
+
+
+def test_image_without_vision_is_explicitly_unread(monkeypatch):
+    from types import SimpleNamespace
+    from app import file_vision
+    monkeypatch.setattr(file_vision, "get_settings", lambda: SimpleNamespace(vision_model=""))
+    assert "not been read" in file_vision.describe_image(b"image", "image/png")

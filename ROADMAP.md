@@ -332,15 +332,14 @@ Same tools, same loop, another trigger.
   official OpenUI packages, and the backend carries its own Python parser
   (`app/agents/openui/`, about 560 lines) next to a prompt and schemas generated from the
   frontend. The catalogue doesn't drift, since the backend reads it from that generated spec;
-  what is written twice is the grammar, about 150 lines, which has barely changed. Two things are
-  missing, in this order:
-  - **Shared conformance cases.** Around 40 pages (source, expected shape, expected problems) in
-    one file, run against the official parser in the frontend tests and against the Python one in
-    `pytest`, so a difference fails CI.
-  - **A check that runs the piece.** The backend only checks a piece with regexes
-    (`_piece_problem`), so one that doesn't compile is seen when someone opens the page. A Node
-    script with Vue's compiler goes into the bench below and measures how many broken pieces it
-    catches that the regexes miss.
+  what is written twice is the grammar, about 150 lines, which has barely changed. The shared
+  checks are in place; comparison runs are still needed before changing the architecture:
+  - [x] **Shared conformance cases.** 40 completed programs with expected acceptance and
+    resolved shape in `shared/page-format-cases.json`, checked by the official frontend parser
+    and Python in CI.
+  - [x] **A compiler check in the bench.** `frontend/scripts/check-piece.mjs` uses Vue's
+    SFC compiler to report script, template and style errors without executing the piece.
+    The bench measures compilation alongside its existing browser checks.
   Only if that number is high does it get moved into the pass as a subprocess, and only after
   that is a Node service (`page-kit`, owning the catalogue, parser and checks, called over HTTP)
   worth weighing: it costs another container on a small server, and the compiler alone doesn't
@@ -452,8 +451,9 @@ Same tools, same loop, another trigger.
   - A title from a cheap call. The daily cap counts the user's messages, not tool rounds; none
     for admins.
 - [ ] **Better pages** — some notes that would suit a drawing come out with none (a flow got a
-  diagram, three beans sharing an instance did not); the pass can't read a PDF, a zip or a photo,
-  so a file only gets judged by its name. Try another model for the pages' drawings, such as
+  diagram, three beans sharing an instance did not). The pass now extracts PDF text and ZIP
+  source contents; attached photos can use an optional vision endpoint. Scanned PDFs still
+  need OCR, and the model comparison remains open. Try another model for the pages' drawings, such as
   OpenUI's own.
 - [ ] The page showing it is being rebuilt, while `write_page`, `rebuild_page` or the pass remake
   it. Needs a state per page and the web asking for it; today the new version just appears.
